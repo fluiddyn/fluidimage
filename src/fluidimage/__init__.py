@@ -20,10 +20,12 @@ FluidImage
 """
 
 import sys
+import subprocess
 from pathlib import Path
-from subprocess import getoutput
+from shutil import which
 
 import numpy as np
+
 from fluiddyn.util import create_object_from_file, get_memory_usage
 from fluiddyn.util.paramcontainer import ParamContainer
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles, SeriesOfArrays
@@ -58,23 +60,26 @@ if any(
 
 
 def get_path_image_samples():
-    try:
-        from ._path_image_samples import path_image_samples
-    except ImportError:
-        pass
-    else:
-        if path_image_samples.exists():
-            return path_image_samples
-
     path_image_samples = (
         Path.home() / ".local/fluidimage/repository/image_samples"
     )
     path_repo = path_image_samples.parent
     path_repo.mkdir(parents=True, exist_ok=True)
     if not path_image_samples.exists():
-        getoutput(
-            f"hg clone https://foss.heptapod.net/fluiddyn/fluidimage {path_repo}"
-        )
+        cmd = None
+        hg = which("hg")
+        if hg is not None:
+            cmd = hg
+            path_https = "https://foss.heptapod.net/fluiddyn/fluidimage"
+        else:
+            git = which("git")
+            if git is not None:
+                cmd = git
+                path_https = "https://github.com/fluiddyn/fluidimage/"
+        if cmd is not None:
+            subprocess.run(
+                [cmd, "clone", path_https, str(path_repo)], check=False
+            )
     return path_image_samples
 
 
