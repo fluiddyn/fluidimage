@@ -1,0 +1,14 @@
+Run in a terminal from this directory::
+
+  make html
+
+Also useful::
+
+  make clean
+  make cleanall
+
+Dependencies to build the documentation:
+
+- sphinx
+- numpydoc
+
