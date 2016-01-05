@@ -47,4 +47,5 @@ setup(
         'Programming Language :: Cython',
         'Programming Language :: C'],
     packages=find_packages(exclude=[
-        'doc', 'include', 'scripts']))
+        'doc', 'include', 'scripts']),
+    install_requires=['numpy', 'scipy', 'fluiddyn'])
