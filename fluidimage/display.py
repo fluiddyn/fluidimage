@@ -24,6 +24,8 @@ def display(im0, im1, ixvec=None, iyvec=None, vecx=None, vecy=None):
 
     ax.set_xlim([0, im0.shape[1]])
     ax.set_ylim([0, im0.shape[0]])
+    ax.set_xlabel('pixels')
+    ax.set_ylabel('pixels')
 
     if ixvec is not None:
         q = ax.quiver(ixvec, iyvec, vecx, vecy, picker=10)

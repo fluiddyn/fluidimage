@@ -10,13 +10,8 @@ be organized in sub-steps.
 
 """
 
-from copy import copy
-
 import numpy as np
 
-from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles, SeriesOfArrays
-
-import display
 from correl import calcul_correl_norm_scipy, CorrelWithFFT
 
 
@@ -172,29 +167,39 @@ class Filter(BaseStep):
 
 
 if __name__ == '__main__':
+    import os
+    from copy import copy
 
-    path = 'samples/Karman'
-    base_name = 'PIVlab_Karman'
+    from fluiddyn.util.serieofarrays import \
+        SerieOfArraysFromFiles, SeriesOfArrays
+    import display
 
-    def give_indslices_from_indserie(iserie):
-        indslices = copy(serie_arrays._index_slices_all_files)
-        indslices[0] = [iserie+1, iserie+3]
-        return indslices
+    HOME = os.environ['HOME']
+    base_path = os.path.join(HOME, 'Dev/howtopiv')
 
-    # path = 'samples/Oseen'
-    # base_name = 'PIVlab_Oseen_z'
+    # path = 'samples/Karman'
+    # base_name = 'PIVlab_Karman'
 
     # def give_indslices_from_indserie(iserie):
     #     indslices = copy(serie_arrays._index_slices_all_files)
-    #     indslices[0] = [2*iserie+1, 2*iserie+3, 1]
+    #     indslices[0] = [iserie+1, iserie+3]
     #     return indslices
 
-    serie_arrays = SerieOfArraysFromFiles(path, base_name=base_name)
+    path = 'samples/Oseen'
+    base_name = 'PIVlab_Oseen_z'
+
+    def give_indslices_from_indserie(iserie):
+        indslices = copy(serie_arrays._index_slices_all_files)
+        indslices[0] = [2*iserie+1, 2*iserie+3, 1]
+        return indslices
+
+    serie_arrays = SerieOfArraysFromFiles(
+        os.path.join(base_path, path), base_name=base_name)
     series = SeriesOfArrays(serie_arrays, give_indslices_from_indserie,
                             ind_stop=None)
 
     o = FirstPIVStep(
-        series_images=series, n_interrogation_window=64, step=0.9)
+        series_images=series, n_interrogation_window=64, step=0.6)
     o.prepare()
     o.compute_outputs()
 
