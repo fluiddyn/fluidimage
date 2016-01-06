@@ -13,7 +13,7 @@ be organized in sub-steps.
 from copy import copy
 
 import numpy as np
-
+import scipy as sc
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles, SeriesOfArrays
 
 import display
@@ -59,6 +59,31 @@ class BasePIVStep(BaseStep):
 
         correl = CorrelWithFFT(niw, niw)
         self._calcul_correl_norm = correl.calcul_correl_norm
+
+    def subpix_interp(correl_map):   # fonction d'interpolation subpixel permet d'avoir les dépalcement en fraction de pixel
+        correl_map=(correl_map-correl_map.min())/(correl_map.max()-correl_map.min()) # normalisation
+        ny=correl_map.shape[0]
+        nx=correl_map.shape[1]
+        Y=np.dot(np.reshape(np.linspace(1,ny,ny),(ny,1)),np.ones((1,nx))) # grille
+        X=np.dot(np.ones((ny,1)),np.reshape(np.linspace(1,nx,nx),(1,nx))) # grille
+        correl_map=np.reshape(correl_map,(nx*ny,1),order='F')
+        X=np.reshape(X,(nx*ny,1),order='F')
+        Y=np.reshape(Y,(nx*ny,1),order='F')
+        X=np.double(X)
+        Y=np.double(Y)
+        M=np.reshape(np.concatenate((X**2,Y**2,X,Y,X**0)),(nx*ny,5),order='F')
+        coef=np.dot(np.linalg.pinv(M),sc.log(A))
+        Sx=1/np.sqrt(-2*coef[0])
+        Sy=1/np.sqrt(-2*coef[1])
+        X0=coef[2]*Sx**2
+        Y0=coef[3]*Sy**2
+        deplx=X0-(nx+1)/2 # displacement x
+        deply=Y0-(ny+1)/2 # displacement y
+
+        return deplx, deply
+
+
+
 
     def prepare(self):
         super(BasePIVStep, self).prepare()
