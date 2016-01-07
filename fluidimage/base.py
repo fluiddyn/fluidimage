@@ -10,8 +10,9 @@ be organized in sub-steps.
 
 """
 
+from __future__ import print_function
+
 import numpy as np
-import scipy as sc
 
 from correl import calcul_correl_norm_scipy, CorrelWithFFT
 
@@ -128,8 +129,8 @@ class BasePIVStep(BaseStep):
     def _find_peak_subpixel(self, correl, ix, iy):
         return ix, iy
 
-    def subpix_interp(correl_map):
-        """Subpixel interpolation (buggy)
+    def _find_peak_linalg(self, correl):
+        """Find peak using linalg.solve (buggy)
 
         Parameters
         ----------
@@ -138,26 +139,57 @@ class BasePIVStep(BaseStep):
 
           Normalized correlation
         """
-        ny = correl_map.shape[0]
-        nx = correl_map.shape[1]
-        Y = np.dot(np.reshape(
-            np.linspace(1, ny, ny), (ny, 1)), np.ones((1, nx)))  # grille
-        X = np.dot(np.ones((ny, 1)),
-                   np.reshape(np.linspace(1, nx, nx), (1, nx)))  # grille
-        correl_map = np.reshape(correl_map, (nx*ny, 1), order='F')
-        X = np.reshape(X, (nx*ny, 1), order='F')
-        Y = np.reshape(Y, (nx*ny, 1), order='F')
-        X = np.double(X)
-        Y = np.double(Y)
-        M = np.reshape(np.concatenate((X**2, Y**2, X, Y, X**0)),
-                       (nx*ny, 5), order='F')
-        coef = np.dot(np.linalg.pinv(M), sc.log(A))
-        Sx = 1/np.sqrt(-2*coef[0])
-        Sy = 1/np.sqrt(-2*coef[1])
-        X0 = coef[2]*Sx**2
-        Y0 = coef[3]*Sy**2
-        deplx = X0-(nx+1)/2  # displacement x
-        deply = Y0-(ny+1)/2  # displacement y
+        ny = correl.shape[0]
+        nx = correl.shape[1]
+
+        xs = np.arange(nx, dtype=float)
+        ys = np.arange(ny, dtype=float)
+        X, Y = np.meshgrid(xs, ys)
+
+        correl_map = correl.ravel()
+        correl_map[correl_map == 0.] = 1e-6
+        X = X.ravel()
+        Y = Y.ravel()
+
+        # Y = np.dot(np.reshape(
+        #     np.linspace(1, ny, ny), (ny, 1)), np.ones((1, nx)))  # grille
+        # X = np.dot(np.ones((ny, 1)),
+        #            np.reshape(np.linspace(1, nx, nx), (1, nx)))  # grille
+        # correl_map = np.reshape(correl_map, (nx*ny, 1), order='F')
+        # X = np.reshape(X, (nx*ny, 1), order='F')
+        # Y = np.reshape(Y, (nx*ny, 1), order='F')
+        # X = np.double(X)
+        # Y = np.double(Y)
+        # M = np.reshape(np.concatenate((X**2, Y**2, X, Y, X**0)),
+        #                (nx*ny, 5), order='F')
+
+        M = np.reshape(np.concatenate(
+            (X**2, Y**2, X, Y, np.ones(nx*ny))), (5, nx*ny)).T
+
+        # from fluiddyn.util.debug_with_ipython import ipydebug
+        
+        coef = np.dot(np.linalg.pinv(M), np.log(correl_map))
+
+        print(M,  np.log(correl_map))
+
+        # coef, residuals, rank, s = np.linalg.lstsq(M,  np.log(correl_map))
+
+        print('coef:', coef)
+        # print('residuals', residuals[0]/(nx*ny))
+
+        sigmax = 1/np.sqrt(-2*coef[0])
+        sigmay = 1/np.sqrt(-2*coef[1])
+        X0 = coef[2]*sigmax**2
+        Y0 = coef[3]*sigmay**2
+        deplx = X0 - nx/2  # displacement x
+        deply = Y0 - ny/2  # displacement y
+
+        print('depl', deplx, deply)
+
+        if np.isnan(deplx) or np.isnan(deply) or \
+           abs(deplx) > 10 or abs(deplx) > 10:
+            # deplx, deply = self._find_peak_base(correl)
+            deplx, deply = 0., 0.
 
         return deplx, deply
 
