@@ -28,7 +28,7 @@ def display(im0, im1, ixvec=None, iyvec=None, vecx=None, vecy=None):
     ax.set_ylabel('pixels')
 
     if ixvec is not None:
-        q = ax.quiver(ixvec, iyvec, vecx, vecy, picker=10)
+        q = ax.quiver(ixvec, iyvec, vecx, vecy, picker=10, color='w')
 
     def onclick(event):
         if event.inaxes != ax:

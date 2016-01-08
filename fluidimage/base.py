@@ -10,7 +10,12 @@ be organized in sub-steps.
 
 """
 
+
+
 from __future__ import print_function
+
+import matplotlib.pyplot as plt
+
 
 import numpy as np
 
@@ -37,13 +42,13 @@ class BaseStep(object):
 
 class BasePIVStep(BaseStep):
     def __init__(self, params=None, data=None, series_images=None,
-                 n_interrogation_window=None, step=None,
+                 n_interrogation_window=None, overlap=None,
                  region_of_interest=None):
         self.n_interrogation_window = n_interrogation_window
 
-        if step is None:
-            step = 0.5
-        self.step = step
+        if overlap is None:
+            overlap = 0.5
+        self.overlap = overlap
         self.region_of_interest = region_of_interest
         self.series_images = series_images
 
@@ -69,10 +74,10 @@ class BasePIVStep(BaseStep):
 
         len_y, len_x = im0.shape
         niw = self.n_interrogation_window
-        step = int(np.round(self.step*niw))
+        overlap = int(np.round(self.overlap*niw))
 
-        self.inds_x_vec = np.arange(0, len_x, step, dtype=int)
-        self.inds_y_vec = np.arange(0, len_y, step, dtype=int)
+        self.inds_x_vec = np.arange(0, len_x, overlap, dtype=int)
+        self.inds_y_vec = np.arange(0, len_y, overlap, dtype=int)
 
     def compute_outputs(self, compute_all=False):
         for index, serie in enumerate(self.series_images):
@@ -111,7 +116,7 @@ class BasePIVStep(BaseStep):
                     deltaxs[iy, ix] = deltax
                     deltays[iy, ix] = deltay
                 except NoPeakError:
-                    pass
+                    raise NoPeakError
 
         results = {
             'correls': correls, 'deltaxs': deltaxs, 'deltays': deltays}
@@ -126,11 +131,11 @@ class BasePIVStep(BaseStep):
             correl, ix, iy)
         return ix - self.niwo2, iy - self.niwo2
 
-    def _find_peak_subpixel(self, correl, ix, iy):
+    def _find_peak_subpixel_old(self, correl, ix, iy):
         return ix, iy
 
-    def _find_peak_linalg(self, correl):
-        """Find peak using linalg.solve (buggy)
+    def _find_peak_subpixel(self, correl, ix, iy):
+        """Find peak using linalg.solve (buggy?)
 
         Parameters
         ----------
@@ -139,8 +144,21 @@ class BasePIVStep(BaseStep):
 
           Normalized correlation
         """
-        ny = correl.shape[0]
-        nx = correl.shape[1]
+        n = self.n_subpix_zoom = 4
+
+        ny, nx = correl.shape
+
+        if iy-n < 0 or iy+n+1 > ny or \
+           ix-n < 0 or ix+n+1 > ny:
+            raise NoPeakError
+
+        # crop: possibly buggy!
+        correl = correl[iy-n:iy+n+1,
+                        ix-n:ix+n+1]
+
+        ny, nx = correl.shape
+
+        assert nx == ny == 2*n + 1
 
         xs = np.arange(nx, dtype=float)
         ys = np.arange(ny, dtype=float)
@@ -151,31 +169,12 @@ class BasePIVStep(BaseStep):
         X = X.ravel()
         Y = Y.ravel()
 
-        # Y = np.dot(np.reshape(
-        #     np.linspace(1, ny, ny), (ny, 1)), np.ones((1, nx)))  # grille
-        # X = np.dot(np.ones((ny, 1)),
-        #            np.reshape(np.linspace(1, nx, nx), (1, nx)))  # grille
-        # correl_map = np.reshape(correl_map, (nx*ny, 1), order='F')
-        # X = np.reshape(X, (nx*ny, 1), order='F')
-        # Y = np.reshape(Y, (nx*ny, 1), order='F')
-        # X = np.double(X)
-        # Y = np.double(Y)
-        # M = np.reshape(np.concatenate((X**2, Y**2, X, Y, X**0)),
-        #                (nx*ny, 5), order='F')
-
         M = np.reshape(np.concatenate(
             (X**2, Y**2, X, Y, np.ones(nx*ny))), (5, nx*ny)).T
 
-        # from fluiddyn.util.debug_with_ipython import ipydebug
-        
-        coef = np.dot(np.linalg.pinv(M), np.log(correl_map))
+        # coef = np.dot(np.linalg.pinv(M), np.log(correl_map))
 
-        print(M,  np.log(correl_map))
-
-        # coef, residuals, rank, s = np.linalg.lstsq(M,  np.log(correl_map))
-
-        print('coef:', coef)
-        # print('residuals', residuals[0]/(nx*ny))
+        coef, residuals, rank, s = np.linalg.lstsq(M,  np.log(correl_map))
 
         sigmax = 1/np.sqrt(-2*coef[0])
         sigmay = 1/np.sqrt(-2*coef[1])
@@ -184,14 +183,7 @@ class BasePIVStep(BaseStep):
         deplx = X0 - nx/2  # displacement x
         deply = Y0 - ny/2  # displacement y
 
-        print('depl', deplx, deply)
-
-        if np.isnan(deplx) or np.isnan(deply) or \
-           abs(deplx) > 10 or abs(deplx) > 10:
-            # deplx, deply = self._find_peak_base(correl)
-            deplx, deply = 0., 0.
-
-        return deplx, deply
+        return deplx + ix, deply + iy
 
 
 class FirstPIVStep(BasePIVStep):
@@ -243,13 +235,13 @@ if __name__ == '__main__':
     HOME = os.environ['HOME']
     base_path = os.path.join(HOME, 'Dev/howtopiv')
 
-    # path = 'samples/Karman'
-    # base_name = 'PIVlab_Karman'
+    # # path = 'samples/Karman'
+    # # base_name = 'PIVlab_Karman'
 
-    # def give_indslices_from_indserie(iserie):
-    #     indslices = copy(serie_arrays._index_slices_all_files)
-    #     indslices[0] = [iserie+1, iserie+3]
-    #     return indslices
+    # # def give_indslices_from_indserie(iserie):
+    # #     indslices = copy(serie_arrays._index_slices_all_files)
+    # #     indslices[0] = [iserie+1, iserie+3]
+    # #     return indslices
 
     path = 'samples/Oseen'
     base_name = 'PIVlab_Oseen_z'
@@ -265,7 +257,7 @@ if __name__ == '__main__':
                             ind_stop=None)
 
     o = FirstPIVStep(
-        series_images=series, n_interrogation_window=64, step=0.6)
+        series_images=series, n_interrogation_window=64, overlap=0.5)
     o.prepare()
     o.compute_outputs()
 
@@ -278,3 +270,21 @@ if __name__ == '__main__':
         deltays = results['deltays']
 
         display.display(im0, im1, o.inds_x_vec, o.inds_y_vec, deltaxs, deltays)
+
+    # nx = ny = 16
+
+    # xs = np.arange(nx, dtype=float)
+    # ys = np.arange(ny, dtype=float)
+    # X, Y = np.meshgrid(xs, ys)
+
+    # x0 = y0 = 5.
+    # sigma = 1.
+
+    # correl = np.exp(-((X-x0)**2 + (Y-y0)**2)/(2*sigma**2))
+
+    # 
+    # plt.ion()
+    # # plt.imshow(correl)
+
+    
+    # o._find_peak_linalg(correl)
