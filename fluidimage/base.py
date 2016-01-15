@@ -232,24 +232,23 @@ if __name__ == '__main__':
         SerieOfArraysFromFiles, SeriesOfArrays
     import display
 
-    HOME = os.environ['HOME']
-    base_path = os.path.join(HOME, 'Dev/howtopiv')
-
-    # # path = 'samples/Karman'
-    # # base_name = 'PIVlab_Karman'
-
-    # # def give_indslices_from_indserie(iserie):
-    # #     indslices = copy(serie_arrays._index_slices_all_files)
-    # #     indslices[0] = [iserie+1, iserie+3]
-    # #     return indslices
-
-    path = 'samples/Oseen'
-    base_name = 'PIVlab_Oseen_z'
+    base_path = '/fsnet/project/meige/2016/16FLUIDIMAGE'
+    
+    path = base_path + '/samples/Karman'
+    base_name = 'PIVlab_Karman'
 
     def give_indslices_from_indserie(iserie):
         indslices = copy(serie_arrays._index_slices_all_files)
-        indslices[0] = [2*iserie+1, 2*iserie+3, 1]
+        indslices[0] = [iserie+1, iserie+3]
         return indslices
+
+    # path = base_path + '/samples/Oseen'
+    # base_name = 'PIVlab_Oseen_z'
+
+    # def give_indslices_from_indserie(iserie):
+    #     indslices = copy(serie_arrays._index_slices_all_files)
+    #     indslices[0] = [2*iserie+1, 2*iserie+3, 1]
+    #     return indslices
 
     serie_arrays = SerieOfArraysFromFiles(
         os.path.join(base_path, path), base_name=base_name)
