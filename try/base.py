@@ -11,15 +11,12 @@ be organized in sub-steps.
 """
 
 
-
 from __future__ import print_function
 
-import matplotlib.pyplot as plt
-
-
+# import matplotlib.pyplot as plt
 import numpy as np
 
-from correl import calcul_correl_norm_scipy, CorrelWithFFT
+from fluidimage.calcul.correl import CorrelWithFFT
 
 
 class NoPeakError(Exception):
@@ -233,7 +230,7 @@ if __name__ == '__main__':
     import display
 
     base_path = '/fsnet/project/meige/2016/16FLUIDIMAGE'
-    
+
     path = base_path + '/samples/Karman'
     base_name = 'PIVlab_Karman'
 
@@ -281,9 +278,7 @@ if __name__ == '__main__':
 
     # correl = np.exp(-((X-x0)**2 + (Y-y0)**2)/(2*sigma**2))
 
-    # 
     # plt.ion()
     # # plt.imshow(correl)
 
-    
     # o._find_peak_linalg(correl)

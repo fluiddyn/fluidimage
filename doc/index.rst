@@ -20,8 +20,11 @@ Modules Reference
 .. autosummary::
    :toctree: generated/
 
-   fluidimage
-
+   fluidimage.calcul
+   fluidimage.data_objects
+   fluidimage.fluxes
+   fluidimage.waiting_queues
+   fluidimage.gui     
 
 More
 ----
@@ -41,4 +44,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
