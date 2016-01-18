@@ -43,8 +43,6 @@ o.save()
 print('time one process serial: {} s'.format(time() - t))
 
 
-
-
 class WaitingQueue(list):
     def __init__(self, func_work, destination=None):
         self.func_work = func_work
@@ -113,6 +111,7 @@ w2 = WaitingQueue(run_work2, w3)
 w1 = WaitingQueue(task.run_work1, w2)
 w0 = WaitingQueue(task.run_work0, w1)
 w0.extend(range(5))
+
 
 def run_flux(queues):
     working_works = []
