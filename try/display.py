@@ -55,7 +55,6 @@ def display(im0, im1, ixvec=None, iyvec=None, vecx=None, vecy=None):
             ix, iy, q.U[ind], q.V[ind]))
         fig.canvas.draw()
 
-
     fig.canvas.mpl_connect('pick_event', onpick)
     fig.canvas.mpl_connect('key_press_event', onclick)
 
@@ -73,5 +72,5 @@ if __name__ == '__main__':
 
     im0 = imread('samples/Karman/PIVlab_Karman_01.bmp')
     im1 = imread('samples/Karman/PIVlab_Karman_02.bmp')
-
     display(im0, im1)
+

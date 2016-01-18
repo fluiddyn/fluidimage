@@ -75,6 +75,18 @@ class BasePIVWork(BaseWork):
         correl = CorrelWithFFT(niw, niw)
         self._calcul_correl_norm = correl.calcul_correl_norm
 
+        # subpix initialization
+        self.n_subpix_zoom = 2
+        xs = np.arange(2*self.n_subpix_zoom+1, dtype=float)
+        ys = np.arange(2*self.n_subpix_zoom+1, dtype=float)
+        X, Y = np.meshgrid(xs, ys)
+        nx, ny = X.shape
+        X = X.ravel()
+        Y = Y.ravel()
+        M = np.reshape(np.concatenate(
+            (X**2, Y**2, X, Y, np.ones(nx*ny))), (5, nx*ny)).T
+        self.Minv_subpix = np.linalg.pinv(M)
+
     def prepare(self, im):
 
         len_y, len_x = im.shape
@@ -120,8 +132,11 @@ class BasePIVWork(BaseWork):
                     deltax, deltay = self._find_peak(correl)
                     deltaxs[iy, ix] = deltax
                     deltays[iy, ix] = deltay
-                except NoPeakError:
-                    raise NoPeakError
+                except NoPeakError as e:
+                    print(e)
+                    deltaxs[iy, ix] = np.nan
+                    deltays[iy, ix] = np.nan
+
 
         return deltaxs, deltays, correls
 
@@ -147,12 +162,12 @@ class BasePIVWork(BaseWork):
 
           Normalized correlation
         """
-        n = self.n_subpix_zoom = 4
+        n = self.n_subpix_zoom
 
         ny, nx = correl.shape
 
         if iy-n < 0 or iy+n+1 > ny or \
-           ix-n < 0 or ix+n+1 > ny:
+           ix-n < 0 or ix+n+1 > nx:
             raise NoPeakError
 
         # crop: possibly buggy!
@@ -163,26 +178,18 @@ class BasePIVWork(BaseWork):
 
         assert nx == ny == 2*n + 1
 
-        xs = np.arange(nx, dtype=float)
-        ys = np.arange(ny, dtype=float)
-        X, Y = np.meshgrid(xs, ys)
-
         correl_map = correl.ravel()
         correl_map[correl_map == 0.] = 1e-6
-        X = X.ravel()
-        Y = Y.ravel()
 
-        M = np.reshape(np.concatenate(
-            (X**2, Y**2, X, Y, np.ones(nx*ny))), (5, nx*ny)).T
-
-        # coef = np.dot(np.linalg.pinv(M), np.log(correl_map))
-
-        coef, residuals, rank, s = np.linalg.lstsq(M,  np.log(correl_map))
+        coef = np.dot(self.Minv_subpix, np.log(correl_map))
 
         sigmax = 1/np.sqrt(-2*coef[0])
         sigmay = 1/np.sqrt(-2*coef[1])
         X0 = coef[2]*sigmax**2
         Y0 = coef[3]*sigmay**2
+        tmp = 2*n + 1
+        if X0 > tmp or Y0 > tmp:
+            raise NoPeakError
         deplx = X0 - nx/2  # displacement x
         deply = Y0 - ny/2  # displacement y
 
@@ -234,31 +241,28 @@ if __name__ == '__main__':
     from fluiddyn.util.serieofarrays import \
         SerieOfArraysFromFiles, SeriesOfArrays
 
-    base_path = '/fsnet/project/meige/2016/16FLUIDIMAGE'
-
-    path = base_path + '/samples/Karman'
-    base_name = 'PIVlab_Karman'
+    path = '../image_samples/Oseen'
+    base_name = 'Oseen_center'
 
     def give_indslices_from_indserie(iserie):
         indslices = copy(serie_arrays._index_slices_all_files)
         indslices[0] = [iserie+1, iserie+3]
         return indslices
 
-    # path = base_path + '/samples/Oseen'
-    # base_name = 'PIVlab_Oseen_z'
+    path = '../image_samples/Karman'
+    base_name = 'Karman'
 
-    # def give_indslices_from_indserie(iserie):
-    #     indslices = copy(serie_arrays._index_slices_all_files)
-    #     indslices[0] = [2*iserie+1, 2*iserie+3, 1]
-    #     return indslices
+    def give_indslices_from_indserie(iserie):
+        indslices = copy(serie_arrays._index_slices_all_files)
+        indslices[0] = [2*iserie+1, 2*iserie+3, 1]
+        return indslices
 
-    serie_arrays = SerieOfArraysFromFiles(
-        os.path.join(base_path, path), base_name=base_name)
+    serie_arrays = SerieOfArraysFromFiles(path, base_name=base_name)
     series = SeriesOfArrays(serie_arrays, give_indslices_from_indserie,
                             ind_stop=None)
 
     o = PIVSerie(
-        series_images=series, n_interrogation_window=64, overlap=0.5)
+        series_images=series, n_interrogation_window=48, overlap=0.5)
     o.compute_outputs()
 
     for results in o.outputs.values():
