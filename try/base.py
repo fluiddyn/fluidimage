@@ -13,82 +13,90 @@ be organized in sub-steps.
 
 from __future__ import print_function
 
+from copy import deepcopy
+
 # import matplotlib.pyplot as plt
 import numpy as np
 
 from fluidimage.calcul.correl import CorrelWithFFT
+from piv_results import HeavyPIVResults
 
 
 class NoPeakError(Exception):
     """No peak"""
 
 
-class RegionOfInterest(object):
-    """Masks..."""
-
-
 class BaseStep(object):
-    def __init__(self, params=None, data=None):
+    def __init__(self, params=None):
         self.params = params
 
-    def prepare(self):
-        if hasattr(self, '_substeps'):
-            for substep in self._substeps:
-                substep.prepare()
+
+class BaseWork(object):
+    def __init__(self, params=None):
+        self.params = params
 
 
-class BasePIVStep(BaseStep):
-    def __init__(self, params=None, data=None, series_images=None,
-                 n_interrogation_window=None, overlap=None,
-                 region_of_interest=None):
+class PIVSerie(BaseStep):
+    def __init__(self, series_images=None, params=None,
+                 n_interrogation_window=None, overlap=None):
+
+        self.outputs = {}
+        self.series_images = series_images
+
+        self.work = FirstPIVWork(
+            params=params,
+            n_interrogation_window=n_interrogation_window, overlap=overlap)
+
+        serie = self.series_images.get_serie_from_index(0)
+        im = serie.get_array_from_index(0)
+
+        self.work.prepare(im)
+
+    def compute_outputs(self, compute_all=False):
+        for index, couple in enumerate(self.series_images):
+            results = self.work.calcul_1_field(couple)
+            if index not in self.outputs or compute_all:
+                self.outputs[index] = results
+
+
+class BasePIVWork(BaseWork):
+    def __init__(self, params=None,
+                 n_interrogation_window=None, overlap=None):
+
         self.n_interrogation_window = n_interrogation_window
 
         if overlap is None:
             overlap = 0.5
         self.overlap = overlap
-        self.region_of_interest = region_of_interest
-        self.series_images = series_images
 
         niw = self.n_interrogation_window
         self.niwo2 = niw/2
 
-        self.outputs = {}
-
-        # self._calcul_correl_norm = calcul_correl_norm_scipy
-
         correl = CorrelWithFFT(niw, niw)
         self._calcul_correl_norm = correl.calcul_correl_norm
 
-    def prepare(self):
-        super(BasePIVStep, self).prepare()
+    def prepare(self, im):
 
-        serie = self.series_images.get_serie_from_index(0)
-
-        im0 = serie.get_array_from_index(0)
-
-        if self.region_of_interest is not None:
-            im0 = self.region_of_interest.select(im0)
-
-        len_y, len_x = im0.shape
+        len_y, len_x = im.shape
         niw = self.n_interrogation_window
         overlap = int(np.round(self.overlap*niw))
 
         self.inds_x_vec = np.arange(0, len_x, overlap, dtype=int)
         self.inds_y_vec = np.arange(0, len_y, overlap, dtype=int)
 
-    def compute_outputs(self, compute_all=False):
-        for index, serie in enumerate(self.series_images):
-            im0, im1 = serie.get_arrays()
-            results = self._calcul_1_field(im0, im1)
-            if index not in self.outputs or compute_all:
-                self.outputs[index] = results
-
-    def _calcul_1_field(self, im0, im1):
+    def calcul_1_field(self, couple):
+        im0, im1 = couple.get_arrays()
         niwo2 = self.niwo2
         tmp = [(niwo2, niwo2), (niwo2, niwo2)]
         im0pad = np.pad(im0 - im0.min(), tmp, 'constant')
         im1pad = np.pad(im1 - im1.min(), tmp, 'constant')
-        return self._loop_vectors(im0pad, im1pad)
+
+        deltaxs, deltays, correls = self._loop_vectors(im0pad, im1pad)
+
+        result = HeavyPIVResults(
+            deltaxs, deltays, correls, deepcopy(couple), self)
+
+        return result
 
     def _loop_vectors(self, im0, im1):
 
@@ -115,9 +123,7 @@ class BasePIVStep(BaseStep):
                 except NoPeakError:
                     raise NoPeakError
 
-        results = {
-            'correls': correls, 'deltaxs': deltaxs, 'deltays': deltays}
-        return results
+        return deltaxs, deltays, correls
 
     def _crop_subimages(self, ixvec, iyvec, im0, im1):
         raise NotImplementedError
@@ -183,7 +189,7 @@ class BasePIVStep(BaseStep):
         return deplx + ix, deply + iy
 
 
-class FirstPIVStep(BasePIVStep):
+class FirstPIVWork(BasePIVWork):
 
     def _crop_im(self, ixvec, iyvec, im):
         niwo2 = self.niwo2
@@ -197,7 +203,7 @@ class FirstPIVStep(BasePIVStep):
                 self._crop_im(ixvec, iyvec, im1))
 
 
-class PIVStepFromDisplacement(BasePIVStep):
+class PIVWorkFromDisplacement(BasePIVWork):
     def _crop_im0(self, ixvec, iyvec, im):
         niwo2 = self.niwo2
         subim = im[iyvec - niwo2:iyvec + niwo2,
@@ -227,7 +233,6 @@ if __name__ == '__main__':
 
     from fluiddyn.util.serieofarrays import \
         SerieOfArraysFromFiles, SeriesOfArrays
-    import display
 
     base_path = '/fsnet/project/meige/2016/16FLUIDIMAGE'
 
@@ -252,20 +257,13 @@ if __name__ == '__main__':
     series = SeriesOfArrays(serie_arrays, give_indslices_from_indserie,
                             ind_stop=None)
 
-    o = FirstPIVStep(
+    o = PIVSerie(
         series_images=series, n_interrogation_window=64, overlap=0.5)
-    o.prepare()
     o.compute_outputs()
 
-    for index, serie in enumerate(series):
-        print(serie.get_name_files())
-        im0, im1 = serie.get_arrays()
-        results = o.outputs[index]
-        correls = results['correls']
-        deltaxs = results['deltaxs']
-        deltays = results['deltays']
-
-        display.display(im0, im1, o.inds_x_vec, o.inds_y_vec, deltaxs, deltays)
+    for results in o.outputs.values():
+        print(results.couple.get_name_files())
+        results.display()
 
     # nx = ny = 16
 
