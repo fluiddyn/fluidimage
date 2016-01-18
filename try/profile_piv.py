@@ -7,7 +7,7 @@ from copy import copy
 
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles, SeriesOfArrays
 
-from base import FirstPIVStep
+from base import PIVSerie
 
 path = '/fsnet/project/meige/2016/16FLUIDIMAGE/samples/Oseen'
 base_name = 'PIVlab_Oseen_z'
@@ -22,9 +22,8 @@ serie_arrays = SerieOfArraysFromFiles(path, base_name=base_name)
 series = SeriesOfArrays(serie_arrays, give_indslices_from_indserie,
                         ind_stop=None)
 
-o = FirstPIVStep(
+o = PIVSerie(
     series_images=series, n_interrogation_window=64, overlap=0.9)
-o.prepare()
 
 cProfile.runctx('o.compute_outputs()',
                 globals(), locals(), 'Profile.prof')
