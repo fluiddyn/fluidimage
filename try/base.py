@@ -25,7 +25,6 @@ from piv_results import HeavyPIVResults
 class NoPeakError(Exception):
     """No peak"""
 
-
 class BaseStep(object):
     def __init__(self, params=None):
         self.params = params
@@ -57,7 +56,6 @@ class PIVSerie(BaseStep):
             results = self.work.calcul_1_field(couple)
             if index not in self.outputs or compute_all:
                 self.outputs[index] = results
-
 
 class BasePIVWork(BaseWork):
     def __init__(self, params=None,
@@ -190,7 +188,7 @@ class BasePIVWork(BaseWork):
             X0 = coef[2]*sigmax**2
             Y0 = coef[3]*sigmay**2
 
-           tmp = 2*n + 1
+            tmp = 2*n + 1
             if X0 > tmp or Y0 > tmp:
                 raise NoPeakError
 
@@ -207,7 +205,7 @@ class BasePIVWork(BaseWork):
             X0 = np.sum(X * correl) / np.sum(correl)
             Y0 = np.sum(Y * correl) / np.sum(correl)
 
-           if X0 > 2 or Y0 > 2:
+            if X0 > 2 or Y0 > 2:
                 raise NoPeakError
 
             deplx = X0 - nx/2  # displacement x
