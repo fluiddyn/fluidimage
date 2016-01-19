@@ -146,13 +146,13 @@ class BasePIVWork(BaseWork):
     def _find_peak(self, correl):
         iy, ix = np.unravel_index(correl.argmax(), correl.shape)
         ix, iy = self._find_peak_subpixel(
-            correl, ix, iy)
+                correl, ix, iy,'centroid') # method : 2Dgaussian or centroid
         return ix - self.niwo2, iy - self.niwo2
 
     def _find_peak_subpixel_old(self, correl, ix, iy):
         return ix, iy
 
-    def _find_peak_subpixel(self, correl, ix, iy):
+    def _find_peak_subpixel(self, correl, ix, iy,method):
         """Find peak using linalg.solve (buggy?)
 
         Parameters
@@ -170,28 +170,50 @@ class BasePIVWork(BaseWork):
            ix-n < 0 or ix+n+1 > nx:
             raise NoPeakError
 
-        # crop: possibly buggy!
-        correl = correl[iy-n:iy+n+1,
-                        ix-n:ix+n+1]
+        if method == '2Dgaussian':
 
-        ny, nx = correl.shape
+            # crop: possibly buggy!
+            correl = correl[iy-n:iy+n+1,
+                            ix-n:ix+n+1]
 
-        assert nx == ny == 2*n + 1
+            ny, nx = correl.shape
 
-        correl_map = correl.ravel()
-        correl_map[correl_map == 0.] = 1e-6
+            assert nx == ny == 2*n + 1
 
-        coef = np.dot(self.Minv_subpix, np.log(correl_map))
+            correl_map = correl.ravel()
+            correl_map[correl_map == 0.] = 1e-6
 
-        sigmax = 1/np.sqrt(-2*coef[0])
-        sigmay = 1/np.sqrt(-2*coef[1])
-        X0 = coef[2]*sigmax**2
-        Y0 = coef[3]*sigmay**2
-        tmp = 2*n + 1
-        if X0 > tmp or Y0 > tmp:
-            raise NoPeakError
-        deplx = X0 - nx/2  # displacement x
-        deply = Y0 - ny/2  # displacement y
+            coef = np.dot(self.Minv_subpix, np.log(correl_map))
+
+            sigmax = 1/np.sqrt(-2*coef[0])
+            sigmay = 1/np.sqrt(-2*coef[1])
+            X0 = coef[2]*sigmax**2
+            Y0 = coef[3]*sigmay**2
+
+           tmp = 2*n + 1
+            if X0 > tmp or Y0 > tmp:
+                raise NoPeakError
+
+            deplx = X0 - nx/2  # displacement x
+            deply = Y0 - ny/2  # displacement y
+
+
+        elif method == 'centroid':
+
+            correl=correl[iy-1:iy+2,ix-1:ix+2]
+            ny, nx = correl.shape
+
+            X, Y = np.meshgrid(range(3),range(3))
+            X0 = np.sum(X * correl) / np.sum(correl)
+            Y0 = np.sum(Y * correl) / np.sum(correl)
+
+           if X0 > 2 or Y0 > 2:
+                raise NoPeakError
+
+            deplx = X0 - nx/2  # displacement x
+            deply = Y0 - ny/2  # displacement y
+
+
 
         return deplx + ix, deply + iy
 
