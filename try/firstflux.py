@@ -54,6 +54,7 @@ class WaitingQueue(list):
     def launch(self):
         o = self.pop()
         result = self.func_work(o)
+        self.fill_destination(result)
 
     def fill_destination(self, result):
         if self.destination is not None:
@@ -103,8 +104,8 @@ class WaitingQueueThreading(WaitingQueueMultiprocessing):
         return threading.Thread(*args, **kwargs)
 
 
-WaitingQueue = WaitingQueueMultiprocessing
-# WaitingQueue = WaitingQueueThreading
+# WaitingQueue = WaitingQueueMultiprocessing
+WaitingQueue = WaitingQueueThreading
 
 w3 = WaitingQueue(lambda o: o.save())
 w2 = WaitingQueue(run_work2, w3)
@@ -114,15 +115,17 @@ w0.extend(range(5))
 
 
 def run_flux(queues):
-    working_works = []
-    while any([not q.is_empty() for q in queues]) or len(working_works) > 0:
+    workers = []
+    while any([not q.is_empty() for q in queues]) or len(workers) > 0:
         for q in queues:
             if not q.is_empty():
                 print(q.func_work)
-                working_works.append(q.launch())
+                worker = q.launch()
+                if worker is not None:
+                    workers.append(worker)
 
-        working_works[:] = [w for w in working_works
-                            if not w.fill_destination()]
+        workers[:] = [w for w in workers
+                      if not w.fill_destination()]
 
 
 queues = [w0, w1, w2, w3]

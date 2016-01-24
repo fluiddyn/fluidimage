@@ -25,6 +25,7 @@ from piv_results import HeavyPIVResults
 class NoPeakError(Exception):
     """No peak"""
 
+
 class BaseStep(object):
     def __init__(self, params=None):
         self.params = params
@@ -56,6 +57,7 @@ class PIVSerie(BaseStep):
             results = self.work.calcul_1_field(couple)
             if index not in self.outputs or compute_all:
                 self.outputs[index] = results
+
 
 class BasePIVWork(BaseWork):
     def __init__(self, params=None,
@@ -135,7 +137,6 @@ class BasePIVWork(BaseWork):
                     deltaxs[iy, ix] = np.nan
                     deltays[iy, ix] = np.nan
 
-
         return deltaxs, deltays, correls
 
     def _crop_subimages(self, ixvec, iyvec, im0, im1):
@@ -144,13 +145,13 @@ class BasePIVWork(BaseWork):
     def _find_peak(self, correl):
         iy, ix = np.unravel_index(correl.argmax(), correl.shape)
         ix, iy = self._find_peak_subpixel(
-                correl, ix, iy,'centroid') # method : 2Dgaussian or centroid
+            correl, ix, iy, 'centroid')  # method : 2Dgaussian or centroid
         return ix - self.niwo2, iy - self.niwo2
 
     def _find_peak_subpixel_old(self, correl, ix, iy):
         return ix, iy
 
-    def _find_peak_subpixel(self, correl, ix, iy,method):
+    def _find_peak_subpixel(self, correl, ix, iy, method):
         """Find peak using linalg.solve (buggy?)
 
         Parameters
@@ -195,13 +196,12 @@ class BasePIVWork(BaseWork):
             deplx = X0 - nx/2  # displacement x
             deply = Y0 - ny/2  # displacement y
 
-
         elif method == 'centroid':
 
-            correl=correl[iy-1:iy+2,ix-1:ix+2]
+            correl = correl[iy-1:iy+2, ix-1:ix+2]
             ny, nx = correl.shape
 
-            X, Y = np.meshgrid(range(3),range(3))
+            X, Y = np.meshgrid(range(3), range(3))
             X0 = np.sum(X * correl) / np.sum(correl)
             Y0 = np.sum(Y * correl) / np.sum(correl)
 
@@ -210,8 +210,6 @@ class BasePIVWork(BaseWork):
 
             deplx = X0 - nx/2  # displacement x
             deply = Y0 - ny/2  # displacement y
-
-
 
         return deplx + ix, deply + iy
 
@@ -255,29 +253,26 @@ class Filter(BaseStep):
 
 
 if __name__ == '__main__':
-    import os
     from copy import copy
 
     from fluiddyn.util.serieofarrays import \
         SerieOfArraysFromFiles, SeriesOfArrays
 
-    path = '../image_samples/Oseen'
-    base_name = 'Oseen_center'
+    path = '../image_samples/Oseen/Oseen_center*'
 
     def give_indslices_from_indserie(iserie):
         indslices = copy(serie_arrays._index_slices_all_files)
         indslices[0] = [iserie+1, iserie+3]
         return indslices
 
-    path = '../image_samples/Karman'
-    base_name = 'Karman'
+    # path = '../image_samples/Karman'
 
-    def give_indslices_from_indserie(iserie):
-        indslices = copy(serie_arrays._index_slices_all_files)
-        indslices[0] = [2*iserie+1, 2*iserie+3, 1]
-        return indslices
+    # def give_indslices_from_indserie(iserie):
+    #     indslices = copy(serie_arrays._index_slices_all_files)
+    #     indslices[0] = [2*iserie+1, 2*iserie+3, 1]
+    #     return indslices
 
-    serie_arrays = SerieOfArraysFromFiles(path, base_name=base_name)
+    serie_arrays = SerieOfArraysFromFiles(path)
     series = SeriesOfArrays(serie_arrays, give_indslices_from_indserie,
                             ind_stop=None)
 

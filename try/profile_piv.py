@@ -9,8 +9,7 @@ from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles, SeriesOfArrays
 
 from base import PIVSerie
 
-path = '/fsnet/project/meige/2016/16FLUIDIMAGE/samples/Oseen'
-base_name = 'PIVlab_Oseen_z'
+path = '../image_samples/Oseen/Oseen_center*'
 
 
 def give_indslices_from_indserie(iserie):
@@ -18,7 +17,7 @@ def give_indslices_from_indserie(iserie):
     indslices[0] = [2*iserie+1, 2*iserie+3, 1]
     return indslices
 
-serie_arrays = SerieOfArraysFromFiles(path, base_name=base_name)
+serie_arrays = SerieOfArraysFromFiles(path)
 series = SeriesOfArrays(serie_arrays, give_indslices_from_indserie,
                         ind_stop=None)
 
