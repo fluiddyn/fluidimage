@@ -36,6 +36,7 @@ More
    FluidImage in PyPI  <https://pypi.python.org/pypi/fluidimage/>
    to_do
    changes
+   for_dev
 
 
 Indices and tables
