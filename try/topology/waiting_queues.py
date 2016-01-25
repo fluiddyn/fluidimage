@@ -54,7 +54,7 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
                 return True
 
         p.fill_destination = fill_destination
-        return p
+        return [p]
 
 
 class WaitingQueueThreading(WaitingQueueMultiprocessing):

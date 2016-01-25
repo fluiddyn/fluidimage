@@ -6,16 +6,24 @@ class Topology(object):
     def run(self):
 
         workers = []
+        workers_cpu = []
         while any([not q.is_empty() for q in self.queues]) or len(workers) > 0:
             for q in self.queues:
                 if not q.is_empty():
                     print(q.func_work)
-                    worker = q.check_and_act()
-                    if worker is not None:
-                        workers.append(worker)
+                    new_workers = q.check_and_act()
+                    if new_workers is not None:
+                        for worker in new_workers:
+                            workers.append(worker)
+                            if hasattr(worker, 'do_use_cpu') and \
+                               worker.do_use_cpu:
+                                workers_cpu.append(worker)
 
             workers[:] = [w for w in workers
                           if not w.fill_destination()]
+
+            workers_cpu[:] = [w for w in workers_cpu
+                              if w.is_alive()]
 
 if __name__ == '__main__':
     from copy import copy
