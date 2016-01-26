@@ -1,4 +1,5 @@
 
+import os
 from setuptools import setup, find_packages
 
 # Get the long description from the relevant file
@@ -12,6 +13,11 @@ from runpy import run_path
 d = run_path('fluidimage/_version.py')
 __version__ = d['__version__']
 
+install_requires = ['numpy', 'fluiddyn']
+
+on_rtd = os.environ.get('READTHEDOCS')
+if not on_rtd:
+    install_requires.extend(['scipy', 'h5py'])
 
 setup(
     name='fluidimage',
@@ -48,4 +54,4 @@ setup(
         'Programming Language :: C'],
     packages=find_packages(exclude=[
         'doc', 'include', 'scripts']),
-    install_requires=['numpy', 'scipy', 'fluiddyn'])
+    install_requires=install_requires)
