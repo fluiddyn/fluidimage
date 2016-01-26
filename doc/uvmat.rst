@@ -3,6 +3,77 @@ Analysis of UVmat civ_series algorithm and parameters
 
 See the `UVmat documentation <http://servforge.legi.grenoble-inp.fr/projects/soft-uvmat/wiki/UvmatHelp#Civ>`_.
 
+Description of main loop on couple of images in civ_series.m
+------------------------------------------------------------
+
+Step 0: Initialisation
+~~~~~~~~~~~~~~~~~~~~~~
+of a structure "par_civ" containing the 2 images A and B + all parameters for the computation 
+
+Step 2: Civ1: Call the function civ
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Initialisation of grid, correlation and search boxes, mask
+
+Loop on every grid points:
+
+2.1: crop of subimages A and B of images A and B
+
+subA is centered in [xA, yA] and has a size [Lx, Ly]
+
+subB is centered in [xA + shitfx, xB + shifty] and has a size [Sx, Sy] with Sx,Sy > Lx, Ly
+
+2.2: if checkmask == 1 -> application of the mask on subimages
+
+2.3: if checkdeformation ==1 -> apply deformation + interpolation (with function interp2)
+
+2.4.1 convolution of subA and subB with function conv2 => "conv"
+
+.. code-block:: matlab
+
+   conv2(subA, subB, 'valid');
+   % be careful on the ordering of subB
+		
+2.4.2 search displacement [dx, dy] corresponding such that
+
+.. code-block:: matlab
+		
+   conv(dx, dy) == corrmax
+   % corrmax = max( max( conv));
+
+2.5 subpixel determination of displacement: [vec_x, vec_y] = fct(conv, dx, dy)
+
+it exists 3 different fct depending on parameters:  SUBPIXGAUSS, SUBPIX2DGAUSS and quadr_fit
+
+2.6 if the position [xA + vec_x, yA + vec_y] is in the mask -> vec_x, vec_y is put to 0
+
+2.7 the maximum correlation is normalised
+
+.. code-block:: matlab
+
+   norm = sum( sum( subA.*subA )) .* sum( sum( subsubB.*subsubB ))
+   % subsubB is a crop of subB at the same size as subA centered on [xA + dx, yA + dy]		
+   corrmax = corrmax / sqrt(norm)
+
+Step 3: Fix1: Call the function fix
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Step 4: Patch1: Call the function filter_tps
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Step 5: Civ2: Call the function civ
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Step 6: Fix1: Call the function fix
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Step 7: Patch1: Call the function filter_tps
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Step 8: Write results in a netcdf file
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+
 Description of a typical .xml
 -----------------------------
 
