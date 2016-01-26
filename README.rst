@@ -1,7 +1,17 @@
 FluidImage
 ==========
 
-We need a good software to compute PIV...
+|release| |docs|
+
+.. |release| image:: https://img.shields.io/pypi/v/fluidimage.svg
+   :target: https://pypi.python.org/pypi/fluidimage/
+   :alt: Latest version
+
+.. |docs| image:: https://readthedocs.org/projects/fluidimage/badge/?version=latest
+   :target: http://fluidimage.readthedocs.org
+   :alt: Documentation status
+
+We need a good software to compute PIV... We will try...
 
 What do we need?
 ----------------
@@ -22,7 +32,9 @@ What do we need?
 
   * able to use GPU
   
-  * parallel, running on cluster
+  * parallel, asynchronous, distributed
+
+  * running on cluster
 
 - GUI (Qt)
 
