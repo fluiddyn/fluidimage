@@ -24,13 +24,13 @@ subB is centered in [xA + shitfx, xB + shifty] and has a size [Sx, Sy] with Sx,S
 
 2.2: if checkmask == 1 -> application of the mask on subimages
 
-2.3: if checkdeformation ==1 -> apply deformation + interpolation (with function interp2)
+2.3: if checkdeformation == 1 -> apply deformation + interpolation (with function interp2)
 
 2.4.1 convolution of subA and subB with function conv2 => "conv"
 
 .. code-block:: matlab
 
-   conv2(subA, subB, 'valid');
+   conv = conv2(subA, subB, 'valid');
    % be careful on the ordering of subB
 		
 2.4.2 search displacement [dx, dy] corresponding such that
@@ -56,18 +56,23 @@ it exists 3 different fct depending on parameters:  SUBPIXGAUSS, SUBPIX2DGAUSS a
 
 Step 3: Fix1: Call the function fix
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+detection of vectors that don't satisfy parameters given to fix
 
 Step 4: Patch1: Call the function filter_tps
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+find the thin plate spline coefficients for interpolation-smoothing (See UVmat documentation)
 
 Step 5: Civ2: Call the function civ
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+same as Civ1 + option deformation
 
 Step 6: Fix1: Call the function fix
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+same as Fix1 + option CheckF4
 
 Step 7: Patch1: Call the function filter_tps
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+same as Patch1 
 
 Step 8: Write results in a netcdf file
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -185,7 +190,7 @@ Parameters for computation
   % lx = CorrBoxSize(1)/2, ly = CorrBoxSize(2)/2
   % sx = SearchBoxSize(1)/2, sy = SearchBoxSize(2)/2
 
-  Series.ActionInput.Civ1.CorrSmoot = 1
+  Series.ActionInput.Civ1.CorrSmooth = 1
   % choose of the subpixel determination of the interpolation max: 1 for SUBPIXGAUSS, 2 for SUBPIX2DGAUSS
   Series.ActionInput.Civ1.Dx = 20
   Series.ActionInput.Civ1.Dy = 20
@@ -198,15 +203,20 @@ Parameters for computation
   % if 1: look for files to apply grid, mask etc...
 
   Series.ActionInput.TestCiv1 = 0
-  % ????
+  % to open a figure via uvmat showing correlations for each windows
 
 .. code-block:: matlab
 
   %% Parameters for Fix1
   Series.ActionInput.Fix1.CheckFmin2 = 1
+  % remove vectors with maximum correlation too close to the border of the searchbox (<2pix or less)
   Series.ActionInput.Fix1.CheckF3 = 1
+  % ??????
   Series.ActionInput.Fix1.MinCorr = 0.2
-  % ??????????????????????
+  % remove vectors with correlation below MinCorr
+  Series.ActionInput.Fix1.MaxVel = 0.2
+  Series.ActionInput.Fix1.MinVel = 0.2
+  % remove vectors with modulus not in [MinVel, MaxVel] 
 
 .. code-block:: matlab
 
@@ -214,8 +224,9 @@ Parameters for computation
   Series.ActionInput.Patch1.FieldSmooth = 10
   Series.ActionInput.Patch1.MaxDiff = 1.5
   Series.ActionInput.Patch1.SubDomainSize = 1000
-  Series.ActionInput.Patch1.TestPatch1 = 0
   % see function filter_tps.m
+  Series.ActionInput.Patch1.TestPatch1 = 0
+  % open a window via uvmat to test values of Fieldsmooth around 10 here
 
 .. code-block:: matlab
 
@@ -226,6 +237,7 @@ Parameters for computation
   Series.ActionInput.Civ2.CheckDeformation = 0
   % for subpixel interpolation and image deformation (linear transform)
   % => use of DUDX DUDY etc... before crop of sub-images
+  % if == 1 then Series.ActionInput.Civ2.CorrSmooth is removed from xml 
   Series.ActionInput.Civ2.Dx = 10
   Series.ActionInput.Civ2.Dy = 10
   Series.ActionInput.Civ2.CheckGrid = 0
@@ -238,9 +250,12 @@ Parameters for computation
   %%Parameters for Fix2
   Series.ActionInput.Fix2.CheckFmin2 = 1
   Series.ActionInput.Fix2.CheckF4 = 0
+  % ???????
   Series.ActionInput.Fix2.CheckF3 = 1
   Series.ActionInput.Fix2.MinCorr = 0.2
-
+  Series.ActionInput.Fix2.MaxVel = 0.2
+  Series.ActionInput.Fix2.MinVel = 0.2
+		
 .. code-block:: matlab
 
   %% Parameters for Patch2
