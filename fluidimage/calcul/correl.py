@@ -10,6 +10,9 @@ import numpy as np
 from scipy.signal import convolve2d
 import pyfftw
 
+from reikna.cluda import ocl_api
+from reikna.fft import FFT
+
 # if 'OMP_NUM_THREADS' in os.environ:
 #     nthreads = int(os.environ['OMP_NUM_THREADS'])
 # else:
@@ -25,6 +28,58 @@ def calcul_correl_norm_scipy(im0, im1):
         im1, np.rot90(im0, 2), 'same', fillvalue=im1.min())
     correl_min = correl.min()
     return (correl - correl_min) / (correl.max() - correl_min)
+
+
+class CUFFT2DReal2Complex(object):
+    """ A class to use fftw """
+    type_real = 'float32'
+    type_complex = 'complex64'
+
+    def __init__(self, nx, ny):
+
+        if nx % 2 != 0 or ny % 2 != 0:
+            raise ValueError('nx and ny should be even')
+        shapeX = [ny, nx]
+        shapeK = [ny, nx]
+
+        self.shapeX = shapeX
+
+        self.arrayK = np.empty(shapeK, dtype=self.type_complex)
+
+# Pick the first available GPGPU API and make a Thread on it.
+        api = ocl_api()
+        dev = api.get_platforms()[0].get_devices()
+        self.thr = api.Thread.create(dev)
+        fft = FFT(self.arrayK, axes=(0, 1))
+        self.fftplan = fft.compile(self.thr, fast_math=True)
+
+        self.coef_norm = nx * ny
+
+    def fft(self, ff):
+        self.arrayK[:, :] = ff[:, :] + 1j*0.
+        arr_dev = self.thr.to_device(self.arrayK)
+        self.fftplan(arr_dev, arr_dev)
+        return arr_dev.get()/self.coef_norm
+
+    def ifft(self, ff_fft):
+        arr_dev = self.thr.to_device(ff_fft)
+        self.fftplan(arr_dev, arr_dev, inverse=True)
+        return arr_dev.get()*self.coef_norm
+
+    def compute_energy_from_Fourier(self, ff_fft):
+        return np.sum(abs(ff_fft)**2)/2
+
+    def compute_energy_from_spatial(self, ff):
+        return np.mean(abs(ff)**2)/2
+
+    def project_fft_on_realX(self, ff_fft):
+        return self.fft(self.ifft(ff_fft))
+
+
+class CUFFT2DReal2ComplexFloat64(CUFFT2DReal2Complex):
+    """ A class to use fftw """
+    type_real = 'float64'
+    type_complex = 'complex128'
 
 
 class FFTW2DReal2Complex(object):
