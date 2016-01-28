@@ -7,16 +7,18 @@ from data_objects import ArrayCouple
 
 
 class WaitingQueueBase(dict):
-    def __init__(self, func_work, destination=None):
-        self.func_work = func_work
+    def __init__(self, name, work, destination=None, work_name=None):
+        self.name = name
+        self.work = work
         self.destination = destination
+        self.work_name = work_name
 
     def is_empty(self):
         return not bool(self)
 
     def check_and_act(self):
         k, o = self.popitem()
-        result = self.func_work(o)
+        result = self.work(o)
         self.fill_destination(k, result)
 
     def fill_destination(self, k, result):
@@ -39,7 +41,7 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
         comm = self._Queue()
 
         def f(comm):
-            result = self.func_work(o)
+            result = self.work(o)
             comm.put(result)
 
         p = self._Process(target=f, args=(comm,))
@@ -67,23 +69,21 @@ class WaitingQueueThreading(WaitingQueueMultiprocessing):
         return threading.Thread(*args, **kwargs)
 
 
-class WaitingQueueCreateCouple(WaitingQueueThreading):
-    def __init__(self):
-        pass
-
-
 class WaitingQueueLoadFile(WaitingQueueThreading):
     def __init__(self, *args, **kwargs):
         self.path_dir = kwargs.pop('path_dir')
         super(WaitingQueueLoadFile, self).__init__(*args, **kwargs)
+        self.work_name = 'load'
 
     def add_name_files(self, names):
         self.update({name: self.path_dir + '/' + name for name in names})
 
 
 class WaitingQueueMakeCouple(WaitingQueueBase):
-    def __init__(self, destination, couples):
+    def __init__(self, name, destination, couples):
+        self.name = name
         self.destination = destination
+        self.work_name = 'make couples'
 
         nb = self.nb_couples_to_create = {}
 
@@ -96,7 +96,7 @@ class WaitingQueueMakeCouple(WaitingQueueBase):
                 else:
                     nb[name] = 1
 
-        self.func_work = 'make_couples'
+        self.work = 'make_couples'
 
     def check_and_act(self):
 
