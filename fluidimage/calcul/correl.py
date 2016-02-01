@@ -10,8 +10,9 @@ import numpy as np
 from scipy.signal import convolve2d
 import pyfftw
 
-from reikna.cluda import ocl_api
+from reikna.cluda import any_api
 from reikna.fft import FFT
+from reikna.transformations import mul_param
 
 # if 'OMP_NUM_THREADS' in os.environ:
 #     nthreads = int(os.environ['OMP_NUM_THREADS'])
@@ -32,8 +33,8 @@ def calcul_correl_norm_scipy(im0, im1):
 
 class CUFFT2DReal2Complex(object):
     """ A class to use fftw """
-    type_real = 'float32'
-    type_complex = 'complex64'
+    type_real = 'float64'
+    type_complex = 'complex128'
 
     def __init__(self, nx, ny):
 
@@ -43,14 +44,15 @@ class CUFFT2DReal2Complex(object):
         shapeK = [ny, nx]
 
         self.shapeX = shapeX
-
         self.arrayK = np.empty(shapeK, dtype=self.type_complex)
 
 # Pick the first available GPGPU API and make a Thread on it.
-        api = ocl_api()
-        dev = api.get_platforms()[0].get_devices()
-        self.thr = api.Thread.create(dev)
+        api = any_api()
+        self.thr = api.Thread.create()
         fft = FFT(self.arrayK, axes=(0, 1))
+        scale = mul_param(self.arrayK, np.float)
+        fft.parameter.input.connect(scale, scale.output,
+                                    input_prime=scale.input, param=scale.param)
         self.fftplan = fft.compile(self.thr, fast_math=True)
 
         self.coef_norm = nx * ny
@@ -58,13 +60,13 @@ class CUFFT2DReal2Complex(object):
     def fft(self, ff):
         self.arrayK[:, :] = ff[:, :] + 1j*0.
         arr_dev = self.thr.to_device(self.arrayK)
-        self.fftplan(arr_dev, arr_dev)
-        return arr_dev.get()/self.coef_norm
+        self.fftplan(arr_dev, arr_dev, 1./self.coef_norm)
+        return arr_dev.get()  # /self.coef_norm
 
     def ifft(self, ff_fft):
         arr_dev = self.thr.to_device(ff_fft)
-        self.fftplan(arr_dev, arr_dev, inverse=True)
-        return arr_dev.get()*self.coef_norm
+        self.fftplan(arr_dev, arr_dev, self.coef_norm, inverse=True)
+        return arr_dev.get()  # *self.coef_norm
 
     def compute_energy_from_Fourier(self, ff_fft):
         return np.sum(abs(ff_fft)**2)/2
