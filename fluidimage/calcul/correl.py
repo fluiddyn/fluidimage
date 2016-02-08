@@ -46,7 +46,7 @@ class CUFFT2DReal2Complex(object):
         self.shapeX = shapeX
         self.arrayK = np.empty(shapeK, dtype=self.type_complex)
 
-# Pick the first available GPGPU API and make a Thread on it.
+        # Pick the first available GPGPU API and make a Thread on it.
         api = any_api()
         self.thr = api.Thread.create()
         fft = FFT(self.arrayK, axes=(0, 1))
@@ -58,15 +58,14 @@ class CUFFT2DReal2Complex(object):
         self.coef_norm = nx * ny
 
     def fft(self, ff):
-        self.arrayK[:, :] = ff[:, :] + 1j*0.
-        arr_dev = self.thr.to_device(self.arrayK)
+        arr_dev = self.thr.to_device(ff.astype(self.type_complex))
         self.fftplan(arr_dev, arr_dev, 1./self.coef_norm)
-        return arr_dev.get()  # /self.coef_norm
+        return arr_dev.get()
 
     def ifft(self, ff_fft):
         arr_dev = self.thr.to_device(ff_fft)
         self.fftplan(arr_dev, arr_dev, self.coef_norm, inverse=True)
-        return arr_dev.get()  # *self.coef_norm
+        return arr_dev.get()
 
     def compute_energy_from_Fourier(self, ff_fft):
         return np.sum(abs(ff_fft)**2)/2
