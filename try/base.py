@@ -31,11 +31,6 @@ class BaseStep(object):
         self.params = params
 
 
-class BaseWork(object):
-    def __init__(self, params=None):
-        self.params = params
-
-
 class PIVSerie(BaseStep):
     def __init__(self, series_images=None, params=None,
                  n_interrogation_window=None, overlap=None):
@@ -50,13 +45,18 @@ class PIVSerie(BaseStep):
         serie = self.series_images.get_serie_from_index(0)
         im = serie.get_array_from_index(0)
 
-        self.work.prepare(im)
+        self.work.prepare_with_input(im)
 
-    def compute_outputs(self, compute_all=False):
+    def compute_outputs_sequencial(self, compute_all=False):
         for index, couple in enumerate(self.series_images):
-            results = self.work.calcul_1_field(couple)
             if index not in self.outputs or compute_all:
+                results = self.work.calcul_1_field(couple)
                 self.outputs[index] = results
+
+
+class BaseWork(object):
+    def __init__(self, params=None):
+        self.params = params
 
 
 class BasePIVWork(BaseWork):
@@ -87,7 +87,7 @@ class BasePIVWork(BaseWork):
             (X**2, Y**2, X, Y, np.ones(nx*ny))), (5, nx*ny)).T
         self.Minv_subpix = np.linalg.pinv(M)
 
-    def prepare(self, im):
+    def prepare_with_input(self, im):
 
         len_y, len_x = im.shape
         niw = self.n_interrogation_window
@@ -248,54 +248,25 @@ class PIVWorkFromDisplacement(BasePIVWork):
                 self._crop_im1(ixvec, iyvec, im1))
 
 
-class Filter(BaseStep):
-    pass
-
-
 if __name__ == '__main__':
-    from copy import copy
 
     from fluiddyn.util.serieofarrays import \
         SerieOfArraysFromFiles, SeriesOfArrays
 
     path = '../image_samples/Oseen/Oseen_center*'
-
-    def give_indslices_from_indserie(iserie):
-        indslices = copy(serie_arrays._index_slices_all_files)
-        indslices[0] = [iserie+1, iserie+3]
-        return indslices
+    indslices_from_indserie = 'i+1:i+3'
 
     # path = '../image_samples/Karman'
-
-    # def give_indslices_from_indserie(iserie):
-    #     indslices = copy(serie_arrays._index_slices_all_files)
-    #     indslices[0] = [2*iserie+1, 2*iserie+3, 1]
-    #     return indslices
+    # indslices_from_indserie = '2*i+1:2*i+3'
 
     serie_arrays = SerieOfArraysFromFiles(path)
-    series = SeriesOfArrays(serie_arrays, give_indslices_from_indserie,
+    series = SeriesOfArrays(serie_arrays, indslices_from_indserie,
                             ind_stop=None)
 
     o = PIVSerie(
         series_images=series, n_interrogation_window=48, overlap=0.5)
-    o.compute_outputs()
+    o.compute_outputs_sequencial()
 
     for results in o.outputs.values():
         print(results.couple.get_name_files())
         results.display()
-
-    # nx = ny = 16
-
-    # xs = np.arange(nx, dtype=float)
-    # ys = np.arange(ny, dtype=float)
-    # X, Y = np.meshgrid(xs, ys)
-
-    # x0 = y0 = 5.
-    # sigma = 1.
-
-    # correl = np.exp(-((X-x0)**2 + (Y-y0)**2)/(2*sigma**2))
-
-    # plt.ion()
-    # # plt.imshow(correl)
-
-    # o._find_peak_linalg(correl)

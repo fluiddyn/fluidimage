@@ -17,4 +17,4 @@ class HeavyPIVResults(object):
         im0, im1 = self.couple.get_arrays()
         display2.display2(
             im0, im1, self.work.inds_x_vec, self.work.inds_y_vec,
-            self.deltaxs, self.deltays,self.correls)
+            self.deltaxs, self.deltays, self.correls)

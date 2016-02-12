@@ -10,9 +10,12 @@ import numpy as np
 from scipy.signal import convolve2d
 import pyfftw
 
-from reikna.cluda import any_api
-from reikna.fft import FFT
-from reikna.transformations import mul_param
+try:
+    from reikna.cluda import any_api
+    from reikna.fft import FFT
+    from reikna.transformations import mul_param
+except ImportError:
+    pass
 
 # if 'OMP_NUM_THREADS' in os.environ:
 #     nthreads = int(os.environ['OMP_NUM_THREADS'])

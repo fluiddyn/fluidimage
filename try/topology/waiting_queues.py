@@ -80,14 +80,20 @@ class WaitingQueueLoadFile(WaitingQueueThreading):
 
 
 class WaitingQueueMakeCouple(WaitingQueueBase):
-    def __init__(self, name, destination, couples):
+    def __init__(self, name, destination):
         self.name = name
         self.destination = destination
         self.work_name = 'make couples'
 
-        nb = self.nb_couples_to_create = {}
+        self.nb_couples_to_create = {}
+        self.work = 'make_couples'
 
-        self.couples = couples
+        self.couples = set()
+
+    def add_couples(self, couples):
+
+        self.couples.update(couples)
+        nb = self.nb_couples_to_create
 
         for couple in couples:
             for name in couple:
@@ -95,8 +101,6 @@ class WaitingQueueMakeCouple(WaitingQueueBase):
                     nb[name] = nb[name] + 1
                 else:
                     nb[name] = 1
-
-        self.work = 'make_couples'
 
     def check_and_act(self):
 
