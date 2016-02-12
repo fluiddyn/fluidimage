@@ -1,56 +1,20 @@
-"""Base classes for PIV
-=======================
-
-
-
-"""
-
 
 from __future__ import print_function
+
+
+from ..data_objects.piv_results import ArrayCouple, HeavyPIVResults
 
 from copy import deepcopy
 
 import numpy as np
 
-from fluidimage.calcul.correl import CorrelWithFFT
-from piv_results import HeavyPIVResults
+from ..calcul.correl import CorrelWithFFT
+
+from ..works import BaseWork
 
 
 class NoPeakError(Exception):
     """No peak"""
-
-
-class BaseStep(object):
-    def __init__(self, params=None):
-        self.params = params
-
-
-class PIVSerie(BaseStep):
-    def __init__(self, series_images=None, params=None,
-                 n_interrogation_window=None, overlap=None):
-
-        self.outputs = {}
-        self.series_images = series_images
-
-        self.work = FirstPIVWork(
-            params=params,
-            n_interrogation_window=n_interrogation_window, overlap=overlap)
-
-        serie = self.series_images.get_serie_from_index(0)
-        im = serie.get_array_from_index(0)
-
-        self.work.prepare_with_input(im)
-
-    def compute_outputs_sequencial(self, compute_all=False):
-        for index, couple in enumerate(self.series_images):
-            if index not in self.outputs or compute_all:
-                results = self.work.calcul_1_field(couple)
-                self.outputs[index] = results
-
-
-class BaseWork(object):
-    def __init__(self, params=None):
-        self.params = params
 
 
 class BasePIVWork(BaseWork):
@@ -81,7 +45,7 @@ class BasePIVWork(BaseWork):
             (X**2, Y**2, X, Y, np.ones(nx*ny))), (5, nx*ny)).T
         self.Minv_subpix = np.linalg.pinv(M)
 
-    def prepare_with_input(self, im):
+    def prepare_with_image(self, im):
 
         len_y, len_x = im.shape
         niw = self.n_interrogation_window
@@ -90,7 +54,13 @@ class BasePIVWork(BaseWork):
         self.inds_x_vec = np.arange(0, len_x, overlap, dtype=int)
         self.inds_y_vec = np.arange(0, len_y, overlap, dtype=int)
 
-    def calcul_1_field(self, couple):
+    def __call__(self, couple):
+        return
+
+    def calcul(self, couple):
+        if not isinstance(couple, ArrayCouple):
+            raise ValueError
+
         im0, im1 = couple.get_arrays()
         niwo2 = self.niwo2
         tmp = [(niwo2, niwo2), (niwo2, niwo2)]
@@ -100,7 +70,8 @@ class BasePIVWork(BaseWork):
         deltaxs, deltays, correls = self._loop_vectors(im0pad, im1pad)
 
         result = HeavyPIVResults(
-            deltaxs, deltays, correls, deepcopy(couple), self)
+            deltaxs, deltays, self.inds_x_vec, self.inds_y_vec,
+            correls, deepcopy(couple))
 
         return result
 
@@ -240,27 +211,3 @@ class PIVWorkFromDisplacement(BasePIVWork):
     def _crop_subimages(self, ixvec, iyvec, im0, im1):
         return (self._crop_im0(ixvec, iyvec, im0),
                 self._crop_im1(ixvec, iyvec, im1))
-
-
-if __name__ == '__main__':
-
-    from fluiddyn.util.serieofarrays import \
-        SerieOfArraysFromFiles, SeriesOfArrays
-
-    path = '../image_samples/Oseen/Oseen_center*'
-    indslices_from_indserie = 'i+1:i+3'
-
-    # path = '../image_samples/Karman'
-    # indslices_from_indserie = '2*i+1:2*i+3'
-
-    serie_arrays = SerieOfArraysFromFiles(path)
-    series = SeriesOfArrays(serie_arrays, indslices_from_indserie,
-                            ind_stop=None)
-
-    o = PIVSerie(
-        series_images=series, n_interrogation_window=48, overlap=0.5)
-    o.compute_outputs_sequencial()
-
-    for results in o.outputs.values():
-        print(results.couple.get_name_files())
-        results.display()
