@@ -25,7 +25,7 @@ class HeavyPIVResults(DataObject):
         self.xs = xs
 
     def get_images(self):
-        return self.couple.serie.get_arrays()
+        return self.couple.get_arrays()
 
     def display(self):
         im0, im1 = self.couple.get_arrays()
@@ -34,4 +34,7 @@ class HeavyPIVResults(DataObject):
             self.deltaxs, self.deltays, self.correls)
 
     def save(self, path):
+        raise NotImplementedError
+
+    def load(self, path):
         raise NotImplementedError

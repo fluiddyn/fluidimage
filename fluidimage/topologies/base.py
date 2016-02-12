@@ -1,4 +1,7 @@
 
+from __future__ import print_function
+
+
 class TopologyBase(object):
     def __init__(self, queues):
         self.queues = queues
@@ -8,10 +11,9 @@ class TopologyBase(object):
         workers = []
         workers_cpu = []
         while any([not q.is_empty() for q in self.queues]) or len(workers) > 0:
-            # print([not q.is_empty() for q in self.queues], len(workers))
             for q in self.queues:
                 if not q.is_empty():
-                    print(q.work)
+                    print('check_and_act for work:', q.work)
                     new_workers = q.check_and_act()
                     if new_workers is not None:
                         for worker in new_workers:
@@ -19,7 +21,7 @@ class TopologyBase(object):
                             if hasattr(worker, 'do_use_cpu') and \
                                worker.do_use_cpu:
                                 workers_cpu.append(worker)
-                    print(workers)
+                    print('workers:', workers)
 
             workers[:] = [w for w in workers
                           if not w.fill_destination()]

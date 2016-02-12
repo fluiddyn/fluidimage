@@ -1,36 +1,43 @@
 
+import os
+
 from fluidimage.topologies.base import TopologyBase
 
 from fluidimage.waiting_queues.base import (
-    WaitingQueueMultiprocessing,  # , WaitingQueueThreading,
+    WaitingQueueMultiprocessing, WaitingQueueThreading,
     WaitingQueueMakeCouple, WaitingQueueLoadImage)
 
 from fluidimage.works.piv import FirstPIVWork
 
 
 class TopologyPIV(TopologyBase):
-    def __init__(self):
+    def __init__(self, series):
 
         self.piv_work = FirstPIVWork(n_interrogation_window=48, overlap=0.5)
 
-        # results = {}
-        # wq_result = WaitingQueueThreading(
-        #     'delta', lambda o: o.save('Data/images.piv'), results,
-        #     work_name='save')
-        self.wq_result = {}
+        path_dir = series.serie.path_dir
+        path_dir_result = path_dir + '.piv'
 
+        if os.path.exists(path_dir_result):
+            os.mkdir(path_dir_result)
+
+        self.results = {}
+        self.wq_piv = WaitingQueueThreading(
+            'delta', lambda o: o.save(path_dir_result), self.results,
+            work_name='save')
         self.wq_couples = WaitingQueueMultiprocessing(
-            'couple', self.piv_work.calcul, self.wq_result, work_name='PIV')
+            'couple', self.piv_work.calcul, self.wq_piv, work_name='PIV')
         self.wq_images = WaitingQueueMakeCouple(
             'array image', self.wq_couples)
         self.wq0 = WaitingQueueLoadImage(
             destination=self.wq_images,
-            path_dir=series.serie.path_dir)
+            path_dir=path_dir)
 
         super(TopologyPIV, self).__init__([
-            self.wq0, self.wq_images, self.wq_couples
-            # , wq_result
+            self.wq0, self.wq_images, self.wq_couples  #, self.wq_piv
         ])
+
+        self.add_couples(series)
 
     def add_couples(self, series):
         couples = [serie.get_name_files() for serie in series]
@@ -55,13 +62,12 @@ if __name__ == '__main__':
     # strcouple = 'i+1:i+3'
 
     path = '../../image_samples/Karman'
-    strcouple = '2*i+1:2*i+3'
+    strcouple = 'i+1:i+3'
 
     serie_arrays = SerieOfArraysFromFiles(path)
     series = SeriesOfArrays(serie_arrays, strcouple)
 
-    topology = TopologyPIV()
-    topology.add_couples(series)
+    topology = TopologyPIV(series)
 
     topology.compute()
 

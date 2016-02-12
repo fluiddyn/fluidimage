@@ -55,11 +55,13 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
                 try:
                     result = comm.get_nowait()
                     print('result q', result)
+                    if p.is_alive():
+                        print('strange: p.is_alive()')
                     is_done = True
                 except Queue.Empty:
                     is_done = False
             else:
-                is_done = p.is_alive()
+                is_done = not p.is_alive()
 
             if not is_done:
                 return False
@@ -109,6 +111,9 @@ class WaitingQueueMakeCouple(WaitingQueueBase):
         self.work_name = 'make couples'
         self.nb_couples_to_create = {}
         self.couples = set()
+
+    def is_empty(self):
+        return len(self.couples) == 0
 
     def add_couples(self, couples):
 
