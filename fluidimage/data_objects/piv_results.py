@@ -2,6 +2,18 @@
 from .display2 import display2
 
 
+def common_start(sa, sb):
+    """Returns the longest common substring from the beginning of 2 strings."""
+    def _iter():
+        for a, b in zip(sa, sb):
+            if a == b:
+                yield a
+            else:
+                return
+
+    return ''.join(_iter())
+
+
 class DataObject(object):
     pass
 
@@ -34,6 +46,8 @@ class HeavyPIVResults(DataObject):
             self.deltaxs, self.deltays, self.correls)
 
     def save(self, path):
+
+        base_name = common_start(*self.couple.names)
         raise NotImplementedError
 
     def load(self, path):

@@ -1,6 +1,10 @@
 
 import os
 
+from fluiddyn.util.paramcontainer import ParamContainer
+from fluiddyn.util.serieofarrays import \
+    SerieOfArraysFromFiles, SeriesOfArrays
+
 from fluidimage.topologies.base import TopologyBase
 
 from fluidimage.waiting_queues.base import (
@@ -11,11 +15,43 @@ from fluidimage.works.piv import FirstPIVWork
 
 
 class TopologyPIV(TopologyBase):
-    def __init__(self, series):
+    """Topology for PIV.
 
-        self.piv_work = FirstPIVWork(n_interrogation_window=48, overlap=0.5)
+    """
 
-        path_dir = series.serie.path_dir
+    @classmethod
+    def create_default_params(cls):
+        """Class method returning the default parameters.
+
+        For developers: cf. fluidsim.base.params
+
+        """
+        params = ParamContainer(tag='params')
+
+        params._set_child('series', attribs={'path': '',
+                                             'strcouple': 'i+1:i+3'})
+        params._set_child('piv', attribs={
+            'n_interrogation_window': 48,
+            'overlap': 0.5})
+        return params
+
+    def __init__(self, params=None):
+
+        if params is None:
+            params = self.__class__.create_default_params()
+
+        self.params = params
+
+        n_interrogation_window = params.piv.n_interrogation_window
+        overlap = params.piv.overlap
+
+        self.piv_work = FirstPIVWork(
+            n_interrogation_window=n_interrogation_window, overlap=overlap)
+
+        serie_arrays = SerieOfArraysFromFiles(params.series.path)
+        self.series = SeriesOfArrays(serie_arrays, params.series.strcouple)
+
+        path_dir = self.series.serie.path_dir
         path_dir_result = path_dir + '.piv'
 
         if os.path.exists(path_dir_result):
@@ -34,10 +70,10 @@ class TopologyPIV(TopologyBase):
             path_dir=path_dir)
 
         super(TopologyPIV, self).__init__([
-            self.wq0, self.wq_images, self.wq_couples  #, self.wq_piv
+            self.wq0, self.wq_images, self.wq_couples  # , self.wq_piv
         ])
 
-        self.add_couples(series)
+        self.add_couples(self.series)
 
     def add_couples(self, series):
         couples = [serie.get_name_files() for serie in series]
@@ -55,22 +91,17 @@ class TopologyPIV(TopologyBase):
 
 if __name__ == '__main__':
 
-    from fluiddyn.util.serieofarrays import \
-        SerieOfArraysFromFiles, SeriesOfArrays
-
     # path = '../../image_samples/Oseen/Oseen_center*'
-    # strcouple = 'i+1:i+3'
-
     path = '../../image_samples/Karman'
-    strcouple = 'i+1:i+3'
 
-    serie_arrays = SerieOfArraysFromFiles(path)
-    series = SeriesOfArrays(serie_arrays, strcouple)
+    params = TopologyPIV.create_default_params()
+    params.series.path = path
 
-    topology = TopologyPIV(series)
+    topology = TopologyPIV(params)
 
     topology.compute()
 
     # topology.make_code_graphviz('topo.dot')
     # then the graph can be produced with the command:
     # dot topo.dot -Tpng -o topo.png
+    # dot topo.dot -Tx11
