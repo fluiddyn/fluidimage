@@ -7,7 +7,7 @@ Dependencies
 
 - Python 2.7
 
-- FFT libraries: fftw (better to build with OpenMP enabled)
+- fftw (better to build with OpenMP enabled)
 
 
 Install in development mode (recommended)

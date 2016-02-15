@@ -1,5 +1,5 @@
-"""Treatments
-=============
+"""Utilities for treatments
+===========================
 
 
 """
