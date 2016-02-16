@@ -54,7 +54,7 @@ class InstructionsUVMAT(ParamContainer):
         path_file_input = os.path.join(path_dir_input, name_file)
         self._set_attrib('path_dir_input', path_dir_input)
         self._set_attrib('path_file_input', path_file_input)
-        
+
         self._set_attrib(
             'path_dir_output',
             path_dir_input + self.output_dir_ext)
@@ -99,9 +99,9 @@ class ActionAverage(ActionBase):
         strindices_last_file = serie._compute_strindices_from_indices(
             *[indices[1]-1 for indices in instructions.index_slices])
 
-        name_file = (serie.base_name + serie._separator_base_index
-                     + strindices_first_file + '-' + strindices_last_file
-                     + '.' + serie.extension_file)
+        name_file = (serie.base_name + serie._separator_base_index +
+                     strindices_first_file + '-' + strindices_last_file +
+                     '.' + serie.extension_file)
 
         path_save = os.path.join(instructions.path_dir_output, name_file)
         logging.info('Save in file:\n%s',  path_save)

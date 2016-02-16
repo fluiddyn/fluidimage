@@ -1,17 +1,9 @@
 
+import os
+
+import h5py
+
 from .display2 import display2
-
-
-def common_start(sa, sb):
-    """Returns the longest common substring from the beginning of 2 strings."""
-    def _iter():
-        for a, b in zip(sa, sb):
-            if a == b:
-                yield a
-            else:
-                return
-
-    return ''.join(_iter())
 
 
 class DataObject(object):
@@ -19,9 +11,10 @@ class DataObject(object):
 
 
 class ArrayCouple(DataObject):
-    def __init__(self, names, arrays):
+    def __init__(self, names, arrays, serie=None):
         self.names = tuple(names)
         self.arrays = tuple(arrays)
+        self.serie = serie
 
     def get_arrays(self):
         return self.arrays
@@ -46,9 +39,25 @@ class HeavyPIVResults(DataObject):
             self.deltaxs, self.deltays, self.correls)
 
     def save(self, path):
+        serie = self.couple.serie
 
-        base_name = common_start(*self.couple.names)
-        raise NotImplementedError
+        str_ind0 = serie._compute_strindices_from_indices(
+            *[inds[0] for inds in serie.get_index_slices()])
+
+        str_ind1 = serie._compute_strindices_from_indices(
+            *[inds[1] - 1 for inds in serie.get_index_slices()])
+
+        name = ('piv_' + serie.base_name + str_ind0 + '-' + str_ind1 + '.h5')
+
+        path_file = os.path.join(path, name)
+        print(path_file)
+
+        keys_to_be_saved = ['xs', 'ys', 'deltaxs', 'deltays']
+        with h5py.File(path_file, 'w') as f:
+            for k in keys_to_be_saved:
+                f.create_dataset(k, data=self.__dict__[k])
+
+        return self
 
     def load(self, path):
         raise NotImplementedError

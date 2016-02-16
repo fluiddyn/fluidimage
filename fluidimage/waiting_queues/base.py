@@ -1,11 +1,12 @@
 
 import os
+from copy import deepcopy
 
 import multiprocessing
 import threading
 import Queue
 
-from ..data_objects.piv_results import ArrayCouple
+from ..data_objects.piv import ArrayCouple
 from ..works import load_image
 
 
@@ -54,9 +55,6 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
             if isinstance(p, multiprocessing.Process):
                 try:
                     result = comm.get_nowait()
-                    print('result q', result)
-                    if p.is_alive():
-                        print('strange: p.is_alive()')
                     is_done = True
                 except Queue.Empty:
                     is_done = False
@@ -111,11 +109,17 @@ class WaitingQueueMakeCouple(WaitingQueueBase):
         self.work_name = 'make couples'
         self.nb_couples_to_create = {}
         self.couples = set()
+        self.series = {}
 
     def is_empty(self):
         return len(self.couples) == 0
 
-    def add_couples(self, couples):
+    def add_couples(self, series):
+
+        self.series.update({serie.get_name_files(): deepcopy(serie)
+                            for serie in series})
+
+        couples = [serie.get_name_files() for serie in series]
 
         self.couples.update(couples)
         nb = self.nb_couples_to_create
@@ -139,6 +143,7 @@ class WaitingQueueMakeCouple(WaitingQueueBase):
                 if (k0, k1) in self.couples:
                     newk = k0 + '-' + k1
                     self.couples.remove((k0, k1))
+                    serie = self.series.pop((k0, k1))
 
                     if self.nb_couples_to_create[k0] == 1:
                         v0 = self.pop(k0)
@@ -156,4 +161,5 @@ class WaitingQueueMakeCouple(WaitingQueueBase):
                         self.nb_couples_to_create[k1] = \
                             self.nb_couples_to_create[k1] - 1
 
-                    self.destination[newk] = ArrayCouple((k0, k1), (v0, v1))
+                    self.destination[newk] = ArrayCouple(
+                        (k0, k1), (v0, v1), serie)

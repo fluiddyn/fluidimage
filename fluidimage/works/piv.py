@@ -2,7 +2,7 @@
 from __future__ import print_function
 
 
-from ..data_objects.piv_results import ArrayCouple, HeavyPIVResults
+from ..data_objects.piv import ArrayCouple, HeavyPIVResults
 
 from copy import deepcopy
 
@@ -17,14 +17,24 @@ class NoPeakError(Exception):
     """No peak"""
 
 
-class BasePIVWork(BaseWork):
+class BaseWorkPIV(BaseWork):
+
+    @classmethod
+    def _complete_params_with_default(cls, params):
+        params._set_child('piv', attribs={
+            'n_interrogation_window': 48,
+            'overlap': 0.5})
+
     def __init__(self, params=None,
                  n_interrogation_window=None, overlap=None):
 
-        self.n_interrogation_window = n_interrogation_window
+        if n_interrogation_window is None:
+            n_interrogation_window = params.piv.n_interrogation_window
 
         if overlap is None:
-            overlap = 0.5
+            overlap = params.piv.overlap
+
+        self.n_interrogation_window = n_interrogation_window
         self.overlap = overlap
 
         niw = self.n_interrogation_window
@@ -179,7 +189,7 @@ class BasePIVWork(BaseWork):
         return deplx + ix, deply + iy
 
 
-class FirstPIVWork(BasePIVWork):
+class FirstWorkPIV(BaseWorkPIV):
 
     def _crop_im(self, ixvec, iyvec, im):
         niwo2 = self.niwo2
@@ -192,8 +202,10 @@ class FirstPIVWork(BasePIVWork):
         return (self._crop_im(ixvec, iyvec, im0),
                 self._crop_im(ixvec, iyvec, im1))
 
+WorkPIV = FirstWorkPIV
 
-class PIVWorkFromDisplacement(BasePIVWork):
+
+class WorkPIVFromDisplacement(BaseWorkPIV):
     def _crop_im0(self, ixvec, iyvec, im):
         niwo2 = self.niwo2
         subim = im[iyvec - niwo2:iyvec + niwo2,

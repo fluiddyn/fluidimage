@@ -11,7 +11,7 @@ from fluidimage.waiting_queues.base import (
     WaitingQueueMultiprocessing, WaitingQueueThreading,
     WaitingQueueMakeCouple, WaitingQueueLoadImage)
 
-from fluidimage.works.piv import FirstPIVWork
+from fluidimage.works.piv import WorkPIV
 
 
 class TopologyPIV(TopologyBase):
@@ -30,9 +30,8 @@ class TopologyPIV(TopologyBase):
 
         params._set_child('series', attribs={'path': '',
                                              'strcouple': 'i+1:i+3'})
-        params._set_child('piv', attribs={
-            'n_interrogation_window': 48,
-            'overlap': 0.5})
+
+        WorkPIV._complete_params_with_default(params)
         return params
 
     def __init__(self, params=None):
@@ -41,12 +40,7 @@ class TopologyPIV(TopologyBase):
             params = self.__class__.create_default_params()
 
         self.params = params
-
-        n_interrogation_window = params.piv.n_interrogation_window
-        overlap = params.piv.overlap
-
-        self.piv_work = FirstPIVWork(
-            n_interrogation_window=n_interrogation_window, overlap=overlap)
+        self.piv_work = WorkPIV(params)
 
         serie_arrays = SerieOfArraysFromFiles(params.series.path)
         self.series = SeriesOfArrays(serie_arrays, params.series.strcouple)
@@ -54,7 +48,7 @@ class TopologyPIV(TopologyBase):
         path_dir = self.series.serie.path_dir
         path_dir_result = path_dir + '.piv'
 
-        if os.path.exists(path_dir_result):
+        if not os.path.exists(path_dir_result):
             os.mkdir(path_dir_result)
 
         self.results = {}
@@ -70,17 +64,16 @@ class TopologyPIV(TopologyBase):
             path_dir=path_dir)
 
         super(TopologyPIV, self).__init__([
-            self.wq0, self.wq_images, self.wq_couples  # , self.wq_piv
+            self.wq0, self.wq_images, self.wq_couples, self.wq_piv
         ])
 
         self.add_couples(self.series)
 
     def add_couples(self, series):
-        couples = [serie.get_name_files() for serie in series]
         names = series.get_name_all_files()
 
         self.wq0.add_name_files(names)
-        self.wq_images.add_couples(couples)
+        self.wq_images.add_couples(series)
 
         k, o = self.wq0.popitem()
         im = self.wq0.work(o)
@@ -106,7 +99,7 @@ if __name__ == '__main__':
 
     topology.compute()
 
-    topology.make_code_graphviz('topo.dot')
+    # topology.make_code_graphviz('topo.dot')
     # then the graph can be produced with the command:
     # dot topo.dot -Tpng -o topo.png
     # dot topo.dot -Tx11
