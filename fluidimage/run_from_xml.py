@@ -1,9 +1,9 @@
-"""Uvmat interface (:mod:`fluidlab.postproc.uvmat`)
+"""Uvmat interface (:mod:`fluidimage.run_from_xml`)
 ===================================================
 
 From matlab, something like::
 
-  system(['python -m fluidlab.postproc.uvmat ' path_to_instructions_xml])
+  system(['python -m fluidimage.run_from_xml ' path_to_instructions_xml])
 
 """
 
@@ -20,7 +20,7 @@ logging.basicConfig(format='%(message)s',
                     level=log_level)
 
 from fluiddyn.util.paramcontainer import ParamContainer, tidy_container
-from fluidlab.postproc.serieofarrays import SerieOfArraysFromFiles
+from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
 
 
 class InstructionsUVMAT(ParamContainer):
@@ -48,11 +48,13 @@ class InstructionsUVMAT(ParamContainer):
 
         input_table = self.input_table.split(' & ')
         self.input_table = '|'.join(input_table)
-        
+        name_file = ''.join(input_table[2:])
         path_dir_root = input_table[0]
-        path_dir_input = os.path.join(path_dir_root, input_table[1][1:])
+        path_dir_input = os.path.join(path_dir_root, input_table[1])
+        path_file_input = os.path.join(path_dir_input, name_file)
         self._set_attrib('path_dir_input', path_dir_input)
-
+        self._set_attrib('path_file_input', path_file_input)
+        
         self._set_attrib(
             'path_dir_output',
             path_dir_input + self.output_dir_ext)
@@ -81,26 +83,25 @@ class ActionAverage(ActionBase):
     """Compute the average and save as a png file."""
     def run(self):
         instructions = self.instructions
-        sas = self.serie_arrays
+        serie = self.serie_arrays
         # compute the average
         logging.info('Compute the average')
-        a = sas.get_array_from_indices(
-            tuple(slice[0] for slice in instructions.index_slices))
+        a = serie.get_array_from_index(0)
         mean = np.zeros_like(a, dtype=np.float32)
         nb_fields = 0
-        for indices in sas.iter_indices():
-            mean += sas.get_array_from_indices(indices)
+        for a in serie.iter_arrays():
+            mean += a
             nb_fields += 1
         mean /= nb_fields
 
-        strindices_first_file = sas.compute_strindices_from_indices(
-            [slice[0] for slice in instructions.index_slices])
-        strindices_last_file = sas.compute_strindices_from_indices(
-            [slice[1]-1 for slice in instructions.index_slices])
+        strindices_first_file = serie._compute_strindices_from_indices(
+            *[indices[0] for indices in instructions.index_slices])
+        strindices_last_file = serie._compute_strindices_from_indices(
+            *[indices[1]-1 for indices in instructions.index_slices])
 
-        name_file = (sas.base_name + sas.separator_base_index
+        name_file = (serie.base_name + serie._separator_base_index
                      + strindices_first_file + '-' + strindices_last_file
-                     + '.' + sas.extension_file)
+                     + '.' + serie.extension_file)
 
         path_save = os.path.join(instructions.path_dir_output, name_file)
         logging.info('Save in file:\n%s',  path_save)
@@ -123,7 +124,7 @@ def main():
     instructions = InstructionsUVMAT(path_file=path_instructions_xml)
 
     action_name = instructions.action.action_name
-    logging.info('Verify if the action "%s" is implemented by FluidImage',
+    logging.info('Check if the action "%s" is implemented by FluidImage',
                  action_name)
     if action_name not in actions_classes.keys():
         raise NotImplementedError(
