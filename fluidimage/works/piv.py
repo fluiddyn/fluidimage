@@ -1,15 +1,40 @@
+"""Piv work and subworks
+========================
+
+To do:
+
+- reorganize (WorkPIV should not be a FirstWorkPIV)
+
+- use not normalize correlations
+
+- use different methods for the correlations (with parameters)
+
+- use parameter to chose the method for subpix
+
+- subpix in a class (clean up)?
+
+- improve NoPeakError (different classes with parameters, as in "fix" of UVmat)
+
+- as in UVmat? Variables to keep: xs, ys, deltaxs, deltays,
+  correl_peak, deltaxs_2ndpeak, deltays_2ndpeak, correl_2ndpeak,
+  no_peak_errors... (?)
+
+- as in UVmat: civ1, fix1, patch1, ... (?)
+
+- detect and save multipeaks
+
+
+"""
+
 
 from __future__ import print_function
-
-
-from ..data_objects.piv import ArrayCouple, HeavyPIVResults
 
 from copy import deepcopy
 
 import numpy as np
 
+from ..data_objects.piv import ArrayCouple, HeavyPIVResults
 from ..calcul.correl import CorrelWithFFT
-
 from ..works import BaseWork
 
 
@@ -34,10 +59,9 @@ class BaseWorkPIV(BaseWork):
         if overlap is None:
             overlap = params.piv.overlap
 
-        self.n_interrogation_window = n_interrogation_window
+        niw = self.n_interrogation_window = n_interrogation_window
         self.overlap = overlap
 
-        niw = self.n_interrogation_window
         self.niwo2 = niw/2
 
         correl = CorrelWithFFT(niw, niw)
@@ -63,9 +87,6 @@ class BaseWorkPIV(BaseWork):
 
         self.inds_x_vec = np.arange(0, len_x, overlap, dtype=int)
         self.inds_y_vec = np.arange(0, len_y, overlap, dtype=int)
-
-    def __call__(self, couple):
-        return
 
     def calcul(self, couple):
         if not isinstance(couple, ArrayCouple):
