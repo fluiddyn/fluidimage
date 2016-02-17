@@ -6,7 +6,7 @@ class TopologyBase(object):
     def __init__(self, queues):
         self.queues = queues
 
-    def compute(self):
+    def compute(self, sequential=None):
 
         workers = []
         workers_cpu = []
@@ -14,7 +14,7 @@ class TopologyBase(object):
             for q in self.queues:
                 if not q.is_empty():
                     print('check_and_act for work:', q.work)
-                    new_workers = q.check_and_act()
+                    new_workers = q.check_and_act(sequential=sequential)
                     if new_workers is not None:
                         for worker in new_workers:
                             workers.append(worker)

@@ -20,7 +20,7 @@ class WaitingQueueBase(dict):
     def is_empty(self):
         return not bool(self)
 
-    def check_and_act(self):
+    def check_and_act(self, sequential=None):
         k, o = self.popitem()
         result = self.work(o)
         self.fill_destination(k, result)
@@ -40,7 +40,11 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
     def _Process(*args, **kwargs):
         return multiprocessing.Process(*args, **kwargs)
 
-    def check_and_act(self):
+    def check_and_act(self, sequential=None):
+
+        if sequential:
+            return WaitingQueueBase.check_and_act(self, sequential=sequential)
+
         k, o = self.popitem()
         comm = self._Queue()
 
@@ -133,7 +137,7 @@ class WaitingQueueMakeCouple(WaitingQueueBase):
 
         self.work = 'make_couples'
 
-    def check_and_act(self):
+    def check_and_act(self, sequential=None):
 
         for k0 in self.keys():
             for k1 in self.keys():

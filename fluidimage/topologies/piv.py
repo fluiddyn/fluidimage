@@ -97,7 +97,7 @@ if __name__ == '__main__':
 
     topology = TopologyPIV(params)
 
-    topology.compute()
+    topology.compute(sequential=False)
 
     # topology.make_code_graphviz('topo.dot')
     # then the graph can be produced with the command:
