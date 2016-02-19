@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 plt.ion()
 
 
-def display2(im0, im1, ixvec=None, iyvec=None, vecx=None, vecy=None,correls=None):
+def display2(im0, im1, ixvec=None, iyvec=None,
+             vecx=None, vecy=None, correls=None):
 
     fig = plt.figure()
     ax1 = plt.subplot(121)
@@ -54,8 +55,8 @@ def display2(im0, im1, ixvec=None, iyvec=None, vecx=None, vecy=None,correls=None
 
         t.set_text('vector at ix = {} : iy = {} ; U = {} ; V = {}'.format(
             ix, iy, q.U[ind], q.V[ind]))
-        ax2.imshow(correls[ind],origin="lower",cmap='Reds')
-        ax2.plot(q.U[ind],q.V[ind])
+        ax2.imshow(correls[ind], origin="lower", cmap='Reds')
+        ax2.plot(q.U[ind], q.V[ind])
         ax2.axis('tight')
         fig.canvas.draw()
 
@@ -66,7 +67,8 @@ def display2(im0, im1, ixvec=None, iyvec=None, vecx=None, vecy=None,correls=None
         axi0.set_visible(not axi0.get_visible())
         axi1.set_visible(not axi1.get_visible())
 
-        ax1.set_title('im {} (alt+s to switch)'.format(int(axi1.get_visible())))
+        ax1.set_title('im {} (alt+s to switch)'.format(
+            int(axi1.get_visible())))
 
         fig.canvas.draw()
 
@@ -76,5 +78,9 @@ if __name__ == '__main__':
 
     im0 = imread('samples/Karman/PIVlab_Karman_01.bmp')
     im1 = imread('samples/Karman/PIVlab_Karman_02.bmp')
-    display(im0, im1)
-
+    fig = plt.figure()
+    ax1 = plt.subplot(121)
+    ax2 = plt.subplot(122)
+    ax1.imshow(im0)
+    ax2.imshow(im1)
+    plt.show(block=True)
