@@ -83,4 +83,4 @@ if __name__ == '__main__':
     ax2 = plt.subplot(122)
     ax1.imshow(im0)
     ax2.imshow(im1)
-    plt.show(block=True)
+    fig.show(block=True)

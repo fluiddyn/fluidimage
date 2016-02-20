@@ -1,11 +1,48 @@
 import unittest
 import numpy as np
 from time import time
+from scipy.misc import lena
 
 from correl import FFTW2DReal2Complex, CUFFT2DReal2Complex
+from correl import calcul_correl_norm_scipy, CorrelWithFFT
+# import matplotlib.pyplot as plt
 
 
 class TestFFTW2DReal2Complex(unittest.TestCase):
+
+    def test_correl(self):
+
+        rtime, ntime = 0., 0.
+
+        im1 = lena()
+        im2 = im1 + np.random.randn(*im1.shape) * 50  # add noise
+        im1 = im1.astype('float32')
+        im2 = im2.astype('float32')
+        nx, ny = im1.shape
+
+        t0 = time()
+        correl = CorrelWithFFT(nx, ny)
+        correlfft = correl.calcul_correl_norm(im1, im2)
+        ntime += time() - t0
+
+        t0 = time()
+        correl_dir = calcul_correl_norm_scipy(im1, im2)
+        rtime += time() - t0
+
+        print 'correl fft speedup = %g' % (rtime / ntime)
+        # ax1 = plt.subplot(121)
+        # ax2 = plt.subplot(122)
+        # ax1.imshow(correlfft)
+        # ax2.imshow(correl_dir)
+        # plt.show(block=True)
+
+        rtol = 8e-0
+        atol = 3e-04
+        # tmp = np.absolute(correlfft - correl_dir) #- atol - rtol*np.abs(back)
+
+        # print(tmp.max())
+        self.assertTrue(np.allclose(correlfft,
+                                    correl_dir, rtol=rtol, atol=atol))
 
     def test_fft(self):
         """simple"""
