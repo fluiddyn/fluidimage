@@ -36,9 +36,6 @@ c_full = correlate(in0, in1, mode='full')/norm
 c_same = correlate(in0, in1, mode='same')/norm
 c_valid = correlate(in0, in1, mode='valid')/norm
 
-h0 = np.hanning(in0.size)
-h1 = np.hanning(in1.size)
-
 c_fft = ((ifft(fft(in0).conj() * fft(in1))).real)[::-1]/norm
 
 

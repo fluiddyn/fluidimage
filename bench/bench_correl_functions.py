@@ -11,14 +11,6 @@ from numpy.fft import fft2, ifft2
 from fluidimage.calcul.fft import FFTW2DReal2Complex
 
 
-n0 = 64
-n1 = 32
-print('n0: {} ; n1: {}'.format(n0, n1))
-
-in0 = np.random.randn(n0, n0).astype('float32')
-in1 = np.random.randn(n1, n1).astype('float32')
-
-
 def corr_full(in0, in1):
     norm = np.sum(in1**2)
     return correlate2d(in0, in1, mode='full')/norm
@@ -32,6 +24,14 @@ def corr_full_ndimage(in0, in1):
 def corr_fft_numpy(in0, in1):
     norm = np.sum(in1**2)
     return ((ifft2(fft2(in0).conj() * fft2(in1))).real)[::-1, ::-1]/norm
+
+
+n0 = 64
+n1 = 32
+print('n0: {} ; n1: {}'.format(n0, n1))
+
+in0 = np.random.randn(n0, n0).astype('float32')
+in1 = np.random.randn(n1, n1).astype('float32')
 
 
 op = FFTW2DReal2Complex(n0, n0)

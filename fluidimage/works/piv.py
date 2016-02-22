@@ -33,16 +33,21 @@ from copy import deepcopy
 
 import numpy as np
 
+from fluiddyn.util.paramcontainer import ParamContainer
+from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
+
 from ..data_objects.piv import ArrayCouple, HeavyPIVResults
-from ..calcul.correl import CorrelWithFFT
+from ..calcul.correl import (NoPeakError, CorrelFFTW)
 from ..works import BaseWork
 
 
-class NoPeakError(Exception):
-    """No peak"""
-
-
 class BaseWorkPIV(BaseWork):
+
+    @classmethod
+    def create_default_params(cls):
+        params = ParamContainer(tag='params')
+        cls._complete_params_with_default(params)
+        return params
 
     @classmethod
     def _complete_params_with_default(cls, params):
@@ -64,22 +69,9 @@ class BaseWorkPIV(BaseWork):
 
         self.niwo2 = niw/2
 
-        correl = CorrelWithFFT(niw, niw)
-        self._calcul_correl_norm = correl.calcul_correl_norm
+        self.correl = CorrelFFTW(im0_shape=(niw, niw))
 
-        # subpix initialization
-        self.n_subpix_zoom = 2
-        xs = np.arange(2*self.n_subpix_zoom+1, dtype=float)
-        ys = np.arange(2*self.n_subpix_zoom+1, dtype=float)
-        X, Y = np.meshgrid(xs, ys)
-        nx, ny = X.shape
-        X = X.ravel()
-        Y = Y.ravel()
-        M = np.reshape(np.concatenate(
-            (X**2, Y**2, X, Y, np.ones(nx*ny))), (5, nx*ny)).T
-        self.Minv_subpix = np.linalg.pinv(M)
-
-    def prepare_with_image(self, im):
+    def _prepare_with_image(self, im):
 
         len_y, len_x = im.shape
         niw = self.n_interrogation_window
@@ -89,10 +81,16 @@ class BaseWorkPIV(BaseWork):
         self.inds_y_vec = np.arange(0, len_y, overlap, dtype=int)
 
     def calcul(self, couple):
+        if isinstance(couple, SerieOfArraysFromFiles):
+            couple = ArrayCouple(serie=couple)
+
         if not isinstance(couple, ArrayCouple):
             raise ValueError
 
         im0, im1 = couple.get_arrays()
+        if not hasattr(self, 'inds_x_vec'):
+            self._prepare_with_image(im0)
+
         niwo2 = self.niwo2
         tmp = [(niwo2, niwo2), (niwo2, niwo2)]
         im0pad = np.pad(im0 - im0.min(), tmp, 'constant')
@@ -122,10 +120,12 @@ class BaseWorkPIV(BaseWork):
             for ixvec in inds_x_vec_pad:
                 ix += 1
                 im0crop, im1crop = self._crop_subimages(ixvec, iyvec, im0, im1)
-                correl = self._calcul_correl_norm(im0crop, im1crop)
+                correl = self.correl(im0crop, im1crop)
                 correls.append(correl)
                 try:
-                    deltax, deltay = self._find_peak(correl)
+                    deltax, deltay = \
+                        self.correl.compute_displacement_from_correl(
+                            correl, method='centroid')
                     deltaxs[iy, ix] = deltax
                     deltays[iy, ix] = deltay
                 except NoPeakError as e:
@@ -137,77 +137,6 @@ class BaseWorkPIV(BaseWork):
 
     def _crop_subimages(self, ixvec, iyvec, im0, im1):
         raise NotImplementedError
-
-    def _find_peak(self, correl):
-        iy, ix = np.unravel_index(correl.argmax(), correl.shape)
-        ix, iy = self._find_peak_subpixel(
-            correl, ix, iy, 'centroid')  # method : 2Dgaussian or centroid
-        return ix - self.niwo2, iy - self.niwo2
-
-    def _find_peak_subpixel_old(self, correl, ix, iy):
-        return ix, iy
-
-    def _find_peak_subpixel(self, correl, ix, iy, method):
-        """Find peak using linalg.solve (buggy?)
-
-        Parameters
-        ----------
-
-        correl_map: numpy.ndarray
-
-          Normalized correlation
-        """
-        n = self.n_subpix_zoom
-
-        ny, nx = correl.shape
-
-        if iy-n < 0 or iy+n+1 > ny or \
-           ix-n < 0 or ix+n+1 > nx:
-            raise NoPeakError
-
-        if method == '2Dgaussian':
-
-            # crop: possibly buggy!
-            correl = correl[iy-n:iy+n+1,
-                            ix-n:ix+n+1]
-
-            ny, nx = correl.shape
-
-            assert nx == ny == 2*n + 1
-
-            correl_map = correl.ravel()
-            correl_map[correl_map == 0.] = 1e-6
-
-            coef = np.dot(self.Minv_subpix, np.log(correl_map))
-
-            sigmax = 1/np.sqrt(-2*coef[0])
-            sigmay = 1/np.sqrt(-2*coef[1])
-            X0 = coef[2]*sigmax**2
-            Y0 = coef[3]*sigmay**2
-
-            tmp = 2*n + 1
-            if X0 > tmp or Y0 > tmp:
-                raise NoPeakError
-
-            deplx = X0 - nx/2  # displacement x
-            deply = Y0 - ny/2  # displacement y
-
-        elif method == 'centroid':
-
-            correl = correl[iy-1:iy+2, ix-1:ix+2]
-            ny, nx = correl.shape
-
-            X, Y = np.meshgrid(range(3), range(3))
-            X0 = np.sum(X * correl) / np.sum(correl)
-            Y0 = np.sum(Y * correl) / np.sum(correl)
-
-            if X0 > 2 or Y0 > 2:
-                raise NoPeakError
-
-            deplx = X0 - nx/2  # displacement x
-            deply = Y0 - ny/2  # displacement y
-
-        return deplx + ix, deply + iy
 
 
 class FirstWorkPIV(BaseWorkPIV):

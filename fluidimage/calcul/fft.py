@@ -32,8 +32,6 @@ class CUFFT2DReal2Complex(object):
 
     def __init__(self, nx, ny):
 
-        if nx % 2 != 0 or ny % 2 != 0:
-            raise ValueError('nx and ny should be even')
         shapeX = [ny, nx]
         shapeK = [ny, nx]
 
@@ -84,8 +82,6 @@ class FFTW2DReal2Complex(object):
 
     def __init__(self, nx, ny):
 
-        if nx % 2 != 0 or ny % 2 != 0:
-            raise ValueError('nx and ny should be even')
         shapeX = [ny, nx]
         shapeK = [ny, nx//2 + 1]
 

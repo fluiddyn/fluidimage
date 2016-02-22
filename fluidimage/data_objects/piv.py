@@ -11,7 +11,12 @@ class DataObject(object):
 
 
 class ArrayCouple(DataObject):
-    def __init__(self, names, arrays, serie=None):
+    def __init__(self, names=None, arrays=None, serie=None):
+        if serie is not None and arrays is None:
+            if serie.get_nb_files() != 2:
+                raise ValueError('serie has to contain 2 arrays.')
+            names = serie.get_name_files()
+            arrays = serie.get_arrays()
         self.names = tuple(names)
         self.arrays = tuple(arrays)
         self.serie = serie

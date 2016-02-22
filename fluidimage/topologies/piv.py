@@ -79,7 +79,7 @@ class TopologyPIV(TopologyBase):
         im = self.wq0.work(o)
         self.wq0.fill_destination(k, im)
 
-        self.piv_work.prepare_with_image(im)
+        self.piv_work._prepare_with_image(im)
 
 
 if __name__ == '__main__':
