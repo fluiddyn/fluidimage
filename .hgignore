@@ -29,6 +29,7 @@ dist*
 
 doc/generated/*
 
-*/Profile.prof
+*/profile.pstats
+*/profile.png
 
 image_samples/*/Images.piv/*.h5

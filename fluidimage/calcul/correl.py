@@ -1,6 +1,36 @@
-"""
+"""Correlation classes
+======================
 
-correlation computed with fft are much faster !
+The correlation classes are able to compute correlations with
+different methods.
+
+.. autoclass:: CorrelBase
+   :members:
+   :private-members:
+
+.. autoclass:: CorrelScipySignal
+   :members:
+   :private-members:
+
+.. autoclass:: CorrelScipyNdimage
+   :members:
+   :private-members:
+
+.. autoclass:: CorrelFFTNumpy
+   :members:
+   :private-members:
+
+.. autoclass:: CorrelFFTW
+   :members:
+   :private-members:
+
+.. autoclass:: CorrelCuFFT
+   :members:
+   :private-members:
+
+.. autoclass:: SubPix
+   :members:
+   :private-members:
 
 """
 
@@ -18,26 +48,19 @@ class NoPeakError(Exception):
     """No peak"""
 
 
-# if 'OMP_NUM_THREADS' in os.environ:
-#     nthreads = int(os.environ['OMP_NUM_THREADS'])
-# else:
-#     pass
-
-# It seems that it is better to used nthreads = 1 for the fft with very small
-# dimension used for PIV
-nthreads = 1
-
-
 class CorrelBase(object):
+    """This class is meant to be subclassed, not instantiated directly."""
     def __init__(self, im0_shape, im1_shape):
         self.inds0 = tuple(np.array(im0_shape)//2 - 1)
 
         self.subpix = SubPix()
 
     def compute_displacement_from_indices(self, indices):
-        return np.array(self.inds0) - np.array(indices)
+        """Compute the displacement from a couple of indices."""
+        return self.inds0[0] - indices[0], self.inds0[1] - indices[1]
 
     def compute_displacement_from_correl(self, correl, method='centroid'):
+        """Compute the displacement (with subpix) from a correlation."""
         iy, ix = np.unravel_index(correl.argmax(), correl.shape)
         indices = self.subpix.compute(
             correl, ix, iy, method)
@@ -45,6 +68,7 @@ class CorrelBase(object):
 
 
 class CorrelScipySignal(CorrelBase):
+    """Correlations using scipy.signal.correlate2d"""
     def __init__(self, im0_shape, im1_shape=None, mode='same'):
 
         if im1_shape is None:
@@ -75,6 +99,7 @@ class CorrelScipySignal(CorrelBase):
         self.inds0 = tuple([ind0y, ind0x])
 
     def __call__(self, im0, im1):
+        """Compute the correlation from images."""
         norm = np.sum(im1**2)
         if self.mode == 'valid':
             correl = correlate2d(im0, im1, mode='valid')
@@ -87,28 +112,33 @@ class CorrelScipySignal(CorrelBase):
 
 
 class CorrelScipyNdimage(CorrelBase):
+    """Correlations using scipy.ndimage.correlate."""
     def __init__(self, im0_shape, im1_shape=None):
         super(CorrelScipyNdimage, self).__init__(im0_shape, im1_shape)
         self.inds0 = tuple(np.array(im0_shape)//2)
 
     def __call__(self, im0, im1):
+        """Compute the correlation from images."""
         norm = np.sum(im1**2)
         return correlate(im0, im1, mode='constant', cval=im1.min())/norm
 
 
 class CorrelFFTNumpy(CorrelBase):
+    """Correlations using numpy.fft."""
     def __init__(self, im0_shape, im1_shape):
         super(CorrelFFTNumpy, self).__init__(im0_shape, im1_shape)
         if im0_shape != im1_shape:
             raise ValueError('The input images have to have the same shape.')
 
     def __call__(self, im0, im1):
+        """Compute the correlation from images."""
         norm = np.sum(im1**2)
         corr = ifft2(fft2(im0).conj() * fft2(im1)).real / norm
         return np.fft.fftshift(corr[::-1, ::-1])
 
 
 class CorrelFFTW(CorrelBase):
+    """Correlations using fluidimage.fft.FFTW2DReal2Complex"""
     FFTClass = FFTW2DReal2Complex
 
     def __init__(self, im0_shape, im1_shape=None):
@@ -124,6 +154,7 @@ class CorrelFFTW(CorrelBase):
         self.op = self.FFTClass(n1, n0)
 
     def __call__(self, im0, im1):
+        """Compute the correlation from images."""
         norm = np.sum(im1**2)
         op = self.op
         corr = op.ifft(op.fft(im0).conj() * op.fft(im1)) / norm
@@ -131,13 +162,16 @@ class CorrelFFTW(CorrelBase):
 
 
 class CorrelCuFFT(CorrelBase):
+    """Correlations using fluidimage.fft.CUFFT2DReal2Complex"""
     FFTClass = CUFFT2DReal2Complex
 
 
 class SubPix(object):
+    """Subpixel finder"""
     methods = ['2d_gaussian', 'centroid']
 
     def __init__(self):
+        # init for 2d_gaussian method
         self.n_subpix_zoom = 2
         xs = np.arange(2*self.n_subpix_zoom+1, dtype=float)
         ys = np.arange(2*self.n_subpix_zoom+1, dtype=float)
@@ -149,15 +183,32 @@ class SubPix(object):
             (X**2, Y**2, X, Y, np.ones(nx*ny))), (5, nx*ny)).T
         self.Minv_subpix = np.linalg.pinv(M)
 
+        # init for centroid method
+        self.X_centroid, self.Y_centroid = np.meshgrid(range(3), range(3))
+
     def compute(self, correl, ix, iy, method='centroid'):
-        """Find peak using linalg.solve (buggy?)
+        """Find peak
 
         Parameters
         ----------
 
-        correl_map: numpy.ndarray
+        correl: numpy.ndarray
 
           Normalized correlation
+
+        ix: integer
+
+        iy: integer
+
+        method: str {'centroid', '2d_gaussian'}
+
+        Notes
+        -----
+
+        The two methods...
+
+        using linalg.solve (buggy?)
+
         """
         if method not in self.methods:
             raise ValueError('method has to be in {}'.format(self.methods))
@@ -194,22 +245,20 @@ class SubPix(object):
             if X0 > tmp or Y0 > tmp:
                 raise NoPeakError
 
-            deplx = X0 - nx/2  # displacement x
-            deply = Y0 - ny/2  # displacement y
-
         elif method == 'centroid':
 
             correl = correl[iy-1:iy+2, ix-1:ix+2]
             ny, nx = correl.shape
 
-            X, Y = np.meshgrid(range(3), range(3))
-            X0 = np.sum(X * correl) / np.sum(correl)
-            Y0 = np.sum(Y * correl) / np.sum(correl)
+            sum_correl = np.sum(correl)
+
+            X0 = np.sum(self.X_centroid * correl) / sum_correl
+            Y0 = np.sum(self.Y_centroid * correl) / sum_correl
 
             if X0 > 2 or Y0 > 2:
                 raise NoPeakError
 
-            deplx = X0 - nx/2  # displacement x
-            deply = Y0 - ny/2  # displacement y
+        deplx = X0 - nx/2  # displacement x
+        deply = Y0 - ny/2  # displacement y
 
         return deply + iy + 0.5, deplx + ix + 0.5

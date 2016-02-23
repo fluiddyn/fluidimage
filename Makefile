@@ -14,3 +14,6 @@ clean_so:
 	find fluidimage -name "*.so" -delete
 
 cleanall: clean clean_so
+
+tests:
+	python -m unittest discover

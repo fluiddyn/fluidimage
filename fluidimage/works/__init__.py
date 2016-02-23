@@ -1,6 +1,10 @@
 """Works - treatments
 =====================
 
+.. autosummary::
+   :toctree:
+
+   piv
 
 """
 try:

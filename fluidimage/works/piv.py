@@ -5,13 +5,9 @@ To do:
 
 - reorganize (WorkPIV should not be a FirstWorkPIV)
 
-- use not normalize correlations
-
 - use different methods for the correlations (with parameters)
 
 - use parameter to chose the method for subpix
-
-- subpix in a class (clean up)?
 
 - improve NoPeakError (different classes with parameters, as in "fix" of UVmat)
 
