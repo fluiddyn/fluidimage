@@ -48,9 +48,8 @@ Modules Reference
 
    fluidimage.calcul
    fluidimage.data_objects
-
+   fluidimage.topologies
    ..
-      fluidimage.topologies
       fluidimage.works
       fluidimage.waiting_queues
       fluidimage.gui     
