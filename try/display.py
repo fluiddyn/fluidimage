@@ -70,7 +70,7 @@ def display(im0, im1, ixvec=None, iyvec=None, vecx=None, vecy=None):
 
 if __name__ == '__main__':
 
-    im0 = imread('samples/Karman/PIVlab_Karman_01.bmp')
-    im1 = imread('samples/Karman/PIVlab_Karman_02.bmp')
+    im0 = imread('image_samples/Karman/Images/Karman_01.bmp')
+    im1 = imread('image_samples/Karman/Images/Karman_02.bmp')
     display(im0, im1)
 
