@@ -47,11 +47,13 @@ Modules Reference
    :toctree: generated/
 
    fluidimage.calcul
-   fluidimage.data_objects
-   fluidimage.topologies
-   fluidimage.works
-   fluidimage.waiting_queues
-   fluidimage.gui     
+
+   ..
+      fluidimage.data_objects
+      fluidimage.topologies
+      fluidimage.works
+      fluidimage.waiting_queues
+      fluidimage.gui     
 
 More
 ----
