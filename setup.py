@@ -13,7 +13,7 @@ from runpy import run_path
 d = run_path('fluidimage/_version.py')
 __version__ = d['__version__']
 
-install_requires = ['numpy', 'fluiddyn']
+install_requires = ['numpy', 'fluiddyn >= 0.0.12a2']
 
 on_rtd = os.environ.get('READTHEDOCS')
 if not on_rtd:
