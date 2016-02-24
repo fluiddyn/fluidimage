@@ -167,3 +167,6 @@ zip: html
 
 %.rst: %.ipynb
 	cd $(IPYNB_DIR) && ipython nbconvert --to rst $(notdir $<)
+
+open_html: html
+	firefox _build/html/index.html

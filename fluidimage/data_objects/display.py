@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 plt.ion()
 
 
-def display2(im0, im1, ixvec=None, iyvec=None,
-             vecx=None, vecy=None, correls=None):
+def display(im0, im1, ixvec=None, iyvec=None,
+            vecx=None, vecy=None, correls=None):
 
     fig = plt.figure()
     ax1 = plt.subplot(121)

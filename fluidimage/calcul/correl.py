@@ -50,31 +50,38 @@ class NoPeakError(Exception):
 
 class CorrelBase(object):
     """This class is meant to be subclassed, not instantiated directly."""
-    def __init__(self, im0_shape, im1_shape):
+    _tag = 'base'
+
+    def __init__(self, im0_shape, im1_shape, method_subpix='centroid'):
         self.inds0 = tuple(np.array(im0_shape)//2 - 1)
 
-        self.subpix = SubPix()
+        self.subpix = SubPix(method=method_subpix)
 
     def compute_displacement_from_indices(self, indices):
         """Compute the displacement from a couple of indices."""
         return self.inds0[0] - indices[0], self.inds0[1] - indices[1]
 
-    def compute_displacement_from_correl(self, correl, method='centroid'):
+    def compute_displacement_from_correl(
+            self, correl, method_subpix=None):
         """Compute the displacement (with subpix) from a correlation."""
         iy, ix = np.unravel_index(correl.argmax(), correl.shape)
-        indices = self.subpix.compute(
-            correl, ix, iy, method)
+        indices = self.subpix.compute_subpix(
+            correl, ix, iy, method_subpix)
         return self.compute_displacement_from_indices(indices)
 
 
 class CorrelScipySignal(CorrelBase):
     """Correlations using scipy.signal.correlate2d"""
-    def __init__(self, im0_shape, im1_shape=None, mode='same'):
+    _tag = 'scipy.signal'
+
+    def __init__(self, im0_shape, im1_shape=None,
+                 method_subpix='centroid', mode='same'):
 
         if im1_shape is None:
             im1_shape = im0_shape
 
-        super(CorrelScipySignal, self).__init__(im0_shape, im1_shape)
+        super(CorrelScipySignal, self).__init__(
+            im0_shape, im1_shape, method_subpix=method_subpix)
 
         modes = ['valid', 'same']
         if mode not in modes:
@@ -113,8 +120,11 @@ class CorrelScipySignal(CorrelBase):
 
 class CorrelScipyNdimage(CorrelBase):
     """Correlations using scipy.ndimage.correlate."""
-    def __init__(self, im0_shape, im1_shape=None):
-        super(CorrelScipyNdimage, self).__init__(im0_shape, im1_shape)
+    _tag = 'scipy.ndimage'
+
+    def __init__(self, im0_shape, im1_shape=None, method_subpix='centroid'):
+        super(CorrelScipyNdimage, self).__init__(
+            im0_shape, im1_shape, method_subpix=method_subpix)
         self.inds0 = tuple(np.array(im0_shape)//2)
 
     def __call__(self, im0, im1):
@@ -125,8 +135,11 @@ class CorrelScipyNdimage(CorrelBase):
 
 class CorrelFFTNumpy(CorrelBase):
     """Correlations using numpy.fft."""
-    def __init__(self, im0_shape, im1_shape):
-        super(CorrelFFTNumpy, self).__init__(im0_shape, im1_shape)
+    _tag = 'np.fft'
+
+    def __init__(self, im0_shape, im1_shape, method_subpix='centroid'):
+        super(CorrelFFTNumpy, self).__init__(
+            im0_shape, im1_shape, method_subpix=method_subpix)
         if im0_shape != im1_shape:
             raise ValueError('The input images have to have the same shape.')
 
@@ -140,9 +153,11 @@ class CorrelFFTNumpy(CorrelBase):
 class CorrelFFTW(CorrelBase):
     """Correlations using fluidimage.fft.FFTW2DReal2Complex"""
     FFTClass = FFTW2DReal2Complex
+    _tag = 'fftw'
 
-    def __init__(self, im0_shape, im1_shape=None):
-        super(CorrelFFTW, self).__init__(im0_shape, im1_shape)
+    def __init__(self, im0_shape, im1_shape=None, method_subpix='centroid'):
+        super(CorrelFFTW, self).__init__(
+            im0_shape, im1_shape, method_subpix=method_subpix)
 
         if im1_shape is None:
             im1_shape = im0_shape
@@ -162,6 +177,7 @@ class CorrelFFTW(CorrelBase):
 
 
 class CorrelCuFFT(CorrelBase):
+    _tag = 'cufft'
     """Correlations using fluidimage.fft.CUFFT2DReal2Complex"""
     FFTClass = CUFFT2DReal2Complex
 
@@ -170,7 +186,8 @@ class SubPix(object):
     """Subpixel finder"""
     methods = ['2d_gaussian', 'centroid']
 
-    def __init__(self):
+    def __init__(self, method='centroid'):
+        self.method = method
         # init for 2d_gaussian method
         self.n_subpix_zoom = 2
         xs = np.arange(2*self.n_subpix_zoom+1, dtype=float)
@@ -186,7 +203,7 @@ class SubPix(object):
         # init for centroid method
         self.X_centroid, self.Y_centroid = np.meshgrid(range(3), range(3))
 
-    def compute(self, correl, ix, iy, method='centroid'):
+    def compute_subpix(self, correl, ix, iy, method=None):
         """Find peak
 
         Parameters
@@ -210,6 +227,9 @@ class SubPix(object):
         using linalg.solve (buggy?)
 
         """
+        if method is None:
+            method = self.method
+
         if method not in self.methods:
             raise ValueError('method has to be in {}'.format(self.methods))
 
@@ -262,3 +282,7 @@ class SubPix(object):
         deply = Y0 - ny/2  # displacement y
 
         return deply + iy + 0.5, deplx + ix + 0.5
+
+correlation_classes = {
+    v._tag: v for k, v in locals().items()
+    if k.startswith('Correl') and not k.endswith('Base')}

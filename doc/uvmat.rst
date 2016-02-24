@@ -66,11 +66,11 @@ Step 5: Civ2: Call the function civ
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 same as Civ1 + option deformation
 
-Step 6: Fix1: Call the function fix
+Step 6: Fix2: Call the function fix
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 same as Fix1 + option CheckF4
 
-Step 7: Patch1: Call the function filter_tps
+Step 7: Patch2: Call the function filter_tps
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 same as Patch1 
 

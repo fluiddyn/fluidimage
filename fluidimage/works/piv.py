@@ -3,21 +3,31 @@
 
 To do:
 
-- reorganize (WorkPIV should not be a FirstWorkPIV)
-
-- use different methods for the correlations (with parameters)
-
-- use parameter to chose the method for subpix
-
 - improve NoPeakError (different classes with parameters, as in "fix" of UVmat)
 
-- as in UVmat? Variables to keep: xs, ys, deltaxs, deltays,
-  correl_peak, deltaxs_2ndpeak, deltays_2ndpeak, correl_2ndpeak,
-  no_peak_errors... (?)
+- nearly as in UVmat? Variables to use (?):
 
-- as in UVmat: civ1, fix1, patch1, ... (?)
+  * nb_vec (int)
+  * x (nb_vec)
+  * y (nb_vec)
+  * deltax (nb_vec)
+  * deltay (nb_vec)
+  * correl_peak (nb_vec)
+  * warning {ivec: str}
+  * error {ivec: str}
 
-- detect and save multipeaks
+- as in UVmat: civ1, fix1, patch1, ...
+
+- as in UVmat: multipass
+
+- as in UVmat: patch "thin-plate spline" (?). Add variables as in UVmat
+  (NbCenter, Coord_tps, SubRange, U_tps, V_tps)
+
+- detect and save multipeaks. Add variables:
+
+  * deltaxs_2ndpeak {ivec: float32}
+  * deltays_2ndpeak {ivec: float32}
+  * correl_2ndpeak {ivec: float32}
 
 
 """
@@ -33,7 +43,7 @@ from fluiddyn.util.paramcontainer import ParamContainer
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
 
 from ..data_objects.piv import ArrayCouple, HeavyPIVResults
-from ..calcul.correl import (NoPeakError, CorrelFFTW)
+from ..calcul.correl import NoPeakError, correlation_classes
 from ..works import BaseWork
 
 
@@ -47,25 +57,38 @@ class BaseWorkPIV(BaseWork):
 
     @classmethod
     def _complete_params_with_default(cls, params):
-        params._set_child('piv', attribs={
-            'n_interrogation_window': 48,
-            'overlap': 0.5})
+        pass
 
     def __init__(self, params=None,
-                 n_interrogation_window=None, overlap=None):
+                 shape_crop_im0=None, overlap=None):
 
-        if n_interrogation_window is None:
-            n_interrogation_window = params.piv.n_interrogation_window
+        if shape_crop_im0 is None:
+            shape_crop_im0 = params.piv0.shape_crop_im0
 
         if overlap is None:
-            overlap = params.piv.overlap
+            overlap = params.piv0.grid.overlap
+
+        self.shape_crop_im0 = shape_crop_im0
+        if isinstance(shape_crop_im0, int):
+            n_interrogation_window = shape_crop_im0
+        else:
+            raise NotImplementedError(
+                'For now, shape_crop_im0 has to be an integer!')
 
         niw = self.n_interrogation_window = n_interrogation_window
         self.overlap = overlap
 
         self.niwo2 = niw/2
 
-        self.correl = CorrelFFTW(im0_shape=(niw, niw))
+        try:
+            correl_cls = correlation_classes[params.piv0.method_correl]
+        except KeyError:
+            raise ValueError(
+                'params.piv0.method_correl should be in ' +
+                str(correlation_classes.keys()))
+
+        self.correl = correl_cls(im0_shape=(niw, niw),
+                                 method_subpix=params.piv0.method_subpix)
 
     def _prepare_with_image(self, im):
 
@@ -120,8 +143,7 @@ class BaseWorkPIV(BaseWork):
                 correls.append(correl)
                 try:
                     deltax, deltay = \
-                        self.correl.compute_displacement_from_correl(
-                            correl, method='centroid')
+                        self.correl.compute_displacement_from_correl(correl)
                     deltaxs[iy, ix] = deltax
                     deltays[iy, ix] = deltay
                 except NoPeakError as e:
@@ -137,6 +159,22 @@ class BaseWorkPIV(BaseWork):
 
 class FirstWorkPIV(BaseWorkPIV):
 
+    @classmethod
+    def _complete_params_with_default(cls, params):
+        params._set_child('piv0', attribs={
+            'shape_crop_im0': 48,
+            'shape_crop_im1': None,
+            'delta_max': None,
+            'delta_mean': None,
+            'method_correl': 'fftw',
+            'method_subpix': 'centroid'})
+
+        params.piv0._set_child('grid', attribs={
+            'overlap': 0.5,
+            'from': 'overlap'})
+
+        params._set_child('mask', attribs={})
+
     def _crop_im(self, ixvec, iyvec, im):
         niwo2 = self.niwo2
         subim = im[iyvec - niwo2:iyvec + niwo2,
@@ -147,8 +185,6 @@ class FirstWorkPIV(BaseWorkPIV):
     def _crop_subimages(self, ixvec, iyvec, im0, im1):
         return (self._crop_im(ixvec, iyvec, im0),
                 self._crop_im(ixvec, iyvec, im1))
-
-WorkPIV = FirstWorkPIV
 
 
 class WorkPIVFromDisplacement(BaseWorkPIV):
@@ -169,3 +205,24 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
     def _crop_subimages(self, ixvec, iyvec, im0, im1):
         return (self._crop_im0(ixvec, iyvec, im0),
                 self._crop_im1(ixvec, iyvec, im1))
+
+
+class WorkPIV(BaseWork):
+
+    @classmethod
+    def create_default_params(cls):
+        params = ParamContainer(tag='params')
+        cls._complete_params_with_default(params)
+        return params
+
+    @classmethod
+    def _complete_params_with_default(cls, params):
+        FirstWorkPIV._complete_params_with_default(params)
+
+        params._set_child('multipass', attribs={})
+
+    def __init__(self, params=None):
+        self.first_work_piv = FirstWorkPIV(params)
+
+    def calcul(self, couple):
+        return self.first_work_piv.calcul(couple)

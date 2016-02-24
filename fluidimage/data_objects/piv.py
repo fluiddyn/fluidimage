@@ -3,7 +3,7 @@ import os
 
 import h5py
 
-from .display2 import display2
+from .display import display
 
 
 class DataObject(object):
@@ -39,7 +39,7 @@ class HeavyPIVResults(DataObject):
 
     def display(self):
         im0, im1 = self.couple.get_arrays()
-        display2(
+        display(
             im0, im1, self.xs, self.ys,
             self.deltaxs, self.deltays, self.correls)
 
