@@ -16,6 +16,10 @@ different methods.
    :members:
    :private-members:
 
+.. autoclass:: CorrelTheano
+   :members:
+   :private-members:
+
 .. autoclass:: CorrelFFTNumpy
    :members:
    :private-members:
@@ -42,6 +46,11 @@ from scipy.ndimage import correlate
 from numpy.fft import fft2, ifft2
 
 from .fft import FFTW2DReal2Complex, CUFFT2DReal2Complex
+
+try:
+    import theano
+except ImportError:
+    pass
 
 
 class NoPeakError(Exception):
@@ -131,6 +140,76 @@ class CorrelScipyNdimage(CorrelBase):
         """Compute the correlation from images."""
         norm = np.sum(im1**2)
         return correlate(im0, im1, mode='constant', cval=im1.min())/norm
+
+
+class CorrelTheano(CorrelBase):
+    """Correlations using theano.tensor.nnet.conv2d"""
+    _tag = 'theano'
+
+    def __init__(self, im0_shape, im1_shape=None,
+                 mode='same', method_subpix='centroid'):
+
+        if im1_shape is None:
+            im1_shape = im0_shape
+
+        super(CorrelTheano, self).__init__(
+            im0_shape, im1_shape, method_subpix=method_subpix)
+
+        modes = ['valid', 'same']
+        if mode not in modes:
+            raise ValueError('mode should be in ' + modes)
+        self.mode = mode
+        self.ny0, self.nx0 = im0_shape
+        self.ny1, self.nx1 = im1_shape
+        if mode == 'same':
+            self.ny, self.nx = im0_shape
+            if self.nx % 2 == 0:
+                ind0x = self.nx // 2 - 1
+            else:
+                ind0x = self.nx // 2
+            if self.ny % 2 == 0:
+                ind0y = self.ny // 2 - 1
+            else:
+                ind0y = self.ny // 2
+
+        else:
+            self.ny, self.nx = np.array(im0_shape) - np.array(im1_shape) + 1
+            ind0x = self.nx // 2
+            ind0y = self.ny // 2
+        im00 = theano.tensor.tensor4("im00")
+        im11 = theano.tensor.tensor4("im11")
+        correl_theano = theano.tensor.nnet.conv2d(im00, im11,
+                                                  border_mode='valid')
+        self.correlf = theano.function(inputs=[im00, im11],
+                                       outputs=[correl_theano])
+
+        self.inds0 = tuple([ind0y, ind0x])
+
+    def __call__(self, im0, im1):
+        """Compute the correlation from images."""
+        norm = np.sum(im1**2)
+        im0 = np.rot90(im0, 2)
+        im1 = im1.reshape(1, 1, self.nx1, self.ny1)
+        if self.mode == 'valid':
+            im0 = im0.reshape(1, 1, self.nx0, self.ny0)
+        elif self.mode == 'same':
+            im0b = im1.min() * np.ones((2*self.nx-1, 2*self.ny-1),
+                                       dtype=np.float32)
+            im0b[self.nx//2:self.nx+self.nx//2,
+                 self.ny//2:self.ny+self.ny//2] = im0
+            # Correlation with periodic condition (==FFT version) :
+            # im0 = np.tile(im0, (3, 3))
+            # im0 = im0[self.nx//2+1:2*self.nx+self.nx//2,
+            #           self.ny//2+1:2*self.ny+self.ny//2]
+            im0 = im0b.reshape(1, 1, 2*self.nx-1, 2*self.ny-1)
+        else:
+            assert False, 'Bad value for self.mode'
+
+        correl = self.correlf(im0, im1)
+        correl = np.asarray(correl)
+        correl = correl.reshape(self.nx, self.ny)
+
+        return correl/norm
 
 
 class CorrelFFTNumpy(CorrelBase):
@@ -282,6 +361,7 @@ class SubPix(object):
         deply = Y0 - ny/2  # displacement y
 
         return deply + iy + 0.5, deplx + ix + 0.5
+
 
 correlation_classes = {
     v._tag: v for k, v in locals().items()

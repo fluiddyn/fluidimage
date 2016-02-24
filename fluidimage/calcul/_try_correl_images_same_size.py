@@ -11,8 +11,8 @@ from fluidimage.calcul.correl import (
 
 from fluidimage.synthetic import make_synthetic_images
 
-nx = 22
-ny = 62
+nx = 32
+ny = 32
 displacement_x = 2.
 displacement_y = 2.
 
@@ -40,22 +40,27 @@ classes = {'sig': CorrelScipySignal, 'ndimage': CorrelScipyNdimage,
 
 
 cs = {}
-funcs = {}
+correls = {}
 for k, cls in classes.items():
-    calcul_corr = cls(im0.shape, im1.shape)
-    funcs[k] = calcul_corr
-    cs[k] = calcul_corr(im0, im1)
+    print(k, cls)
+    correl = cls(im0.shape, im1.shape)
+    correls[k] = correl
+    c = correl(im0, im1)
+    cs[k] = c
 
-
-for k, c in cs.items():
-    func = funcs[k]
     inds_max = np.array(np.unravel_index(c.argmax(), c.shape))
+    print(inds_max)
+
+    displacement_computed = correl.compute_displacement_from_indices(
+        inds_max)
+    print(displacements.astype('int'), displacement_computed)
+
     if not np.allclose(
             displacements.astype('int'),
-            func.compute_displacement_from_indices(inds_max)):
+            displacement_computed):
         print('do not understand ' + k,
               displacements.astype('int'),
-              func.compute_displacement_from_indices(inds_max))
+              displacement_computed)
 
 
 # plt.figure()

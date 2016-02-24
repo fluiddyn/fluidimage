@@ -12,7 +12,7 @@ params.piv0.shape_crop_im0 = 32
 params.piv0.grid.overlap = 1
 
 params.piv0.method_subpix = 'centroid'
-params.piv0.method_correl = 'scipy.signal'
+params.piv0.method_correl = 'theano'
 
 piv = WorkPIV(params=params)
 
