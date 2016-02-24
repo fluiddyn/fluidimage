@@ -58,7 +58,7 @@ More
 
 .. toctree::
    :maxdepth: 1
-
+	      
    FluidImage forge on Bitbucket <https://bitbucket.org/fluiddyn/fluidimage>
    FluidImage in PyPI  <https://pypi.python.org/pypi/fluidimage/>
    to_do
