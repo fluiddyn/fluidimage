@@ -38,7 +38,7 @@ class TestCorrel(unittest.TestCase):
 for k, cls in classes.items():
     def test(self, cls=cls, k=k):
         correl = cls(self.im0.shape, self.im1.shape)
-        c = correl(self.im0, self.im1)
+        c, norm = correl(self.im0, self.im1)
 
         inds_max = np.array(np.unravel_index(c.argmax(), c.shape))
 
@@ -49,7 +49,7 @@ for k, cls in classes.items():
             self.displacements.astype('int'),
             displacement_computed))
 
-    exec('TestCorrel.test_' + k + ' = test')
+    exec('TestCorrel.test_correl_' + k + ' = test')
 
 
 if __name__ == '__main__':

@@ -26,22 +26,26 @@ class ArrayCouple(DataObject):
 
 
 class HeavyPIVResults(DataObject):
-    def __init__(self, deltaxs, deltays, xs, ys, correls, couple):
+    def __init__(self, deltaxs, deltays, xs, ys, correls, couple, errors,
+                 correls_max=None):
         self.deltaxs = deltaxs
         self.deltays = deltays
         self.correls = correls
         self.couple = couple
         self.ys = ys
         self.xs = xs
+        self.errors = errors
+        self.correls_max = correls_max
 
     def get_images(self):
         return self.couple.get_arrays()
 
     def display(self):
         im0, im1 = self.couple.get_arrays()
-        display(
+        return display(
             im0, im1, self.xs, self.ys,
-            self.deltaxs, self.deltays, self.correls)
+            self.deltaxs, self.deltays, self.correls,
+            correls_max=self.correls_max, errors=self.errors)
 
     def save(self, path):
         serie = self.couple.serie

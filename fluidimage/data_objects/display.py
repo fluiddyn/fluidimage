@@ -6,73 +6,139 @@ import matplotlib.pyplot as plt
 plt.ion()
 
 
-def display(im0, im1, ixvec=None, iyvec=None,
-            vecx=None, vecy=None, correls=None):
+class display(object):
 
-    fig = plt.figure()
-    ax1 = plt.subplot(121)
-    ax2 = plt.subplot(122)
-    axi0 = ax1.imshow(im0, interpolation='nearest')
-    axi1 = ax1.imshow(im1, interpolation='nearest')
-    axi1.set_visible(False)
+    def __init__(self, im0, im1, ixvec=None, iyvec=None,
+                 vecx=None, vecy=None, correls=None, correls_max=None,
+                 errors=None):
 
-    ax1.set_title('im 0 (alt+s to switch)')
+        self.correls = correls
+        self.correls_max = correls_max
+        if errors is None:
+            errors = {}
+        self.errors = errors
 
-    l, = ax1.plot(0, 0, 'oy')
-    l.set_visible(False)
-    t = fig.text(0.1, 0.05, '')
+        fig = plt.figure()
+        fig.event_handler = self
 
-    ax1.set_xlim([0, im0.shape[1]])
-    ax1.set_ylim([0, im0.shape[0]])
-    ax1.set_xlabel('pixels')
-    ax1.set_ylabel('pixels')
+        ax1 = plt.subplot(121)
+        ax2 = plt.subplot(122)
 
-    if ixvec is not None:
-        q = ax1.quiver(ixvec, iyvec, vecx, vecy, picker=10, color='w')
+        self.fig = fig
+        self.ax1 = ax1
+        self.ax2 = ax2
 
-    def onclick(event):
-        if event.inaxes != ax1:
+        self.axi0 = ax1.imshow(im0, interpolation='nearest')
+        self.axi1 = ax1.imshow(im1, interpolation='nearest')
+        self.axi1.set_visible(False)
+
+        ax1.set_title('im 0 (alt+s to switch)')
+
+        l, = ax1.plot(0, 0, 'oy')
+        l.set_visible(False)
+        t = fig.text(0.1, 0.05, '')
+
+        self.t = t
+        self.l = l
+
+        ax1.set_xlim([0, im0.shape[1]])
+        ax1.set_ylim([0, im0.shape[0]])
+        ax1.set_xlabel('pixels')
+        ax1.set_ylabel('pixels')
+
+        if ixvec is not None:
+            q = ax1.quiver(ixvec, iyvec, vecx, vecy, picker=10, color='w')
+
+        self.q = q
+
+        self.ind = 0
+        fig.canvas.mpl_connect('pick_event', self.onpick)
+        fig.canvas.mpl_connect('key_press_event', self.onclick)
+
+        print('press alt+h for help')
+
+        plt.show()
+
+    def onclick(self, event):
+        if event.key == 'alt+h':
+            print('\nclick on a vector to show information\n'
+                  'alt+s\t\t\t switch between images\n'
+                  'alt+left or alt+right\t change vector.')
+
+        if event.inaxes != self.ax1:
             return
 
         if event.key == 'alt+s':
-            switch()
+            self.switch()
 
-    def onpick(event):
-        if event.artist != q:
+        if event.key == 'alt+left':
+            self.select_arrow(self.ind - 1)
+
+        if event.key == 'alt+right':
+            self.select_arrow(self.ind + 1)
+
+    def onpick(self, event):
+        if event.artist != self.q:
             return True
+
         # the click locations
         # x = event.mouseevent.xdata
         # y = event.mouseevent.ydata
-        ax2.cla()
         ind = event.ind
+        self.select_arrow(ind)
+
+    def select_arrow(self, ind):
         if isinstance(ind, list):
             ind = ind[0]
 
+        q = self.q
+        ax2 = self.ax2
+
+        if ind >= len(q.X) or ind < 0:
+            return
+
+        self.ind = ind
+
+        ax2.cla()
         ix = q.X[ind]
         iy = q.Y[ind]
-        l.set_visible(True)
-        l.set_data(ix, iy)
+        self.l.set_visible(True)
+        self.l.set_data(ix, iy)
 
-        t.set_text('vector at ix = {} : iy = {} ; U = {} ; V = {}'.format(
-            ix, iy, q.U[ind], q.V[ind]))
-        ax2.imshow(correls[ind], origin="lower", cmap='Reds')
-        ax2.plot(q.U[ind], q.V[ind])
-        ax2.axis('tight')
-        fig.canvas.draw()
+        correl_max = self.correls_max[ind]
+        alphac = self.correls[ind]
+        alphac_max = alphac.max()
+        correl = correl_max/alphac_max * alphac
 
-    fig.canvas.mpl_connect('pick_event', onpick)
-    fig.canvas.mpl_connect('key_press_event', onclick)
+        text = (
+            'vector at ix = {} : iy = {} ; '
+            'U = {:.3f} ; V = {:.3f}, C = {:.3f}').format(
+                ix, iy, q.U[ind], q.V[ind], correl_max)
 
-    def switch():
-        axi0.set_visible(not axi0.get_visible())
-        axi1.set_visible(not axi1.get_visible())
+        if ind in self.errors:
+            text += ', error:' + self.errors[ind]
 
-        ax1.set_title('im {} (alt+s to switch)'.format(
-            int(axi1.get_visible())))
+        self.t.set_text(text)
 
-        fig.canvas.draw()
+        ax2.imshow(correl, origin='lower', interpolation='none',
+                   vmin=0, vmax=1)
+        # ax2.pcolormesh(correl, vmin=0, vmax=1, shading='flat')
 
-    plt.show()
+        ax2.plot(q.U[ind], q.V[ind], 'o')
+        ax2.axis('scaled')
+        ax2.set_xlim(-0.5, correl.shape[1]-0.5)
+        ax2.set_ylim(-0.5, correl.shape[0]-0.5)
+        self.fig.canvas.draw()
+
+    def switch(self):
+        self.axi0.set_visible(not self.axi0.get_visible())
+        self.axi1.set_visible(not self.axi1.get_visible())
+
+        self.ax1.set_title('im {} (alt+s to switch)'.format(
+            int(self.axi1.get_visible())))
+
+        self.fig.canvas.draw()
+
 
 if __name__ == '__main__':
 

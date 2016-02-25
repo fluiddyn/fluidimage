@@ -9,10 +9,10 @@ params = WorkPIV.create_default_params()
 
 # for a very short computation
 params.piv0.shape_crop_im0 = 32
-params.piv0.grid.overlap = 1
+params.piv0.grid.overlap = 0.5
 
 params.piv0.method_subpix = 'centroid'
-params.piv0.method_correl = 'theano'
+params.piv0.method_correl = 'fftw'
 
 piv = WorkPIV(params=params)
 

@@ -53,8 +53,14 @@ except ImportError:
     pass
 
 
-class NoPeakError(Exception):
+class PIVError(Exception):
     """No peak"""
+    explanation = 'no peak'
+
+    def __init__(self, *args, **kargs):
+        for k, v in kargs.items():
+            self.__dict__[k] = v
+        super(PIVError, self).__init__(*args)
 
 
 class CorrelBase(object):
@@ -71,12 +77,22 @@ class CorrelBase(object):
         return self.inds0[0] - indices[0], self.inds0[1] - indices[1]
 
     def compute_displacement_from_correl(
-            self, correl, method_subpix=None):
+            self, correl, coef_norm=1., method_subpix=None):
         """Compute the displacement (with subpix) from a correlation."""
         iy, ix = np.unravel_index(correl.argmax(), correl.shape)
-        indices = self.subpix.compute_subpix(
-            correl, ix, iy, method_subpix)
-        return self.compute_displacement_from_indices(indices)
+
+        correl_max = correl[iy, ix]/coef_norm
+        try:
+            indices = self.subpix.compute_subpix(
+                correl, ix, iy, method_subpix)
+        except PIVError as e:
+            indices = iy, ix
+            dy, dx = self.compute_displacement_from_indices(indices)
+            e.results_compute_displacement_from_correl = (
+                dy, dx, correl_max)
+            raise e
+        dy, dx = self.compute_displacement_from_indices(indices)
+        return dy, dx, correl_max
 
 
 class CorrelScipySignal(CorrelBase):
@@ -124,7 +140,7 @@ class CorrelScipySignal(CorrelBase):
         else:
             assert False, 'Bad value for self.mode'
 
-        return correl/norm
+        return correl, norm
 
 
 class CorrelScipyNdimage(CorrelBase):
@@ -139,7 +155,7 @@ class CorrelScipyNdimage(CorrelBase):
     def __call__(self, im0, im1):
         """Compute the correlation from images."""
         norm = np.sum(im1**2)
-        return correlate(im0, im1, mode='constant', cval=im1.min())/norm
+        return correlate(im0, im1, mode='constant', cval=im1.min()), norm
 
 
 class CorrelTheano(CorrelBase):
@@ -209,24 +225,28 @@ class CorrelTheano(CorrelBase):
         correl = np.asarray(correl)
         correl = correl.reshape(self.nx, self.ny)
 
-        return correl/norm
+        return correl, norm
 
 
 class CorrelFFTNumpy(CorrelBase):
     """Correlations using numpy.fft."""
     _tag = 'np.fft'
 
-    def __init__(self, im0_shape, im1_shape, method_subpix='centroid'):
+    def __init__(self, im0_shape, im1_shape=None, method_subpix='centroid'):
         super(CorrelFFTNumpy, self).__init__(
             im0_shape, im1_shape, method_subpix=method_subpix)
+
+        if im1_shape is None:
+            im1_shape = im0_shape
+
         if im0_shape != im1_shape:
             raise ValueError('The input images have to have the same shape.')
 
     def __call__(self, im0, im1):
         """Compute the correlation from images."""
         norm = np.sum(im1**2)
-        corr = ifft2(fft2(im0).conj() * fft2(im1)).real / norm
-        return np.fft.fftshift(corr[::-1, ::-1])
+        corr = ifft2(fft2(im0).conj() * fft2(im1)).real
+        return np.fft.fftshift(corr[::-1, ::-1]), norm
 
 
 class CorrelFFTW(CorrelBase):
@@ -249,10 +269,10 @@ class CorrelFFTW(CorrelBase):
 
     def __call__(self, im0, im1):
         """Compute the correlation from images."""
-        norm = np.sum(im1**2)
+        norm = np.sum(im1**2) * im0.size
         op = self.op
-        corr = op.ifft(op.fft(im0).conj() * op.fft(im1)) / norm
-        return np.fft.fftshift(corr[::-1, ::-1])
+        corr = op.ifft(op.fft(im0).conj() * op.fft(im1))
+        return np.fft.fftshift(corr[::-1, ::-1]), norm
 
 
 class CorrelCuFFT(CorrelBase):
@@ -318,7 +338,8 @@ class SubPix(object):
 
         if iy-n < 0 or iy+n+1 > ny or \
            ix-n < 0 or ix+n+1 > nx:
-            raise NoPeakError
+            raise PIVError(explanation='close boundary',
+                           result_compute_subpix=(iy, ix))
 
         if method == '2d_gaussian':
 
@@ -342,7 +363,8 @@ class SubPix(object):
 
             tmp = 2*n + 1
             if X0 > tmp or Y0 > tmp:
-                raise NoPeakError
+                raise PIVError(explanation='wrong subpix',
+                               result_compute_subpix=(iy, ix))
 
         elif method == 'centroid':
 
@@ -355,7 +377,8 @@ class SubPix(object):
             Y0 = np.sum(self.Y_centroid * correl) / sum_correl
 
             if X0 > 2 or Y0 > 2:
-                raise NoPeakError
+                raise PIVError(explanation='wrong subpix',
+                               result_compute_subpix=(iy, ix))
 
         deplx = X0 - nx/2  # displacement x
         deply = Y0 - ny/2  # displacement y

@@ -63,21 +63,17 @@ class TestFFTW2DReal2Complex(unittest.TestCase):
         func = op.ifft(func_fft)
         energyX = op.compute_energy_from_spatial(func)
 
-        back_fft = op.fft(func)
-        energyKback = op.compute_energy_from_Fourier(back_fft)
+        back_fft = op.fft(func) / op.coef_norm
         back = op.ifft(back_fft)
 
         rtol = 8e-05
         atol = 1e-04
         self.assertTrue(np.allclose(func_fft, back_fft, rtol=rtol, atol=atol))
-
-        # tmp = np.absolute(func - back) - atol - rtol*np.abs(back)
-
-        # print(tmp.max())
-
         self.assertTrue(np.allclose(func, back, rtol=rtol, atol=atol))
 
         self.assertAlmostEqual(energyX/energyK, 1., places=3)
+
+        energyKback = op.compute_energy_from_Fourier(back_fft)
         self.assertAlmostEqual(energyK/energyKback, 1., places=3)
 
     def compute_and_check2(self, func, op):

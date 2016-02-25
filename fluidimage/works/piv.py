@@ -43,7 +43,7 @@ from fluiddyn.util.paramcontainer import ParamContainer
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
 
 from ..data_objects.piv import ArrayCouple, HeavyPIVResults
-from ..calcul.correl import NoPeakError, correlation_classes
+from ..calcul.correl import PIVError, correlation_classes
 from ..works import BaseWork
 
 
@@ -94,10 +94,15 @@ class BaseWorkPIV(BaseWork):
 
         len_y, len_x = im.shape
         niw = self.n_interrogation_window
-        overlap = int(np.round(self.overlap*niw))
+        step = niw - int(np.round(self.overlap*niw))
 
-        self.inds_x_vec = np.arange(0, len_x, overlap, dtype=int)
-        self.inds_y_vec = np.arange(0, len_y, overlap, dtype=int)
+        inds_x_vec = np.arange(0, len_x, step, dtype=int)
+        inds_y_vec = np.arange(0, len_y, step, dtype=int)
+
+        inds_x_vec, inds_y_vec = np.meshgrid(inds_x_vec, inds_y_vec)
+
+        self.inds_x_vec = inds_x_vec.flatten()
+        self.inds_y_vec = inds_y_vec.flatten()
 
     def calcul(self, couple):
         if isinstance(couple, SerieOfArraysFromFiles):
@@ -115,43 +120,53 @@ class BaseWorkPIV(BaseWork):
         im0pad = np.pad(im0 - im0.min(), tmp, 'constant')
         im1pad = np.pad(im1 - im1.min(), tmp, 'constant')
 
-        deltaxs, deltays, correls = self._loop_vectors(im0pad, im1pad)
+        deltaxs, deltays, correls, correls_max, errors = \
+            self._loop_vectors(im0pad, im1pad)
 
         result = HeavyPIVResults(
             deltaxs, deltays, self.inds_x_vec, self.inds_y_vec,
-            correls, deepcopy(couple))
+            correls, deepcopy(couple), errors, correls_max=correls_max)
 
         return result
 
     def _loop_vectors(self, im0, im1):
 
         correls = []
-        deltaxs = np.empty([self.inds_y_vec.size, self.inds_x_vec.size])
+        errors = {}
+        deltaxs = np.empty(self.inds_y_vec.shape)
         deltays = np.empty_like(deltaxs)
+        correls_max = np.empty_like(deltaxs)
 
         inds_x_vec_pad = self.inds_x_vec + self.niwo2
         inds_y_vec_pad = self.inds_y_vec + self.niwo2
 
-        iy = -1
-        for iyvec in inds_y_vec_pad:
-            iy += 1
-            ix = -1
-            for ixvec in inds_x_vec_pad:
-                ix += 1
-                im0crop, im1crop = self._crop_subimages(ixvec, iyvec, im0, im1)
-                correl = self.correl(im0crop, im1crop)
-                correls.append(correl)
-                try:
-                    deltax, deltay = \
-                        self.correl.compute_displacement_from_correl(correl)
-                    deltaxs[iy, ix] = deltax
-                    deltays[iy, ix] = deltay
-                except NoPeakError as e:
-                    print(e)
-                    deltaxs[iy, ix] = np.nan
-                    deltays[iy, ix] = np.nan
+        for ivec, iyvec in enumerate(inds_y_vec_pad):
+            ixvec = inds_x_vec_pad[ivec]
 
-        return deltaxs, deltays, correls
+            im0crop, im1crop = self._crop_subimages(ixvec, iyvec, im0, im1)
+            correl, coef_norm = self.correl(im0crop, im1crop)
+            correls.append(correl)
+            try:
+                deltay, deltax, correl_max = \
+                    self.correl.compute_displacement_from_correl(
+                        correl, coef_norm=coef_norm)
+                deltaxs[ivec] = deltax
+                deltays[ivec] = deltay
+                correls_max[ivec] = correl_max
+            except PIVError as e:
+                try:
+                    deltay, deltax, correl_max = \
+                        e.results_compute_displacement_from_correl
+                    errors[(ivec)] = e.explanation
+                    deltaxs[ivec] = deltax
+                    deltays[ivec] = deltay
+                    correls_max[ivec] = correl_max
+                except AttributeError:
+                    errors[(ivec)] = e.explanation
+                    deltaxs[ivec] = np.nan
+                    deltays[ivec] = np.nan
+
+        return deltaxs, deltays, correls, correls_max, errors
 
     def _crop_subimages(self, ixvec, iyvec, im0, im1):
         raise NotImplementedError

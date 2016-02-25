@@ -1,6 +1,9 @@
 """FFT classes
 ==============
 
+Warning: it is more efficient to use not normalized FFT, so we'll do
+that.
+
 .. autoclass:: CUFFT2DReal2Complex
    :members:
    :private-members:
@@ -92,7 +95,11 @@ class CUFFT2DReal2ComplexFloat64(CUFFT2DReal2Complex):
 
 
 class FFTW2DReal2Complex(object):
-    """A class to use fftw with float32."""
+    """A class to use fftw with float32.
+
+    These ffts are NOT normalized (faster)!
+
+    """
     type_real = 'float32'
     type_complex = 'complex64'
 
@@ -123,7 +130,7 @@ class FFTW2DReal2Complex(object):
     def fft(self, ff):
         self.arrayX[:] = ff
         self.fftplan(normalise_idft=False)
-        return self.arrayK/self.coef_norm
+        return self.arrayK.copy()
 
     def ifft(self, ff_fft):
         self.arrayK[:] = ff_fft
