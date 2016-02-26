@@ -8,25 +8,27 @@ plt.ion()
 
 class display(object):
 
-    def __init__(self, im0, im1, ixvec=None, iyvec=None,
-                 vecx=None, vecy=None, correls=None, correls_max=None,
-                 errors=None):
+    def __init__(self, im0, im1, piv_results=None):
 
-        self.correls = correls
-        self.correls_max = correls_max
-        if errors is None:
-            errors = {}
-        self.errors = errors
+        self.piv_results = piv_results
+
+        if hasattr(piv_results, 'correls'):
+            self.has_correls = True
+        else:
+            self.has_correls = False
 
         fig = plt.figure()
         fig.event_handler = self
 
-        ax1 = plt.subplot(121)
-        ax2 = plt.subplot(122)
+        if self.has_correls:
+            ax1 = plt.subplot(121)
+            ax2 = plt.subplot(122)
+            self.ax2 = ax2
+        else:
+            ax1 = plt.gca()
 
         self.fig = fig
         self.ax1 = ax1
-        self.ax2 = ax2
 
         self.axi0 = ax1.imshow(im0, interpolation='nearest')
         self.axi1 = ax1.imshow(im1, interpolation='nearest')
@@ -46,8 +48,11 @@ class display(object):
         ax1.set_xlabel('pixels')
         ax1.set_ylabel('pixels')
 
-        if ixvec is not None:
-            q = ax1.quiver(ixvec, iyvec, vecx, vecy, picker=10, color='w')
+        if piv_results is not None:
+            q = ax1.quiver(
+                piv_results.xs, piv_results.ys,
+                piv_results.deltaxs, piv_results.deltays,
+                picker=10, color='w')
 
         self.q = q
 
@@ -92,42 +97,44 @@ class display(object):
             ind = ind[0]
 
         q = self.q
-        ax2 = self.ax2
 
         if ind >= len(q.X) or ind < 0:
             return
 
         self.ind = ind
 
-        ax2.cla()
         ix = q.X[ind]
         iy = q.Y[ind]
         self.l.set_visible(True)
         self.l.set_data(ix, iy)
 
-        correl_max = self.correls_max[ind]
-        alphac = self.correls[ind]
-        alphac_max = alphac.max()
-        correl = correl_max/alphac_max * alphac
+        correl_max = self.piv_results.correls_max[ind]
 
         text = (
             'vector at ix = {} : iy = {} ; '
             'U = {:.3f} ; V = {:.3f}, C = {:.3f}').format(
                 ix, iy, q.U[ind], q.V[ind], correl_max)
 
-        if ind in self.errors:
-            text += ', error:' + self.errors[ind]
+        if ind in self.piv_results.errors:
+            text += ', error:' + self.piv_results.errors[ind]
 
         self.t.set_text(text)
 
-        ax2.imshow(correl, origin='lower', interpolation='none',
-                   vmin=0, vmax=1)
-        # ax2.pcolormesh(correl, vmin=0, vmax=1, shading='flat')
+        if self.has_correls:
+            ax2 = self.ax2
+            ax2.cla()
+            alphac = self.piv_results.correls[ind]
+            alphac_max = alphac.max()
+            correl = correl_max/alphac_max * alphac
 
-        ax2.plot(q.U[ind], q.V[ind], 'o')
-        ax2.axis('scaled')
-        ax2.set_xlim(-0.5, correl.shape[1]-0.5)
-        ax2.set_ylim(-0.5, correl.shape[0]-0.5)
+            ax2.imshow(correl, origin='lower', interpolation='none',
+                       vmin=0, vmax=1)
+            # ax2.pcolormesh(correl, vmin=0, vmax=1, shading='flat')
+
+            ax2.plot(q.U[ind], q.V[ind], 'o')
+            ax2.axis('scaled')
+            ax2.set_xlim(-0.5, correl.shape[1]-0.5)
+            ax2.set_ylim(-0.5, correl.shape[0]-0.5)
         self.fig.canvas.draw()
 
     def switch(self):
