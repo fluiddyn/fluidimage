@@ -79,7 +79,7 @@ def tps_coeff(centers, U, smoothing_coef):
                     np.hstack([PM.T, np.zeros([nb_dim + 1, nb_dim + 1])])])
     U_tps, r, r2, r3 = np.linalg.lstsq(IM, U)
     U_smooth = np.dot(EM, U_tps)
-    return (U_smooth, U_tps)
+    return U_smooth, U_tps
 
 
 def tps_eval(dsites, centers):
@@ -122,6 +122,49 @@ def tps_eval(dsites, centers):
     EM[nb_p] = EM[nb_p] * log(EM[nb_p]) / 2
     EM = np.hstack([EM, np.ones([M, 1]), dsites])
     return EM
+
+
+def tps_eval_T(dsites, centers):
+    """calculate the thin plate spline (tps) interpolation at a set of points
+
+    INPUT:
+
+    dsites: M * s matrix representing the postions of the M
+    'observation' sites, with s the space dimension
+
+    centers: N * s matrix representing the postions of the N centers,
+    sources of the tps,
+
+
+    OUTPUT:
+
+    EM: M * (N+s) matrix representing the contributions at the M sites
+
+    from unit sources located at each of the N centers, + (s+1) columns
+    representing the contribution of the linear gradient part.
+
+    use : U_interp = EM * U_tps
+
+
+    RELATED FUNCTIONS:
+    tps_coeff, tps_eval_dxy
+    tps_coeff_field, set_subdomains, filter_tps, calc_field
+
+    """
+    M, s = dsites.shape
+    N, s2 = centers.shape
+    assert s == s2
+    EM = np.zeros([N, M])
+    for d in range(s):
+        Dsites, Centers = np.meshgrid(
+            dsites[:, d], centers[:, d])
+        EM = EM + (Dsites - Centers) ** 2
+
+    nb_p = np.where(EM != 0)
+    EM[nb_p] = EM[nb_p] * log(EM[nb_p]) / 2
+    EM = np.vstack([EM, np.ones([M]), dsites.T])
+    return EM
+
 
 
 def tps_eval_dxy(dsites, centers):

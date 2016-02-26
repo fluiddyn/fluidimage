@@ -6,5 +6,6 @@
 
    fft
    correl
+   interpolate
 
 """

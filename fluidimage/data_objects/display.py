@@ -1,7 +1,5 @@
 from __future__ import print_function
 
-from scipy.ndimage import imread
-
 import matplotlib.pyplot as plt
 plt.ion()
 
@@ -145,15 +143,3 @@ class display(object):
             int(self.axi1.get_visible())))
 
         self.fig.canvas.draw()
-
-
-if __name__ == '__main__':
-
-    im0 = imread('samples/Karman/PIVlab_Karman_01.bmp')
-    im1 = imread('samples/Karman/PIVlab_Karman_02.bmp')
-    fig = plt.figure()
-    ax1 = plt.subplot(121)
-    ax2 = plt.subplot(122)
-    ax1.imshow(im0)
-    ax2.imshow(im1)
-    fig.show(block=True)

@@ -4,7 +4,7 @@ from numpy import pi
 
 import matplotlib.pyplot as plt
 
-from tps_base import tps_coeff, tps_eval_dxy, tps_eval
+from tps_base import tps_coeff, tps_eval_dxy, tps_eval, tps_eval_T
 
 
 x = 2*np.pi*np.random.randn(100)  # set of random x coordinates from 0 to 2pi
@@ -32,6 +32,11 @@ new_positions = np.hstack([XI, YI])
 
 # evaluate interpolation on the new grid
 EM = tps_eval(new_positions, centers)
+
+EM_T = tps_eval_T(new_positions, centers)
+
+assert np.allclose(EM.T, EM_T)
+
 U_eval = np.dot(EM, U_tps)
 U_eval = U_eval.reshape([npy, npx])
 
