@@ -6,11 +6,13 @@ from fluidimage.works.piv import WorkPIV
 params = WorkPIV.create_default_params()
 
 # for a very short computation
-params.piv0.shape_crop_im0 = 16
+params.piv0.shape_crop_im0 = 24
 params.piv0.grid.overlap = 0.
 
 params.piv0.method_subpix = 'centroid'
 params.piv0.method_correl = 'fftw'
+
+params.multipass.number = 1
 
 piv = WorkPIV(params=params)
 

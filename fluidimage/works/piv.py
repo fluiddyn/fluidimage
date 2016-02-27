@@ -3,32 +3,16 @@
 
 To do:
 
-- improve NoPeakError (different classes with parameters, as in "fix" of UVmat)
+- better multipass
 
-- nearly as in UVmat? Variables to use (?):
-
-  * nb_vec (int)
-  * x (nb_vec)
-  * y (nb_vec)
-  * deltax (nb_vec)
-  * deltay (nb_vec)
-  * correl_peak (nb_vec)
-  * warning {ivec: str}
-  * error {ivec: str}
-
-- as in UVmat: civ1, fix1, patch1, ...
-
-- as in UVmat: multipass
-
-- as in UVmat: patch "thin-plate spline" (?). Add variables as in UVmat
-  (NbCenter, Coord_tps, SubRange, U_tps, V_tps)
+- as in UVmat: better patch "thin-plate spline" (?). Add variables as
+  in UVmat (NbCenter, Coord_tps, SubRange, U_tps, V_tps)
 
 - detect and save multipeaks. Add variables:
 
   * deltaxs_2ndpeak {ivec: float32}
   * deltays_2ndpeak {ivec: float32}
   * correl_2ndpeak {ivec: float32}
-
 
 """
 
@@ -45,6 +29,9 @@ from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
 from ..data_objects.piv import ArrayCouple, HeavyPIVResults
 from ..calcul.correl import PIVError, correlation_classes
 from ..works import BaseWork
+
+from ..calcul.interpolate.thin_plate_spline import \
+    compute_tps_coeff, ThinPlateSpline
 
 
 class BaseWorkPIV(BaseWork):
@@ -81,15 +68,19 @@ class BaseWorkPIV(BaseWork):
 
         self.niwo2 = niw/2
 
+        self._init_correl()
+
+    def _init_correl(self):
+        niw = self.n_interrogation_window
         try:
-            correl_cls = correlation_classes[params.piv0.method_correl]
+            correl_cls = correlation_classes[self.params.piv0.method_correl]
         except KeyError:
             raise ValueError(
                 'params.piv0.method_correl should be in ' +
                 str(correlation_classes.keys()))
 
         self.correl = correl_cls(im0_shape=(niw, niw),
-                                 method_subpix=params.piv0.method_subpix)
+                                 method_subpix=self.params.piv0.method_subpix)
 
     def _prepare_with_image(self, im):
 
@@ -97,13 +88,13 @@ class BaseWorkPIV(BaseWork):
         niw = self.n_interrogation_window
         step = niw - int(np.round(self.overlap*niw))
 
-        inds_x_vec = np.arange(0, len_x, step, dtype=int)
-        inds_y_vec = np.arange(0, len_y, step, dtype=int)
+        ixvecs = np.arange(0, len_x, step, dtype=int)
+        iyvecs = np.arange(0, len_y, step, dtype=int)
 
-        inds_x_vec, inds_y_vec = np.meshgrid(inds_x_vec, inds_y_vec)
+        ixvecs, iyvecs = np.meshgrid(ixvecs, iyvecs)
 
-        self.inds_x_vec = inds_x_vec.flatten()
-        self.inds_y_vec = inds_y_vec.flatten()
+        self.ixvecs_grid = ixvecs.flatten()
+        self.iyvecs_grid = iyvecs.flatten()
 
     def calcul(self, couple):
         if isinstance(couple, SerieOfArraysFromFiles):
@@ -113,65 +104,97 @@ class BaseWorkPIV(BaseWork):
             raise ValueError
 
         im0, im1 = couple.get_arrays()
-        if not hasattr(self, 'inds_x_vec'):
+        if not hasattr(self, 'ixvecs_grid'):
             self._prepare_with_image(im0)
 
-        niwo2 = self.niwo2
-        tmp = [(niwo2, niwo2), (niwo2, niwo2)]
-        im0pad = np.pad(im0 - im0.min(), tmp, 'constant')
-        im1pad = np.pad(im1 - im1.min(), tmp, 'constant')
-
-        deltaxs, deltays, correls, correls_max, errors = \
-            self._loop_vectors(im0pad, im1pad)
+        deltaxs, deltays, xs, ys, correls_max, correls, errors = \
+            self._loop_vectors(im0, im1)
 
         result = HeavyPIVResults(
-            deltaxs, deltays, self.inds_x_vec, self.inds_y_vec,
-            errors, correls_max=correls_max, correls=correls,
+            deltaxs, deltays, xs, ys, errors,
+            correls_max=correls_max, correls=correls,
             couple=deepcopy(couple), params=self.params)
 
         return result
 
-    def _loop_vectors(self, im0, im1):
+    def _pad_images(self, im0, im1):
+        npad = self.npad = self.niwo2 + 10
+        tmp = [(npad, npad), (npad, npad)]
+        im0pad = np.pad(im0 - im0.min(), tmp, 'constant')
+        im1pad = np.pad(im1 - im1.min(), tmp, 'constant')
+        return im0pad, im1pad
 
-        correls = []
+    def calcul_indices_vec(self, deltaxs_approx=None, deltays_approx=None):
+
+        xs = self.ixvecs_grid
+        ys = self.iyvecs_grid
+
+        ixs0_pad = self.ixvecs_grid + self.npad
+        iys0_pad = self.iyvecs_grid + self.npad
+        ixs1_pad = ixs0_pad
+        iys1_pad = iys0_pad
+
+        return xs, ys, ixs0_pad, iys0_pad, ixs1_pad, iys1_pad
+
+    def _loop_vectors(self, im0, im1,
+                      deltaxs_approx=None, deltays_approx=None):
+
+        im0pad, im1pad = self._pad_images(im0, im1)
+
+        xs, ys, ixs0_pad, iys0_pad, ixs1_pad, iys1_pad = \
+            self.calcul_indices_vec(deltaxs_approx=deltaxs_approx,
+                                    deltays_approx=deltays_approx)
+
+        nb_vec = len(xs)
+
+        correls = [None]*nb_vec
         errors = {}
-        deltaxs = np.empty(self.inds_y_vec.shape)
+        deltaxs = np.empty(xs.shape, dtype='float32')
         deltays = np.empty_like(deltaxs)
         correls_max = np.empty_like(deltaxs)
 
-        inds_x_vec_pad = self.inds_x_vec + self.niwo2
-        inds_y_vec_pad = self.inds_y_vec + self.niwo2
+        for ivec in range(nb_vec):
 
-        for ivec, iyvec in enumerate(inds_y_vec_pad):
-            ixvec = inds_x_vec_pad[ivec]
+            ixvec0 = ixs0_pad[ivec]
+            iyvec0 = iys0_pad[ivec]
+            ixvec1 = ixs1_pad[ivec]
+            iyvec1 = iys1_pad[ivec]
 
-            im0crop, im1crop = self._crop_subimages(ixvec, iyvec, im0, im1)
+            im0crop = self._crop_im(ixvec0, iyvec0, im0pad)
+            im1crop = self._crop_im(ixvec1, iyvec1, im1pad)
+
             correl, coef_norm = self.correl(im0crop, im1crop)
-            correls.append(correl)
+            correls[ivec] = correl
             try:
                 deltay, deltax, correl_max = \
                     self.correl.compute_displacement_from_correl(
                         correl, coef_norm=coef_norm)
-                deltaxs[ivec] = deltax
-                deltays[ivec] = deltay
-                correls_max[ivec] = correl_max
             except PIVError as e:
+                errors[ivec] = e.explanation
                 try:
                     deltay, deltax, correl_max = \
                         e.results_compute_displacement_from_correl
-                    errors[(ivec)] = e.explanation
-                    deltaxs[ivec] = deltax
-                    deltays[ivec] = deltay
-                    correls_max[ivec] = correl_max
                 except AttributeError:
-                    errors[(ivec)] = e.explanation
-                    deltaxs[ivec] = np.nan
-                    deltays[ivec] = np.nan
+                    deltaxs = np.nan
+                    deltays = np.nan
+                    correl_max = np.nan
 
-        return deltaxs, deltays, correls, correls_max, errors
+            deltaxs[ivec] = deltax
+            deltays[ivec] = deltay
+            correls_max[ivec] = correl_max
 
-    def _crop_subimages(self, ixvec, iyvec, im0, im1):
-        raise NotImplementedError
+        if deltaxs_approx is not None:
+            deltaxs += deltaxs_approx
+            deltays += deltays_approx
+
+        return deltaxs, deltays, xs, ys, correls_max, correls, errors
+
+    def _crop_im(self, ixvec, iyvec, im):
+        niwo2 = self.niwo2
+        subim = im[iyvec - niwo2:iyvec + niwo2,
+                   ixvec - niwo2:ixvec + niwo2]
+        subim = np.array(subim, dtype=np.float32)
+        return subim - subim.mean()
 
 
 class FirstWorkPIV(BaseWorkPIV):
@@ -192,36 +215,92 @@ class FirstWorkPIV(BaseWorkPIV):
 
         params._set_child('mask', attribs={})
 
-    def _crop_im(self, ixvec, iyvec, im):
-        niwo2 = self.niwo2
-        subim = im[iyvec - niwo2:iyvec + niwo2,
-                   ixvec - niwo2:ixvec + niwo2]
-        subim = np.array(subim, dtype=np.float32)
-        return subim - subim.mean()
-
-    def _crop_subimages(self, ixvec, iyvec, im0, im1):
-        return (self._crop_im(ixvec, iyvec, im0),
-                self._crop_im(ixvec, iyvec, im1))
-
 
 class WorkPIVFromDisplacement(BaseWorkPIV):
-    def _crop_im0(self, ixvec, iyvec, im):
-        niwo2 = self.niwo2
-        subim = im[iyvec - niwo2:iyvec + niwo2,
-                   ixvec - niwo2:ixvec + niwo2]
-        subim = np.array(subim, dtype=np.float32)
-        return subim - subim.mean()
 
-    def _crop_im1(self, ixvec, iyvec, im):
-        niwo2 = self.niwo2
-        subim = im[iyvec - niwo2:iyvec + niwo2,
-                   ixvec - niwo2:ixvec + niwo2]
-        subim = np.array(subim, dtype=np.float32)
-        return subim - subim.mean()
+    def __init__(self, params=None):
 
-    def _crop_subimages(self, ixvec, iyvec, im0, im1):
-        return (self._crop_im0(ixvec, iyvec, im0),
-                self._crop_im1(ixvec, iyvec, im1))
+        if params is None:
+            params = self.__class__.create_default_params()
+
+        self.params = params
+
+        shape_crop_im0 = params.piv0.shape_crop_im0
+        overlap = params.piv0.grid.overlap
+
+        self.shape_crop_im0 = shape_crop_im0
+        if isinstance(shape_crop_im0, int):
+            n_interrogation_window = shape_crop_im0
+        else:
+            raise NotImplementedError(
+                'For now, shape_crop_im0 has to be an integer!')
+
+        niw = self.n_interrogation_window = n_interrogation_window/2
+        self.overlap = overlap
+
+        self.niwo2 = niw/2
+
+        self._init_correl()
+
+    def calcul(self, piv_results):
+
+        if not isinstance(piv_results, HeavyPIVResults):
+            raise ValueError
+
+        couple = piv_results.couple
+
+        im0, im1 = couple.get_arrays()
+        if not hasattr(self, 'ixvecs_grid'):
+            self._prepare_with_image(im0)
+
+        # for the interpolation
+        selection = ~np.isnan(piv_results.deltaxs)
+
+        xs = piv_results.xs[selection]
+        ys = piv_results.ys[selection]
+
+        deltaxs = piv_results.deltaxs[selection]
+        deltays = piv_results.deltays[selection]
+
+        coef = 0.5
+        centers = np.vstack([xs, ys])
+        piv_results.deltaxs_smooth, piv_results.deltax_tps = \
+            compute_tps_coeff(centers, deltaxs, coef)
+        piv_results.deltays_smooth, piv_results.deltay_tps = \
+            compute_tps_coeff(centers, deltays, coef)
+
+        new_positions = np.vstack([self.ixvecs_grid, self.iyvecs_grid])
+
+        tps = ThinPlateSpline(new_positions, centers)
+
+        deltaxs_approx = np.round(tps.compute_field(
+            piv_results.deltax_tps)).astype('int32')
+        deltays_approx = np.round(tps.compute_field(
+            piv_results.deltay_tps)).astype('int32')
+
+        deltaxs, deltays, xs, ys, correls_max, correls, errors = \
+            self._loop_vectors(im0, im1,
+                               deltaxs_approx=deltaxs_approx,
+                               deltays_approx=deltays_approx)
+
+        result = HeavyPIVResults(
+            deltaxs, deltays, xs, ys, errors,
+            correls_max=correls_max, correls=correls,
+            couple=deepcopy(couple), params=self.params)
+
+        return result
+
+    def calcul_indices_vec(self, deltaxs_approx=None, deltays_approx=None):
+
+        xs = self.ixvecs_grid
+        ys = self.iyvecs_grid
+
+        ixs0_pad = self.ixvecs_grid + self.npad
+        iys0_pad = self.iyvecs_grid + self.npad
+        ixs1_pad = ixs0_pad + deltaxs_approx
+        iys1_pad = iys0_pad + deltays_approx
+
+        return xs, ys, ixs0_pad, iys0_pad, ixs1_pad, iys1_pad
 
 
 class WorkFIX(BaseWork):
@@ -246,8 +325,8 @@ class WorkFIX(BaseWork):
 
     def calcul(self, piv_results):
 
-        deltaxs = piv_results.deltaxs  # .copy()
-        deltays = piv_results.deltays  # .copy()
+        deltaxs = piv_results.deltaxs
+        deltays = piv_results.deltays
 
         for ierr in piv_results.errors.keys():
             deltaxs[ierr] = np.nan
@@ -291,14 +370,22 @@ class WorkPIV(BaseWork):
         FirstWorkPIV._complete_params_with_default(params)
         WorkFIX._complete_params_with_default(params)
 
-        params._set_child('multipass', attribs={})
+        params._set_child('multipass', attribs={'number': 0})
 
     def __init__(self, params=None):
+        self.params = params
         self.work_piv0 = FirstWorkPIV(params)
         self.work_fix0 = WorkFIX(params.fix)
+
+        if params.multipass.number > 0:
+            self.work_piv1 = WorkPIVFromDisplacement(params)
 
     def calcul(self, couple):
 
         piv_result = self.work_piv0.calcul(couple)
         piv_result = self.work_fix0.calcul(piv_result)
+
+        if self.params.multipass.number > 0:
+            piv_result = self.work_piv1.calcul(piv_result)
+
         return piv_result

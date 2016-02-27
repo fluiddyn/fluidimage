@@ -14,6 +14,8 @@ params.piv0.grid.overlap = 0.5
 params.piv0.method_subpix = 'centroid'
 params.piv0.method_correl = 'fftw'
 
+params.multipass.number = 1
+
 piv = WorkPIV(params=params)
 
 series = SeriesOfArrays('../image_samples/Oseen/Images', 'i+1:i+3')
