@@ -4,19 +4,11 @@ from copy import deepcopy
 
 import numpy as np
 
-try:
-    from reikna.fft import FFT
-    is_cuda_available = True
-except ImportError:
-    is_cuda_available = False
-
 from fluidimage.synthetic import make_synthetic_images
 from fluidimage.calcul.correl import correlation_classes
 
 
 classes = {k.replace('.', '_'): v for k, v in correlation_classes.items()}
-
-classes.pop('cufft')
 
 
 class TestCorrel(unittest.TestCase):

@@ -8,7 +8,7 @@ from scipy.signal import correlate2d
 from scipy.ndimage import correlate
 from numpy.fft import fft2, ifft2
 
-from fluidimage.calcul.fft import FFTW2DReal2Complex
+from fluidimage.calcul.fft import FFTW2DReal2Complex, CUFFT2DReal2Complex
 
 
 def corr_full(in0, in1):
@@ -42,6 +42,14 @@ def corr_fft(in0, in1):
     return ((op.ifft(op.fft(in0).conj() * op.fft(in1))).real)[::-1, ::-1]/norm
 
 
+op1 = CUFFT2DReal2Complex(n0, n0)
+
+
+def corr_cufft(in0, in1):
+    norm = np.sum(in1**2)
+    return ((op1.ifft(op1.fft(in0).conj() * op1.fft(in1))).real)[::-1, ::-1]/norm
+
+
 t = clock()
 corr_full(in0, in1)
 print('corr_full(in0, in1) : \t\t{} s'.format(clock() - t))
@@ -54,18 +62,24 @@ t = clock()
 corr_fft(in0, in0)
 print('corr_fft(in0, in0) : \t\t{} s'.format(clock() - t))
 
+t = clock()
+corr_cufft(in0, in0)
+print('corr_cufft(in0, in0) : \t\t{} s'.format(clock() - t))
+
 """Result bench
 
 n0: 32 ; n1: 16
 corr_full(in0, in1) : 		0.002623 s
 corr_full_ndimage(in0, in1) : 	0.002647 s
 corr_fft(in0, in0) : 		0.000211999999999 s
+corr_cufft(in0, in0) : 		0.0035 s
 
 
 n0: 64 ; n1: 32
 corr_full(in0, in1) : 		0.035295 s
 corr_full_ndimage(in0, in1) : 	0.03343 s
 corr_fft(in0, in0) : 		0.000281 s
+corr_cufft(in0, in0) : 		0.003 s
 
 The scipy correlation functions are much slower than the fft method (by a
 factor ) and than matlab (by a factor ~ 5).

@@ -49,9 +49,6 @@ from .fft import FFTW2DReal2Complex, CUFFT2DReal2Complex
 
 try:
     import theano
-    from theano.sandbox.cuda import cuda_available, GpuOp
-    from theano.sandbox.cuda.fftconv import conv2d_fft
-    import scikits.cuda
 except ImportError:
     pass
 
@@ -276,6 +273,26 @@ class CorrelCuFFT(CorrelBase):
     _tag = 'cufft'
     """Correlations using fluidimage.fft.CUFFT2DReal2Complex"""
     FFTClass = CUFFT2DReal2Complex
+
+    def __init__(self, im0_shape, im1_shape=None, method_subpix='centroid'):
+        super(CorrelCuFFT, self).__init__(
+            im0_shape, im1_shape, method_subpix=method_subpix)
+
+        if im1_shape is None:
+            im1_shape = im0_shape
+
+        if im0_shape != im1_shape:
+            raise ValueError('The input images have to have the same shape.')
+
+        n0, n1 = im1_shape
+        self.op = self.FFTClass(n1, n0)
+
+    def __call__(self, im0, im1):
+        """Compute the correlation from images."""
+        norm = np.sum(im1**2)
+        op = self.op
+        corr = op.ifft(op.fft(im0).conj() * op.fft(im1)) / norm
+        return np.fft.fftshift(corr[::-1, ::-1])
 
 
 class SubPix(object):

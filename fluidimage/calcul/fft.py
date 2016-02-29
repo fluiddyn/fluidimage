@@ -25,7 +25,7 @@ import numpy as np
 import pyfftw
 
 try:
-    from reikna.cluda import any_api
+    from reikna.cluda import any_api, cuda_api, ocl_api
     from reikna.fft import FFT
     from reikna.transformations import mul_param
 except ImportError:
@@ -56,7 +56,10 @@ class CUFFT2DReal2Complex(object):
 
         # Pick the first available GPGPU API and make a Thread on it.
         api = any_api()
-        self.thr = api.Thread.create()
+        # api = cuda_api()
+        # api = ocl_api()
+        dev = api.get_platforms()[0].get_devices()
+        self.thr = api.Thread.create(dev)
         fft = FFT(self.arrayK, axes=(0, 1))
         scale = mul_param(self.arrayK, np.float)
         fft.parameter.input.connect(scale, scale.output,
