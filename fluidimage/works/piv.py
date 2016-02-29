@@ -26,7 +26,8 @@ import numpy as np
 from fluiddyn.util.paramcontainer import ParamContainer
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
 
-from ..data_objects.piv import ArrayCouple, HeavyPIVResults
+from ..data_objects.piv import (
+    ArrayCouple, HeavyPIVResults, MultipassPIVResults)
 from ..calcul.correl import PIVError, correlation_classes
 from ..works import BaseWork
 
@@ -292,13 +293,18 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
 
     def calcul_indices_vec(self, deltaxs_approx=None, deltays_approx=None):
 
-        xs = self.ixvecs_grid
-        ys = self.iyvecs_grid
+        ixs0 = self.ixvecs_grid - deltaxs_approx//2
+        iys0 = self.iyvecs_grid - deltays_approx//2
+        ixs1 = ixs0 + deltaxs_approx
+        iys1 = iys0 + deltays_approx
 
-        ixs0_pad = self.ixvecs_grid + self.npad
-        iys0_pad = self.iyvecs_grid + self.npad
-        ixs1_pad = ixs0_pad + deltaxs_approx
-        iys1_pad = iys0_pad + deltays_approx
+        xs = (ixs0 + ixs1) / 2.
+        ys = (iys0 + iys1) / 2.
+
+        ixs0_pad = ixs0 + self.npad
+        iys0_pad = iys0 + self.npad
+        ixs1_pad = ixs1 + self.npad
+        iys1_pad = iys1 + self.npad
 
         return xs, ys, ixs0_pad, iys0_pad, ixs1_pad, iys1_pad
 
@@ -385,7 +391,11 @@ class WorkPIV(BaseWork):
         piv_result = self.work_piv0.calcul(couple)
         piv_result = self.work_fix0.calcul(piv_result)
 
-        if self.params.multipass.number > 0:
-            piv_result = self.work_piv1.calcul(piv_result)
+        results = MultipassPIVResults()
+        results.append(piv_result)
 
-        return piv_result
+        if self.params.multipass.number > 0:
+            piv_result1 = self.work_piv1.calcul(piv_result)
+            results.append(piv_result1)
+
+        return results
