@@ -49,6 +49,9 @@ from .fft import FFTW2DReal2Complex, CUFFT2DReal2Complex
 
 try:
     import theano
+    from theano.sandbox.cuda import cuda_available, GpuOp
+    from theano.sandbox.cuda.fftconv import conv2d_fft
+    import scikits.cuda
 except ImportError:
     pass
 
@@ -176,14 +179,24 @@ class CorrelTheano(CorrelBase):
             self.ny, self.nx = np.array(im0_shape) - np.array(im1_shape) + 1
             ind0x = self.nx // 2
             ind0y = self.ny // 2
-        im00 = theano.tensor.tensor4("im00")
-        im11 = theano.tensor.tensor4("im11")
 
+        im00 = theano.tensor.tensor4("im00", dtype='float32')
+        im11 = theano.tensor.tensor4("im11", dtype='float32')
         modec = theano.compile.get_default_mode()
-        modec = modec.including('cudnn')
+        # modec = modec.including('conv_meta')
+        if mode == 'same':
+            correl_theano = theano.tensor.nnet.conv2d(
+                im00, im11,
+                image_shape=(1, 1, 2*self.nx0-1, 2*self.ny0-1),
+                filter_shape=(1, 1, )+im1_shape,
+                border_mode='valid')
+        else:
+            correl_theano = theano.tensor.nnet.conv2d(
+                im00, im11,
+                image_shape=(1, 1, )+im0_shape,
+                filter_shape=(1, 1, )+im1_shape,
+                border_mode='valid')
 
-        correl_theano = theano.tensor.nnet.conv2d(im00, im11,
-                                                  border_mode='valid')
         self.correlf = theano.function(inputs=[im00, im11],
                                        outputs=[correl_theano], mode=modec)
 
