@@ -52,7 +52,7 @@ if not int(displacement) == c_same.shape[0]//2 - c_same.argmax():
 
 if not int(displacement) == c_valid.shape[0]//2 - c_valid.argmax():
     print('We do not understand (?)')
-    
+
 # if not c_fft.argmax() == c_full.argmax():
 #     print('We do not understand (?)')
 

@@ -178,25 +178,29 @@ class CorrelTheano(CorrelBase):
             ind0y = self.ny // 2
         im00 = theano.tensor.tensor4("im00")
         im11 = theano.tensor.tensor4("im11")
+
+        modec = theano.compile.get_default_mode()
+        modec = modec.including('cudnn')
+
         correl_theano = theano.tensor.nnet.conv2d(im00, im11,
                                                   border_mode='valid')
         self.correlf = theano.function(inputs=[im00, im11],
-                                       outputs=[correl_theano])
+                                       outputs=[correl_theano], mode=modec)
 
         self.inds0 = tuple([ind0y, ind0x])
 
     def __call__(self, im0, im1):
         """Compute the correlation from images."""
         norm = np.sum(im1**2)
-        im0 = np.rot90(im0, 2)
+        im1 = np.rot90(im1, 2)
         im1 = im1.reshape(1, 1, self.nx1, self.ny1)
         if self.mode == 'valid':
             im0 = im0.reshape(1, 1, self.nx0, self.ny0)
         elif self.mode == 'same':
             im0b = im1.min() * np.ones((2*self.nx-1, 2*self.ny-1),
                                        dtype=np.float32)
-            im0b[self.nx//2:self.nx+self.nx//2,
-                 self.ny//2:self.ny+self.ny//2] = im0
+            im0b[self.nx//2-1:self.nx+self.nx//2-1,
+                 self.ny//2-1:self.ny+self.ny//2-1] = im0
             # Correlation with periodic condition (==FFT version) :
             # im0 = np.tile(im0, (3, 3))
             # im0 = im0[self.nx//2+1:2*self.nx+self.nx//2,
