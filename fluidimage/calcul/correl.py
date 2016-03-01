@@ -16,6 +16,10 @@ different methods.
    :members:
    :private-members:
 
+.. autoclass:: CorrelPythran
+   :members:
+   :private-members:
+
 .. autoclass:: CorrelTheano
    :members:
    :private-members:
@@ -46,6 +50,8 @@ from scipy.ndimage import correlate
 from numpy.fft import fft2, ifft2
 
 from .fft import FFTW2DReal2Complex, CUFFT2DReal2Complex
+
+from .correl_pythran import correl_pythran
 
 try:
     import theano
@@ -93,6 +99,29 @@ class CorrelBase(object):
             raise e
         dy, dx = self.compute_displacement_from_indices(indices)
         return dy, dx, correl_max
+
+
+class CorrelPythran(CorrelBase):
+    """Correlation using pythran.
+
+    .. todo::
+
+       Implement a Correlation class with Pythran (first just with numpy).
+
+    """
+    _tag = 'pythran'
+
+    def __init__(self, im0_shape, im1_shape=None,
+                 method_subpix='centroid', displacement_max=None):
+
+        self.displacement_max = displacement_max
+
+        super(CorrelPythran, self).__init__(
+            im0_shape, im1_shape, method_subpix=method_subpix)
+
+    def __call__(self, im0, im1):
+        """Compute the correlation from images."""
+        return correl_pythran(im0, im1, self.displacement_max)
 
 
 class CorrelScipySignal(CorrelBase):

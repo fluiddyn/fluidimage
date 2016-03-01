@@ -1,18 +1,36 @@
 """Piv work and subworks
 ========================
 
-To do:
+.. todo::
 
-- better multipass
+   - better multipass
 
-- as in UVmat: better patch "thin-plate spline" (?). Add variables as
-  in UVmat (NbCenter, Coord_tps, SubRange, U_tps, V_tps)
+   - as in UVmat: better patch "thin-plate spline" (?). Add variables as
+     in UVmat (NbCenter, Coord_tps, SubRange, U_tps, V_tps)
 
-- detect and save multipeaks. Add variables:
+   - detect and save multipeaks. Add variables:
 
-  * deltaxs_2ndpeak {ivec: float32}
-  * deltays_2ndpeak {ivec: float32}
-  * correl_2ndpeak {ivec: float32}
+     * deltaxs_2ndpeak {ivec: float32}
+     * deltays_2ndpeak {ivec: float32}
+     * correl_2ndpeak {ivec: float32}
+
+
+.. autoclass:: BaseWorkPIV
+   :members:
+   :private-members:
+
+.. autoclass:: FirstWorkPIV
+   :members:
+   :private-members:
+
+.. autoclass:: WorkPIVFromDisplacement
+   :members:
+   :private-members:
+
+WorkFIX
+
+
+WorkPIV
 
 """
 
@@ -36,7 +54,11 @@ from ..calcul.interpolate.thin_plate_spline import \
 
 
 class BaseWorkPIV(BaseWork):
+    """Base class for PIV.
 
+    This class is meant to be subclassed, not instantiated directly.
+
+    """
     @classmethod
     def create_default_params(cls):
         params = ParamContainer(tag='params')
@@ -84,7 +106,13 @@ class BaseWorkPIV(BaseWork):
                                  method_subpix=self.params.piv0.method_subpix)
 
     def _prepare_with_image(self, im):
+        """Initialize the object with an image.
 
+        .. todo::
+
+           Better ixvecs and iyvecs (starting from 0 and padding is silly).
+
+        """
         len_y, len_x = im.shape
         niw = self.n_interrogation_window
         step = niw - int(np.round(self.overlap*niw))
@@ -119,6 +147,13 @@ class BaseWorkPIV(BaseWork):
         return result
 
     def _pad_images(self, im0, im1):
+        """Pad images with zeros.
+
+        .. todo::
+
+           Choose correctly the variable npad.
+
+        """
         npad = self.npad = self.niwo2 + 10
         tmp = [(npad, npad), (npad, npad)]
         im0pad = np.pad(im0 - im0.min(), tmp, 'constant')
@@ -199,7 +234,7 @@ class BaseWorkPIV(BaseWork):
 
 
 class FirstWorkPIV(BaseWorkPIV):
-
+    """Basic PIV pass."""
     @classmethod
     def _complete_params_with_default(cls, params):
         params._set_child('piv0', attribs={
@@ -218,6 +253,7 @@ class FirstWorkPIV(BaseWorkPIV):
 
 
 class WorkPIVFromDisplacement(BaseWorkPIV):
+    """Work PIV working from already computed displacement (for multipass)."""
 
     def __init__(self, params=None):
 
@@ -244,7 +280,19 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
         self._init_correl()
 
     def calcul(self, piv_results):
+        """Calcul the piv.
 
+        .. todo::
+
+           Write the interpolation in a more general way (with a
+           class) such that we can use other interpolation methods (in
+           particular methods using scipy.interpolate.griddata).
+
+        .. todo::
+
+           Use the derivatives of the velocity to distort the image 1.
+
+        """
         if not isinstance(piv_results, HeavyPIVResults):
             raise ValueError
 
@@ -292,7 +340,14 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
         return result
 
     def calcul_indices_vec(self, deltaxs_approx=None, deltays_approx=None):
+        """Calcul the indices corresponding to the windows in im0 and im1.
 
+        .. todo::
+
+           Better handle calculus of indices for crop image center on
+           image 0 and image 1.
+
+        """
         ixs0 = self.ixvecs_grid - deltaxs_approx//2
         iys0 = self.iyvecs_grid - deltays_approx//2
         ixs1 = ixs0 + deltaxs_approx
@@ -310,6 +365,7 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
 
 
 class WorkFIX(BaseWork):
+    """Fix the displacement vectors."""
 
     @classmethod
     def create_default_params(cls):
@@ -364,6 +420,7 @@ class WorkFIX(BaseWork):
 
 
 class WorkPIV(BaseWork):
+    """Main work for PIV with multipass."""
 
     @classmethod
     def create_default_params(cls):

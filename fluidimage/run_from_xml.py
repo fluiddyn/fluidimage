@@ -5,6 +5,11 @@ From matlab, something like::
 
   system(['python -m fluidimage.run_from_xml ' path_to_instructions_xml])
 
+
+.. todo::
+
+   UVmat civserie: input and output.
+
 """
 
 import os

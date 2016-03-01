@@ -24,6 +24,11 @@ obtained as ``dot(U_tps, EMDX)`` and ``dot(U_tps, EMDY)``, where
 
 .. autofunction:: compute_tps_matrices_dxy
 
+
+.. todo::
+
+   Understand and do as UVmat (TPS with subdomains).
+
 """
 import numpy as np
 
