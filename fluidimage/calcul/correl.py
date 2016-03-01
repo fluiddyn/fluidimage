@@ -136,7 +136,7 @@ class CorrelPythran(CorrelBase):
     def __call__(self, im0, im1):
         """Compute the correlation from images."""
         norm = np.sum(im1**2) * im0.size
-        return correl_pythran(im1, im0, self.displacement_max), norm
+        return correl_pythran(im0, im1, self.displacement_max), norm
 
 
 class CorrelScipySignal(CorrelBase):
