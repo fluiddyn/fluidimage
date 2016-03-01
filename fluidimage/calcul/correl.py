@@ -192,38 +192,52 @@ class CorrelTheano(CorrelBase):
             self.ny, self.nx = np.array(im0_shape) - np.array(im1_shape) + 1
             ind0x = self.nx // 2
             ind0y = self.ny // 2
-        im00 = theano.tensor.tensor4("im00")
-        im11 = theano.tensor.tensor4("im11")
-        correl_theano = theano.tensor.nnet.conv2d(im00, im11,
-                                                  border_mode='valid')
+
+        im00 = theano.tensor.tensor4("im00", dtype='float32')
+        im11 = theano.tensor.tensor4("im11", dtype='float32')
+        modec = theano.compile.get_default_mode()
+        # modec = modec.including('conv_meta')
+        if mode == 'same':
+            correl_theano = theano.tensor.nnet.conv2d(
+                im00, im11,
+                image_shape=(1, 1, 2*self.ny0-1, 2*self.nx0-1),
+                filter_shape=(1, 1, )+im1_shape,
+                border_mode='valid')
+        else:
+            correl_theano = theano.tensor.nnet.conv2d(
+                im00, im11,
+                image_shape=(1, 1, )+im0_shape,
+                filter_shape=(1, 1, )+im1_shape,
+                border_mode='valid')
+
         self.correlf = theano.function(inputs=[im00, im11],
-                                       outputs=[correl_theano])
+                                       outputs=[correl_theano], mode=modec)
 
         self.inds0 = tuple([ind0y, ind0x])
 
     def __call__(self, im0, im1):
         """Compute the correlation from images."""
         norm = np.sum(im1**2)
-        im0 = np.rot90(im0, 2)
-        im1 = im1.reshape(1, 1, self.nx1, self.ny1)
+        im1 = np.rot90(im1, 2)
+        im1 = im1.reshape(1, 1, self.ny1, self.nx1)
         if self.mode == 'valid':
-            im0 = im0.reshape(1, 1, self.nx0, self.ny0)
+            im0 = im0.reshape(1, 1, self.ny0, self.nx0)
         elif self.mode == 'same':
-            im0b = im1.min() * np.ones((2*self.nx-1, 2*self.ny-1),
+            im0b = im1.min() * np.ones((2*self.ny-1, 2*self.nx-1),
                                        dtype=np.float32)
-            im0b[self.nx//2:self.nx+self.nx//2,
-                 self.ny//2:self.ny+self.ny//2] = im0
+            im0b[self.ny//2-1:self.ny+self.ny//2-1,
+                 self.nx//2-1:self.nx+self.nx//2-1] = im0
             # Correlation with periodic condition (==FFT version) :
             # im0 = np.tile(im0, (3, 3))
             # im0 = im0[self.nx//2+1:2*self.nx+self.nx//2,
             #           self.ny//2+1:2*self.ny+self.ny//2]
-            im0 = im0b.reshape(1, 1, 2*self.nx-1, 2*self.ny-1)
+            im0 = im0b.reshape(1, 1, 2*self.ny-1, 2*self.nx-1)
         else:
             assert False, 'Bad value for self.mode'
 
         correl = self.correlf(im0, im1)
         correl = np.asarray(correl)
-        correl = correl.reshape(self.nx, self.ny)
+        correl = correl.reshape(self.ny, self.nx)
 
         return correl, norm
 
@@ -279,6 +293,26 @@ class CorrelCuFFT(CorrelBase):
     _tag = 'cufft'
     """Correlations using fluidimage.fft.CUFFT2DReal2Complex"""
     FFTClass = CUFFT2DReal2Complex
+
+    def __init__(self, im0_shape, im1_shape=None, method_subpix='centroid'):
+        super(CorrelCuFFT, self).__init__(
+            im0_shape, im1_shape, method_subpix=method_subpix)
+
+        if im1_shape is None:
+            im1_shape = im0_shape
+
+        if im0_shape != im1_shape:
+            raise ValueError('The input images have to have the same shape.')
+
+        n0, n1 = im1_shape
+        self.op = self.FFTClass(n1, n0)
+
+    def __call__(self, im0, im1):
+        """Compute the correlation from images."""
+        norm = np.sum(im1**2)
+        op = self.op
+        corr = op.ifft(op.fft(im0).conj() * op.fft(im1)) / norm
+        return np.fft.fftshift(corr[::-1, ::-1])
 
 
 class SubPix(object):

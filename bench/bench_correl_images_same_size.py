@@ -8,12 +8,12 @@ from time import clock
 
 from fluidimage.calcul.correl import (
     CorrelScipySignal, CorrelScipyNdimage, CorrelFFTNumpy, CorrelFFTW,
-    CorrelTheano )
+    CorrelTheano, CorrelCuFFT)
 
 from fluidimage.synthetic import make_synthetic_images
 
 nx = 32
-ny = 32
+ny = 64
 displacement_x = 2.
 displacement_y = 2.
 
@@ -29,7 +29,7 @@ im0, im1 = make_synthetic_images(
 
 
 classes = {'sig': CorrelScipySignal, 'ndimage': CorrelScipyNdimage,
-           'np.fft': CorrelFFTNumpy, 'fftw': CorrelFFTW,
+           'np.fft': CorrelFFTNumpy, 'fftw': CorrelFFTW, 'cufft': CorrelCuFFT,
            'theano': CorrelTheano}
 
 
