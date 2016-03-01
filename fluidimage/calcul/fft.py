@@ -55,9 +55,9 @@ class CUFFT2DReal2Complex(object):
         self.arrayK = np.empty(shapeK, dtype=self.type_complex)
 
         # Pick the first available GPGPU API and make a Thread on it.
-        api = any_api()
+        # api = any_api()
         # api = cuda_api()
-        # api = ocl_api()
+        api = ocl_api()
         dev = api.get_platforms()[0].get_devices()
         self.thr = api.Thread.create(dev)
         fft = FFT(self.arrayK, axes=(0, 1))

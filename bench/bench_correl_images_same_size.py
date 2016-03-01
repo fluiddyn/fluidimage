@@ -13,7 +13,7 @@ from fluidimage.calcul.correl import (
 from fluidimage.synthetic import make_synthetic_images
 
 nx = 32
-ny = 32
+ny = 64
 displacement_x = 2.
 displacement_y = 2.
 
