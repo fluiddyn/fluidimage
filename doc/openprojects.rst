@@ -1,5 +1,5 @@
-Open-source projects
-====================
+List of related open-source projects
+====================================
 
 Compute PIV fields
 ------------------

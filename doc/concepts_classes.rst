@@ -1,11 +1,19 @@
-Concepts and classes
-====================
+Concepts, classes and organization of the package
+=================================================
 
 Data objects
 ------------
 
+FluidImage uses data objects. These objects represent particular types of
+data. They should be able to be loaded from a file, saved into a file,
+displayed to the screen, etc.
+
+These objects are defined in the package :mod:`fluidimage.data_objects`.
+
 "Unit" objects
 ~~~~~~~~~~~~~~
+
+We can define simple "unit" object as for example:
 
 - ImageInFile
 - ImageInFilm
@@ -29,25 +37,6 @@ There are also set of objects, i.e. a succession of "unit" objects.
 - ...
 
 A "SetOf" instance can iterate over the objects that it contains.
-  
-Fluxes, waiting queues and working topologies
----------------------------------------------
-
-A flux is responsible for the organization of the treatment of a
-succession of input "unit" objects. It contains the description as a
-"topology" of the treatment of one "unit" object (for example the
-production of 1 PIV field from a couple of images). A topology is
-formed of a set of unit processes linked by waiting queues.
-
-The flux organizes the "loop" over the input set. It organizes the
-asynchronous calls of the work units of the topology with the correct
-transfer of data between them.
-
-The Links between the work units can be done by:
-
-- Python objects as arguments
-- save file / load file
-- serialize and transfer by socket (maybe pyzmq?)
 
 
 Works and Work units
@@ -58,8 +47,32 @@ initialization is able to produce an output object from an input
 object. It can also take more than one input objects and/or return
 more than one output objects.
 
-A work is made of one or more work units. In particular, it should be
+A work is made of one or more work units. In particular, it could be
 useful to split input/output and computational works.
 
-A work unit can be done by Python objects as
-arguments.
+The works are defined in the package :mod:`fluidimage.works`.  Internally, the
+works use utilities for treatments defined in the package
+:mod:`fluidimage.calcul`.
+
+
+Topologies and waiting queues
+-----------------------------
+
+A topology is responsible for the organization of the treatment of a
+succession of input "unit" objects. It contains the description as a
+"topology" of the treatment of one "unit" object (for example the
+production of 1 PIV field from a couple of images). A topology is
+formed of a set of unit processes linked by waiting queues.
+
+The Topology object also organizes the "loop" over the input set. It organizes
+the asynchronous calls of the work units of the topology with the correct
+transfer of data between them.
+
+In principle, the links between the work units can be done by:
+
+- Python objects as arguments (preferred because it is faster and simpler)
+- save file / load file
+- serialize and transfer by socket (maybe pyzmq?)
+
+The topologies and the waiting queues are defined in the packages
+:mod:`fluidimage.topologies` and :mod:`fluidimage.waiting_queues`.

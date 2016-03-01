@@ -38,10 +38,15 @@ User Guide
 
    overview
    install
+   tutorial
 
 
 Modules Reference
 -----------------
+
+Here is presented the general organization of the package (see also
+:doc:`concepts_classes`) and the documentation of the modules, classes and
+functions.
 
 .. autosummary::
    :toctree: generated/
