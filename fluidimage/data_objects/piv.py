@@ -26,13 +26,16 @@ class ArrayCouple(DataObject):
             self._load(hdf5_object=hdf5_parent['couple'])
             return
 
-        if serie is not None and arrays is None:
+        if serie is not None:
             if serie.get_nb_files() != 2:
                 raise ValueError('serie has to contain 2 arrays.')
             names = serie.get_name_files()
             paths = serie.get_path_files()
-            arrays = serie.get_arrays()
             self.paths = tuple(paths)
+
+            if arrays is None:
+                arrays = serie.get_arrays()
+
         self.names = tuple(names)
         self.arrays = tuple(arrays)
         self.serie = serie

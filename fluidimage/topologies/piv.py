@@ -5,13 +5,13 @@ from fluiddyn.util.paramcontainer import ParamContainer
 from fluiddyn.util.serieofarrays import \
     SerieOfArraysFromFiles, SeriesOfArrays
 
-from fluidimage.topologies.base import TopologyBase
+from .base import TopologyBase
 
-from fluidimage.waiting_queues.base import (
+from ..waiting_queues.base import (
     WaitingQueueMultiprocessing, WaitingQueueThreading,
     WaitingQueueMakeCouple, WaitingQueueLoadImage)
 
-from fluidimage.works.piv import WorkPIV
+from ..works.piv import WorkPIV
 
 
 class TopologyPIV(TopologyBase):
@@ -80,26 +80,3 @@ class TopologyPIV(TopologyBase):
         self.wq0.fill_destination(k, im)
 
         self.piv_work._prepare_with_image(im)
-
-
-if __name__ == '__main__':
-
-    params = TopologyPIV.create_default_params()
-
-    # path = '../../image_samples/Oseen/Images/Oseen_center*'
-    path = '../../image_samples/Karman/Images'
-
-    # path = '../../image_samples/Jet/Images/c*'
-    # params.series.strcouple = 'i+60, 0:2'
-    # params.series.strcouple = 'i+60:i+62, 0'
-
-    params.series.path = path
-
-    topology = TopologyPIV(params)
-
-    topology.compute(sequential=False)
-
-    # topology.make_code_graphviz('topo.dot')
-    # then the graph can be produced with the command:
-    # dot topo.dot -Tpng -o topo.png
-    # dot topo.dot -Tx11

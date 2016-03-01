@@ -399,3 +399,8 @@ class WorkPIV(BaseWork):
             results.append(piv_result1)
 
         return results
+
+    def _prepare_with_image(self, im):
+        self.work_piv0._prepare_with_image(im)
+        if self.params.multipass.number > 0:
+            self.work_piv1._prepare_with_image(im)
