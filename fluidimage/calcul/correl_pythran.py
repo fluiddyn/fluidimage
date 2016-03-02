@@ -1,12 +1,12 @@
 import numpy as np
 
 
-# pythran export correl_pythran(float32[], float32[], int)
+# pythran export correl_pythran(float32[][], float32[][], int)
 
 def correl_pythran(im0, im1, disp_max):
     """Correlations by hand using only numpy.
 
-   Parameters
+    Parameters
     ----------
 
     im0, im1 : images
@@ -23,12 +23,11 @@ def correl_pythran(im0, im1, disp_max):
     """
     norm = np.sum(im1**2) * im0.size
 
-    ny = int(disp_max) * 2 + 1
-    nx = ny
+    ny = nx = int(disp_max) * 2 + 1
     ny0, nx0 = im0.shape
     ny1, nx1 = im1.shape
 
-    correl = np.empty((ny, nx), dtype=np.float32)
+    correl = np.empty((ny, nx))  #, dtype=np.float32)
 
     for xiy in range(disp_max + 1):
         dispy = -disp_max + xiy

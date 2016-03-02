@@ -33,3 +33,5 @@ doc/generated/*
 */profile.png
 
 image_samples/*/Images.piv/*.h5
+
+*_pythran.cpp
