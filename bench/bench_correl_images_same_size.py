@@ -26,7 +26,7 @@ print('nx: {} ; ny: {}'.format(nx, ny))
 
 im0, im1 = make_synthetic_images(
     displacements, nb_particles, shape_im0=(ny, nx), epsilon=0.)
-
+print(im0.shape, im1.shape)
 
 classes = {'sig': CorrelScipySignal, 'ndimage': CorrelScipyNdimage,
            'np.fft': CorrelFFTNumpy, 'fftw': CorrelFFTW, 'cufft': CorrelCuFFT,

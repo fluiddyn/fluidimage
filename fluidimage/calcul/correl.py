@@ -112,7 +112,7 @@ class CorrelPythran(CorrelBase):
     _tag = 'pythran'
 
     def __init__(self, im0_shape, im1_shape=None,
-                 method_subpix='centroid', displacement_max=None):
+                 method_subpix='centroid', displacement_max=None, mode=None):
 
         if displacement_max is None:
             displacement_max = min(max(im0_shape), max(im1_shape)) // 2

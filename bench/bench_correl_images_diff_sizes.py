@@ -6,8 +6,8 @@ from time import clock
 import numpy as np
 
 from fluidimage.synthetic import make_synthetic_images
-from fluidimage.calcul.correl import CorrelScipySignal, CorrelTheano
-
+from fluidimage.calcul.correl import CorrelScipySignal
+from fluidimage.calcul.correl import CorrelTheano, CorrelPythran
 
 nx = 32
 ny = 32
@@ -30,7 +30,8 @@ im0, im1 = make_synthetic_images(
     epsilon=0.)
 
 
-classes = {'sig': CorrelScipySignal, 'theano': CorrelTheano}
+classes = {'sig': CorrelScipySignal, 'theano': CorrelTheano,
+           'pythran': CorrelPythran}
 
 
 cs = {}
