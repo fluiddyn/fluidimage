@@ -6,10 +6,13 @@ def make_synthetic_images(
         displacements, nb_particles, shape_im0, shape_im1=None, epsilon=0.):
     ny, nx = tuple(shape_im0)
 
-    displacement_y, displacement_x = tuple(displacements)
+    displacement_x, displacement_y = tuple(displacements)
 
-    xs = np.arange(nx)
-    ys = np.arange(ny)
+    xs = np.arange(nx, dtype='float32')
+    ys = np.arange(ny, dtype='float32')
+
+    Xs, Ys = np.meshgrid(xs, ys)
+
     xmax = xs.max() + abs(displacement_x)
     xmin = xs.min() - abs(displacement_x)
     xparts = [xmin + (xmax - xmin) * np.random.rand()
@@ -18,8 +21,6 @@ def make_synthetic_images(
     ymin = ys.min() - abs(displacement_y)
     yparts = [ymin + (ymax - ymin) * np.random.rand()
               for i in range(nb_particles)]
-
-    Ys, Xs = np.meshgrid(xs, ys)
 
     def f(x, y):
         result = np.zeros_like(x, dtype='float32')

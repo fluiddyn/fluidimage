@@ -7,7 +7,7 @@ from fluiddyn.util.serieofarrays import \
 
 from .base import TopologyBase
 
-from ..waiting_queues.base import (
+from .waiting_queues.base import (
     WaitingQueueMultiprocessing, WaitingQueueThreading,
     WaitingQueueMakeCouple, WaitingQueueLoadImage)
 

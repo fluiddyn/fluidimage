@@ -202,13 +202,13 @@ class BaseWorkPIV(BaseWork):
             correl, coef_norm = self.correl(im0crop, im1crop)
             correls[ivec] = correl
             try:
-                deltay, deltax, correl_max = \
+                deltax, deltay, correl_max = \
                     self.correl.compute_displacement_from_correl(
                         correl, coef_norm=coef_norm)
             except PIVError as e:
                 errors[ivec] = e.explanation
                 try:
-                    deltay, deltax, correl_max = \
+                    deltax, deltay, correl_max = \
                         e.results_compute_displacement_from_correl
                 except AttributeError:
                     deltaxs = np.nan

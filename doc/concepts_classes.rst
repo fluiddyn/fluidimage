@@ -74,5 +74,5 @@ In principle, the links between the work units can be done by:
 - save file / load file
 - serialize and transfer by socket (maybe pyzmq?)
 
-The topologies and the waiting queues are defined in the packages
-:mod:`fluidimage.topologies` and :mod:`fluidimage.waiting_queues`.
+The topologies and the waiting queues are defined in the package
+:mod:`fluidimage.topologies`.

@@ -6,8 +6,8 @@ import multiprocessing
 import threading
 import Queue
 
-from ..data_objects.piv import ArrayCouple
-from ..works import load_image
+from ...data_objects.piv import ArrayCouple
+from ...works import load_image
 
 
 class WaitingQueueBase(dict):

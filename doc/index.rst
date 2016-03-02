@@ -51,11 +51,10 @@ functions.
 .. autosummary::
    :toctree: generated/
 
-   fluidimage.calcul
    fluidimage.data_objects
-   fluidimage.topologies
    fluidimage.works
-   fluidimage.waiting_queues
+   fluidimage.calcul
+   fluidimage.topologies
    fluidimage.gui
 
 More

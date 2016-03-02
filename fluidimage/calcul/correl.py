@@ -75,30 +75,30 @@ class CorrelBase(object):
 
     def __init__(self, im0_shape, im1_shape, method_subpix='centroid'):
         self.inds0 = tuple(np.array(im0_shape)//2 - 1)
-
         self.subpix = SubPix(method=method_subpix)
 
     def compute_displacement_from_indices(self, indices):
         """Compute the displacement from a couple of indices."""
-        return self.inds0[0] - indices[0], self.inds0[1] - indices[1]
+        return self.inds0[1] - indices[0], self.inds0[0] - indices[1]
 
     def compute_displacement_from_correl(
             self, correl, coef_norm=1., method_subpix=None):
         """Compute the displacement (with subpix) from a correlation."""
         iy, ix = np.unravel_index(correl.argmax(), correl.shape)
-
         correl_max = correl[iy, ix]/coef_norm
+
         try:
             indices = self.subpix.compute_subpix(
                 correl, ix, iy, method_subpix)
         except PIVError as e:
-            indices = iy, ix
-            dy, dx = self.compute_displacement_from_indices(indices)
+            indices = ix, iy
+            dx, dy = self.compute_displacement_from_indices(indices)
             e.results_compute_displacement_from_correl = (
-                dy, dx, correl_max)
+                dx, dy, correl_max)
             raise e
-        dy, dx = self.compute_displacement_from_indices(indices)
-        return dy, dx, correl_max
+
+        dx, dy = self.compute_displacement_from_indices(indices)
+        return dx, dy, correl_max
 
 
 class CorrelPythran(CorrelBase):
@@ -130,8 +130,7 @@ class CorrelPythran(CorrelBase):
 
     def __call__(self, im0, im1):
         """Compute the correlation from images."""
-        norm = np.sum(im1**2) * im0.size
-        return correl_pythran(im0, im1, self.displacement_max), norm
+        return correl_pythran(im0, im1, self.displacement_max)
 
 
 class CorrelScipySignal(CorrelBase):
@@ -376,7 +375,7 @@ class CorrelCuFFT(CorrelBase):
         """Compute the correlation from images."""
         norm = np.sum(im1**2) * im0.size
         op = self.op
-        corr = op.ifft(op.fft(im0).conj() * op.fft(im1))
+        corr = op.ifft(op.fft(im0).conj() * op.fft(im1)).real
         return np.fft.fftshift(corr[::-1, ::-1]), norm
 
 
@@ -386,20 +385,22 @@ class SubPix(object):
 
     def __init__(self, method='centroid'):
         self.method = method
-        # init for 2d_gaussian method
-        self.n_subpix_zoom = 2
-        xs = np.arange(2*self.n_subpix_zoom+1, dtype=float)
-        ys = np.arange(2*self.n_subpix_zoom+1, dtype=float)
+
+        n = self.n = 2
+        xs = ys = np.arange(-n, n+1, dtype=float)
         X, Y = np.meshgrid(xs, ys)
+
+        # init for centroid method
+        self.X_centroid = X
+        self.Y_centroid = Y
+
+        # init for 2d_gaussian method
         nx, ny = X.shape
         X = X.ravel()
         Y = Y.ravel()
         M = np.reshape(np.concatenate(
             (X**2, Y**2, X, Y, np.ones(nx*ny))), (5, nx*ny)).T
         self.Minv_subpix = np.linalg.pinv(M)
-
-        # init for centroid method
-        self.X_centroid, self.Y_centroid = np.meshgrid(range(3), range(3))
 
     def compute_subpix(self, correl, ix, iy, method=None):
         """Find peak
@@ -431,7 +432,7 @@ class SubPix(object):
         if method not in self.methods:
             raise ValueError('method has to be in {}'.format(self.methods))
 
-        n = self.n_subpix_zoom
+        n = self.n
 
         ny, nx = correl.shape
 
@@ -442,7 +443,6 @@ class SubPix(object):
 
         if method == '2d_gaussian':
 
-            # crop: possibly buggy!
             correl = correl[iy-n:iy+n+1,
                             ix-n:ix+n+1]
 
@@ -457,32 +457,32 @@ class SubPix(object):
 
             sigmax = 1/np.sqrt(-2*coef[0])
             sigmay = 1/np.sqrt(-2*coef[1])
-            X0 = coef[2]*sigmax**2
-            Y0 = coef[3]*sigmay**2
+            deplx = coef[2]*sigmax**2
+            deply = coef[3]*sigmay**2
 
-            tmp = 2*n + 1
-            if X0 > tmp or Y0 > tmp:
+            if deplx > 2 or deply > 2:
                 raise PIVError(explanation='wrong subpix',
                                result_compute_subpix=(iy, ix))
 
         elif method == 'centroid':
+            n = self.n
 
-            correl = correl[iy-1:iy+2, ix-1:ix+2]
+            correl = correl[iy-n:iy+n+1, ix-n:ix+n+1]
+            # print('correl', correl)
             ny, nx = correl.shape
 
             sum_correl = np.sum(correl)
 
-            X0 = np.sum(self.X_centroid * correl) / sum_correl
-            Y0 = np.sum(self.Y_centroid * correl) / sum_correl
+            deplx = np.sum(self.X_centroid * correl) / sum_correl
+            deply = np.sum(self.Y_centroid * correl) / sum_correl
 
-            if X0 > 2 or Y0 > 2:
+            # print('deplxy', deplx, deply, iy, ix)
+
+            if abs(deplx) > 1 or abs(deply) > 1:
                 raise PIVError(explanation='wrong subpix',
                                result_compute_subpix=(iy, ix))
 
-        deplx = X0 - nx/2  # displacement x
-        deply = Y0 - ny/2  # displacement y
-
-        return deply + iy + 0.5, deplx + ix + 0.5
+        return deplx + ix, deply + iy
 
 
 correlation_classes = {
