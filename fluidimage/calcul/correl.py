@@ -202,15 +202,18 @@ class CorrelTheano(CorrelBase):
     _tag = 'theano'
 
     def __init__(self, im0_shape, im1_shape=None,
-                 mode='same', method_subpix='centroid'):
+                 mode='same', method_subpix='centroid', displacement_max=None):
 
         if im1_shape is None:
             im1_shape = im0_shape
 
+        if displacement_max is None:
+            displacement_max = min(max(im0_shape), max(im1_shape)) // 2
+
         super(CorrelTheano, self).__init__(
             im0_shape, im1_shape, method_subpix=method_subpix)
 
-        modes = ['valid', 'same']
+        modes = ['valid', 'same', 'disp']
         if mode not in modes:
             raise ValueError('mode should be in ' + modes)
         self.mode = mode
@@ -227,10 +230,15 @@ class CorrelTheano(CorrelBase):
             else:
                 ind0y = self.ny // 2
 
-        else:
+        elif mode == 'valid':
             self.ny, self.nx = np.array(im0_shape) - np.array(im1_shape) + 1
             ind0x = self.nx // 2
             ind0y = self.ny // 2
+        else:
+            self.ny = displacement_max*2+1
+            self.nx = self.ny
+            ind0x = displacement_max
+            ind0y = displacement_max
 
         im00 = theano.tensor.tensor4("im00", dtype='float32')
         im11 = theano.tensor.tensor4("im11", dtype='float32')
@@ -242,10 +250,17 @@ class CorrelTheano(CorrelBase):
                 image_shape=(1, 1, 2*self.ny0-1, 2*self.nx0-1),
                 filter_shape=(1, 1, )+im1_shape,
                 border_mode='valid')
-        else:
+        elif mode == 'valid':
             correl_theano = theano.tensor.nnet.conv2d(
                 im00, im11,
                 image_shape=(1, 1, )+im0_shape,
+                filter_shape=(1, 1, )+im1_shape,
+                border_mode='valid')
+        else:
+            correl_theano = theano.tensor.nnet.conv2d(
+                im00, im11,
+                image_shape=(1, 1, min(self.ny0, 2*displacement_max+self.ny1),
+                             min(self.nx0, 2*displacement_max+self.nx1)),
                 filter_shape=(1, 1, )+im1_shape,
                 border_mode='valid')
 
@@ -262,6 +277,17 @@ class CorrelTheano(CorrelBase):
         if self.mode == 'valid':
             im0 = im0.reshape(1, 1, self.ny0, self.nx0)
         elif self.mode == 'same':
+            im0b = im1.min() * np.ones((2*self.ny-1, 2*self.nx-1),
+                                       dtype=np.float32)
+            im0b[self.ny//2-1:self.ny+self.ny//2-1,
+                 self.nx//2-1:self.nx+self.nx//2-1] = im0
+            # Correlation with periodic condition (==FFT version) :
+            # im0 = np.tile(im0, (3, 3))
+            # im0 = im0[self.nx//2+1:2*self.nx+self.nx//2,
+            #           self.ny//2+1:2*self.ny+self.ny//2]
+            im0 = im0b.reshape(1, 1, 2*self.ny-1, 2*self.nx-1)
+        elif self.mode == 'disp':
+            # TODOOOOOOO
             im0b = im1.min() * np.ones((2*self.ny-1, 2*self.nx-1),
                                        dtype=np.float32)
             im0b[self.ny//2-1:self.ny+self.ny//2-1,
