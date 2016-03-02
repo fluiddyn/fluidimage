@@ -2,6 +2,14 @@
 import os
 from setuptools import setup, find_packages
 
+try:
+    from pythran.dist import PythranExtension
+    use_pythran = True
+except ImportError:
+    use_pythran = False
+
+use_pythran = False
+
 # Get the long description from the relevant file
 with open('README.rst') as f:
     long_description = f.read()
@@ -18,6 +26,13 @@ install_requires = ['numpy', 'fluiddyn >= 0.0.12a2']
 on_rtd = os.environ.get('READTHEDOCS')
 if not on_rtd:
     install_requires.extend(['scipy', 'h5py'])
+
+if use_pythran:
+    ext_modules=[PythranExtension('fluidimage.calcul.correl_pythran',
+                                  ['fluidimage/calcul/correl_pythran.py'])]
+else:
+    ext_modules=[]
+
 
 setup(
     name='fluidimage',
@@ -54,4 +69,5 @@ setup(
         'Programming Language :: C'],
     packages=find_packages(exclude=[
         'doc', 'include', 'scripts']),
-    install_requires=install_requires)
+    install_requires=install_requires,
+    ext_modules=ext_modules)

@@ -17,7 +17,7 @@ ny = 64
 displacement_x = 2.
 displacement_y = 2.
 
-displacements = np.array([displacement_y, displacement_x])
+displacements = np.array([displacement_x, displacement_y])
 
 nb_particles = (nx // 3)**2
 
@@ -29,8 +29,10 @@ im0, im1 = make_synthetic_images(
 print(im0.shape, im1.shape)
 
 classes = {'sig': CorrelScipySignal, 'ndimage': CorrelScipyNdimage,
-           'np.fft': CorrelFFTNumpy, 'fftw': CorrelFFTW, 'cufft': CorrelCuFFT,
-           'theano': CorrelTheano, 'pythran': CorrelPythran}
+           'np.fft': CorrelFFTNumpy, 'fftw': CorrelFFTW,
+           # 'cufft': CorrelCuFFT,
+           'theano': CorrelTheano,
+           'pythran': CorrelPythran}
 
 
 cs = {}

@@ -16,7 +16,7 @@ ny = 32
 displacement_x = 2.
 displacement_y = 2.
 
-displacements = np.array([displacement_y, displacement_x])
+displacements = np.array([displacement_x, displacement_y])
 
 nb_particles = (nx // 3)**2
 
