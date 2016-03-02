@@ -1,6 +1,12 @@
 
 from __future__ import print_function
 
+from time import sleep
+from multiprocessing import cpu_count
+
+nb_cores = cpu_count()
+dt = 0.2  # s
+
 
 class TopologyBase(object):
     def __init__(self, queues):
@@ -11,6 +17,12 @@ class TopologyBase(object):
         workers = []
         workers_cpu = []
         while any([not q.is_empty() for q in self.queues]) or len(workers) > 0:
+            self.nb_workers_cpu = len(workers_cpu)
+            self.nb_workers = len(workers)
+            if self.nb_workers_cpu >= nb_cores:
+                # slow down this loop...
+                print('sleep {} s'.format(dt))
+                sleep(dt)
             for q in self.queues:
                 if not q.is_empty():
                     print('check_and_act for work:', q.work)

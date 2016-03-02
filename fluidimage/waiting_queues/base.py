@@ -11,11 +11,13 @@ from ..works import load_image
 
 
 class WaitingQueueBase(dict):
-    def __init__(self, name, work, destination=None, work_name=None):
+    def __init__(self, name, work, destination=None, work_name=None,
+                 topology=None):
         self.name = name
         self.work = work
         self.destination = destination
         self.work_name = work_name
+        self.topology = topology
 
     def is_empty(self):
         return not bool(self)
@@ -107,13 +109,14 @@ class WaitingQueueLoadImage(WaitingQueueLoadFile):
 
 
 class WaitingQueueMakeCouple(WaitingQueueBase):
-    def __init__(self, name, destination):
+    def __init__(self, name, destination, topology=None):
         self.name = name
         self.destination = destination
         self.work_name = 'make couples'
         self.nb_couples_to_create = {}
         self.couples = set()
         self.series = {}
+        self.topology = topology
 
     def is_empty(self):
         return len(self.couples) == 0

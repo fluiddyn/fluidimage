@@ -54,14 +54,15 @@ class TopologyPIV(TopologyBase):
         self.results = {}
         self.wq_piv = WaitingQueueThreading(
             'delta', lambda o: o.save(path_dir_result), self.results,
-            work_name='save')
+            work_name='save', topology=self)
         self.wq_couples = WaitingQueueMultiprocessing(
-            'couple', self.piv_work.calcul, self.wq_piv, work_name='PIV')
+            'couple', self.piv_work.calcul, self.wq_piv, work_name='PIV',
+            topology=self)
         self.wq_images = WaitingQueueMakeCouple(
-            'array image', self.wq_couples)
+            'array image', self.wq_couples, topology=self)
         self.wq0 = WaitingQueueLoadImage(
             destination=self.wq_images,
-            path_dir=path_dir)
+            path_dir=path_dir, topology=self)
 
         super(TopologyPIV, self).__init__([
             self.wq0, self.wq_images, self.wq_couples, self.wq_piv
