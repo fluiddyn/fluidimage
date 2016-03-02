@@ -112,16 +112,31 @@ class CorrelPythran(CorrelBase):
     _tag = 'pythran'
 
     def __init__(self, im0_shape, im1_shape=None,
-                 method_subpix='centroid', displacement_max=None):
+                 method_subpix='centroid', displacement_max=None, mode=None):
+
+        if displacement_max is None:
+            displacement_max = min(max(im0_shape), max(im1_shape)) // 2
 
         self.displacement_max = displacement_max
 
         super(CorrelPythran, self).__init__(
             im0_shape, im1_shape, method_subpix=method_subpix)
 
+        # if mode == 'same':
+        ind0x = displacement_max
+        ind0y = displacement_max
+
+        # else: TODO
+        #    ny, nx = np.array(im0_shape) - np.array(im1_shape)
+        #    ind0x = nx // 2
+        #    ind0y = ny // 2
+
+        self.inds0 = tuple([ind0y, ind0x])
+
     def __call__(self, im0, im1):
         """Compute the correlation from images."""
-        return correl_pythran(im0, im1, self.displacement_max)
+        norm = np.sum(im1**2) * im0.size
+        return correl_pythran(im0, im1, self.displacement_max), norm
 
 
 class CorrelScipySignal(CorrelBase):
@@ -338,10 +353,10 @@ class CorrelCuFFT(CorrelBase):
 
     def __call__(self, im0, im1):
         """Compute the correlation from images."""
-        norm = np.sum(im1**2)
+        norm = np.sum(im1**2) * im0.size
         op = self.op
-        corr = op.ifft(op.fft(im0).conj() * op.fft(im1)) / norm
-        return np.fft.fftshift(corr[::-1, ::-1])
+        corr = op.ifft(op.fft(im0).conj() * op.fft(im1))
+        return np.fft.fftshift(corr[::-1, ::-1]), norm
 
 
 class SubPix(object):
