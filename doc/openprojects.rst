@@ -1,6 +1,25 @@
 List of related open-source projects
 ====================================
 
+Compute Correlation
+------------------
+
+- Theano http://deeplearning.net/software/theano/
+
+  Theano is a Python library that allows you to define, optimize, and evaluate mathematical expressions involving multi-dimensional arrays efficiently (using GPU eventually).
+
+- reikna https://pypi.python.org/pypi/reikna
+  
+  GPGPU algorithms for PyCUDA and PyOpenCL.
+
+- PyCUDA https://documen.tician.de/pycuda/
+  
+  PyCUDA gives you easy, Pythonic access to Nvidia‘s CUDA parallel computation API
+
+- PyOpenCL https://documen.tician.de/pyopencl/
+
+  PyOpenCL gives you easy, Pythonic access to the OpenCL parallel computation API
+
 Compute PIV fields
 ------------------
 
@@ -14,7 +33,9 @@ Compute PIV fields
   
 - OpenPIV (C++, Matlab, Python, http://www.openpiv.net/)
 
-- UVMAT (Matlab, J. Sommeria)
+- UVMAT (Matlab, J. Sommeria, http://servforge.legi.grenoble-inp.fr/projects/soft-uvmat)
+
+  The free Matlab toolbox UVMAT provides a set of functions and graphic user interfaces for scanning images and data files (vectors and scalars in 2D and 3D), geometric calibrations, image processing and analysis of time series. It is designed to favor data management, relying on the standard NetCDF file format and XML documentation files. 
 
 - civx (Fortran, http://sourceforge.net/p/civx, ENS Lyon, L. Gostiaux) + pyciv
   (J.  Salort)

@@ -103,10 +103,11 @@ class CorrelBase(object):
 
 class CorrelPythran(CorrelBase):
     """Correlation using pythran.
+       Correlation class by hands with with numpy.
 
     .. todo::
 
-       Implement a Correlation class with Pythran (first just with numpy).
+       Turns it into heavily templatized c++ with Pythran
 
     """
     _tag = 'pythran'
@@ -122,14 +123,8 @@ class CorrelPythran(CorrelBase):
         super(CorrelPythran, self).__init__(
             im0_shape, im1_shape, method_subpix=method_subpix)
 
-        # if mode == 'same':
         ind0x = displacement_max
         ind0y = displacement_max
-
-        # else: TODO
-        #    ny, nx = np.array(im0_shape) - np.array(im1_shape)
-        #    ind0x = nx // 2
-        #    ind0y = ny // 2
 
         self.inds0 = tuple([ind0y, ind0x])
 

@@ -6,7 +6,19 @@ import numpy as np
 def correl_pythran(im0, im1, disp_max):
     """Correlations by hand using only numpy.
 
-    disp_max => size of computed correlation = disp_max*2 + 1
+   Parameters
+    ----------
+
+    im0, im1 : images
+      input images : 2D matrix
+
+    disp_max : int
+      displacement max.
+
+    Returns
+    -------
+
+    the computing correlation (size of computed correlation = disp_max*2 + 1)
 
      """
 
