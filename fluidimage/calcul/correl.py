@@ -201,8 +201,7 @@ class CorrelTheano(CorrelBase):
     _tag = 'theano'
 
     def __init__(self, im0_shape, im1_shape=None,
-                 mode='same', method_subpix='centroid', displacement_max=None):
-
+                 mode='disp', method_subpix='centroid', displacement_max=None):
         if im1_shape is None:
             im1_shape = im0_shape
 
@@ -218,6 +217,7 @@ class CorrelTheano(CorrelBase):
         self.mode = mode
         self.ny0, self.nx0 = im0_shape
         self.ny1, self.nx1 = im1_shape
+        self.displacement_max = displacement_max
         if mode == 'same':
             self.ny, self.nx = im0_shape
             if self.nx % 2 == 0:
@@ -256,12 +256,23 @@ class CorrelTheano(CorrelBase):
                 filter_shape=(1, 1, )+im1_shape,
                 border_mode='valid')
         else:
-            correl_theano = theano.tensor.nnet.conv2d(
-                im00, im11,
-                image_shape=(1, 1, min(self.ny0, 2*displacement_max+self.ny1),
-                             min(self.nx0, 2*displacement_max+self.nx1)),
-                filter_shape=(1, 1, )+im1_shape,
-                border_mode='valid')
+            if ((self.ny0 <= 2*self.displacement_max + self.ny1) &
+                    (self.nx0 <= 2*self.displacement_max + self.nx1)):
+                correl_theano = theano.tensor.nnet.conv2d(
+                    im00, im11,
+                    image_shape=(1, 1, 2*displacement_max+self.ny1,
+                                 2*displacement_max+self.nx1),
+                    filter_shape=(1, 1, )+im1_shape,
+                    border_mode='valid')
+            elif ((self.ny0 > 2*self.displacement_max + self.ny1) &
+                    (self.nx0 > 2*self.displacement_max + self.nx1)):
+                correl_theano = theano.tensor.nnet.conv2d(
+                    im00, im11,
+                    image_shape=(1, 1, )+im0_shape,
+                    filter_shape=(1, 1, )+im1_shape,
+                    border_mode='valid')
+            else:
+                assert False, 'Bad value for self.mode'
 
         self.correlf = theano.function(inputs=[im00, im11],
                                        outputs=[correl_theano], mode=modec)
@@ -286,23 +297,35 @@ class CorrelTheano(CorrelBase):
             #           self.ny//2+1:2*self.ny+self.ny//2]
             im0 = im0b.reshape(1, 1, 2*self.ny-1, 2*self.nx-1)
         elif self.mode == 'disp':
-            # TODOOOOOOO
-            im0b = im1.min() * np.ones((2*self.ny-1, 2*self.nx-1),
-                                       dtype=np.float32)
-            im0b[self.ny//2-1:self.ny+self.ny//2-1,
-                 self.nx//2-1:self.nx+self.nx//2-1] = im0
-            # Correlation with periodic condition (==FFT version) :
-            # im0 = np.tile(im0, (3, 3))
-            # im0 = im0[self.nx//2+1:2*self.nx+self.nx//2,
-            #           self.ny//2+1:2*self.ny+self.ny//2]
-            im0 = im0b.reshape(1, 1, 2*self.ny-1, 2*self.nx-1)
+            if ((self.ny0 < 2*self.displacement_max + self.ny1) &
+                    (self.nx0 < 2*self.displacement_max + self.nx1)):
+
+                    im0b = np.zeros((2*self.displacement_max + self.ny1,
+                                     2*self.displacement_max + self.nx1),
+                                    dtype=np.float32)
+                    i00 = (2*self.displacement_max + self.nx1 - self.nx0) // 2
+                    j00 = (2*self.displacement_max + self.ny1 - self.ny0) // 2
+                    im0b[j00:self.ny0+j00, i00:self.nx0+i00] = im0
+                    im0 = im0b.reshape(1, 1,
+                                       2*self.displacement_max + self.ny1,
+                                       2*self.displacement_max + self.nx1)
+            elif ((self.ny0 > 2*self.displacement_max + self.ny1) &
+                    (self.nx0 > 2*self.displacement_max + self.nx1)):
+                    im0 = im0.reshape(1, 1, self.ny0, self.nx0)
         else:
             assert False, 'Bad value for self.mode'
 
         correl = self.correlf(im0, im1)
         correl = np.asarray(correl)
-        correl = correl.reshape(self.ny, self.nx)
-
+        if ((self.ny0 > 2*self.displacement_max + self.ny1) &
+                (self.nx0 > 2*self.displacement_max + self.nx1) &
+                (self.mode == 'disp')):
+            i00 = (self.nx0 - self.nx1 + 1) // 2 - self.displacement_max
+            j00 = (self.ny0 - self.ny1 + 1) // 2 - self.displacement_max
+            correl = correl[0, 0, 0, j00:j00+2*self.displacement_max+1,
+                            i00:i00+2*self.displacement_max+1]
+        else:
+            correl = correl.reshape(self.ny, self.nx)
         return correl, norm
 
 
