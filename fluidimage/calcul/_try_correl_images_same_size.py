@@ -45,7 +45,7 @@ for k, cls in classes.items():
     print(k, cls)
     correl = cls(im0.shape, im1.shape)
     correls[k] = correl
-    c = correl(im0, im1)
+    c, norm = correl(im0, im1)
     cs[k] = c
 
     inds_max = np.array(np.unravel_index(c.argmax(), c.shape))

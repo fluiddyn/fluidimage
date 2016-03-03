@@ -193,7 +193,7 @@ class MultipassPIVResults(DataObject):
         if str_path is not None:
             self._load(str_path)
 
-    def display(self, i=0):
+    def display(self, i=-1):
         r = self.passes[i]
         return r.display()
 
@@ -201,7 +201,9 @@ class MultipassPIVResults(DataObject):
         return self.passes[key]
 
     def append(self, results):
+        i = len(self.passes)
         self.passes.append(results)
+        self.__dict__['piv{}'.format(i)] = results
 
     def _get_name(self):
         r = self.passes[0]

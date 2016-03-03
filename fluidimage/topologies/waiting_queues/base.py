@@ -47,6 +47,13 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
         if sequential:
             return WaitingQueueBase.check_and_act(self, sequential=sequential)
 
+        if self.topology.nb_workers_cpu >= self.topology.nb_cores:
+            return
+
+        if (isinstance(self.destination, WaitingQueueBase) and
+                len(self.destination) >= self.topology.nb_items_lim):
+            return
+
         k, o = self.popitem()
         comm = self._Queue()
 

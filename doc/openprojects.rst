@@ -2,7 +2,7 @@ List of related open-source projects
 ====================================
 
 Compute Correlation
-------------------
+-------------------
 
 - Theano http://deeplearning.net/software/theano/
 

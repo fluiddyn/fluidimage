@@ -47,7 +47,7 @@ funcs = {}
 for k, cls in classes.items():
     calcul_corr = cls(im0.shape, im1.shape, mode='valid')
     funcs[k] = calcul_corr
-    cs[k] = calcul_corr(im0, im1)
+    cs[k], norm = calcul_corr(im0, im1)
 
 
 for k, c in cs.items():

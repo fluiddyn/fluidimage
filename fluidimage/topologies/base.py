@@ -9,8 +9,11 @@ dt = 0.2  # s
 
 
 class TopologyBase(object):
+
     def __init__(self, queues):
         self.queues = queues
+        self.nb_cores = nb_cores
+        self.nb_items_lim = max(nb_cores, 2)
 
     def compute(self, sequential=None):
 

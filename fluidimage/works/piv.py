@@ -27,10 +27,13 @@
    :members:
    :private-members:
 
-WorkFIX
+.. autoclass:: WorkFIX
+   :members:
+   :private-members:
 
-
-WorkPIV
+.. autoclass:: WorkPIV
+   :members:
+   :private-members:
 
 """
 
@@ -115,10 +118,11 @@ class BaseWorkPIV(BaseWork):
         """
         len_y, len_x = im.shape
         niw = self.n_interrogation_window
+        niwo2 = self.niwo2
         step = niw - int(np.round(self.overlap*niw))
 
-        ixvecs = np.arange(0, len_x, step, dtype=int)
-        iyvecs = np.arange(0, len_y, step, dtype=int)
+        ixvecs = np.arange(niwo2, len_x-niwo2, step, dtype=int)
+        iyvecs = np.arange(niwo2, len_y-niwo2, step, dtype=int)
 
         ixvecs, iyvecs = np.meshgrid(ixvecs, iyvecs)
 
@@ -154,7 +158,7 @@ class BaseWorkPIV(BaseWork):
            Choose correctly the variable npad.
 
         """
-        npad = self.npad = self.niwo2 + 10
+        npad = self.npad = 10
         tmp = [(npad, npad), (npad, npad)]
         im0pad = np.pad(im0 - im0.min(), tmp, 'constant')
         im1pad = np.pad(im1 - im1.min(), tmp, 'constant')
@@ -311,6 +315,7 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
         deltaxs = piv_results.deltaxs[selection]
         deltays = piv_results.deltays[selection]
 
+        # compute TPS coef
         coef = 0.5
         centers = np.vstack([xs, ys])
         piv_results.deltaxs_smooth, piv_results.deltax_tps = \
@@ -322,6 +327,7 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
 
         tps = ThinPlateSpline(new_positions, centers)
 
+        # displacement int32 with TPS
         deltaxs_approx = np.round(tps.compute_field(
             piv_results.deltax_tps)).astype('int32')
         deltays_approx = np.round(tps.compute_field(
