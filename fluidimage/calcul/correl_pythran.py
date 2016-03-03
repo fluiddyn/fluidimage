@@ -27,7 +27,8 @@ def correl_pythran(im0, im1, disp_max):
     ny0, nx0 = im0.shape
     ny1, nx1 = im1.shape
 
-    correl = np.empty((ny, nx))  #, dtype=np.float32)
+    zero = np.float32(0.)
+    correl = np.empty((ny, nx), dtype=np.float32)
 
     for xiy in range(disp_max + 1):
         dispy = -disp_max + xiy
@@ -35,7 +36,7 @@ def correl_pythran(im0, im1, disp_max):
         for xix in range(disp_max + 1):
             dispx = -disp_max + xix
             nxmax = min(nx1 + dispx, nx0)
-            tmp = 0.
+            tmp = zero
             for iy in range(nymax):
                 for ix in range(nxmax):
                     tmp += im1[iy - dispy, ix - dispx] * im0[iy, ix]
@@ -43,7 +44,7 @@ def correl_pythran(im0, im1, disp_max):
         for xix in range(disp_max):
             dispx = xix + 1
             nxmax = min(nx0 - dispx, nx1)
-            tmp = 0.
+            tmp = zero
             for iy in range(nymax):
                 for ix in range(nxmax):
                     tmp += im1[iy - dispy, ix] * im0[iy, ix + dispx]
@@ -54,7 +55,7 @@ def correl_pythran(im0, im1, disp_max):
         for xix in range(disp_max + 1):
             dispx = -disp_max + xix
             nxmax = min(nx1 + dispx, nx0)
-            tmp = 0.
+            tmp = zero
             for iy in range(nymax):
                 for ix in range(nxmax):
                     tmp += im1[iy, ix - dispx] * im0[iy + dispy, ix]
@@ -62,7 +63,7 @@ def correl_pythran(im0, im1, disp_max):
         for xix in range(disp_max):
             dispx = xix + 1
             nxmax = min(nx0 - dispx, nx1)
-            tmp = 0.
+            tmp = zero
             for iy in range(nymax):
                 for ix in range(nxmax):
                     tmp += im1[iy, ix] * im0[iy + dispy, ix + dispx]
