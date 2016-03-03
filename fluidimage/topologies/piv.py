@@ -29,7 +29,8 @@ class TopologyPIV(TopologyBase):
         params = ParamContainer(tag='params')
 
         params._set_child('series', attribs={'path': '',
-                                             'strcouple': 'i+1:i+3'})
+                                             'strcouple': 'i+1:i+3',
+                                             'ind_stop': None})
 
         WorkPIV._complete_params_with_default(params)
         return params
@@ -43,7 +44,10 @@ class TopologyPIV(TopologyBase):
         self.piv_work = WorkPIV(params)
 
         serie_arrays = SerieOfArraysFromFiles(params.series.path)
-        self.series = SeriesOfArrays(serie_arrays, params.series.strcouple)
+
+        self.series = SeriesOfArrays(
+            serie_arrays, params.series.strcouple,
+            ind_stop=params.series.ind_stop)
 
         path_dir = self.series.serie.path_dir
         path_dir_result = path_dir + '.piv'
@@ -68,13 +72,13 @@ class TopologyPIV(TopologyBase):
             self.wq0, self.wq_images, self.wq_couples, self.wq_piv
         ])
 
-        self.add_couples(self.series)
+        self.add_series(self.series)
 
-    def add_couples(self, series):
+    def add_series(self, series):
         names = series.get_name_all_files()
 
         self.wq0.add_name_files(names)
-        self.wq_images.add_couples(series)
+        self.wq_images.add_series(series)
 
         k, o = self.wq0.popitem()
         im = self.wq0.work(o)

@@ -27,6 +27,7 @@ class TopologyBase(object):
                 print('sleep {} s'.format(dt))
                 sleep(dt)
             for q in self.queues:
+                print(q)
                 if not q.is_empty():
                     print('check_and_act for work:', q.work)
                     new_workers = q.check_and_act(sequential=sequential)
@@ -37,6 +38,7 @@ class TopologyBase(object):
                                worker.do_use_cpu:
                                 workers_cpu.append(worker)
                     print('workers:', workers)
+                    print('workers_cpu:', workers_cpu)
 
             workers[:] = [w for w in workers
                           if not w.fill_destination()]
