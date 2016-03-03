@@ -31,7 +31,7 @@ class ArrayCouple(DataObject):
                 raise ValueError('serie has to contain 2 arrays.')
             names = serie.get_name_files()
             paths = serie.get_path_files()
-            self.paths = tuple(paths)
+            self.paths = tuple(os.path.abspath(p) for p in paths)
 
             if arrays is None:
                 arrays = serie.get_arrays()

@@ -18,6 +18,19 @@ class WaitingQueueBase(dict):
         self.destination = destination
         self.work_name = work_name
         self.topology = topology
+        self._keys = []
+
+    def __str__(self):
+        return ('WaitingQueue "' + self.name + '" with keys ' +
+                repr(self._keys))
+
+    def __setitem__(self, key, value):
+        super(WaitingQueueBase, self).__setitem__(key, value)
+        try:
+            self._keys.remove(key)
+        except ValueError:
+            pass
+        self._keys.append(key)
 
     def is_empty(self):
         return not bool(self)
@@ -31,8 +44,20 @@ class WaitingQueueBase(dict):
         if self.destination is not None:
             self.destination[k] = result
 
+    def update(self, d, keys):
+        if not set(d.keys()) == set(keys):
+            raise ValueError
+        self._keys += keys
+        super(WaitingQueueBase, self).update(d)
+
+    def popitem(self):
+        k = self._keys.pop(0)
+        o = super(WaitingQueueBase, self).pop(k)
+        return k, o
+
 
 class WaitingQueueMultiprocessing(WaitingQueueBase):
+    do_use_cpu = True
 
     @staticmethod
     def _Queue(*args, **kwargs):
@@ -54,7 +79,8 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
                 len(self.destination) >= self.topology.nb_items_lim):
             return
 
-        k, o = self.popitem()
+        k = self._keys.pop(0)
+        o = self.pop(k)
         comm = self._Queue()
 
         def f(comm):
@@ -63,6 +89,7 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
 
         p = self._Process(target=f, args=(comm,))
         p.start()
+        p.do_use_cpu = self.do_use_cpu
 
         def fill_destination():
             if isinstance(p, multiprocessing.Process):
@@ -89,6 +116,8 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
 
 
 class WaitingQueueThreading(WaitingQueueMultiprocessing):
+    do_use_cpu = False
+
     @staticmethod
     def _Queue(*args, **kwargs):
         return Queue.Queue(*args, **kwargs)
@@ -106,7 +135,7 @@ class WaitingQueueLoadFile(WaitingQueueThreading):
 
     def add_name_files(self, names):
         self.update({name: os.path.join(self.path_dir, name)
-                     for name in names})
+                     for name in names}, names)
 
 
 class WaitingQueueLoadImage(WaitingQueueLoadFile):
@@ -117,18 +146,22 @@ class WaitingQueueLoadImage(WaitingQueueLoadFile):
 
 class WaitingQueueMakeCouple(WaitingQueueBase):
     def __init__(self, name, destination, topology=None):
-        self.name = name
-        self.destination = destination
-        self.work_name = 'make couples'
+
         self.nb_couples_to_create = {}
         self.couples = set()
         self.series = {}
         self.topology = topology
 
+        work = 'make_couples'
+
+        super(WaitingQueueMakeCouple, self).__init__(
+            name, work, destination=destination, work_name='make couples',
+            topology=topology)
+
     def is_empty(self):
         return len(self.couples) == 0
 
-    def add_couples(self, series):
+    def add_series(self, series):
 
         self.series.update({serie.get_name_files(): deepcopy(serie)
                             for serie in series})
@@ -145,8 +178,6 @@ class WaitingQueueMakeCouple(WaitingQueueBase):
                 else:
                     nb[name] = 1
 
-        self.work = 'make_couples'
-
     def check_and_act(self, sequential=None):
 
         for k0 in self.keys():
@@ -162,6 +193,7 @@ class WaitingQueueMakeCouple(WaitingQueueBase):
                     if self.nb_couples_to_create[k0] == 1:
                         v0 = self.pop(k0)
                         del self.nb_couples_to_create[k0]
+                        self._keys.remove(k0)
                     else:
                         v0 = self[k0]
                         self.nb_couples_to_create[k0] = \
@@ -170,6 +202,7 @@ class WaitingQueueMakeCouple(WaitingQueueBase):
                     if self.nb_couples_to_create[k1] == 1:
                         v1 = self.pop(k1)
                         del self.nb_couples_to_create[k1]
+                        self._keys.remove(k1)
                     else:
                         v1 = self[k1]
                         self.nb_couples_to_create[k1] = \
