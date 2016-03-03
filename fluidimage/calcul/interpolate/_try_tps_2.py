@@ -1,11 +1,11 @@
+
 import numpy as np
 
 from numpy import pi
 
 import matplotlib.pyplot as plt
-
-from fluidimage.calcul.interpolate.thin_plate_spline import (
-    compute_tps_coeff_iter, compute_tps_matrix, compute_tps_matrices_dxy)
+    
+from fluidimage.calcul.interpolate.thin_plate_spline2 import (ThinPlateSpline)
 
 
 def myplot(i, x, y, U):
@@ -27,10 +27,11 @@ myplot(0, x, y, U)
 # calculate tps coeff
 centers = np.vstack([x, y])
 smoothing_coef = 0
-subdom_size = 20
-U_smooth, U_tps = compute_tps_coeff_iter(centers, U, smoothing_coef, threshold=1)
+subdom_size = 30
+
 
 # interpolation grid
+
 xI = yI = np.arange(0, 2*pi, 0.1)
 XI, YI = np.meshgrid(xI, yI)
 XI = XI.ravel()
@@ -38,18 +39,12 @@ YI = YI.ravel()
 
 new_positions = np.vstack([XI, YI])
 
-# evaluate interpolation on the new grid
-EM = compute_tps_matrix(new_positions, centers)
+tps = ThinPlateSpline(new_positions, centers, U, subdom_size, smoothing_coef, 
+                 threshold=1, pourc_buffer_area=0.5)
 
-U_eval = np.dot(U_tps, EM)
+U_eval = tps.compute_U_eval()
+
 
 myplot(1, XI, YI, U_eval)
-
-DMX, DMY = compute_tps_matrices_dxy(new_positions, centers)
-DUX_eval = np.dot(U_tps, DMX)
-DUY_eval = np.dot(U_tps, DMY)
-
-myplot(2, XI, YI, DUX_eval)
-myplot(3, XI, YI, DUY_eval)
 
 plt.show()
