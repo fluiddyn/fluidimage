@@ -52,9 +52,11 @@ from ..data_objects.piv import (
 from ..calcul.correl import PIVError, correlation_classes
 from ..works import BaseWork
 
-from ..calcul.interpolate.thin_plate_spline import \
-    compute_tps_coeff, ThinPlateSpline
+# from ..calcul.interpolate.thin_plate_spline import \
+#     compute_tps_coeff, ThinPlateSpline
 
+from ..calcul.interpolate.thin_plate_spline_subdom import \
+    ThinPlateSplineSubdom
 
 class BaseWorkPIV(BaseWork):
     """Base class for PIV.
@@ -316,22 +318,32 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
         deltays = piv_results.deltays[selection]
 
         # compute TPS coef
-        coef = 0.5
+        smoothing_coef = 0.5
+        subdom_size = 500
         centers = np.vstack([xs, ys])
-        piv_results.deltaxs_smooth, piv_results.deltax_tps = \
-            compute_tps_coeff(centers, deltaxs, coef)
-        piv_results.deltays_smooth, piv_results.deltay_tps = \
-            compute_tps_coeff(centers, deltays, coef)
+
+        tps = ThinPlateSplineSubdom(
+            centers, subdom_size, smoothing_coef,
+            threshold=1, pourc_buffer_area=0.5)
+
+        deltaxs_smooth, deltaxs_tps = tps.compute_tps_coeff_subdom(deltaxs)
+        deltays_smooth, deltays_tps = tps.compute_tps_coeff_subdom(deltays)
+
+        piv_results.deltaxs_smooth = deltaxs_smooth
+        piv_results.deltaxs_tps = deltaxs_tps
+        piv_results.deltays_smooth = deltays_smooth
+        piv_results.deltays_tps = deltays_tps
 
         new_positions = np.vstack([self.ixvecs_grid, self.iyvecs_grid])
 
-        tps = ThinPlateSpline(new_positions, centers)
+        tps.init_with_new_positions(new_positions)
 
         # displacement int32 with TPS
-        deltaxs_approx = np.round(tps.compute_field(
-            piv_results.deltax_tps)).astype('int32')
-        deltays_approx = np.round(tps.compute_field(
-            piv_results.deltay_tps)).astype('int32')
+        deltaxs_approx = tps.compute_eval(deltaxs_tps)
+        deltays_approx = tps.compute_eval(deltays_tps)
+
+        deltaxs_approx = np.round(deltaxs_approx).astype('int32')
+        deltays_approx = np.round(deltays_approx).astype('int32')
 
         deltaxs, deltays, xs, ys, correls_max, correls, errors = \
             self._loop_vectors(im0, im1,
