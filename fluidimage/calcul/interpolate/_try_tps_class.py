@@ -15,8 +15,8 @@ from fluidimage.calcul.interpolate.thin_plate_spline import (
 n0 = 100
 n1 = 100
 
-method = 'griddata_scipy'
-# method = 'tps'
+#method = 'griddata_scipy'
+method = 'tps'
 
 def myplot(i, x, y, U, title=None):
     plt.figure(i)

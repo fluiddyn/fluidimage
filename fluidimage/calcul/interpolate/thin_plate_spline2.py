@@ -43,10 +43,14 @@ class ThinPlateSpline(object):
         self.new_positions = new_positions
         self.smoothing_coef = smoothing_coef
         self.threshold = threshold
+        
         self.U = U
+        
         self.compute_indices(pourc_buffer_area)
         
         self.compute_tps_coeff_subdom()
+        
+        self.compute_tps_matrices_dxy()
         
         #self.EM = compute_tps_matrix(new_positions, centers)
         #self.DMX, self.DMY = compute_tps_matrices_dxy(new_positions, centers)
@@ -129,20 +133,7 @@ class ThinPlateSpline(object):
         self.U_tps = U_tps
         self.EM = EM 
     
-    def compute_U_eval(self):
-        
-        U_eval = np.zeros(self.new_positions[0].shape)
-        nb_tps = np.zeros(self.new_positions[0].shape)
-        
-        for i in range(self.nb_subdom):
-            U_eval[self.ind_new_positions_subdom[i]] = np.dot(self.U_tps[i], self.EM[i])
-            nb_tps[self.ind_new_positions_subdom[i]] += 1.0
-
-        U_eval /= nb_tps
-
-        self.U_eval = U_eval
-        return U_eval
-        
+    
 
     def compute_tps_coeff_iter(self, centers, U):
         """ Compute the thin plate spline (tps) coefficients removing erratic 
@@ -257,4 +248,103 @@ class ThinPlateSpline(object):
         EM[nb_p] = EM[nb_p] * np.log(EM[nb_p]) / 2
         EM = np.vstack([EM, np.ones(M), dsites])
         return EM
+        
+    def compute_tps_matrices_dxy(self):
+        """Calculate the derivatives of thin plate spline (tps) interpolation
+        at a set of points (limited to the 2D case)
+
+        Parameters
+        ----------
+
+        dsites : np.array
+            ``[nb_dim,  M]`` array of interpolation site coordinates
+            (nb_dim = space dimension = 2, here).
+
+        centers : np.array
+            ``[nb_dim,  N]`` array of centre coordinates (initial data).
+
+        Returns
+        -------
+
+        DMX : np.array
+            ``[(N+3),  M]`` array representing the contributions to the X
+            derivatives at the M sites from unit sources located at each
+            of the N centers, + 3 columns representing the contribution of
+            the linear gradient part.
+
+        DMY : np.array
+            idem for Y derivatives.
+
+        """
+
+        DMX_tps = [None] * self.nb_subdom            
+        DMY_tps = [None] * self.nb_subdom
+        DUX_smooth = [None] * self.nb_subdom            
+        DUY_smooth = [None] * self.nb_subdom
+        
+        
+        for i in range(self.nb_subdom):
+            centers_newposition_temp=np.vstack( [self.new_positions[0][self.ind_new_positions_subdom[i]], 
+                                                 self.new_positions[1][self.ind_new_positions_subdom[i]] ] )
+            centers_temp=np.vstack( [self.centers[0][self.ind_v_subdom[i]], 
+                                                 self.centers[1][self.ind_v_subdom[i]] ] )
+            s, M = centers_newposition_temp.shape
+            s2, N = centers_temp.shape
+            assert s == s2
+            Dsites, Centers = np.meshgrid(centers_newposition_temp[0], centers_temp[0])
+            DX = Dsites - Centers
+            Dsites, Centers = np.meshgrid(centers_newposition_temp[1], centers_temp[1])
+            DY = Dsites - Centers
+            DM = DX * DX + DY * DY
+            DM[DM != 0] = np.log(DM[DM != 0]) + 1
+            
+            DMX_tps[i] = np.vstack([DX * DM, np.zeros(M), np.ones(M), np.zeros(M)])
+            DMY_tps[i] = np.vstack([DY * DM, np.zeros(M), np.zeros(M), np.ones(M)])
+            DUX_smooth[i] = np.dot(self.U_tps[i], DMX_tps[i])
+            DUY_smooth[i] = np.dot(self.U_tps[i], DMY_tps[i])
+            
+            
+                
+        self.DMX_tps =DMX_tps
+        self.DMY_tps = DMY_tps
+        self.DUX_smooth = DUX_smooth        
+        self.DUY_smooth = DUY_smooth
+
+        #return DMX, DMY
+        
+        
+    def compute_U_eval(self):
+        
+        U_eval = np.zeros(self.new_positions[0].shape)
+        nb_tps = np.zeros(self.new_positions[0].shape)
+        
+        for i in range(self.nb_subdom):
+            U_eval[self.ind_new_positions_subdom[i]] += np.dot(self.U_tps[i], self.EM[i])
+
+            nb_tps[self.ind_new_positions_subdom[i]] += 1.0
+
+        U_eval /= nb_tps
+
+        self.U_eval = U_eval
+        return U_eval
+        
+    def compute_dxy_eval(self):
+        
+        DMX_eval = np.zeros(self.new_positions[0].shape)        
+        DMY_eval = np.zeros(self.new_positions[0].shape)
+        nb_tps = np.zeros(self.new_positions[0].shape)
+        
+        for i in range(self.nb_subdom):
+            DMX_eval[self.ind_new_positions_subdom[i]] += np.dot(self.U_tps[i], self.DMX_tps[i])
+            DMY_eval[self.ind_new_positions_subdom[i]] += np.dot(self.U_tps[i], self.DMY_tps[i])
+            nb_tps[self.ind_new_positions_subdom[i]] += 1.0
+
+        DMX_eval /= nb_tps
+        DMY_eval /= nb_tps
+
+        self.DMX_eval = DMX_eval
+        self.DMY_eval = DMY_eval
+
+        return DMX_eval, DMY_eval
+        
 

@@ -27,7 +27,7 @@ myplot(0, x, y, U)
 # calculate tps coeff
 centers = np.vstack([x, y])
 smoothing_coef = 0
-subdom_size = 30
+subdom_size = 20
 
 
 # interpolation grid
@@ -43,8 +43,14 @@ tps = ThinPlateSpline(new_positions, centers, U, subdom_size, smoothing_coef,
                  threshold=1, pourc_buffer_area=0.5)
 
 U_eval = tps.compute_U_eval()
+DMX_eval, DMY_eval = tps.compute_dxy_eval()
 
 
 myplot(1, XI, YI, U_eval)
+
+myplot(2, XI, YI, DMX_eval)
+myplot(3, XI, YI, DMY_eval)
+
+
 
 plt.show()
