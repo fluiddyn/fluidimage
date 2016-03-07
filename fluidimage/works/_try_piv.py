@@ -1,5 +1,5 @@
 
-
+import h5netcdf
 from fluiddyn.util.serieofarrays import SeriesOfArrays
 from fluidimage.works.piv import WorkPIV
 
@@ -12,7 +12,7 @@ params.piv0.grid.overlap = 0.
 params.piv0.method_subpix = 'centroid'
 params.piv0.method_correl = 'fftw'
 
-params.multipass.number = 2
+params.multipass.number = 1
 # params.multipass.use_tps = True
 
 piv = WorkPIV(params=params)
@@ -23,3 +23,7 @@ serie = series.get_serie_from_index(0)
 result = piv.calcul(serie)
 
 result.display()
+
+result.save(out_format='uvmat')
+
+f=h5netcdf.File('piv_Oseen_center01-02.h5')

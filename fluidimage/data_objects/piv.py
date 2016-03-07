@@ -3,11 +3,14 @@ import os
 
 import h5py
 
+import h5netcdf
+
 from fluiddyn.util.paramcontainer import ParamContainer
 
 from .display import display
 from .. import imread
 
+import numpy as np
 
 class DataObject(object):
     pass
@@ -123,7 +126,7 @@ class HeavyPIVResults(DataObject):
         name = ('piv_' + serie.base_name + str_ind0 + '-' + str_ind1 + '.h5')
         return name
 
-    def save(self, path=None):
+    def save(self, path=None, out_format='uvmat'):
 
         name = self._get_name()
 
@@ -131,10 +134,21 @@ class HeavyPIVResults(DataObject):
             path_file = os.path.join(path, name)
         else:
             path_file = name
+        
+        if out_format == 'uvmat':
+            with h5netcdf.File(path_file, 'w') as f:
+                self._save_as_uvmat(f)
+        else:
+            with h5py.File(path_file, 'w') as f:
+                f.attrs['class_name'] = 'MultipassPIVResults'
+                f.attrs['module_name'] = 'fluidimage.data_objects.piv'
 
-        with h5py.File(path_file, 'w') as f:
-            self._save_in_hdf5_object(f)
+                f.attrs['nb_passes'] = len(self.passes)
 
+                for i, r in enumerate(self.passes):
+                    r._save_in_hdf5_object(f, tag='piv{}'.format(i))
+            
+        
         return self
 
     def _save_in_hdf5_object(self, f, tag='piv0'):
@@ -183,8 +197,9 @@ class HeavyPIVResults(DataObject):
         keys = g['keys']
         values = g['values']
         self.errors = {k: v for k, v in zip(keys, values)}
+        
 
-
+        
 class MultipassPIVResults(DataObject):
 
     def __init__(self, str_path=None):
@@ -209,7 +224,7 @@ class MultipassPIVResults(DataObject):
         r = self.passes[0]
         return r._get_name()
 
-    def save(self, path=None):
+    def save(self, path=None, out_format='uvmat'):
 
         name = self._get_name()
 
@@ -218,14 +233,18 @@ class MultipassPIVResults(DataObject):
         else:
             path_file = name
 
-        with h5py.File(path_file, 'w') as f:
-            f.attrs['class_name'] = 'MultipassPIVResults'
-            f.attrs['module_name'] = 'fluidimage.data_objects.piv'
+        if out_format == 'uvmat':
+            with h5netcdf.File(path_file, 'w') as f:
+                self._save_as_uvmat(f)
+        else:
+            with h5py.File(path_file, 'w') as f:
+                f.attrs['class_name'] = 'MultipassPIVResults'
+                f.attrs['module_name'] = 'fluidimage.data_objects.piv'
 
-            f.attrs['nb_passes'] = len(self.passes)
+                f.attrs['nb_passes'] = len(self.passes)
 
-            for i, r in enumerate(self.passes):
-                r._save_in_hdf5_object(f, tag='piv{}'.format(i))
+                for i, r in enumerate(self.passes):
+                    r._save_in_hdf5_object(f, tag='piv{}'.format(i))
 
     def _load(self, path):
 
@@ -239,3 +258,69 @@ class MultipassPIVResults(DataObject):
                 g = f['piv{}'.format(ip)]
                 self.append(HeavyPIVResults(
                     hdf5_object=g, couple=self.couple, params=self.params))
+
+    def _save_as_uvmat(self, f):
+        
+        f.dimensions = {'nb_coord': 2, 
+                        'nb_bounds' : 2}
+                        
+                        
+        for i, ir in enumerate(self.passes):
+            print(ir)
+            tmp = np.zeros(ir.deltaxs.shape).astype('float32')
+            inds = np.where(~np.isnan(ir.deltaxs))
+        
+            f.create_variable('Civ{}_X'.format(i), ('nb_vec_{}'.format(i),), 
+                              data=ir.xs)    
+            f.create_variable('Civ{}_Y'.format(i), ('nb_vec_{}'.format(i),), 
+                              data=ir.ys)   
+            f.create_variable('Civ{}_U'.format(i), ('nb_vec_{}'.format(i),), 
+                              data=np.nan_to_num(ir.deltaxs))
+            f.create_variable('Civ{}_V'.format(i), ('nb_vec_{}'.format(i),), 
+                              data=np.nan_to_num(ir.deltays))
+            try:
+                f.dimensions['nb_vec_{}'.format(i)] = ir.xs.size
+                f.dimensions['nb_subdomain_{}'.format(i)] = np.shape(ir.deltaxs_tps)[0]      
+                f.dimensions['nb_tps{}'.format(i)] = np.shape(ir.deltaxs_tps)[1]
+            except:
+                pass
+            try:
+                tmp[inds] = ir.deltaxs_smooth
+                f.create_variable('Civ{}_U_smooth'.format(i), ('nb_vec_{}'.format(i),), 
+                                  data=tmp)      
+                tmp[inds] = ir.deltays_smooth
+                f.create_variable('Civ{}_V_smooth'.format(i), ('nb_vec_{}'.format(i),), 
+                                  data=tmp)
+                f.create_variable('Civ{}_U_tps'.format(i), ('nb_subdomain_{}'.format(i),'nb_vec_tps_{}'.format(i)), 
+                                  data=ir.deltaxs_tps)
+                f.create_variable('Civ{}_V_tps'.format(i), ('nb_subdomain_{}'.format(i),'nb_vec_tps_{}'.format(i)), 
+                                  data=ir.deltays_tps)            
+                                  
+                tmp = [None] * f.dimensions['nb_subdomain_{}'.format(i)]
+                for i in range(f.dimensions['nb_subdomain_{}'.format(i)]):
+                    tmp[i] = np.shape(ir.deltaxs_tps[i])[0]
+                f.create_variable('Civ{}_NbCentres'.format(i), ('nb_subdomain_{}'.format(i),), 
+                                  data=tmp)
+            except:
+                print(i)
+            
+            f.create_variable('Civ{}_C'.format(i), ('nb_vec_{}'.format(i),), 
+                              data=ir.correls_max)
+            
+            tmp = np.zeros(ir.deltaxs.shape).astype('float32')
+            indsnan = np.where(np.isnan(ir.deltaxs))
+            tmp[indsnan] = 1
+            f.create_variable('Civ{}_FF'.format(i), ('nb_vec_{}'.format(i),), 
+                              data=tmp)                           
+        
+            # mettre bonne valeur de F correspondant a self.piv0.error... 
+            f.create_variable('Civ{}_F'.format(i), ('nb_vec_{}'.format(i),), 
+                              data=tmp)
+            
+
+            ## AJOUTER
+            # f.create_variable('Civ1_Coord_tps', ('nb_subdomain_1','nb_coord','nb_tps_1'), 
+            #                   data=???) 
+        
+        
+        # AJOUTER attributes

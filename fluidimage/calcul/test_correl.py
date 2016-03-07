@@ -47,8 +47,8 @@ for k, cls in classes.items():
 
         dx, dy, correl_max = correl.compute_displacement_from_correl(
             c, coef_norm=norm,
-            method_subpix='2d_gaussian'
-            # method_subpix='centroid'
+            #method_subpix='2d_gaussian'
+            method_subpix='centroid'
         )
 
         displacement_computed = np.array([dx, dy])
