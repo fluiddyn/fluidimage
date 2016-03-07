@@ -121,7 +121,7 @@ class BaseWorkPIV(BaseWork):
            Better ixvecs and iyvecs (starting from 0 and padding is silly).
 
         """
-        len_y, len_x = im.shape
+        self.imshape = len_y, len_x = im.shape
         niw = self.n_interrogation_window
         niwo2 = self.niwo2
         step = niw - int(np.round(self.overlap*niw))
@@ -391,7 +391,22 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
         iys0 = self.iyvecs_grid - deltays_approx//2
         ixs1 = ixs0 + deltaxs_approx
         iys1 = iys0 + deltays_approx
-
+        
+        # if a point is outside an image => shift of subimages used 
+        # for correlation
+        ind_outside = np.argwhere( 
+        (ixs0 > self.imshape[0]) | ( ixs0 < 0 ) | 
+        (ixs1 > self.imshape[0]) | (ixs1 < 0) | 
+        (iys0 > self.imshape[1]) | (iys0 < 0) | 
+        (iys1 > self.imshape[1]) | (iys1 < 0) ).flatten()
+        
+        for ind in ind_outside:
+            ixs0 = self.ixvecs_grid - deltaxs_approx
+            iys0 = self.iyvecs_grid - deltays_approx
+            ixs1 =  self.ixvecs_grid       
+            iys1 =  self.iyvecs_grid
+            
+        
         xs = (ixs0 + ixs1) / 2.
         ys = (iys0 + iys1) / 2.
 
@@ -399,6 +414,8 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
         iys0_pad = iys0 + self.npad
         ixs1_pad = ixs1 + self.npad
         iys1_pad = iys1 + self.npad
+        
+        
 
         return xs, ys, ixs0_pad, iys0_pad, ixs1_pad, iys1_pad
 
