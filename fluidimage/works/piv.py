@@ -394,17 +394,23 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
         
         # if a point is outside an image => shift of subimages used 
         # for correlation
-        ind_outside = np.argwhere( 
+        ind_outside = np.argwhere(
         (ixs0 > self.imshape[0]) | ( ixs0 < 0 ) | 
         (ixs1 > self.imshape[0]) | (ixs1 < 0) | 
-        (iys0 > self.imshape[1]) | (iys0 < 0) | 
-        (iys1 > self.imshape[1]) | (iys1 < 0) ).flatten()
-        
+        (iys0 > self.imshape[1]) | (iys0 < 0) |
+        (iys1 > self.imshape[1]) | (iys1 < 0) )
+
         for ind in ind_outside:
-            ixs0 = self.ixvecs_grid - deltaxs_approx
-            iys0 = self.iyvecs_grid - deltays_approx
-            ixs1 =  self.ixvecs_grid       
-            iys1 =  self.iyvecs_grid
+            if (ixs1[ind] > self.imshape[0]) or (iys1[ind] > self.imshape[1]) or (ixs1[ind] < 0) or (iys1[ind] < 0):
+                ixs0[ind] = self.ixvecs_grid[ind] - deltaxs_approx[ind]
+                iys0[ind] = self.iyvecs_grid[ind] - deltays_approx[ind]
+                ixs1[ind] =  self.ixvecs_grid[ind]       
+                iys1[ind] =  self.iyvecs_grid[ind]
+            elif (ixs0[ind] > self.imshape[0]) or (iys0[ind] > self.imshape[1]) or (ixs0[ind] < 0) or (iys0[ind] < 0):
+                ixs0[ind] = self.ixvecs_grid[ind] 
+                iys0[ind] = self.iyvecs_grid[ind] 
+                ixs1[ind] =  self.ixvecs_grid[ind] + deltaxs_approx[ind]
+                iys1[ind] =  self.iyvecs_grid[ind] + deltays_approx[ind]
             
         
         xs = (ixs0 + ixs1) / 2.
