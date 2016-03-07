@@ -30,7 +30,7 @@ dist*
 doc/generated/*
 
 */profile.pstats
-*/profile.png
+*/profile*.png
 
 image_samples/*/Images.piv/*.h5
 

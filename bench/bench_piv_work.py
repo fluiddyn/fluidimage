@@ -15,6 +15,7 @@ params.piv0.method_subpix = 'centroid'
 params.piv0.method_correl = 'fftw'
 
 params.multipass.number = 1
+params.multipass.use_tps = False
 
 piv = WorkPIV(params=params)
 

@@ -58,6 +58,9 @@ from ..works import BaseWork
 from ..calcul.interpolate.thin_plate_spline_subdom import \
     ThinPlateSplineSubdom
 
+from ..calcul.interpolate.griddata import griddata
+
+
 class BaseWorkPIV(BaseWork):
     """Base class for PIV.
 
@@ -126,6 +129,9 @@ class BaseWorkPIV(BaseWork):
         ixvecs = np.arange(niwo2, len_x-niwo2, step, dtype=int)
         iyvecs = np.arange(niwo2, len_y-niwo2, step, dtype=int)
 
+        self.ixvecs = ixvecs
+        self.iyvecs = iyvecs
+
         ixvecs, iyvecs = np.meshgrid(ixvecs, iyvecs)
 
         self.ixvecs_grid = ixvecs.flatten()
@@ -160,7 +166,7 @@ class BaseWorkPIV(BaseWork):
            Choose correctly the variable npad.
 
         """
-        npad = self.npad = 10
+        npad = self.npad = 20
         tmp = [(npad, npad), (npad, npad)]
         im0pad = np.pad(im0 - im0.min(), tmp, 'constant')
         im1pad = np.pad(im1 - im1.min(), tmp, 'constant')
@@ -313,34 +319,49 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
 
         xs = piv_results.xs[selection]
         ys = piv_results.ys[selection]
+        centers = np.vstack([xs, ys])
 
         deltaxs = piv_results.deltaxs[selection]
         deltays = piv_results.deltays[selection]
 
-        # compute TPS coef
-        smoothing_coef = 0.5
-        subdom_size = 500
-        centers = np.vstack([xs, ys])
+        if self.params.multipass.use_tps:
+            # compute TPS coef
+            smoothing_coef = 0.5
+            subdom_size = 400
 
-        tps = ThinPlateSplineSubdom(
-            centers, subdom_size, smoothing_coef,
-            threshold=1, pourc_buffer_area=0.5)
+            tps = ThinPlateSplineSubdom(
+                centers, subdom_size, smoothing_coef,
+                threshold=1, pourc_buffer_area=0.5)
 
-        deltaxs_smooth, deltaxs_tps = tps.compute_tps_coeff_subdom(deltaxs)
-        deltays_smooth, deltays_tps = tps.compute_tps_coeff_subdom(deltays)
+            deltaxs_smooth, deltaxs_tps = tps.compute_tps_coeff_subdom(deltaxs)
+            deltays_smooth, deltays_tps = tps.compute_tps_coeff_subdom(deltays)
 
-        piv_results.deltaxs_smooth = deltaxs_smooth
-        piv_results.deltaxs_tps = deltaxs_tps
-        piv_results.deltays_smooth = deltays_smooth
-        piv_results.deltays_tps = deltays_tps
+            piv_results.deltaxs_smooth = deltaxs_smooth
+            piv_results.deltaxs_tps = deltaxs_tps
+            piv_results.deltays_smooth = deltays_smooth
+            piv_results.deltays_tps = deltays_tps
 
-        new_positions = np.vstack([self.ixvecs_grid, self.iyvecs_grid])
+            new_positions = np.vstack([self.ixvecs_grid, self.iyvecs_grid])
+            tps.init_with_new_positions(new_positions)
 
-        tps.init_with_new_positions(new_positions)
+            # displacement int32 with TPS
+            deltaxs_approx = tps.compute_eval(deltaxs_tps)
+            deltays_approx = tps.compute_eval(deltays_tps)
 
-        # displacement int32 with TPS
-        deltaxs_approx = tps.compute_eval(deltaxs_tps)
-        deltays_approx = tps.compute_eval(deltays_tps)
+        else:
+            deltaxs_approx = griddata(centers, deltaxs,
+                                      (self.ixvecs, self.iyvecs))
+            deltays_approx = griddata(centers, deltays,
+                                      (self.ixvecs, self.iyvecs))
+
+        debug = False
+        if debug:
+            import matplotlib.pyplot as plt
+            plt.figure()
+            ax = plt.gca()
+            ax.quiver(self.ixvecs_grid, self.iyvecs_grid,
+                      deltaxs_approx, deltays_approx)
+            plt.show()
 
         deltaxs_approx = np.round(deltaxs_approx).astype('int32')
         deltays_approx = np.round(deltays_approx).astype('int32')
@@ -451,7 +472,10 @@ class WorkPIV(BaseWork):
         FirstWorkPIV._complete_params_with_default(params)
         WorkFIX._complete_params_with_default(params)
 
-        params._set_child('multipass', attribs={'number': 0})
+        params._set_child(
+            'multipass',
+            attribs={'number': 0,
+                     'use_tps': True})
 
     def __init__(self, params=None):
         self.params = params
