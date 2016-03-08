@@ -266,55 +266,56 @@ class MultipassPIVResults(DataObject):
                         
                         
         for i, ir in enumerate(self.passes):
-            print(ir)
+            
+            iuvmat = i+1
+            f.dimensions['nb_vec_{}'.format(iuvmat)] = ir.xs.size
+
             tmp = np.zeros(ir.deltaxs.shape).astype('float32')
             inds = np.where(~np.isnan(ir.deltaxs))
-        
-            f.create_variable('Civ{}_X'.format(i), ('nb_vec_{}'.format(i),), 
+
+            f.create_variable('Civ{}_X'.format(iuvmat), ('nb_vec_{}'.format(iuvmat),), 
                               data=ir.xs)    
-            f.create_variable('Civ{}_Y'.format(i), ('nb_vec_{}'.format(i),), 
+            f.create_variable('Civ{}_Y'.format(iuvmat), ('nb_vec_{}'.format(iuvmat),), 
                               data=ir.ys)   
-            f.create_variable('Civ{}_U'.format(i), ('nb_vec_{}'.format(i),), 
+            f.create_variable('Civ{}_U'.format(iuvmat), ('nb_vec_{}'.format(iuvmat),), 
                               data=np.nan_to_num(ir.deltaxs))
-            f.create_variable('Civ{}_V'.format(i), ('nb_vec_{}'.format(i),), 
+            f.create_variable('Civ{}_V'.format(iuvmat), ('nb_vec_{}'.format(iuvmat),), 
                               data=np.nan_to_num(ir.deltays))
-            try:
-                f.dimensions['nb_vec_{}'.format(i)] = ir.xs.size
-                f.dimensions['nb_subdomain_{}'.format(i)] = np.shape(ir.deltaxs_tps)[0]      
-                f.dimensions['nb_tps{}'.format(i)] = np.shape(ir.deltaxs_tps)[1]
-            except:
-                pass
-            try:
-                tmp[inds] = ir.deltaxs_smooth
-                f.create_variable('Civ{}_U_smooth'.format(i), ('nb_vec_{}'.format(i),), 
-                                  data=tmp)      
-                tmp[inds] = ir.deltays_smooth
-                f.create_variable('Civ{}_V_smooth'.format(i), ('nb_vec_{}'.format(i),), 
-                                  data=tmp)
-                f.create_variable('Civ{}_U_tps'.format(i), ('nb_subdomain_{}'.format(i),'nb_vec_tps_{}'.format(i)), 
-                                  data=ir.deltaxs_tps)
-                f.create_variable('Civ{}_V_tps'.format(i), ('nb_subdomain_{}'.format(i),'nb_vec_tps_{}'.format(i)), 
-                                  data=ir.deltays_tps)            
+            
+            if ir.params.multipass.use_tps:    
+                try:                    
+                    f.dimensions['nb_subdomain_{}'.format(iuvmat)] = np.shape(ir.deltaxs_tps)[0]       
+                    f.dimensions['nb_tps{}'.format(iuvmat)] = np.shape(ir.deltaxs_tps)[1]
+                    tmp[inds] = ir.deltaxs_smooth
+                    f.create_variable('Civ{}_U_smooth'.format(iuvmat), ('nb_vec_{}'.format(iuvmat),), 
+                                      data=tmp)      
+                    tmp[inds] = ir.deltays_smooth
+                    f.create_variable('Civ{}_V_smooth'.format(iuvmat), ('nb_vec_{}'.format(iuvmat),), 
+                                      data=tmp)
+                    f.create_variable('Civ{}_U_tps'.format(iuvmat), ('nb_subdomain_{}'.format(iuvmat),'nb_vec_tps_{}'.format(iuvmat)), 
+                                      data=ir.deltaxs_tps)
+                    f.create_variable('Civ{}_V_tps'.format(iuvmat), ('nb_subdomain_{}'.format(iuvmat),'nb_vec_tps_{}'.format(iuvmat)), 
+                                      data=ir.deltays_tps)            
                                   
-                tmp = [None] * f.dimensions['nb_subdomain_{}'.format(i)]
-                for i in range(f.dimensions['nb_subdomain_{}'.format(i)]):
-                    tmp[i] = np.shape(ir.deltaxs_tps[i])[0]
-                f.create_variable('Civ{}_NbCentres'.format(i), ('nb_subdomain_{}'.format(i),), 
-                                  data=tmp)
-            except:
-                print(i)
+                    tmp = [None] * f.dimensions['nb_subdomain_{}'.format(iuvmat)]
+                    for j in range(f.dimensions['nb_subdomain_{}'.format(iuvmat)]):
+                        tmp[j] = np.shape(ir.deltaxs_tps[j])[0]
+                    f.create_variable('Civ{}_NbCentres'.format(iuvmat), ('nb_subdomain_{}'.format(iuvmat),),
+                                      data=tmp)
+                except:
+                    print('no tps field at passe n {}'.format(iuvmat) )
             
-            f.create_variable('Civ{}_C'.format(i), ('nb_vec_{}'.format(i),), 
+            
+            f.create_variable('Civ{}_C'.format(iuvmat), ('nb_vec_{}'.format(iuvmat),), 
                               data=ir.correls_max)
-            
             tmp = np.zeros(ir.deltaxs.shape).astype('float32')
             indsnan = np.where(np.isnan(ir.deltaxs))
             tmp[indsnan] = 1
-            f.create_variable('Civ{}_FF'.format(i), ('nb_vec_{}'.format(i),), 
+            f.create_variable('Civ{}_FF'.format(iuvmat), ('nb_vec_{}'.format(iuvmat),), 
                               data=tmp)                           
         
             # mettre bonne valeur de F correspondant a self.piv0.error... 
-            f.create_variable('Civ{}_F'.format(i), ('nb_vec_{}'.format(i),), 
+            f.create_variable('Civ{}_F'.format(iuvmat), ('nb_vec_{}'.format(iuvmat),), 
                               data=tmp)
             
 
