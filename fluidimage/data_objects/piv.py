@@ -80,7 +80,8 @@ class HeavyPIVResults(DataObject):
                  correls_max=None, correls=None,
                  couple=None, params=None,
                  str_path=None, hdf5_object=None):
-
+        self._keys_to_be_saved = [
+        'xs', 'ys', 'deltaxs', 'deltays', 'correls_max']
         if hdf5_object is not None:
             if couple is not None:
                 self.couple = couple
@@ -224,7 +225,7 @@ class MultipassPIVResults(DataObject):
         r = self.passes[0]
         return r._get_name()
 
-    def save(self, path=None, out_format='uvmat'):
+    def save(self, path=None, out_format=None):
 
         name = self._get_name()
 

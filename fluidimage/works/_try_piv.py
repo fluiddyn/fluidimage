@@ -12,7 +12,7 @@ params.piv0.grid.overlap = 0.
 params.piv0.method_subpix = 'centroid'
 params.piv0.method_correl = 'fftw'
 
-params.multipass.number = 1
+params.multipass.number = 2
 # params.multipass.use_tps = True
 
 piv = WorkPIV(params=params)
@@ -24,6 +24,6 @@ result = piv.calcul(serie)
 
 result.display()
 
-result.save(out_format='uvmat')
+result.save()
 
 f=h5netcdf.File('piv_Oseen_center01-02.h5')
