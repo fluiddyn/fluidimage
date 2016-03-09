@@ -72,16 +72,13 @@ class ArrayCouple(DataObject):
 
 class HeavyPIVResults(DataObject):
 
-    _keys_to_be_saved = [
-        'xs', 'ys', 'deltaxs', 'deltays', 'correls_max']
-
     def __init__(self, deltaxs=None, deltays=None,
                  xs=None, ys=None, errors=None,
                  correls_max=None, correls=None,
                  couple=None, params=None,
                  str_path=None, hdf5_object=None):
         self._keys_to_be_saved = [
-        'xs', 'ys', 'deltaxs', 'deltays', 'correls_max', 'deltaxs_tps', 'deltays_tps']
+            'xs', 'ys', 'deltaxs', 'deltays', 'correls_max', 'deltaxs_approx', 'deltays_approx','new_positions','deltaxs_tps','deltays_tps','ixvecs_grid','iyvecs_grid']
         if hdf5_object is not None:
             if couple is not None:
                 self.couple = couple
@@ -143,8 +140,6 @@ class HeavyPIVResults(DataObject):
             with h5py.File(path_file, 'w') as f:
                 f.attrs['class_name'] = 'MultipassPIVResults'
                 f.attrs['module_name'] = 'fluidimage.data_objects.piv'
-
-                f.attrs['nb_passes'] = len(self.passes)
 
                 for i, r in enumerate(self.passes):
                     r._save_in_hdf5_object(f, tag='piv{}'.format(i))
@@ -328,3 +323,141 @@ class MultipassPIVResults(DataObject):
         
         
         # AJOUTER attributes
+
+
+
+class LightPIVResults(DataObject):
+
+    def __init__(self, deltaxs_approx=None, deltays_approx=None,
+                 ixvecs_grid=None, iyvecs_grid=None,
+                 str_path=None, hdf5_object=None,couple=None):
+        self._keys_to_be_saved = ['xs', 'ys', 'deltaxs', 'deltays']
+        
+        if hdf5_object is not None:
+            self._load_from_hdf5_object(hdf5_object)
+            return
+
+        if str_path is not None:
+            self._load(str_path)
+            return
+
+        self.deltaxs = deltaxs_approx
+        self.deltays = deltays_approx
+        self.couple = couple
+        self.ys = ixvecs_grid
+        self.xs = iyvecs_grid
+    
+    def _get_name(self):
+
+        serie = self.couple.serie
+
+        str_ind0 = serie._compute_strindices_from_indices(
+            *[inds[0] for inds in serie.get_index_slices()])
+
+        str_ind1 = serie._compute_strindices_from_indices(
+            *[inds[1] - 1 for inds in serie.get_index_slices()])
+
+        name = ('piv_' + serie.base_name + str_ind0 + '-' + str_ind1 + '_light.h5')
+        return name
+
+    def save(self, path=None, out_format='uvmat'):
+
+        name = self._get_name()
+
+        if path is not None:
+            path_file = os.path.join(path, name)
+        else:
+            path_file = name
+
+        with h5py.File(path_file, 'w') as f:
+            f.attrs['class_name'] = 'MultipassPIVResults'
+            f.attrs['module_name'] = 'fluidimage.data_objects.piv'
+
+            self._save_in_hdf5_object(f, tag='piv0')
+            
+        return self
+
+    def _save_in_hdf5_object(self, f, tag='piv0'):
+
+        if 'class_name' not in f.attrs.keys():
+            f.attrs['class_name'] = 'LightPIVResults'
+            f.attrs['module_name'] = 'fluidimage.data_objects.piv'
+
+        if 'couple' not in f.keys():
+            self.couple.save(hdf5_parent=f)
+
+        g_piv = f.create_group(tag)
+        g_piv.attrs['class_name'] = 'LightPIVResults'
+        g_piv.attrs['module_name'] = 'fluidimage.data_objects.piv'
+
+        for k in self._keys_to_be_saved:
+            g_piv.create_dataset(k, data=self.__dict__[k])
+
+    def _load(self, path):
+
+        with h5py.File(path, 'r') as f:
+            self.load_from_hdf5_object(f['piv0'])
+
+    def _load_from_hdf5_object(self, g_piv):
+
+        f = g_piv.parent
+
+        if not hasattr(self, 'couple'):
+            self.couple = ArrayCouple(hdf5_parent=f)
+
+        for k in self._keys_to_be_saved:
+            dataset = g_piv[k]
+            self.__dict__[k] = dataset[:]
+
+
+        
+class MultipassLightPIVResults(DataObject):
+
+    def __init__(self, str_path=None):
+        self.passes = []
+
+        if str_path is not None:
+            self._load(str_path)
+
+    def append(self, results):
+        i = len(self.passes)
+        self.passes.append(results)
+        self.__dict__['piv{}'.format(i)] = results
+
+    def _get_name(self):
+        r = self.passes[0]
+        return r._get_name()
+
+    def save(self, path=None, out_format=None):
+
+        name = self._get_name()
+
+        if path is not None:
+            path_file = os.path.join(path, name)
+        else:
+            path_file = name
+
+        if out_format == 'uvmat':
+            with h5netcdf.File(path_file, 'w') as f:
+                self._save_as_uvmat(f)
+        else:
+            with h5py.File(path_file, 'w') as f:
+                f.attrs['class_name'] = 'MultipassPIVResults'
+                f.attrs['module_name'] = 'fluidimage.data_objects.piv'
+
+                f.attrs['nb_passes'] = len(self.passes)
+
+                for i, r in enumerate(self.passes):
+                    r._save_in_hdf5_object(f, tag='piv{}'.format(i))
+
+    def _load(self, path):
+        with h5py.File(path, 'r') as f:
+            self.couple = ArrayCouple(hdf5_parent=f)
+            try:
+                nb_passes = f.attrs['nb_passes']
+            except:
+                nb_passes=1
+            for ip in range(nb_passes):
+                g = f['piv{}'.format(ip)]
+                self.append(LightPIVResults(
+                    hdf5_object=g, couple=self.couple))

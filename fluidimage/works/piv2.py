@@ -290,30 +290,16 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
         self.niwo2 = niw/2
 
         self._init_correl()
-        
 
-    def calcul(self, piv_results):
-        """Calcul the piv.
 
-        .. todo::
-
-           Write the interpolation in a more general way (with a
-           class) such that we can use other interpolation methods (in
-           particular methods using scipy.interpolate.griddata).
-
-        .. todo::
-
-           Use the derivatives of the velocity to distort the image 1.
-
-        """
-        if not isinstance(piv_results, HeavyPIVResults):
-            raise ValueError
-
+    def apply_interp(self, piv_results):
         couple = piv_results.couple
 
         im0, im1 = couple.get_arrays()
-        if not hasattr(self, 'ixvecs_grid'):
+        if not hasattr(piv_results, 'ixvecs_grid'):
             self._prepare_with_image(im0)
+            piv_results.ixvecs_grid = self.ixvecs_grid            
+            piv_results.iyvecs_grid = self.iyvecs_grid
 
         # for the interpolation
         selection = ~np.isnan(piv_results.deltaxs)
@@ -342,18 +328,41 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
             piv_results.deltays_smooth = deltays_smooth
             piv_results.deltays_tps = deltays_tps
 
-            new_positions = np.vstack([self.ixvecs_grid, self.iyvecs_grid])
-            tps.init_with_new_positions(new_positions)
+            piv_results.new_positions = np.vstack([self.ixvecs_grid, self.iyvecs_grid])
+            tps.init_with_new_positions(piv_results.new_positions)
 
             # displacement int32 with TPS
-            deltaxs_approx = tps.compute_eval(deltaxs_tps)
-            deltays_approx = tps.compute_eval(deltays_tps)
+            piv_results.deltaxs_approx = tps.compute_eval(deltaxs_tps)
+            piv_results.deltays_approx = tps.compute_eval(deltays_tps)
 
         else:
-            deltaxs_approx = griddata(centers, deltaxs,
+            piv_results.deltaxs_approx = griddata(centers, deltaxs,
                                       (self.ixvecs, self.iyvecs))
-            deltays_approx = griddata(centers, deltays,
+            piv_results.deltays_approx = griddata(centers, deltays,
                                       (self.ixvecs, self.iyvecs))
+
+    def calcul(self, piv_results):
+        """Calcul the piv.
+
+        .. todo::
+
+           Write the interpolation in a more general way (with a
+           class) such that we can use other interpolation methods (in
+           particular methods using scipy.interpolate.griddata).
+
+        .. todo::
+
+           Use the derivatives of the velocity to distort the image 1.
+
+        """
+        if not isinstance(piv_results, HeavyPIVResults):
+            raise ValueError
+        
+        couple = piv_results.couple
+
+        im0, im1 = couple.get_arrays()
+        
+        self.apply_interp(piv_results)
 
         debug = False
         if debug:
@@ -364,8 +373,8 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
                       deltaxs_approx, deltays_approx)
             plt.show()
 
-        deltaxs_approx = np.round(deltaxs_approx).astype('int32')
-        deltays_approx = np.round(deltays_approx).astype('int32')
+        deltaxs_approx = np.round(piv_results.deltaxs_approx).astype('int32')
+        deltays_approx = np.round(piv_results.deltays_approx).astype('int32')
 
         deltaxs, deltays, xs, ys, correls_max, correls, errors = \
             self._loop_vectors(im0, im1,
@@ -508,6 +517,7 @@ class WorkPIV(BaseWork):
 
         if params.multipass.number > 0:
             self.work_piv1 = WorkPIVFromDisplacement(params)
+            self.work_fix1 = WorkFIX(params.fix)
 
     def calcul(self, couple):
 
@@ -518,7 +528,9 @@ class WorkPIV(BaseWork):
         results.append(piv_result)
 
         if self.params.multipass.number > 0:
-            piv_result1 = self.work_piv1.calcul(piv_result)
+            piv_result1 = self.work_piv1.calcul(piv_result)        
+            piv_result1 = self.work_fix1.calcul(piv_result)
+            self.work_piv1.apply_interp(piv_result1)
             results.append(piv_result1)
 
         return results

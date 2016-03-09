@@ -2,7 +2,7 @@
 import h5netcdf
 import h5py
 from fluiddyn.util.serieofarrays import SeriesOfArrays
-from fluidimage.works.piv import WorkPIV
+from fluidimage.works.piv2 import WorkPIV
 
 params = WorkPIV.create_default_params()
 
