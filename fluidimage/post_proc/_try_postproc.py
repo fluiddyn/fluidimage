@@ -1,7 +1,7 @@
-from fluiddyn.util.serieofarrays import SeriesOfArrays
-from fluidimage.works.piv import WorkPIV
-import numpy as np
 import h5py
+from fluiddyn.util.serieofarrays import SeriesOfArrays
+from fluidimage.works.piv2 import WorkPIV
+from fluidimage.data_objects.piv import (LightPIVResults)
 
 params = WorkPIV.create_default_params()
 
@@ -13,7 +13,7 @@ params.piv0.method_subpix = 'centroid'
 params.piv0.method_correl = 'fftw'
 
 params.multipass.number = 2
-# params.multipass.use_tps = True
+params.multipass.use_tps = True
 
 piv = WorkPIV(params=params)
 
@@ -24,32 +24,41 @@ result = piv.calcul(serie)
 
 result.display()
 
-result.save()
+lightresult=LightPIVResults(result.piv1.deltaxs_approx,
+                            result.piv1.deltays_approx,result.piv1.ixvecs_grid,
+                            result.piv1.iyvecs_grid,couple=result.piv1.couple,
+                            params=result.piv1.params)
+lightresult.save()
 
 
+#%%
+from postproc import PIV_Postproc
+import pylab
 
+postp=PIV_Postproc(path='piv_Oseen_center01-02_light.h5')
 
-# calculate tps coeff
-centers = np.vstack([x, y])
-smoothing_coef = 0
-subdom_size = 20
+rot=postp.compute_rot()
 
-tps = ThinPlateSplineSubdom(
-    centers, subdom_size, smoothing_coef,
-    threshold=1, pourc_buffer_area=0.5)
+div=postp.compute_div()
 
-U_smooth, U_tps = tps.compute_tps_coeff_subdom(U)
-V_smooth, V_tps = tps.compute_tps_coeff_subdom(V)
+pylab.figure;
+postp.displayf(U=postp.U, V=postp.V, bg=div) 
 
-# interpolation grid
-xI = yI = np.arange(0, 2*pi, 0.1)
-XI, YI = np.meshgrid(xI, yI)
-XI = XI.ravel()
-YI = YI.ravel()
+pylab.figure;
+postp.displayf(bg=rot) 
 
-new_positions = np.vstack([XI, YI])
+#%%
+from postproc import PIV_PostProc_serie
+import pylab
 
-tps.init_with_new_positions(new_positions)
+postp=PIV_PostProc_serie(path=['piv_Oseen_center01-02_light.h5','piv_Oseen_center01-02_light.h5'])
 
-U_eval = tps.compute_eval(U_tps)
-V_eval = tps.compute_eval(V_tps)
+rot=postp.compute_rot()
+
+div=postp.compute_div()
+
+pylab.figure;
+postp.displayf(U=postp.U, V=postp.V, bg=div) 
+
+pylab.figure;
+postp.displayf(bg=rot) 
