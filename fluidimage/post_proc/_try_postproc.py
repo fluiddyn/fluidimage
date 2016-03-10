@@ -62,3 +62,6 @@ postp.displayf(U=postp.U, V=postp.V, bg=div)
 
 pylab.figure;
 postp.displayf(bg=rot) 
+
+pylab.figure;
+postp.displayf(U=postp.U, V=postp.V) 

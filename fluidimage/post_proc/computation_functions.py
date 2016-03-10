@@ -1,3 +1,8 @@
+# TO DO
+#####
+# ADD epsilon, reynolds stresses etc...
+
+
 import numpy as np
 
 def compute_grid(xs, ys, deltaxs, deltays):
@@ -33,5 +38,9 @@ def compute_div(dUdx, dVdy):
     return div
         
 def compute_ken(U, V):           
-    ken = U**2 + V**2  
+    ken = (U**2 + V**2 )/2 
     return ken
+    
+def compute_norm(U, V):           
+    norm = np.sqrt(U**2 + V**2) 
+    return norm
