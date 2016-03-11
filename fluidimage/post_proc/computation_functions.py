@@ -25,8 +25,11 @@ def compute_grid(xs, ys, deltaxs, deltays):
 
 def compute_derivatives(dx, dy, U, V, edge_order=2):
         
-    dUdx, dUdy= np.gradient(U, dx, edge_order=edge_order)
-    dVdx, dVdy = np.gradient(V, dx, edge_order=edge_order)
+    dUdx= np.gradient(U, dx, edge_order=edge_order)[0]
+    dUdy= np.gradient(U, dy, edge_order=edge_order)[1]
+    dVdx = np.gradient(V, dx, edge_order=edge_order)[0]    
+    dVdy = np.gradient(V, dy, edge_order=edge_order)[1]
+
     return dUdx, dUdy, dVdx, dVdy
                 
 def compute_rot(dUdy, dVdx): 
