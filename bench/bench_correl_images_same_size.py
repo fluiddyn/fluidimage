@@ -30,7 +30,7 @@ print(im0.shape, im1.shape)
 
 classes = {'sig': CorrelScipySignal, 'ndimage': CorrelScipyNdimage,
            'np.fft': CorrelFFTNumpy, 'fftw': CorrelFFTW,
-           # 'cufft': CorrelCuFFT,
+           'cufft': CorrelCuFFT,
            'theano': CorrelTheano,
            'pythran': CorrelPythran}
 

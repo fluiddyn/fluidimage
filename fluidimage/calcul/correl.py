@@ -116,7 +116,7 @@ class CorrelPythran(CorrelBase):
                  method_subpix='centroid', displacement_max=None, mode=None):
 
         if displacement_max is None:
-            displacement_max = min(max(im0_shape), max(im1_shape)) // 2
+            displacement_max = max(im0_shape) // 2 #min(max(im0_shape), max(im1_shape)) // 2
 
         self.displacement_max = displacement_max
 
@@ -252,7 +252,7 @@ class CorrelTheano(CorrelBase):
         elif mode == 'valid':
             correl_theano = theano.tensor.nnet.conv2d(
                 im00, im11,
-                image_shape=(1, 1, )+im0_shape,
+                input_shape=(1, 1, )+im0_shape,
                 filter_shape=(1, 1, )+im1_shape,
                 border_mode='valid')
         else:
@@ -260,7 +260,7 @@ class CorrelTheano(CorrelBase):
                     (self.nx0 <= 2*self.displacement_max + self.nx1)):
                 correl_theano = theano.tensor.nnet.conv2d(
                     im00, im11,
-                    image_shape=(1, 1, 2*displacement_max+self.ny1,
+                    input_shape=(1, 1, 2*displacement_max+self.ny1,
                                  2*displacement_max+self.nx1),
                     filter_shape=(1, 1, )+im1_shape,
                     border_mode='valid')

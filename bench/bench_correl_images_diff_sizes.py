@@ -9,11 +9,11 @@ from fluidimage.synthetic import make_synthetic_images
 from fluidimage.calcul.correl import CorrelScipySignal
 from fluidimage.calcul.correl import CorrelTheano, CorrelPythran
 
-nx = 32
-ny = 32
+nx = 64
+ny = 64
 
-nx1 = 16
-ny1 = 16
+nx1 = 32
+ny1 = 32
 
 displacement_x = 2.
 displacement_y = 2.
@@ -29,8 +29,10 @@ im0, im1 = make_synthetic_images(
     displacements, nb_particles, shape_im0=(ny, nx), shape_im1=(ny1, nx1),
     epsilon=0.)
 
+im1 = im1.astype('float32')
 
-classes = {'sig': CorrelScipySignal, 'theano': CorrelTheano,
+classes = {'sig': CorrelScipySignal,
+	   'theano': CorrelTheano,
            'pythran': CorrelPythran}
 
 
