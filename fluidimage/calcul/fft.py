@@ -35,6 +35,7 @@ try:
     from reikna.cluda import any_api, cuda_api, ocl_api
     from reikna.fft import FFT
     from reikna.transformations import mul_param
+    import pycuda.autoinit
     import pycuda.gpuarray as gpuarray
     import skcuda.fft as skfft
 except ImportError:
