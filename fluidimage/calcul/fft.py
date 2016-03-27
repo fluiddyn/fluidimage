@@ -12,6 +12,10 @@ that.
    :members:
    :private-members:
 
+.. autoclass:: SKCUFFT2DReal2Complex
+   :members:
+   :private-members:
+
 .. autoclass:: FFTW2DReal2Complex
    :members:
    :private-members:
@@ -31,6 +35,8 @@ try:
     from reikna.cluda import any_api, cuda_api, ocl_api
     from reikna.fft import FFT
     from reikna.transformations import mul_param
+    import pycuda.gpuarray as gpuarray
+    import skcuda.fft as skfft
 except ImportError:
     pass
 
@@ -95,6 +101,47 @@ class CUFFT2DReal2ComplexFloat64(CUFFT2DReal2Complex):
     """A class to use cufft with float64."""
     type_real = 'float64'
     type_complex = 'complex128'
+
+
+class SKCUFFT2DReal2Complex(object):
+    """A class to use skcuda-cufft with float32."""
+    type_real = 'float32'
+    type_complex = 'complex64'
+
+    def __init__(self, nx, ny):
+
+        shapeX = [ny, nx]
+        shapeK = [ny, nx//2 + 1]
+
+        self.shapeX = shapeX
+        self.shapeK = shapeK
+
+        self.fftplan = skfft.Plan(self.shapeX, np.float32, np.complex64)
+        self.ifftplan = skfft.Plan(self.shapeX, np.complex64, np.float32)
+
+        self.coef_norm = nx * ny
+
+    def fft(self, ff):
+        x_gpu = gpuarray.to_gpu(ff)
+        xf_gpu = gpuarray.empty(self.shapeK, np.complex64)
+        skfft.fft(x_gpu, xf_gpu, self.fftplan, False)
+        return xf_gpu.get()
+
+    def ifft(self, ff_fft):
+        xf_gpu = gpuarray.to_gpu(ff_fft)
+        x_gpu = gpuarray.empty(self.shapeX, np.float32)
+        skfft.ifft(xf_gpu, x_gpu, self.ifftplan, False)
+        return x_gpu.get()
+
+    def compute_energy_from_Fourier(self, ff_fft):
+        return (np.sum(abs(ff_fft[:, 0])**2 + abs(ff_fft[:, -1])**2) +
+                2*np.sum(abs(ff_fft[:, 1:-1])**2))/2
+
+    def compute_energy_from_spatial(self, ff):
+        return np.mean(abs(ff)**2)/2
+
+    def project_fft_on_realX(self, ff_fft):
+        return self.fft(self.ifft(ff_fft))
 
 
 class FFTW2DReal2Complex(object):

@@ -14,10 +14,10 @@ def correl_pythran(im0, im1, disp_max):
 
     disp_max : int
       displacement max.
-      
+
     Notes
     -------
-    
+
     im1_shape inf to im0_shape
 
     Returns

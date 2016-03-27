@@ -8,12 +8,12 @@ from time import clock
 
 from fluidimage.calcul.correl import (
     CorrelScipySignal, CorrelScipyNdimage, CorrelFFTNumpy, CorrelFFTW,
-    CorrelTheano, CorrelCuFFT, CorrelPythran)
+    CorrelTheano, CorrelCuFFT, CorrelSKCuFFT, CorrelPythran)
 
 from fluidimage.synthetic import make_synthetic_images
 
-nx = 32
-ny = 64
+nx = 158#32
+ny = 134#64
 displacement_x = 2.
 displacement_y = 2.
 
@@ -26,11 +26,10 @@ print('nx: {} ; ny: {}'.format(nx, ny))
 
 im0, im1 = make_synthetic_images(
     displacements, nb_particles, shape_im0=(ny, nx), epsilon=0.)
-print(im0.shape, im1.shape)
 
 classes = {'sig': CorrelScipySignal, 'ndimage': CorrelScipyNdimage,
            'np.fft': CorrelFFTNumpy, 'fftw': CorrelFFTW,
-           'cufft': CorrelCuFFT,
+           'cufft': CorrelCuFFT, 'skcufft': CorrelSKCuFFT,
            'theano': CorrelTheano,
            'pythran': CorrelPythran}
 

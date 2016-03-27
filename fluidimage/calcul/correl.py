@@ -36,6 +36,10 @@ different methods.
    :members:
    :private-members:
 
+.. autoclass:: CorrelSKCuFFT
+   :members:
+   :private-members:
+
 .. autoclass:: SubPix
    :members:
    :private-members:
@@ -49,7 +53,7 @@ from scipy.signal import correlate2d
 from scipy.ndimage import correlate
 from numpy.fft import fft2, ifft2
 
-from .fft import FFTW2DReal2Complex, CUFFT2DReal2Complex
+from .fft import FFTW2DReal2Complex, CUFFT2DReal2Complex, SKCUFFT2DReal2Complex
 
 from .correl_pythran import correl_pythran
 
@@ -399,6 +403,32 @@ class CorrelCuFFT(CorrelBase):
         norm = np.sum(im1**2) * im0.size
         op = self.op
         corr = op.ifft(op.fft(im0).conj() * op.fft(im1)).real
+        return np.fft.fftshift(corr[::-1, ::-1]), norm
+
+
+class CorrelSKCuFFT(CorrelBase):
+    """Correlations using fluidimage.fft.FFTW2DReal2Complex"""
+    FFTClass = SKCUFFT2DReal2Complex
+    _tag = 'skcufft'
+
+    def __init__(self, im0_shape, im1_shape=None, method_subpix='centroid'):
+        super(CorrelSKCuFFT, self).__init__(
+            im0_shape, im1_shape, method_subpix=method_subpix)
+
+        if im1_shape is None:
+            im1_shape = im0_shape
+
+        if im0_shape != im1_shape:
+            raise ValueError('The input images have to have the same shape.')
+
+        n0, n1 = im1_shape
+        self.op = self.FFTClass(n1, n0)
+
+    def __call__(self, im0, im1):
+        """Compute the correlation from images."""
+        norm = np.sum(im1**2) * im0.size
+        op = self.op
+        corr = op.ifft(op.fft(im0).conj() * op.fft(im1))
         return np.fft.fftshift(corr[::-1, ::-1]), norm
 
 
