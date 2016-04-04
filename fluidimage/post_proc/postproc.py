@@ -4,9 +4,14 @@ from fluidimage.data_objects.piv import LightPIVResults
 from displayf import displayf
 from computation_functions import(compute_grid, compute_derivatives, 
                                   compute_rot, compute_div, compute_ken, 
-                                  compute_norm)
+                                  compute_norm, oneD_fourier_transform, 
+                                   twoD_fourier_transform)
 import time
 import pylab
+
+class DataObject(object):
+    pass
+
 
 class PIV_Postproc(LightPIVResults):
 
@@ -15,10 +20,19 @@ class PIV_Postproc(LightPIVResults):
         self.path = os.path.abspath(path)
         self.X, self.Y, self.dx, self.dy, self.U, self.V = self.compute_grid()
         
-    def displayf(self, U=None, V=None, bg=None, *args):
+    def displayf(self, U=None, V=None, X=None, Y=None, bg=None, *args):
         if bg is None:
             bg = self. compute_norm(U, V)
-        displayf(self.X, self.Y, U=U, V=V, background=bg, *args)
+            
+        if X is None:
+            X = self.X
+            Y = self.Y
+            
+        displayf(X, Y, U=U, V=V, background=bg, *args)
+        
+    def spatial_average(self, U):
+        U_mean = np.mean(U,(1,2))
+        return U_mean    
         
     def compute_grid(self):
         X, Y, dx, dy, U, V = compute_grid(self.xs, self.ys, self.deltaxs, self.deltays)
@@ -45,10 +59,26 @@ class PIV_Postproc(LightPIVResults):
         return ken    
     
     def compute_norm(self, U, V):
-        norm = compute_norm(U, V)
+        norm = compute_norm(self.U, self.V)
         return norm
         
+    def compute_spatial_fft(self):
         
+        fftU, kx, ky, psdU = twoD_fourier_transform(self.X, self.Y, self.U, axis=(1,2), parseval=False)
+        fftV, kx, ky, psdV = twoD_fourier_transform(self.X, self.Y, self.V, axis=(1,2), parseval=False)
+        
+        if not hasattr(self, 'fft'):
+            self.fft = DataObject()
+        if not hasattr(self.fft, 'spatial'):
+            time=DataObject()
+            self.fft.spatial = spatial        
+        
+        self.fft.spatial.kx = kx
+        self.fft.spatial.ky = ky        
+        self.fft.spatial.fftU = fftU        
+        self.fft.spatial.fftV = fftV
+        self.fft.spatial.psdU = psdU        
+        self.fft.spatial.psdV = psdV   
 
 class PIV_PostProc_serie(LightPIVResults):
     
@@ -61,25 +91,37 @@ class PIV_PostProc_serie(LightPIVResults):
             self.deltaxs = np.vstack([self.deltaxs, temp.deltaxs])
             self.deltays = np.vstack([self.deltays, temp.deltays])
         self.X, self.Y, self.dx, self.dy, self.U, self.V = self.compute_grid()
-        
-    def displayf(self, U=None, V=None, bg=None, timesleep=1, *args):
-        if U is None:
+    
+    def set_time(self, t):
+        self.t = np.linspace(0, np.size(self.path), np.size(self.path))
+   
+    def displayf(self, U=None, V=None, bg=None, X=None, Y=None, 
+                 timesleep=0.5, *args):
+        if U is None and bg.ndim == 3:
             U = V =[None]*len(bg)            
-        elif bg is None:
-            bg = self. compute_norm(U, V)
-
+        elif bg is None and U.ndim ==3:
+            bg = self.compute_norm(U, V)
         
-        if len(U)==1:
-            displayf(self.X, self.Y, U=U, V=V, background=bg, *args)
+        if X is None:
+            X = self.X
+            Y = self.Y
+        
+        if U is None:
+            displayf(X, Y, U=U, V=V, background=bg, *args)
         else:
             for i in range(len(U)):
-                displayf(self.X, self.Y, U=U[i], V=V[i], background=bg[i], *args) 
+                displayf(X, Y, U=U[i], V=V[i], background=bg[i], *args) 
                 pylab.show()
                 time.sleep(timesleep)
+                
     def time_average(self, U):
         U_mean = np.mean(U,0)
         return U_mean
-                
+        
+    def spatial_average(self, U):
+        U_mean = np.mean(U,(1,2))
+        return U_mean   
+        
     def compute_grid(self):
         U=[None]*len(self.path) 
         V=[None]*len(self.path) 
@@ -124,6 +166,87 @@ class PIV_PostProc_serie(LightPIVResults):
             norm[ti] = compute_norm(U[ti], V[ti])
         return norm
 
-
+    def compute_temporal_fft(self):
+        if not hasattr(self, 't'):
+            print("please define time before perform temporal Fourier transform")
+        else:
+            fftU, omega, psdU = oneD_fourier_transform(self.t, self.U, axis=0, parseval=False)
+            fftV, omega, psdV = oneD_fourier_transform(self.t, self.V, axis=0, parseval=False)
+            
+            if not hasattr(self, 'fft'):
+                self.fft = DataObject()
+            if not hasattr(self.fft, 'time'):
+                time=DataObject()
+                self.fft.time = time
+                
+            self.fft.time.omega = omega
+            self.fft.time.fftU = fftU        
+            self.fft.time.fftV = fftV
+            self.fft.time.psdU = psdU        
+            self.fft.time.psdV = psdV
+            
+            
+            
+            
+    def compute_spatial_fft(self):
         
-    
+        fftU, kx, ky, psdU = twoD_fourier_transform(self.X, self.Y, self.U, axis=(1,2), parseval=False)
+        fftV, kx, ky, psdV = twoD_fourier_transform(self.X, self.Y, self.V, axis=(1,2), parseval=False)
+        
+        if not hasattr(self, 'fft'):
+            self.fft = DataObject()
+        if not hasattr(self.fft, 'spatial'):
+            spatial=DataObject()
+            self.fft.spatial = spatial        
+        
+        self.fft.spatial.kx = kx
+        self.fft.spatial.ky = ky        
+        self.fft.spatial.fftU = fftU        
+        self.fft.spatial.fftV = fftV
+        self.fft.spatial.psdU = psdU        
+        self.fft.spatial.psdV = psdV   
+
+    def compute_spatiotemp_fft(self):
+        if hasattr(self, 'fft.spatial'):
+            fftU, omega, psdU = oneD_fourier_transform(self.t, 
+                                                       self.fft.spatial.fftU, 
+                                                       axis=0, parseval=False)
+            fftV, omega, psdV = oneD_fourier_transform(self.t, 
+                                                       self.fft.spatial.fftV, 
+                                                       axis=0, parseval=False)    
+            kx = self.fft.spatial.kx
+            ky = self.fft.spatial.ky
+            
+        elif hasattr(self, 'fft.time'):
+            fftU, kx, ky, psdU = twoD_fourier_transform(self.X, self.Y, 
+                                                        self.fft.time.fftU, 
+                                                        axis=(1,2), parseval=False)
+            fftV, kx, ky, psdV = twoD_fourier_transform(self.X, self.Y, 
+                                                        self.fft.time.fftV, 
+                                                        axis=(1,2), parseval=False)
+            omega = self.fft.time.omega
+        else:
+            self.compute_temporal_fft()
+            fftU, kx, ky, psdU = twoD_fourier_transform(self.X, self.Y, 
+                                                        self.fft.time.fftU, 
+                                                        axis=(1,2), parseval=False)
+            fftV, kx, ky, psdV = twoD_fourier_transform(self.X, self.Y, 
+                                                        self.fft.time.fftV, 
+                                                        axis=(1,2), parseval=False)
+            omega = self.fft.time.omega
+                                                        
+        if not hasattr(self, 'fft'):
+            self.fft = DataObject()
+        if not hasattr(self.fft, 'spatiotemp'):
+            spatiotemp=DataObject()
+            self.fft.spatiotemp = spatiotemp
+        
+        self.fft.spatiotemp.omega = omega
+        self.fft.spatiotemp.kx = kx
+        self.fft.spatiotemp.ky = ky
+        self.fft.spatiotemp.fftU = fftU        
+        self.fft.spatiotemp.fftV = fftV
+        self.fft.spatiotemp.psdU = psdU        
+        self.fft.spatiotemp.psdV = psdV
+        
+        

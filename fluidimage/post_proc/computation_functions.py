@@ -47,3 +47,56 @@ def compute_ken(U, V):
 def compute_norm(U, V):           
     norm = np.sqrt(U**2 + V**2) 
     return norm
+
+def oneD_fourier_transform(x, signal, axis=0, parseval=False):
+
+    """
+    Computes the Fourier Transform 
+    """
+
+    n = x.size
+    dx = x[1] - x[0]
+    Lx = np.max(x) - np.min(x)
+
+    ft = np.fft.fftshift(np.fft.fft(signal, axis=axis), axes=axis)
+    omega = np.fft.fftshift(np.fft.fftfreq(n, dx)) * 2 * np.pi
+
+    psd =1.0*dx/Lx/n* np.abs(ft)**2
+    
+    if parseval:
+        print 'np.sum(signal**2) * dx / Lx ='
+        print np.sum(signal**2) * dx / Lx
+        print 'np.sum(psd) ='
+        print np.sum(psd)
+
+    return ft, omega, psd
+    
+def twoD_fourier_transform(X, Y, U, axis =(1,2) ,parseval=False):
+    """
+    Computes the spatial transform 
+    """
+    nx = X.shape[0]
+    ny = X.shape[1]    
+    dx = X[1][0]-X[0][0]
+    dy = Y[0][1]-Y[0][0]
+    Lx = np.max(X) - np.min(X)
+    Ly = np.max(Y) - np.min(Y)
+    
+    ft = np.fft.fftshift(np.fft.fft2(U, axes=axis), axes=axis)
+        
+    kx = np.fft.fftshift(np.fft.fftfreq(nx, dx))*(2*np.pi) #in rad/m
+    ky = np.fft.fftshift(np.fft.fftfreq(ny, dy))*(2*np.pi) #in rad/m
+    #% Kx, Ky = np.meshgrid(kx, ky)
+    #% Kx = Kx.transpose()
+    #% Ky = Ky.transpose()
+
+    psd = 1.0*dx/Lx/nx*dy/Ly/ny * np.abs(ft)**2    
+
+    if parseval:
+        print 'np.sum(signal**2)* dx* dy/ Lx/ Ly'
+        print np.sum(U**2)* dx* dy/ Lx/ Ly
+        print 'np.sum(psd) ='
+        print np.sum(psd)
+
+    
+    return ft, kx, ky, psd
