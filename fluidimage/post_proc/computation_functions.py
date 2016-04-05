@@ -51,7 +51,20 @@ def compute_norm(U, V):
 def oneD_fourier_transform(x, signal, axis=0, parseval=False):
 
     """
-    Computes the Fourier Transform 
+    Computes the 1D Fourier Transform 
+    
+    INPUT:
+    x: 1D np.array
+    signal: np.array to Fourier transform
+    axis: direction of the fourier transform
+    parseval=True  -> chexk parseval theorem
+    
+    OUTPUT:
+    ft = fourier transform
+    omega = puslation (in rad/s if x in s)
+    psd: power spectral density normalized such that 
+    np.sum(signal**2) * dx / Lx = np.sum(psd) * domega
+    
     """
 
     n = x.size
@@ -71,12 +84,25 @@ def oneD_fourier_transform(x, signal, axis=0, parseval=False):
         print np.sum(signal**2) * dx / Lx
         print 'np.sum(psd) * domega='
         print np.sum(psd) * domega
-
+        
     return ft, omega, psd
     
 def twoD_fourier_transform(X, Y, U, axis =(1,2) ,parseval=False):
     """
-    Computes the spatial transform 
+    Computes the 2D Fourier Transform    
+    INPUT:
+    X: 2D np.array
+    Y: 2D np.array
+    U: np.array to Fourier transform
+    axis: directions of the fourier transform
+    parseval=True  -> chexk parseval theorem
+    
+    OUTPUT:
+    ft = fourier transform
+    kx: puslation (in rad/m if X in m)
+    ky: pulsation (in rad/m if Y in m)    
+    psd: power spectral density normalized such that 
+    np.sum(signal**2) * dx / Lx = np.sum(psd) * domega    
     """
     nx = X.shape[0]
     ny = X.shape[1]    

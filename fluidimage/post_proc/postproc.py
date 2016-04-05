@@ -62,7 +62,7 @@ class PIV_Postproc(LightPIVResults):
         norm = compute_norm(self.U, self.V)
         return norm
         
-    def compute_spatial_fft(self):
+    def compute_spatial_fft(self, parseval=False):
         
         fftU, kx, ky, psdU = twoD_fourier_transform(self.X, self.Y, self.U, axis=(0,1), parseval=False)
         fftV, kx, ky, psdV = twoD_fourier_transform(self.X, self.Y, self.V, axis=(0,1), parseval=False)
@@ -79,7 +79,20 @@ class PIV_Postproc(LightPIVResults):
         self.fft.spatial.fftV = fftV
         self.fft.spatial.psdU = psdU        
         self.fft.spatial.psdV = psdV   
-
+        if parseval:
+            dx = self.X[1][0]-self.X[0][0]
+            dy = self.Y[0][1]-self.Y[0][0]
+            Lx = np.max(self.X) - np.min(self.X)
+            Ly = np.max(self.Y) - np.min(self.Y)
+            dkx=kx[1]-kx[0]
+            dky=ky[1]-ky[0]
+            energphys = np.sum(np.power(self.U,2)+np.power(self.V,2))*dx*dy/Lx/Ly
+            energspectral = np.sum(self.fft.spatial.psdU + self.fft.spatial.psdV)*dkx*dky
+            print '%%%% PARSEVAL %%%%'            
+            print 'np.sum(U**2+V**2) * dx*dy / Lx/Ly ='
+            print energphys
+            print 'np.sum(psd) * dkx*dky='
+            print energspectral 
 class PIV_PostProc_serie(LightPIVResults):
     
     def __init__(self, path=None):
@@ -166,7 +179,7 @@ class PIV_PostProc_serie(LightPIVResults):
             norm[ti] = compute_norm(U[ti], V[ti])
         return norm
 
-    def compute_temporal_fft(self):
+    def compute_temporal_fft(self, parseval=False):
         if not hasattr(self, 't'):
             print("please define time before perform temporal Fourier transform")
         else:
@@ -184,11 +197,21 @@ class PIV_PostProc_serie(LightPIVResults):
             self.fft.time.fftV = fftV
             self.fft.time.psdU = psdU        
             self.fft.time.psdV = psdV
+            if parseval:           
+            # parseval
+                dt=self.t[1]-self.t[0]
+                Lt = np.max(self.t) - np.min(self.t)
+                domega=omega[1]-omega[0]
+                energphys = np.sum(np.power(self.U,2)+np.power(self.V,2))*dt/Lt
+                energspectral = np.sum(self.fft.time.psdU + self.fft.time.psdV)*domega
+                print '%%%% PARSEVAL %%%%'
+                print 'np.sum(U**2+V**2) * dt / Lt ='
+                print energphys
+                print 'np.sum(psd) * domega='
+                print energspectral
             
             
-            
-            
-    def compute_spatial_fft(self):
+    def compute_spatial_fft(self, parseval=False):
         
         fftU, kx, ky, psdU = twoD_fourier_transform(self.X, self.Y, self.U, axis=(1,2), parseval=False)
         fftV, kx, ky, psdV = twoD_fourier_transform(self.X, self.Y, self.V, axis=(1,2), parseval=False)
@@ -205,8 +228,22 @@ class PIV_PostProc_serie(LightPIVResults):
         self.fft.spatial.fftV = fftV
         self.fft.spatial.psdU = psdU        
         self.fft.spatial.psdV = psdV   
+        if parseval:
+            dx = self.X[1][0]-self.X[0][0]
+            dy = self.Y[0][1]-self.Y[0][0]
+            Lx = np.max(self.X) - np.min(self.X)
+            Ly = np.max(self.Y) - np.min(self.Y)
+            dkx=kx[1]-kx[0]
+            dky=ky[1]-ky[0]
+            energphys = np.sum(np.power(self.U,2)+np.power(self.V,2))*dx*dy/Lx/Ly
+            energspectral = np.sum(self.fft.spatial.psdU + self.fft.spatial.psdV)*dkx*dky
+            print '%%%% PARSEVAL %%%%'            
+            print 'np.sum(U**2+V**2) * dx*dy / Lx/Ly ='
+            print energphys
+            print 'np.sum(psd) * dkx*dky='
+            print energspectral 
 
-    def compute_spatiotemp_fft(self):
+    def compute_spatiotemp_fft(self, parseval=False):
         if hasattr(self, 'fft.spatial'):
             fftU, omega, psdU = oneD_fourier_transform(self.t, 
                                                        self.fft.spatial.fftU, 
@@ -262,4 +299,20 @@ class PIV_PostProc_serie(LightPIVResults):
         self.fft.spatiotemp.psdU = psdU        
         self.fft.spatiotemp.psdV = psdV
         
-        
+        if parseval:
+            dx = self.X[1][0]-self.X[0][0]
+            dy = self.Y[0][1]-self.Y[0][0]
+            Lx = np.max(self.X) - np.min(self.X)
+            Ly = np.max(self.Y) - np.min(self.Y)
+            dkx=kx[1]-kx[0]
+            dky=ky[1]-ky[0]
+            dt=self.t[1]-self.t[0]
+            Lt = np.max(self.t) - np.min(self.t)
+            domega=omega[1]-omega[0]
+            energphys = np.sum(np.power(self.U,2)+np.power(self.V,2))*dx*dy*dt/Lx/Ly/Lt
+            energspectral = np.sum(self.fft.spatiotemp.psdU + self.fft.spatiotemp.psdV)*dkx*dky*domega
+            print '%%%% PARSEVAL %%%%'
+            print 'np.sum(U**2+V**2) * dx*dy*dt / Lx/Ly/Lt ='
+            print energphys
+            print 'np.sum(psd) * dkx*dky*domega='
+            print energspectral 

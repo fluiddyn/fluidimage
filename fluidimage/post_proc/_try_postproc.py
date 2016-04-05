@@ -91,13 +91,13 @@ for i in range(np.shape(postp.U)[0]):
 
 
 #% FFT temporelle
-postp.compute_temporal_fft()
+postp.compute_temporal_fft(parseval=True)
 omega = postp.fft.time.omega
 psd = postp.fft.time.psdU+postp.fft.time.psdV
 pylab.loglog(omega, postp.spatial_average(psd))
 
 #% FFT spatiale
-postp.compute_spatial_fft()
+postp.compute_spatial_fft(parseval=True)
 Kx, Ky = np.meshgrid(postp.fft.spatial.kx, postp.fft.spatial.ky)
 Kx = Kx.transpose()
 Ky = Ky.transpose()
@@ -106,7 +106,7 @@ postp.displayf(X=Kx, Y=Ky, bg = np.log(postp.time_average(psd)))
 
 
 #% FFT spatiotemporelle
-postp.compute_spatiotemp_fft()
+postp.compute_spatiotemp_fft(parseval=True)
 Kx, Ky = np.meshgrid(postp.fft.spatiotemp.kx, postp.fft.spatiotemp.ky)
 Kx = Kx.transpose()
 Ky = Ky.transpose()
@@ -138,22 +138,6 @@ omega = postp.fft.spatiotemp.omega
 domega=omega[1]-omega[0]
 dt=postp.t[1]-postp.t[0]
 Lt = np.max(postp.t) - np.min(postp.t)
-
-
-# parseval temporel
-energphys = np.sum(np.power(postp.U,2)+np.power(postp.V,2))*dt/Lt
-energspectral = np.sum(postp.fft.time.psdU + postp.fft.time.psdV)*domega
-print (energphys-energspectral)/energphys
-
-# parseval spatial
-energphys = np.sum(np.power(postp.U,2)+np.power(postp.V,2))*dx*dy/Lx/Ly
-energspectral = np.sum(postp.fft.spatial.psdU + postp.fft.spatial.psdV)*dkx*dky
-print (energphys-energspectral)/energphys
-
-# parseval spatiotemp
-energphys = np.sum(np.power(postp.U,2)+np.power(postp.V,2))*dx*dy*dt/Lx/Ly/Lt
-energspectral = np.sum(postp.fft.spatiotemp.psdU + postp.fft.spatiotemp.psdV)*dkx*dky*domega
-print (energphys-energspectral)/energphys
 
 
 # moyenne spatial de fft spatiotemp vs fft temp
