@@ -64,13 +64,13 @@ class PIV_Postproc(LightPIVResults):
         
     def compute_spatial_fft(self):
         
-        fftU, kx, ky, psdU = twoD_fourier_transform(self.X, self.Y, self.U, axis=(1,2), parseval=False)
-        fftV, kx, ky, psdV = twoD_fourier_transform(self.X, self.Y, self.V, axis=(1,2), parseval=False)
+        fftU, kx, ky, psdU = twoD_fourier_transform(self.X, self.Y, self.U, axis=(0,1), parseval=False)
+        fftV, kx, ky, psdV = twoD_fourier_transform(self.X, self.Y, self.V, axis=(0,1), parseval=False)
         
         if not hasattr(self, 'fft'):
             self.fft = DataObject()
         if not hasattr(self.fft, 'spatial'):
-            time=DataObject()
+            spatial=DataObject()
             self.fft.spatial = spatial        
         
         self.fft.spatial.kx = kx
@@ -213,10 +213,15 @@ class PIV_PostProc_serie(LightPIVResults):
                                                        axis=0, parseval=False)
             fftV, omega, psdV = oneD_fourier_transform(self.t, 
                                                        self.fft.spatial.fftV, 
-                                                       axis=0, parseval=False)    
+                                                       axis=0, parseval=False) 
             kx = self.fft.spatial.kx
             ky = self.fft.spatial.ky
-            
+            Lkx = np.max(kx) - np.min(kx)
+            nx=np.shape(self.X)[0]
+            Lky = np.max(ky) - np.min(ky)
+            ny=np.shape(self.Y)[0]
+            psdU *= 1.0/Lkx/nx/Lky/ny
+            psdV *= 1.0/Lkx/nx/Lky/ny
         elif hasattr(self, 'fft.time'):
             fftU, kx, ky, psdU = twoD_fourier_transform(self.X, self.Y, 
                                                         self.fft.time.fftU, 
@@ -224,7 +229,11 @@ class PIV_PostProc_serie(LightPIVResults):
             fftV, kx, ky, psdV = twoD_fourier_transform(self.X, self.Y, 
                                                         self.fft.time.fftV, 
                                                         axis=(1,2), parseval=False)
-            omega = self.fft.time.omega
+            omega = self.fft.time.omega  
+            Lomega = np.max(omega) - np.min(omega)
+            n=np.shape(self.t)[0]
+            psdU *= 1.0/Lomega/n
+            psdV *= 1.0/Lomega/n
         else:
             self.compute_temporal_fft()
             fftU, kx, ky, psdU = twoD_fourier_transform(self.X, self.Y, 
@@ -234,7 +243,11 @@ class PIV_PostProc_serie(LightPIVResults):
                                                         self.fft.time.fftV, 
                                                         axis=(1,2), parseval=False)
             omega = self.fft.time.omega
-                                                        
+            Lomega = np.max(omega) - np.min(omega)
+            n=np.shape(self.t)[0]
+            psdU *= 1.0/Lomega/n
+            psdV *= 1.0/Lomega/n      
+                                     
         if not hasattr(self, 'fft'):
             self.fft = DataObject()
         if not hasattr(self.fft, 'spatiotemp'):

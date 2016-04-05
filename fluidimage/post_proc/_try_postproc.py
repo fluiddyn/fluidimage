@@ -72,13 +72,15 @@ postp.displayf(U=postp.U, V=postp.V)
 
 
 
-#%%
+#%% tests Fourier transform
 from postproc import PIV_PostProc_serie
+Nt = 1000
+postp=PIV_PostProc_serie(path=['piv_Oseen_center01-02_light.h5']*Nt)
 
-postp=PIV_PostProc_serie(path=['piv_Oseen_center01-02_light.h5']*1000)
-postp.set_time(np.linspace(0,10,10))
+t=np.linspace(0,1000,Nt)
 
-t=np.linspace(0,1000,1000)
+postp.set_time(t)
+
 kx = 0.05
 ky = 0.17
 omega = 0.02
@@ -102,6 +104,7 @@ Ky = Ky.transpose()
 psd = postp.fft.spatial.psdU+postp.fft.spatial.psdV
 postp.displayf(X=Kx, Y=Ky, bg = np.log(postp.time_average(psd)))
 
+
 #% FFT spatiotemporelle
 postp.compute_spatiotemp_fft()
 Kx, Ky = np.meshgrid(postp.fft.spatiotemp.kx, postp.fft.spatiotemp.ky)
@@ -112,29 +115,69 @@ psd = postp.fft.spatiotemp.psdU+postp.fft.spatiotemp.psdV
 psd=psd[0:10:]
 postp.displayf(X=Kx, Y=Ky, bg = np.log(psd))
 
-# moyenne temporelle de fft spatiotemp vs fft temp
+
+# quantités utiles
 X=postp.X
-Y=postp.Y
-nx = X.shape[0]
-ny = X.shape[1]    
+Y=postp.Y  
 dx = X[1][0]-X[0][0]
 dy = Y[0][1]-Y[0][0]
 Lx = np.max(X) - np.min(X)
 Ly = np.max(Y) - np.min(Y)
+nx = X.shape[0]
+ny = X.shape[1]  
+
 kx=postp.fft.spatiotemp.kx
 ky=postp.fft.spatiotemp.ky
 dkx=kx[1]-kx[0]
 dky=ky[1]-ky[0]
-nkx=kx.size
-nky=ky.size
-Lkx=np.max(kx) - np.min(kx)
-Lky=np.max(ky) - np.min(ky)
-omega = postp.fft.spatiotemp.omega
+Kx, Ky = np.meshgrid(postp.fft.spatiotemp.kx, postp.fft.spatiotemp.ky)
+Kx = Kx.transpose()
+Ky = Ky.transpose() 
 
-psd=np.sum(postp.fft.spatiotemp.psdU+postp.fft.spatiotemp.psdV,(1,2))*dkx*dky/Lkx/Lky
-max1=psd.max()
+omega = postp.fft.spatiotemp.omega
+domega=omega[1]-omega[0]
+dt=postp.t[1]-postp.t[0]
+Lt = np.max(postp.t) - np.min(postp.t)
+
+
+# parseval temporel
+energphys = np.sum(np.power(postp.U,2)+np.power(postp.V,2))*dt/Lt
+energspectral = np.sum(postp.fft.time.psdU + postp.fft.time.psdV)*domega
+print (energphys-energspectral)/energphys
+
+# parseval spatial
+energphys = np.sum(np.power(postp.U,2)+np.power(postp.V,2))*dx*dy/Lx/Ly
+energspectral = np.sum(postp.fft.spatial.psdU + postp.fft.spatial.psdV)*dkx*dky
+print (energphys-energspectral)/energphys
+
+# parseval spatiotemp
+energphys = np.sum(np.power(postp.U,2)+np.power(postp.V,2))*dx*dy*dt/Lx/Ly/Lt
+energspectral = np.sum(postp.fft.spatiotemp.psdU + postp.fft.spatiotemp.psdV)*dkx*dky*domega
+print (energphys-energspectral)/energphys
+
+
+# moyenne spatial de fft spatiotemp vs fft temp
+
+psd=np.sum(postp.fft.spatiotemp.psdU+postp.fft.spatiotemp.psdV,(1,2))*1.0*dkx*dky
 pylab.loglog(omega, psd)
 psd2 = postp.fft.time.psdU+postp.fft.time.psdV
-psd2 = np.sum(psd2, (1,2))*(1.0*nx*ny*dx*dy/Lx/Ly)
-max2=psd2.max()
+psd2 = np.sum(psd2, (1,2))*1.0*(dx*dy)/(Lx*Ly)
 pylab.loglog(omega, psd2, 'r+')
+print np.mean(((psd2-psd)**2)/psd)
+print np.max(((psd2-psd)**2)/psd)
+
+# moyenne temporelle de fft spatiotemp vs fft spatial
+psd=np.sum(postp.fft.spatiotemp.psdU+postp.fft.spatiotemp.psdV,0)*1.0*domega
+pylab.pcolor(Kx, Ky, psd)
+psd2 = postp.fft.spatial.psdU + postp.fft.spatial.psdV
+psd2 = np.sum(psd2, 0)*1.0*dt/Lt
+pylab.pcolor(Kx,Ky, psd2)
+pylab.pcolor(Kx,Ky,psd2-psd)
+print np.mean(((psd2-psd)**2)/psd)
+print np.max(((psd2-psd)**2)/psd)
+
+
+
+
+
+

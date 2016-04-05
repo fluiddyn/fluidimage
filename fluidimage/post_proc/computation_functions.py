@@ -60,14 +60,17 @@ def oneD_fourier_transform(x, signal, axis=0, parseval=False):
 
     ft = np.fft.fftshift(np.fft.fft(signal, axis=axis), axes=axis)
     omega = np.fft.fftshift(np.fft.fftfreq(n, dx)) * 2 * np.pi
+    
+    Lomega = np.max(omega) - np.min(omega)
+    domega=omega[1]-omega[0]
 
-    psd =1.0*dx/Lx/n* np.abs(ft)**2
+    psd =1.0/Lomega/n* np.abs(ft)**2
     
     if parseval:
         print 'np.sum(signal**2) * dx / Lx ='
         print np.sum(signal**2) * dx / Lx
-        print 'np.sum(psd) ='
-        print np.sum(psd)
+        print 'np.sum(psd) * domega='
+        print np.sum(psd) * domega
 
     return ft, omega, psd
     
@@ -86,17 +89,22 @@ def twoD_fourier_transform(X, Y, U, axis =(1,2) ,parseval=False):
         
     kx = np.fft.fftshift(np.fft.fftfreq(nx, dx))*(2*np.pi) #in rad/m
     ky = np.fft.fftshift(np.fft.fftfreq(ny, dy))*(2*np.pi) #in rad/m
+    
+    Lkx = np.max(kx) - np.min(kx)
+    dkx = kx[1]-kx[0]
+    Lky = np.max(ky) - np.min(ky)
+    dky = ky[1]-ky[0]
     #% Kx, Ky = np.meshgrid(kx, ky)
     #% Kx = Kx.transpose()
     #% Ky = Ky.transpose()
 
-    psd = 1.0*dx/Lx/nx*dy/Ly/ny * np.abs(ft)**2    
+    psd = 1.0/Lkx/nx/Lky/ny* np.abs(ft)**2    
 
     if parseval:
         print 'np.sum(signal**2)* dx* dy/ Lx/ Ly'
-        print np.sum(U**2)* dx* dy/ Lx/ Ly
-        print 'np.sum(psd) ='
-        print np.sum(psd)
+        print np.sum(np.power(U,2)* 1.0 * dx * dy/ Lx/ Ly)
+        print 'np.sum(psd) *dkx * dky ='
+        print np.sum(psd) * 1.0 * dkx * dky
 
     
     return ft, kx, ky, psd
