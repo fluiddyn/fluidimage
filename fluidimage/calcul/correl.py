@@ -20,6 +20,10 @@ different methods.
    :members:
    :private-members:
 
+.. autoclass:: CorrelPyCuda
+   :members:
+   :private-members:
+
 .. autoclass:: CorrelTheano
    :members:
    :private-members:
@@ -56,6 +60,8 @@ from numpy.fft import fft2, ifft2
 from .fft import FFTW2DReal2Complex, CUFFT2DReal2Complex, SKCUFFT2DReal2Complex
 
 from .correl_pythran import correl_pythran
+
+from .correl_pycuda import correl_pycuda
 
 try:
     import theano
@@ -108,11 +114,6 @@ class CorrelBase(object):
 class CorrelPythran(CorrelBase):
     """Correlation using pythran.
        Correlation class by hands with with numpy.
-
-    .. todo::
-
-       Turns it into heavily templatized c++ with Pythran
-
     """
     _tag = 'pythran'
 
@@ -135,6 +136,33 @@ class CorrelPythran(CorrelBase):
     def __call__(self, im0, im1):
         """Compute the correlation from images."""
         return correl_pythran(im0, im1, self.displacement_max)
+
+
+class CorrelPyCuda(CorrelBase):
+    """Correlation using pycuda.
+       Correlation class by hands with with cuda.
+    """
+    _tag = 'pycuda'
+
+    def __init__(self, im0_shape, im1_shape=None,
+                 method_subpix='centroid', displacement_max=None, mode=None):
+
+        if displacement_max is None:
+            displacement_max = max(im0_shape) // 2 #min(max(im0_shape), max(im1_shape)) // 2
+
+        self.displacement_max = displacement_max
+
+        super(CorrelPyCuda, self).__init__(
+            im0_shape, im1_shape, method_subpix=method_subpix)
+
+        ind0x = displacement_max
+        ind0y = displacement_max
+
+        self.inds0 = tuple([ind0y, ind0x])
+
+    def __call__(self, im0, im1):
+        """Compute the correlation from images."""
+        return correl_pycuda(im0, im1, self.displacement_max)
 
 
 class CorrelScipySignal(CorrelBase):

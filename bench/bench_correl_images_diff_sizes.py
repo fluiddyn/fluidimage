@@ -7,7 +7,7 @@ import numpy as np
 
 from fluidimage.synthetic import make_synthetic_images
 from fluidimage.calcul.correl import CorrelScipySignal
-from fluidimage.calcul.correl import CorrelTheano, CorrelPythran
+from fluidimage.calcul.correl import CorrelTheano, CorrelPythran, CorrelPyCuda
 
 nx = 64
 ny = 64
@@ -32,7 +32,8 @@ im0, im1 = make_synthetic_images(
 im1 = im1.astype('float32')
 
 classes = {'sig': CorrelScipySignal,
-	   'theano': CorrelTheano,
+           'theano': CorrelTheano,
+           'pycuda': CorrelPyCuda,
            'pythran': CorrelPythran}
 
 
