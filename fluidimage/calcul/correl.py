@@ -106,7 +106,6 @@ class CorrelBase(object):
             e.results_compute_displacement_from_correl = (
                 dx, dy, correl_max)
             raise e
-
         dx, dy = self.compute_displacement_from_indices(indices)
         return dx, dy, correl_max
 

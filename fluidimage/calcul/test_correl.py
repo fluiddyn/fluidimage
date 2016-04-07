@@ -34,21 +34,26 @@ for k, cls in classes.items():
 
         # first, no displacement
         c, norm = correl(self.im0, self.im0)
-        inds_max = np.array(np.unravel_index(c.argmax(), c.shape))
-        displacement_computed = correl.compute_displacement_from_indices(
-            inds_max)
+        dx, dy, correl_max = correl.compute_displacement_from_correl(
+            c, coef_norm=norm,
+            # method_subpix='2d_gaussian'
+            method_subpix='centroid'
+        )
+        displacement_computed = np.array([dx, dy])
+#        inds_max = np.array(np.unravel_index(c.argmax(), c.shape))
+#        displacement_computed = correl.compute_displacement_from_indices(
+#            inds_max)
 
-#        self.assertTrue(np.allclose(
- #           [0, 0],
-  #          displacement_computed))
-        print('\n', k, self.displacements, displacement_computed)
+        self.assertTrue(np.allclose(
+            [0, 0],
+            displacement_computed, atol=1e-05))
+        print('\n', k, "[0, 0]", displacement_computed)
 
         # then, with the 2 figures with displacements
         c, norm = correl(self.im0, self.im1)
-
         dx, dy, correl_max = correl.compute_displacement_from_correl(
             c, coef_norm=norm,
-            #method_subpix='2d_gaussian'
+            # method_subpix='2d_gaussian'
             method_subpix='centroid'
         )
 
@@ -56,10 +61,10 @@ for k, cls in classes.items():
 
         print('\n', k, self.displacements, displacement_computed)
 
-        #self.assertTrue(np.allclose(
-        #    self.displacements,
-        #    displacement_computed,
-        #    atol=0.5))
+        self.assertTrue(np.allclose(
+            self.displacements,
+            displacement_computed,
+            atol=0.5))
 
     exec('TestCorrel.test_correl_' + k + ' = test')
 
