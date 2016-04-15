@@ -1,10 +1,15 @@
 import os
 import numpy as np
-import pycuda.autoinit
-import pycuda.compiler
-import pycuda.gpuarray
-import pycuda.driver
 
+try:
+	import pycuda.autoinit
+	import pycuda.compiler
+	import pycuda.gpuarray
+	import pycuda.driver
+except ImportError:
+	pass
+	
+	
 
 def nextpow2(i):
     n = 1
