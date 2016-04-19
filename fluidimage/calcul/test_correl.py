@@ -11,6 +11,22 @@ from fluidimage.calcul.correl import correlation_classes
 
 classes = {k.replace('.', '_'): v for k, v in correlation_classes.items()}
 
+try:
+    from reikna.cluda import any_api
+    api = any_api()
+except Exception:
+    classes.pop('cufft')
+
+try:
+    import pycuda
+except ImportError:
+    classes.pop('pycuda')
+
+try:
+    import skcuda
+except ImportError:
+    classes.pop('skcufft')
+
 
 class TestCorrel(unittest.TestCase):
     @classmethod

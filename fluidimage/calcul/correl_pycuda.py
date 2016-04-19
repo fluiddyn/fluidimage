@@ -2,14 +2,13 @@ import os
 import numpy as np
 
 try:
-	import pycuda.autoinit
-	import pycuda.compiler
-	import pycuda.gpuarray
-	import pycuda.driver
+    import pycuda.autoinit
+    import pycuda.compiler
+    import pycuda.gpuarray
+    import pycuda.driver
 except ImportError:
-	pass
-	
-	
+    pass
+
 
 def nextpow2(i):
     n = 1
@@ -47,7 +46,7 @@ def correl_pycuda(im0, im1, disp_max):
     ny0, nx0 = im0.shape
     ny1, nx1 = im1.shape
 
-    zero = np.float32(0.)
+    # zero = np.float32(0.)
     correl = np.empty((ny, nx), dtype=np.float32)
 
     # Load the kernel and compile it.
@@ -57,7 +56,7 @@ def correl_pycuda(im0, im1, disp_max):
     kernel = pycuda.compiler.SourceModule(f.read())
     f.close()
     correlate_cuda = kernel.get_function('cucorrelate')
-    #correlate_cuda.prepare([np.intp, np.intp, np.intp, np.int32,
+    # correlate_cuda.prepare([np.intp, np.intp, np.intp, np.int32,
     #                        np.int32,np.int32,np.int32,np.int32,np.int32,
     #                        np.int32,np.int32,np.int32,np.int32])
 
