@@ -460,7 +460,17 @@ class CorrelSKCuFFT(CorrelBase):
 
 
 class SubPix(object):
-    """Subpixel finder"""
+    """Subpixel finder
+
+    .. todo::
+
+       - test subpix.
+
+       - same subpix methods as in UVmat...
+
+       - subpix method "do nothing": very fast...
+
+    """
     methods = ['2d_gaussian', 'centroid']
 
     def __init__(self, method='centroid'):
