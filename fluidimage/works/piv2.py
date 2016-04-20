@@ -291,14 +291,13 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
 
         self._init_correl()
 
-
     def apply_interp(self, piv_results):
         couple = piv_results.couple
 
         im0, im1 = couple.get_arrays()
         if not hasattr(piv_results, 'ixvecs_grid'):
             self._prepare_with_image(im0)
-            piv_results.ixvecs_grid = self.ixvecs_grid            
+            piv_results.ixvecs_grid = self.ixvecs_grid
             piv_results.iyvecs_grid = self.iyvecs_grid
 
         # for the interpolation
@@ -328,7 +327,8 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
             piv_results.deltays_smooth = deltays_smooth
             piv_results.deltays_tps = deltays_tps
 
-            piv_results.new_positions = np.vstack([self.ixvecs_grid, self.iyvecs_grid])
+            piv_results.new_positions = np.vstack([
+                self.ixvecs_grid, self.iyvecs_grid])
             tps.init_with_new_positions(piv_results.new_positions)
 
             # displacement int32 with TPS
@@ -337,9 +337,9 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
 
         else:
             piv_results.deltaxs_approx = griddata(centers, deltaxs,
-                                      (self.ixvecs, self.iyvecs))
+                                                  (self.ixvecs, self.iyvecs))
             piv_results.deltays_approx = griddata(centers, deltays,
-                                      (self.ixvecs, self.iyvecs))
+                                                  (self.ixvecs, self.iyvecs))
 
     def calcul(self, piv_results):
         """Calcul the piv.
@@ -357,11 +357,11 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
         """
         if not isinstance(piv_results, HeavyPIVResults):
             raise ValueError
-        
+
         couple = piv_results.couple
 
         im0, im1 = couple.get_arrays()
-        
+
         self.apply_interp(piv_results)
 
         debug = False
@@ -401,28 +401,31 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
         iys0 = self.iyvecs_grid - deltays_approx//2
         ixs1 = ixs0 + deltaxs_approx
         iys1 = iys0 + deltays_approx
-        
-        # if a point is outside an image => shift of subimages used 
+
+        # if a point is outside an image => shift of subimages used
         # for correlation
         ind_outside = np.argwhere(
-        (ixs0 > self.imshape[0]) | ( ixs0 < 0 ) | 
-        (ixs1 > self.imshape[0]) | (ixs1 < 0) | 
-        (iys0 > self.imshape[1]) | (iys0 < 0) |
-        (iys1 > self.imshape[1]) | (iys1 < 0) )
+            (ixs0 > self.imshape[0]) | (ixs0 < 0) |
+            (ixs1 > self.imshape[0]) | (ixs1 < 0) |
+            (iys0 > self.imshape[1]) | (iys0 < 0) |
+            (iys1 > self.imshape[1]) | (iys1 < 0))
 
         for ind in ind_outside:
-            if (ixs1[ind] > self.imshape[0]) or (iys1[ind] > self.imshape[1]) or (ixs1[ind] < 0) or (iys1[ind] < 0):
+            if ((ixs1[ind] > self.imshape[0]) or
+                    (iys1[ind] > self.imshape[1]) or
+                    (ixs1[ind] < 0) or (iys1[ind] < 0)):
                 ixs0[ind] = self.ixvecs_grid[ind] - deltaxs_approx[ind]
                 iys0[ind] = self.iyvecs_grid[ind] - deltays_approx[ind]
-                ixs1[ind] =  self.ixvecs_grid[ind]       
-                iys1[ind] =  self.iyvecs_grid[ind]
-            elif (ixs0[ind] > self.imshape[0]) or (iys0[ind] > self.imshape[1]) or (ixs0[ind] < 0) or (iys0[ind] < 0):
-                ixs0[ind] = self.ixvecs_grid[ind] 
-                iys0[ind] = self.iyvecs_grid[ind] 
-                ixs1[ind] =  self.ixvecs_grid[ind] + deltaxs_approx[ind]
-                iys1[ind] =  self.iyvecs_grid[ind] + deltays_approx[ind]
-            
-        
+                ixs1[ind] = self.ixvecs_grid[ind]
+                iys1[ind] = self.iyvecs_grid[ind]
+            elif ((ixs0[ind] > self.imshape[0]) or
+                  (iys0[ind] > self.imshape[1]) or
+                  (ixs0[ind] < 0) or (iys0[ind] < 0)):
+                ixs0[ind] = self.ixvecs_grid[ind]
+                iys0[ind] = self.iyvecs_grid[ind]
+                ixs1[ind] = self.ixvecs_grid[ind] + deltaxs_approx[ind]
+                iys1[ind] = self.iyvecs_grid[ind] + deltays_approx[ind]
+
         xs = (ixs0 + ixs1) / 2.
         ys = (iys0 + iys1) / 2.
 
@@ -430,8 +433,6 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
         iys0_pad = iys0 + self.npad
         ixs1_pad = ixs1 + self.npad
         iys1_pad = iys1 + self.npad
-        
-        
 
         return xs, ys, ixs0_pad, iys0_pad, ixs1_pad, iys1_pad
 
@@ -528,7 +529,7 @@ class WorkPIV(BaseWork):
         results.append(piv_result)
 
         if self.params.multipass.number > 0:
-            piv_result1 = self.work_piv1.calcul(piv_result)        
+            piv_result1 = self.work_piv1.calcul(piv_result)
             piv_result1 = self.work_fix1.calcul(piv_result)
             self.work_piv1.apply_interp(piv_result1)
             results.append(piv_result1)
