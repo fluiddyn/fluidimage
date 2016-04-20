@@ -35,3 +35,5 @@ doc/generated/*
 image_samples/*/Images.piv/*.h5
 
 *_pythran.cpp
+
+fluidimage/works/piv/*.h5

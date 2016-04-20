@@ -1,8 +1,8 @@
 
 # import h5py
 
-from fluiddyn.util.serieofarrays import SeriesOfArrays
-from fluidimage.works.piv2 import WorkPIV
+from fluidimage import SeriesOfArrays
+from fluidimage.works.piv import WorkPIV
 from fluidimage.data_objects.piv import LightPIVResults
 
 
@@ -20,7 +20,7 @@ params.multipass.use_tps = True
 
 piv = WorkPIV(params=params)
 
-series = SeriesOfArrays('../../image_samples/Oseen/Images', 'i+1:i+3')
+series = SeriesOfArrays('../../../image_samples/Oseen/Images', 'i+1:i+3')
 serie = series.get_serie_from_index(0)
 
 result = piv.calcul(serie)
@@ -29,11 +29,13 @@ result.display()
 
 result.save()
 
-lightresult = LightPIVResults(
-    result.piv1.deltaxs_approx, result.piv1.deltays_approx,
-    result.piv1.ixvecs_grid, result.piv1.iyvecs_grid,
-    couple=result.piv1.couple,
-    params=result.piv1.params)
+lightresult = result.make_light_result()
+
+# LightPIVResults(
+#     result.piv1.deltaxs_approx, result.piv1.deltays_approx,
+#     result.piv1.ixvecs_grid, result.piv1.iyvecs_grid,
+#     couple=result.piv1.couple,
+#     params=result.piv1.params)
 
 lightresult.save()
 

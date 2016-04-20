@@ -3,8 +3,6 @@
 
 .. todo::
 
-   - better multipass
-
    - as in UVmat: better patch "thin-plate spline" (?). Add variables as
      in UVmat (NbCenter, Coord_tps, SubRange, U_tps, V_tps)
 
@@ -27,14 +25,6 @@
    :members:
    :private-members:
 
-.. autoclass:: WorkFIX
-   :members:
-   :private-members:
-
-.. autoclass:: WorkPIV
-   :members:
-   :private-members:
-
 """
 
 
@@ -47,18 +37,14 @@ import numpy as np
 from fluiddyn.util.paramcontainer import ParamContainer
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
 
-from ..data_objects.piv import (
-    ArrayCouple, HeavyPIVResults, MultipassPIVResults)
-from ..calcul.correl import PIVError, correlation_classes
-from ..works import BaseWork
+from ...data_objects.piv import ArrayCouple, HeavyPIVResults
+from ...calcul.correl import PIVError, correlation_classes
+from .. import BaseWork
 
-# from ..calcul.interpolate.thin_plate_spline import \
-#     compute_tps_coeff, ThinPlateSpline
-
-from ..calcul.interpolate.thin_plate_spline_subdom import \
+from ...calcul.interpolate.thin_plate_spline_subdom import \
     ThinPlateSplineSubdom
 
-from ..calcul.interpolate.griddata import griddata
+from ...calcul.interpolate.griddata import griddata
 
 
 class BaseWorkPIV(BaseWork):
@@ -364,6 +350,9 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
 
         self.apply_interp(piv_results)
 
+        deltaxs_approx = piv_results.deltaxs_approx
+        deltays_approx = piv_results.deltays_approx
+
         debug = False
         if debug:
             import matplotlib.pyplot as plt
@@ -373,8 +362,8 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
                       deltaxs_approx, deltays_approx)
             plt.show()
 
-        deltaxs_approx = np.round(piv_results.deltaxs_approx).astype('int32')
-        deltays_approx = np.round(piv_results.deltays_approx).astype('int32')
+        deltaxs_approx = np.round(deltaxs_approx).astype('int32')
+        deltays_approx = np.round(deltays_approx).astype('int32')
 
         deltaxs, deltays, xs, ys, correls_max, correls, errors = \
             self._loop_vectors(im0, im1,
@@ -435,108 +424,3 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
         iys1_pad = iys1 + self.npad
 
         return xs, ys, ixs0_pad, iys0_pad, ixs1_pad, iys1_pad
-
-
-class WorkFIX(BaseWork):
-    """Fix the displacement vectors."""
-
-    @classmethod
-    def create_default_params(cls):
-        params = ParamContainer(tag='params')
-        cls._complete_params_with_default(params)
-        return params
-
-    @classmethod
-    def _complete_params_with_default(cls, params, tag='fix'):
-
-        params._set_child(tag, attribs={
-            'correl_min': 0.4,
-            'delta_diff': 0.1,
-            'delta_max': 4,
-            'remove_error_vec': True})
-
-    def __init__(self, params):
-        self.params = params
-
-    def calcul(self, piv_results):
-
-        deltaxs = piv_results.deltaxs
-        deltays = piv_results.deltays
-
-        for ierr in piv_results.errors.keys():
-            deltaxs[ierr] = np.nan
-            deltays[ierr] = np.nan
-
-        def put_to_nan(inds, explanation):
-            for ind in inds:
-                ind = int(ind)
-                deltaxs[ind] = np.nan
-                deltays[ind] = np.nan
-                try:
-                    piv_results.errors[ind] += ' + ' + explanation
-                except KeyError:
-                    piv_results.errors[ind] = explanation
-
-        # condition correl < correl_min
-        inds = (piv_results.correls_max < self.params.correl_min).nonzero()[0]
-        put_to_nan(inds, 'correl < correl_min')
-
-        # condition delta2 < delta_max2
-        delta_max2 = self.params.delta_max**2
-        delta2s = deltaxs**2 + deltays**2
-        inds = (delta2s > delta_max2).nonzero()[0]
-        put_to_nan(inds, 'delta2 < delta_max2')
-
-        # warning condition neighbour not implemented...
-
-        return piv_results
-
-
-class WorkPIV(BaseWork):
-    """Main work for PIV with multipass."""
-
-    @classmethod
-    def create_default_params(cls):
-        params = ParamContainer(tag='params')
-        cls._complete_params_with_default(params)
-        return params
-
-    @classmethod
-    def _complete_params_with_default(cls, params):
-        FirstWorkPIV._complete_params_with_default(params)
-        WorkFIX._complete_params_with_default(params)
-
-        params._set_child(
-            'multipass',
-            attribs={'number': 0,
-                     'use_tps': True})
-
-    def __init__(self, params=None):
-        self.params = params
-        self.work_piv0 = FirstWorkPIV(params)
-        self.work_fix0 = WorkFIX(params.fix)
-
-        if params.multipass.number > 0:
-            self.work_piv1 = WorkPIVFromDisplacement(params)
-            self.work_fix1 = WorkFIX(params.fix)
-
-    def calcul(self, couple):
-
-        piv_result = self.work_piv0.calcul(couple)
-        piv_result = self.work_fix0.calcul(piv_result)
-
-        results = MultipassPIVResults()
-        results.append(piv_result)
-
-        if self.params.multipass.number > 0:
-            piv_result1 = self.work_piv1.calcul(piv_result)
-            piv_result1 = self.work_fix1.calcul(piv_result)
-            self.work_piv1.apply_interp(piv_result1)
-            results.append(piv_result1)
-
-        return results
-
-    def _prepare_with_image(self, im):
-        self.work_piv0._prepare_with_image(im)
-        if self.params.multipass.number > 0:
-            self.work_piv1._prepare_with_image(im)

@@ -1,3 +1,24 @@
+"""PIV objects
+==============
+
+.. autoclass:: ArrayCouple
+   :members:
+   :private-members:
+
+.. autoclass:: HeavyPIVResults
+   :members:
+   :private-members:
+
+.. autoclass:: MultipassPIVResults
+   :members:
+   :private-members:
+
+.. autoclass:: LightPIVResults
+   :members:
+   :private-members:
+
+"""
+
 
 import os
 
@@ -11,6 +32,7 @@ from .display import display
 from .. import imread
 
 import numpy as np
+
 
 class DataObject(object):
     pass
@@ -78,7 +100,9 @@ class HeavyPIVResults(DataObject):
                  couple=None, params=None,
                  str_path=None, hdf5_object=None):
         self._keys_to_be_saved = [
-            'xs', 'ys', 'deltaxs', 'deltays', 'correls_max', 'deltaxs_approx', 'deltays_approx','new_positions','deltaxs_tps','deltays_tps','ixvecs_grid','iyvecs_grid']
+            'xs', 'ys', 'deltaxs', 'deltays', 'correls_max', 'deltaxs_approx',
+            'deltays_approx', 'new_positions', 'deltaxs_tps', 'deltays_tps',
+            'ixvecs_grid', 'iyvecs_grid']
         if hdf5_object is not None:
             if couple is not None:
                 self.couple = couple
@@ -132,7 +156,7 @@ class HeavyPIVResults(DataObject):
             path_file = os.path.join(path, name)
         else:
             path_file = name
-        
+
         if out_format == 'uvmat':
             with h5netcdf.File(path_file, 'w') as f:
                 self._save_as_uvmat(f)
@@ -143,8 +167,7 @@ class HeavyPIVResults(DataObject):
 
                 for i, r in enumerate(self.passes):
                     r._save_in_hdf5_object(f, tag='piv{}'.format(i))
-            
-        
+
         return self
 
     def _save_in_hdf5_object(self, f, tag='piv0'):
@@ -195,9 +218,8 @@ class HeavyPIVResults(DataObject):
         keys = g['keys']
         values = g['values']
         self.errors = {k: v for k, v in zip(keys, values)}
-        
 
-        
+
 class MultipassPIVResults(DataObject):
 
     def __init__(self, str_path=None):
@@ -258,72 +280,91 @@ class MultipassPIVResults(DataObject):
                     hdf5_object=g, couple=self.couple, params=self.params))
 
     def _save_as_uvmat(self, f):
-        
-        f.dimensions = {'nb_coord': 2, 
-                        'nb_bounds' : 2}
-                        
-                        
+
+        f.dimensions = {'nb_coord': 2,
+                        'nb_bounds': 2}
+
         for i, ir in enumerate(self.passes):
-            
-            iuvmat = i+1
-            f.dimensions['nb_vec_{}'.format(iuvmat)] = ir.xs.size
+
+            iuvmat = i + 1
+            str_i = str(iuvmat)
+            str_nb_vec = 'nb_vec_' + str_i
+            f.dimensions[str_nb_vec] = ir.xs.size
 
             tmp = np.zeros(ir.deltaxs.shape).astype('float32')
             inds = np.where(~np.isnan(ir.deltaxs))
 
-            f.create_variable('Civ{}_X'.format(iuvmat), ('nb_vec_{}'.format(iuvmat),), 
-                              data=ir.xs)    
-            f.create_variable('Civ{}_Y'.format(iuvmat), ('nb_vec_{}'.format(iuvmat),), 
-                              data=ir.ys)   
-            f.create_variable('Civ{}_U'.format(iuvmat), ('nb_vec_{}'.format(iuvmat),), 
-                              data=np.nan_to_num(ir.deltaxs))
-            f.create_variable('Civ{}_V'.format(iuvmat), ('nb_vec_{}'.format(iuvmat),), 
-                              data=np.nan_to_num(ir.deltays))
-            
-            if ir.params.multipass.use_tps:    
-                try:                    
-                    f.dimensions['nb_subdomain_{}'.format(iuvmat)] = np.shape(ir.deltaxs_tps)[0]       
-                    f.dimensions['nb_tps{}'.format(iuvmat)] = np.shape(ir.deltaxs_tps)[1]
+            f.create_variable(
+                'Civ{}_X'.format(iuvmat), (str_nb_vec,),
+                data=ir.xs)
+            f.create_variable(
+                'Civ{}_Y'.format(iuvmat), (str_nb_vec,),
+                data=ir.ys)
+            f.create_variable(
+                'Civ{}_U'.format(iuvmat), (str_nb_vec,),
+                data=np.nan_to_num(ir.deltaxs))
+            f.create_variable(
+                'Civ{}_V'.format(iuvmat), (str_nb_vec,),
+                data=np.nan_to_num(ir.deltays))
+
+            if ir.params.multipass.use_tps:
+                str_nb_subdom = 'nb_subdomain_{}'.format(iuvmat)
+                try:
+                    f.dimensions[str_nb_subdom] = \
+                        np.shape(ir.deltaxs_tps)[0]
+                    f.dimensions['nb_tps{}'.format(iuvmat)] = \
+                        np.shape(ir.deltaxs_tps)[1]
                     tmp[inds] = ir.deltaxs_smooth
-                    f.create_variable('Civ{}_U_smooth'.format(iuvmat), ('nb_vec_{}'.format(iuvmat),), 
-                                      data=tmp)      
+                    f.create_variable('Civ{}_U_smooth'.format(iuvmat),
+                                      (str_nb_vec,), data=tmp)
                     tmp[inds] = ir.deltays_smooth
-                    f.create_variable('Civ{}_V_smooth'.format(iuvmat), ('nb_vec_{}'.format(iuvmat),), 
-                                      data=tmp)
-                    f.create_variable('Civ{}_U_tps'.format(iuvmat), ('nb_subdomain_{}'.format(iuvmat),'nb_vec_tps_{}'.format(iuvmat)), 
-                                      data=ir.deltaxs_tps)
-                    f.create_variable('Civ{}_V_tps'.format(iuvmat), ('nb_subdomain_{}'.format(iuvmat),'nb_vec_tps_{}'.format(iuvmat)), 
-                                      data=ir.deltays_tps)            
-                                  
-                    tmp = [None] * f.dimensions['nb_subdomain_{}'.format(iuvmat)]
-                    for j in range(f.dimensions['nb_subdomain_{}'.format(iuvmat)]):
+                    f.create_variable('Civ{}_V_smooth'.format(iuvmat),
+                                      (str_nb_vec,), data=tmp)
+                    f.create_variable(
+                        'Civ{}_U_tps'.format(iuvmat),
+                        (str_nb_subdom, 'nb_vec_tps_{}'.format(iuvmat)),
+                        data=ir.deltaxs_tps)
+                    f.create_variable(
+                        'Civ{}_V_tps'.format(iuvmat),
+                        (str_nb_subdom,
+                         'nb_vec_tps_{}'.format(iuvmat)),
+                        data=ir.deltays_tps)
+                    tmp = [None] * f.dimensions[str_nb_subdom]
+                    for j in range(f.dimensions[str_nb_subdom]):
                         tmp[j] = np.shape(ir.deltaxs_tps[j])[0]
-                    f.create_variable('Civ{}_NbCentres'.format(iuvmat), ('nb_subdomain_{}'.format(iuvmat),),
-                                      data=tmp)
+                    f.create_variable(
+                        'Civ{}_NbCentres'.format(iuvmat),
+                        ('nb_subdomain_{}'.format(iuvmat),),
+                        data=tmp)
                 except:
-                    print('no tps field at passe n {}'.format(iuvmat) )
-            
-            
-            f.create_variable('Civ{}_C'.format(iuvmat), ('nb_vec_{}'.format(iuvmat),), 
+                    print('no tps field at passe n {}'.format(iuvmat))
+
+            f.create_variable('Civ{}_C'.format(iuvmat), (str_nb_vec,),
                               data=ir.correls_max)
             tmp = np.zeros(ir.deltaxs.shape).astype('float32')
             indsnan = np.where(np.isnan(ir.deltaxs))
             tmp[indsnan] = 1
-            f.create_variable('Civ{}_FF'.format(iuvmat), ('nb_vec_{}'.format(iuvmat),), 
-                              data=tmp)                           
-        
-            # mettre bonne valeur de F correspondant a self.piv0.error... 
-            f.create_variable('Civ{}_F'.format(iuvmat), ('nb_vec_{}'.format(iuvmat),), 
+            f.create_variable('Civ{}_FF'.format(iuvmat), (str_nb_vec,),
                               data=tmp)
-            
 
-            ## AJOUTER
-            # f.create_variable('Civ1_Coord_tps', ('nb_subdomain_1','nb_coord','nb_tps_1'), 
-            #                   data=???) 
-        
-        
-        # AJOUTER attributes
+            # mettre bonne valeur de F correspondant a self.piv0.error...
+            f.create_variable('Civ{}_F'.format(iuvmat), (str_nb_vec,),
+                              data=tmp)
 
+            ## ADD
+            # f.create_variable('Civ1_Coord_tps',
+            #                   ('nb_subdomain_1', 'nb_coord', 'nb_tps_1'),
+            #                   data=???)
+
+        # ADD attributes
+
+    def make_light_result(self, ind_pass=-1):
+        piv = self.passes[ind_pass]
+        return LightPIVResults(
+            piv.deltaxs_approx, piv.deltays_approx,
+            piv.ixvecs_grid, piv.iyvecs_grid,
+            couple=piv.couple,
+            params=piv.params)
 
 
 class LightPIVResults(DataObject):
@@ -333,9 +374,9 @@ class LightPIVResults(DataObject):
                  correls_max=None, correls=None,
                  couple=None, params=None,
                  str_path=None, hdf5_object=None):
-                     
+
         self._keys_to_be_saved = ['xs', 'ys', 'deltaxs', 'deltays']
-        
+
         if hdf5_object is not None:
             if couple is not None:
                 self.couple = couple
@@ -352,11 +393,11 @@ class LightPIVResults(DataObject):
 
         self.deltaxs = deltaxs_approx
         self.deltays = deltays_approx
-        self.couple = couple        
+        self.couple = couple
         self.params = params
         self.ys = ixvecs_grid
         self.xs = iyvecs_grid
-    
+
     def _get_name(self):
 
         serie = self.couple.serie
@@ -367,7 +408,8 @@ class LightPIVResults(DataObject):
         str_ind1 = serie._compute_strindices_from_indices(
             *[inds[1] - 1 for inds in serie.get_index_slices()])
 
-        name = ('piv_' + serie.base_name + str_ind0 + '-' + str_ind1 + '_light.h5')
+        name = ('piv_' + serie.base_name + str_ind0 + '-' + str_ind1 +
+                '_light.h5')
         return name
 
     def save(self, path=None, out_format='uvmat'):
@@ -384,11 +426,11 @@ class LightPIVResults(DataObject):
             f.attrs['module_name'] = 'fluidimage.data_objects.piv'
 
             self._save_in_hdf5_object(f, tag='piv')
-            
+
         return self
 
     def _save_in_hdf5_object(self, f, tag='piv'):
-            
+
         if 'class_name' not in f.attrs.keys():
             f.attrs['class_name'] = 'LightPIVResults'
             f.attrs['module_name'] = 'fluidimage.data_objects.piv'
@@ -408,7 +450,7 @@ class LightPIVResults(DataObject):
         with h5py.File(path, 'r') as f:
             self.params = ParamContainer(hdf5_object=f['params'])
             self.couple = ArrayCouple(hdf5_parent=f)
-        
+
         with h5py.File(path, 'r') as f:
             self._load_from_hdf5_object(f['piv'])
 
@@ -418,13 +460,10 @@ class LightPIVResults(DataObject):
 
         if not hasattr(self, 'params'):
             self.params = ParamContainer(hdf5_object=f['params'])
-            
+
         if not hasattr(self, 'couple'):
             self.couple = ArrayCouple(hdf5_parent=f)
 
         for k in self._keys_to_be_saved:
             dataset = g_piv[k]
             self.__dict__[k] = dataset[:]
-
-
-        

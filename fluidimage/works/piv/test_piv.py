@@ -1,7 +1,7 @@
 
 import unittest
 
-from fluiddyn.util.serieofarrays import SeriesOfArrays
+from fluidimage import SeriesOfArrays
 from fluidimage.works.piv import WorkPIV
 
 import os
@@ -21,7 +21,8 @@ class TestPIV(unittest.TestCase):
         piv = WorkPIV(params=params)
 
         series = SeriesOfArrays(
-            os.path.join(here, '../../image_samples/Oseen/Images'), 'i+1:i+3')
+            os.path.join(here, '../../../image_samples/Oseen/Images'),
+            'i+1:i+3')
         serie = series.get_serie_from_index(0)
 
         piv.calcul(serie)
