@@ -1,6 +1,10 @@
 
 from fluidimage.topologies.piv import TopologyPIV
 
+from fluidimage import config_logging
+config_logging('info')
+
+
 params = TopologyPIV.create_default_params()
 
 # path = '../../image_samples/Oseen/Images/Oseen_center*'
@@ -12,11 +16,12 @@ path = '../../image_samples/Karman/Images'
 
 params.series.path = path
 
+params.piv0.shape_crop_im0 = 32
+params.multipass.number = 2
+params.multipass.use_tps = False
+
 topology = TopologyPIV(params)
 
-topology.compute(sequential=False)
+# topology.compute(sequential=False)
 
 # topology.make_code_graphviz('topo.dot')
-# then the graph can be produced with the command:
-# dot topo.dot -Tpng -o topo.png
-# dot topo.dot -Tx11

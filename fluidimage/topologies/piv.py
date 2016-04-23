@@ -1,9 +1,9 @@
 
 import os
 
-from fluiddyn.util.paramcontainer import ParamContainer
-from fluiddyn.util.serieofarrays import \
-    SerieOfArraysFromFiles, SeriesOfArrays
+from fluiddyn.util.query import query
+
+from .. import ParamContainer, SerieOfArraysFromFiles, SeriesOfArrays
 
 from .base import TopologyBase
 
@@ -12,6 +12,7 @@ from .waiting_queues.base import (
     WaitingQueueMakeCouple, WaitingQueueLoadImage)
 
 from ..works.piv import WorkPIV
+from ..data_objects.piv import get_name_piv
 
 
 class TopologyPIV(TopologyBase):
@@ -32,6 +33,13 @@ class TopologyPIV(TopologyBase):
                                              'strcouple': 'i+1:i+3',
                                              'ind_stop': None})
 
+        params._set_child('saving', attribs={'path': None,
+                                             'how': 'ask',
+                                             'postfix': 'piv'})
+
+        params.saving._set_doc(
+            "`how` can be 'ask', 'new_dir', 'complete' or 'recompute'.")
+
         WorkPIV._complete_params_with_default(params)
         return params
 
@@ -49,11 +57,46 @@ class TopologyPIV(TopologyBase):
             serie_arrays, params.series.strcouple,
             ind_stop=params.series.ind_stop)
 
+        if params.saving.path is not None:
+            raise NotImplementedError
+
         path_dir = self.series.serie.path_dir
-        path_dir_result = path_dir + '.piv'
+        path_dir_result = path_dir + '.' + params.saving.postfix
+
+        if os.path.exists(path_dir_result):
+            how = params.saving.how
+            if how == 'ask':
+                answer = query(
+                    'The directory {} '.format(path_dir_result) +
+                    'already exists. What do you want to do?\n'
+                    'New dir, Complete, Recompute or Stop?\n')
+
+                while answer.lower() not in ['n', 'c', 'r', 's']:
+                    answer = query(
+                        "The answer should be in ['n', 'c', 'r', 's']\n"
+                        "Please type your answer again...\n")
+
+                if answer == 's':
+                    raise ValueError('Stopped by the user.')
+                elif answer == 'n':
+                    how = 'new_dir'
+                elif answer == 'c':
+                    how = 'complete'
+                elif answer == 'r':
+                    how = 'recompute'
+
+            if how == 'new_dir':
+                i = 0
+                while os.path.exists(path_dir_result + str(i)):
+                    i += 1
+                path_dir_result += str(i)
+
+        self.how_saving = how
 
         if not os.path.exists(path_dir_result):
             os.mkdir(path_dir_result)
+
+        self.path_dir_result = path_dir_result
 
         self.results = {}
         self.wq_piv = WaitingQueueThreading(
@@ -75,7 +118,26 @@ class TopologyPIV(TopologyBase):
         self.add_series(self.series)
 
     def add_series(self, series):
-        names = series.get_name_all_files()
+
+        if self.how_saving == 'complete':
+            series_in = series
+            series = []
+            names = []
+            for serie in series_in:
+                name_piv = get_name_piv(serie, prefix='piv')
+                if os.path.exists(os.path.join(
+                        self.path_dir_result, name_piv)):
+                    continue
+                names_serie = serie.get_name_files()
+                for name in names_serie:
+                    if name not in names:
+                        names.append(name)
+
+                series.append(serie)
+            if len(series) == 0:
+                return
+        else:
+            names = series.get_name_all_files()
 
         self.wq0.add_name_files(names)
         self.wq_images.add_series(series)

@@ -34,6 +34,17 @@ from .. import imread
 import numpy as np
 
 
+def get_name_piv(serie, prefix='piv'):
+    str_ind0 = serie._compute_strindices_from_indices(
+        *[inds[0] for inds in serie.get_index_slices()])
+
+    str_ind1 = serie._compute_strindices_from_indices(
+        *[inds[1] - 1 for inds in serie.get_index_slices()])
+
+    name = (prefix + '_' + serie.base_name + str_ind0 + '-' + str_ind1 + '.h5')
+    return name
+
+
 class DataObject(object):
     pass
 
@@ -136,17 +147,8 @@ class HeavyPIVResults(DataObject):
             im0, im1, self)
 
     def _get_name(self):
-
         serie = self.couple.serie
-
-        str_ind0 = serie._compute_strindices_from_indices(
-            *[inds[0] for inds in serie.get_index_slices()])
-
-        str_ind1 = serie._compute_strindices_from_indices(
-            *[inds[1] - 1 for inds in serie.get_index_slices()])
-
-        name = ('piv_' + serie.base_name + str_ind0 + '-' + str_ind1 + '.h5')
-        return name
+        return get_name_piv(serie, prefix='piv')
 
     def save(self, path=None, out_format='uvmat'):
 

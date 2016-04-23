@@ -22,6 +22,8 @@ obtained as ``dot(U_tps, EMDX)`` and ``dot(U_tps, EMDY)``, where
 
 from __future__ import division
 
+from logging import debug
+
 import numpy as np
 
 from .thin_plate_spline import compute_tps_coeff, compute_tps_matrix
@@ -54,7 +56,8 @@ class ThinPlateSplineSubdom(object):
         nb_subdomy = int(np.ceil(np.sqrt(nb_subdom * aspect_ratio)))
         nb_subdomy = nb_subdomy or 1
 
-        print('nb_subdomx, nb_subdomy:', nb_subdomx, nb_subdomy)
+        debug('nb_subdomx: {} ; nb_subdomy: {}'.format(
+            nb_subdomx, nb_subdomy))
 
         nb_subdom = nb_subdomx * nb_subdomy
 

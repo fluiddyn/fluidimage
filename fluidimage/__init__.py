@@ -11,4 +11,7 @@ try:
 except ImportError:
     from scipy.misc import imread
 
-from fluiddyn.util.serieofarrays import SeriesOfArrays
+from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles, SeriesOfArrays
+from fluiddyn.util.paramcontainer import ParamContainer
+
+from fluiddyn.util import config_logging

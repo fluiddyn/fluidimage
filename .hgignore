@@ -32,8 +32,9 @@ doc/generated/*
 */profile.pstats
 */profile*.png
 
-image_samples/*/Images.piv/*.h5
+image_samples/*/Images.piv*/*.h5
 
 *_pythran.cpp
 
 fluidimage/works/piv/*.h5
+fluidimage/**.dot
