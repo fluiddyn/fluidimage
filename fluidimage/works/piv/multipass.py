@@ -1,10 +1,5 @@
-"""Piv work and subworks
-========================
-
-.. todo::
-
-   - better multipass
-
+"""Multipass PIV
+================
 
 .. autoclass:: WorkPIV
    :members:
@@ -13,6 +8,8 @@
 """
 
 from __future__ import print_function
+
+from copy import copy
 
 from fluiddyn.util.paramcontainer import ParamContainer
 
@@ -40,35 +37,57 @@ class WorkPIV(BaseWork):
 
         params._set_child(
             'multipass',
-            attribs={'number': 0,
-                     'use_tps': True})
+            attribs={'number': 1,
+                     'use_tps': True,
+                     'coeff_zoom': 2})
 
     def __init__(self, params=None):
         self.params = params
-        self.work_piv0 = FirstWorkPIV(params)
-        self.work_fix0 = WorkFIX(params.fix)
 
-        if params.multipass.number > 0:
-            self.work_piv1 = WorkPIVFromDisplacement(params)
-            self.work_fix1 = WorkFIX(params.fix)
+        self.works_piv = []
+        self.works_fix = []
+
+        self.works_piv.append(FirstWorkPIV(params))
+        self.works_fix.append(WorkFIX(params.fix))
+
+        coeff_zoom = params.multipass.coeff_zoom
+
+        if isinstance(coeff_zoom, int):
+            coeffs_zoom = [coeff_zoom] * (params.multipass.number - 1)
+        elif len(coeff_zoom) == params.multipass.number - 1:
+            coeffs_zoom = coeff_zoom
+        else:
+            raise ValueError(
+                'params.multipass.coeff_zoom has to be an integer or '
+                'an iterable of length params.multipass.number - 1')
+
+        shape_crop_im0 = copy(params.piv0.shape_crop_im0)
+        for i in range(1, params.multipass.number):
+
+            shape_crop_im0 = copy(shape_crop_im0/coeffs_zoom[i-1])
+
+            self.works_piv.append(
+                WorkPIVFromDisplacement(
+                    params, index_pass=i, shape_crop_im0=shape_crop_im0))
+            self.works_fix.append(WorkFIX(params.fix))
 
     def calcul(self, couple):
 
-        piv_result = self.work_piv0.calcul(couple)
-        piv_result = self.work_fix0.calcul(piv_result)
-
         results = MultipassPIVResults()
-        results.append(piv_result)
 
-        if self.params.multipass.number > 0:
-            piv_result1 = self.work_piv1.calcul(piv_result)
-            piv_result1 = self.work_fix1.calcul(piv_result)
-            self.work_piv1.apply_interp(piv_result1)
-            results.append(piv_result1)
+        # just for simplicity
+        piv_result = couple
+
+        for i, work_piv in enumerate(self.works_piv):
+            work_fix = self.works_fix[i]
+            piv_result = work_piv.calcul(piv_result)
+            piv_result = work_fix.calcul(piv_result)
+            results.append(piv_result)
+
+        work_piv.apply_interp(piv_result, last=True)
 
         return results
 
     def _prepare_with_image(self, im):
-        self.work_piv0._prepare_with_image(im)
-        if self.params.multipass.number > 0:
-            self.work_piv1._prepare_with_image(im)
+        for work_piv in self.works_piv:
+            work_piv._prepare_with_image(im)

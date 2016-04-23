@@ -70,9 +70,13 @@ class BaseWorkPIV(BaseWork):
 
         self.params = params
 
-        shape_crop_im0 = params.piv0.shape_crop_im0
         overlap = params.piv0.grid.overlap
+        if overlap >= 1:
+            raise ValueError(
+                'params.piv0.grid.overlap has to be smaller than 1')
+        self.overlap = overlap
 
+        shape_crop_im0 = params.piv0.shape_crop_im0
         self.shape_crop_im0 = shape_crop_im0
         if isinstance(shape_crop_im0, int):
             n_interrogation_window = shape_crop_im0
@@ -81,7 +85,6 @@ class BaseWorkPIV(BaseWork):
                 'For now, shape_crop_im0 has to be an integer!')
 
         niw = self.n_interrogation_window = n_interrogation_window
-        self.overlap = overlap
 
         self.niwo2 = niw/2
 
@@ -110,7 +113,9 @@ class BaseWorkPIV(BaseWork):
         self.imshape = len_y, len_x = im.shape
         niw = self.n_interrogation_window
         niwo2 = self.niwo2
+
         step = niw - int(np.round(self.overlap*niw))
+        assert step >= 1
 
         ixvecs = np.arange(niwo2, len_x-niwo2, step, dtype=int)
         iyvecs = np.arange(niwo2, len_y-niwo2, step, dtype=int)
@@ -230,54 +235,7 @@ class BaseWorkPIV(BaseWork):
         subim = np.array(subim, dtype=np.float32)
         return subim - subim.mean()
 
-
-class FirstWorkPIV(BaseWorkPIV):
-    """Basic PIV pass."""
-    @classmethod
-    def _complete_params_with_default(cls, params):
-        params._set_child('piv0', attribs={
-            'shape_crop_im0': 48,
-            'shape_crop_im1': None,
-            'delta_max': None,
-            'delta_mean': None,
-            'method_correl': 'fftw',
-            'method_subpix': 'centroid'})
-
-        params.piv0._set_child('grid', attribs={
-            'overlap': 0.5,
-            'from': 'overlap'})
-
-        params._set_child('mask', attribs={})
-
-
-class WorkPIVFromDisplacement(BaseWorkPIV):
-    """Work PIV working from already computed displacement (for multipass)."""
-
-    def __init__(self, params=None):
-
-        if params is None:
-            params = self.__class__.create_default_params()
-
-        self.params = params
-
-        shape_crop_im0 = params.piv0.shape_crop_im0
-        overlap = params.piv0.grid.overlap
-
-        self.shape_crop_im0 = shape_crop_im0
-        if isinstance(shape_crop_im0, int):
-            n_interrogation_window = shape_crop_im0
-        else:
-            raise NotImplementedError(
-                'For now, shape_crop_im0 has to be an integer!')
-
-        niw = self.n_interrogation_window = n_interrogation_window/2
-        self.overlap = overlap
-
-        self.niwo2 = niw/2
-
-        self._init_correl()
-
-    def apply_interp(self, piv_results):
+    def apply_interp(self, piv_results, last=False):
         couple = piv_results.couple
 
         im0, im1 = couple.get_arrays()
@@ -296,10 +254,11 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
         deltaxs = piv_results.deltaxs[selection]
         deltays = piv_results.deltays[selection]
 
-        if self.params.multipass.use_tps:
+        if self.params.multipass.use_tps is True or \
+           self.params.multipass.use_tps == 'last' and last:
             # compute TPS coef
             smoothing_coef = 0.5
-            subdom_size = 400
+            subdom_size = 250
 
             tps = ThinPlateSplineSubdom(
                 centers, subdom_size, smoothing_coef,
@@ -320,21 +279,61 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
             # displacement int32 with TPS
             piv_results.deltaxs_approx = tps.compute_eval(deltaxs_tps)
             piv_results.deltays_approx = tps.compute_eval(deltays_tps)
-
         else:
             piv_results.deltaxs_approx = griddata(centers, deltaxs,
                                                   (self.ixvecs, self.iyvecs))
             piv_results.deltays_approx = griddata(centers, deltays,
                                                   (self.ixvecs, self.iyvecs))
 
+
+class FirstWorkPIV(BaseWorkPIV):
+    """Basic PIV pass."""
+    index_pass = 0
+
+    @classmethod
+    def _complete_params_with_default(cls, params):
+        params._set_child('piv0', attribs={
+            'shape_crop_im0': 48,
+            'shape_crop_im1': None,
+            'delta_max': None,
+            'delta_mean': None,
+            'method_correl': 'fftw',
+            'method_subpix': 'centroid'})
+
+        params.piv0._set_child('grid', attribs={
+            'overlap': 0.5,
+            'from': 'overlap'})
+
+        params._set_child('mask', attribs={})
+
+
+class WorkPIVFromDisplacement(BaseWorkPIV):
+    """Work PIV working from already computed displacement (for multipass)."""
+
+    def __init__(self, params=None, index_pass=1, shape_crop_im0=None):
+
+        if params is None:
+            params = self.__class__.create_default_params()
+
+        self.params = params
+        self.index_pass = index_pass
+
+        self.shape_crop_im = shape_crop_im0
+        if isinstance(shape_crop_im0, int):
+            n_interrogation_window = shape_crop_im0
+        else:
+            raise NotImplementedError(
+                'For now, shape_crop_im0 has to be an integer!')
+
+        niw = self.n_interrogation_window = n_interrogation_window
+        self.overlap = params.piv0.grid.overlap
+
+        self.niwo2 = niw/2
+
+        self._init_correl()
+
     def calcul(self, piv_results):
         """Calcul the piv.
-
-        .. todo::
-
-           Write the interpolation in a more general way (with a
-           class) such that we can use other interpolation methods (in
-           particular methods using scipy.interpolate.griddata).
 
         .. todo::
 

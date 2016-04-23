@@ -8,15 +8,20 @@ from fluidimage.data_objects.piv import LightPIVResults
 
 params = WorkPIV.create_default_params()
 
-# for a very short computation
-params.piv0.shape_crop_im0 = 24
-params.piv0.grid.overlap = 0.
+# # for a very short computation
+# params.piv0.shape_crop_im0 = 128
+# params.piv0.grid.overlap = 0.
 
-params.piv0.method_subpix = 'centroid'
-params.piv0.method_correl = 'fftw'
+# params.piv0.method_subpix = 'centroid'
+# params.piv0.method_correl = 'fftw'
 
-params.multipass.number = 2
-params.multipass.use_tps = True
+# params.multipass.number = 3
+params.multipass.use_tps = False
+# params.multipass.coeff_zoom = [2, 2]
+
+
+params.piv0.shape_crop_im0 = 16
+# params.piv0.grid.overlap = 10
 
 piv = WorkPIV(params=params)
 
