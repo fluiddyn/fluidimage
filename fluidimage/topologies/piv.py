@@ -1,5 +1,7 @@
 
 import os
+from copy import deepcopy
+from logging import debug
 
 from fluiddyn.util.query import query
 
@@ -63,8 +65,8 @@ class TopologyPIV(TopologyBase):
         path_dir = self.series.serie.path_dir
         path_dir_result = path_dir + '.' + params.saving.postfix
 
+        how = params.saving.how
         if os.path.exists(path_dir_result):
-            how = params.saving.how
             if how == 'ask':
                 answer = query(
                     'The directory {} '.format(path_dir_result) +
@@ -120,10 +122,9 @@ class TopologyPIV(TopologyBase):
     def add_series(self, series):
 
         if self.how_saving == 'complete':
-            series_in = series
-            series = []
             names = []
-            for serie in series_in:
+            index_series = []
+            for i, serie in enumerate(series):
                 name_piv = get_name_piv(serie, prefix='piv')
                 if os.path.exists(os.path.join(
                         self.path_dir_result, name_piv)):
@@ -133,7 +134,12 @@ class TopologyPIV(TopologyBase):
                     if name not in names:
                         names.append(name)
 
-                series.append(serie)
+                index_series.append(i)
+
+            series.set_index_series(index_series)
+
+            debug(repr(names))
+            debug(repr([serie.get_name_files() for serie in series]))
             if len(series) == 0:
                 return
         else:

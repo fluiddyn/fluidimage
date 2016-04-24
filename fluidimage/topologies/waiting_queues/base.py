@@ -1,6 +1,7 @@
 
 import os
 from copy import deepcopy
+from logging import info
 
 import multiprocessing
 import threading
@@ -72,12 +73,15 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
         if sequential:
             return WaitingQueueBase.check_and_act(self, sequential=sequential)
 
-        if self.topology.nb_workers_cpu >= self.topology.nb_cores:
+        if self.do_use_cpu and \
+           self.topology.nb_workers_cpu >= self.topology.nb_cores:
             return
 
         if (isinstance(self.destination, WaitingQueueBase) and
                 len(self.destination) >= self.topology.nb_items_lim):
             return
+
+        info('launch work ' + repr(self.work))
 
         k = self._keys.pop(0)
         o = self.pop(k)
