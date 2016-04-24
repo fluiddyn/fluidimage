@@ -20,7 +20,8 @@ if on_rtd:
     # this package comes from fluiddyn
     from fluidrtd import mock_modules
     mock_modules([
-        'h5py', 'scipy', 'scipy.ndimage', 'scipy.signal', 'pyfftw', 'theano'])
+        'h5py', 'h5netcdf', 'scipy', 'scipy.ndimage', 'scipy.signal',
+        'pyfftw', 'theano'])
 
 import fluidimage
 
