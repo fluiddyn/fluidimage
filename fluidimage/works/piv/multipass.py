@@ -41,6 +41,12 @@ class WorkPIV(BaseWork):
                      'use_tps': True,
                      'coeff_zoom': 2})
 
+        params.multipass._set_doc(
+            """Multipass PIV parameters:
+
+`coeff_zoom` can be an integer or a iterable of size `number - 1`.
+""")
+
     def __init__(self, params=None):
         self.params = params
 

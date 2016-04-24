@@ -7,14 +7,14 @@ config_logging('info')
 
 params = TopologyPIV.create_default_params()
 
-params.series.path = '../image_samples/Karman/Images'
+params.series.path = '../../image_samples/Karman/Images'
 
 params.piv0.shape_crop_im0 = 32
 params.multipass.number = 2
-params.multipass.use_tps = True
+params.multipass.use_tps = False
 
-params.saving.how = 'complete'
-params.saving.postfix = 'piv_poum'
+# params.saving.how = 'complete'
+params.saving.postfix = 'piv_example'
 
 topology = TopologyPIV(params)
 

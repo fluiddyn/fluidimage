@@ -39,6 +39,7 @@ User Guide
    overview
    install
    tutorial
+   examples
 
 
 Modules Reference

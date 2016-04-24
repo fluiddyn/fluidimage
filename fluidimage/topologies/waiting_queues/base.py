@@ -1,7 +1,7 @@
 
 import os
 from copy import deepcopy
-from logging import info
+import logging
 
 import multiprocessing
 import threading
@@ -9,6 +9,9 @@ import Queue
 
 from ...data_objects.piv import ArrayCouple
 from ...works import load_image
+
+
+logger = logging.getLogger('fluidimage')
 
 
 class WaitingQueueBase(dict):
@@ -81,7 +84,7 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
                 len(self.destination) >= self.topology.nb_items_lim):
             return
 
-        info('launch work ' + repr(self.work))
+        logger.info('launch work ' + repr(self.work))
 
         k = self._keys.pop(0)
         o = self.pop(k)

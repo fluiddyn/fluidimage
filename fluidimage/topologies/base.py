@@ -1,13 +1,22 @@
+"""Topology base
+================
 
+.. autoclass:: TopologyBase
+   :members:
+   :private-members:
+
+"""
 from __future__ import print_function
 
 from time import sleep
 from multiprocessing import cpu_count
-from logging import debug, info
+import logging
 from signal import signal
 
 from ..config import get_config
 from .waiting_queues.base import WaitingQueueThreading
+
+logger = logging.getLogger('fluidimage')
 
 config = get_config()
 
@@ -50,13 +59,13 @@ class TopologyBase(object):
             # slow down this loop...
             sleep(0.05)
             if self.nb_workers_cpu >= nb_cores:
-                debug('sleep {} s'.format(dt))
+                logger.debug('sleep {} s'.format(dt))
                 sleep(dt)
 
             for q in self.queues:
-                debug(q)
+                logger.debug(q)
                 if not q.is_empty():
-                    info('check_and_act for work: ' + repr(q.work))
+                    logger.info('check_and_act for work: ' + repr(q.work))
                     new_workers = q.check_and_act(sequential=sequential)
                     if new_workers is not None:
                         for worker in new_workers:
@@ -64,8 +73,8 @@ class TopologyBase(object):
                             if hasattr(worker, 'do_use_cpu') and \
                                worker.do_use_cpu:
                                 workers_cpu.append(worker)
-                    debug('workers:' + repr(workers))
-                    debug('workers_cpu:' + repr(workers_cpu))
+                    logger.debug('workers:' + repr(workers))
+                    logger.debug('workers_cpu:' + repr(workers_cpu))
 
             workers[:] = [w for w in workers
                           if not w.fill_destination()]
@@ -74,8 +83,8 @@ class TopologyBase(object):
                               if w.is_alive()]
 
         if self._has_to_stop:
-            info('Will exist because of signal 12. '
-                 'Waiting for all workers to finish...')
+            logger.info('Will exist because of signal 12. '
+                        'Waiting for all workers to finish...')
 
             q = self.queues[-1]
 
@@ -96,7 +105,7 @@ class TopologyBase(object):
                 workers[:] = [w for w in workers
                               if not w.fill_destination()]
 
-            info('Exit with signal 99.')
+            logger.info('Exit with signal 99.')
             exit(99)
 
     def make_code_graphviz(self, name_file):

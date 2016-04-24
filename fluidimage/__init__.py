@@ -14,4 +14,8 @@ except ImportError:
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles, SeriesOfArrays
 from fluiddyn.util.paramcontainer import ParamContainer
 
-from fluiddyn.util import config_logging
+from fluiddyn.util import config_logging as _cl_fluiddyn
+
+
+def config_logging(level='info', name='fluidimage'):
+    _cl_fluiddyn(level=level, name=name)

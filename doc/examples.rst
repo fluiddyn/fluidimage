@@ -1,7 +1,7 @@
-Tutorial
+Examples
 ========
 
 .. toctree::
    :maxdepth: 2
 
-   ipynb/tuto_piv
+   examples/piv_with_topology

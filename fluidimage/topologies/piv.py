@@ -1,7 +1,13 @@
+"""Topology for PIV computation
+===============================
 
+.. autoclass:: TopologyPIV
+   :members:
+   :private-members:
+
+"""
 import os
-from copy import deepcopy
-from logging import debug
+import logging
 
 from fluiddyn.util.query import query
 
@@ -15,6 +21,8 @@ from .waiting_queues.base import (
 
 from ..works.piv import WorkPIV
 from ..data_objects.piv import get_name_piv
+
+logger = logging.getLogger('fluidimage')
 
 
 class TopologyPIV(TopologyBase):
@@ -138,8 +146,8 @@ class TopologyPIV(TopologyBase):
 
             series.set_index_series(index_series)
 
-            debug(repr(names))
-            debug(repr([serie.get_name_files() for serie in series]))
+            logger.debug(repr(names))
+            logger.debug(repr([serie.get_name_files() for serie in series]))
             if len(series) == 0:
                 return
         else:

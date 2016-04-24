@@ -24,8 +24,8 @@ if on_rtd:
 
 import fluidimage
 
-# to understand what happens on readthedocs
-import fluidimage.works.piv
+from fluidrtd.ipynb_maker import ipynb_to_rst
+ipynb_to_rst()
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
