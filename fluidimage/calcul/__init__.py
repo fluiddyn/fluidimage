@@ -10,6 +10,7 @@ calculations.
 
    fft
    correl
+   subpix
    interpolate
 
 """
