@@ -5,6 +5,25 @@ Created on Fri Apr 22 15:56:57 2016
 @author: campagne8a
 """
 import numpy as np
+
+def pix2phys_UV(calib, X, Y, dx, dy, Zindex):
+    """
+        apply Tsai Calibration to the field
+        
+        Be careful: 
+        The displacement is 3 component BUT
+        it corresponds to the real 3 component displacement projected on the 
+        corresponding plane indexed by Zindex.
+    """
+    Xphys, Yphys, Zphys = pix2phys(calib, X, Y, Zindex)
+    
+    dxb, dyb, dzb = pix2phys(calib, X + dx/2.0, Y + dy/2.0, Zindex)
+    dxa, dya, dza = pix2phys(calib, X - dx/2.0, Y - dy/2.0, Zindex)
+    dxphys = dxb - dxa
+    dyphys = dyb - dya
+    dzphys = dzb - dza    
+    return Xphys, Yphys, Zphys, dxphys, dyphys, dzphys
+
 def pix2phys(calib, X, Y, Zindex):
     
     # determine position of Z0

@@ -11,7 +11,7 @@ from fluidimage.data_objects.piv import HeavyPIVResults
 #from fluidimage.calibration_3d.
 from get_calib import calib_parameters_from_uvmat
 #from fluidimage.calibration_3d.
-from apply_calib import pix2phys
+from apply_calib import pix2phys, pix2phys_UV
 
 params = TopologyPIV.create_default_params()
 params.piv0.shape_crop_im0 = 64
@@ -76,14 +76,14 @@ for pi in p:
     y = pi.ys.max() - pi.ys  
     x = pi.xs.max() - pi.xs  
 
-    Xp, Yp, Zp = pix2phys(calib, pi.xs , pi.ys, pi.level)
+    Xp, Yp, Zp, dxp, dyp, dzp = pix2phys_UV(calib, pi.xs , pi.ys, pi.deltaxs, pi.deltays, pi.level)
 
     X=np.hstack([X, Xp])
     Y=np.hstack([Y, Yp])
     Z=np.hstack([Z, Zp])
-    VX=np.hstack([VX, pi.deltaxs])
-    VY=np.hstack([VY, pi.deltays])
-    VZ=np.hstack([VZ, pi.ys*0])
+    VX=np.hstack([VX, dxp])
+    VY=np.hstack([VY, dyp])
+    VZ=np.hstack([VZ, dzp])
     
 fig = plt.figure()
 ax = fig.gca(projection='3d')
