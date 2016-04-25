@@ -111,9 +111,9 @@ class HeavyPIVResults(DataObject):
                  couple=None, params=None,
                  str_path=None, hdf5_object=None):
         self._keys_to_be_saved = [
-            'xs', 'ys', 'deltaxs', 'deltays', 'correls_max', 'deltaxs_approx',
-            'deltays_approx', 'new_positions', 'deltaxs_tps', 'deltays_tps',
-            'ixvecs_grid', 'iyvecs_grid']
+            'xs', 'ys', 'deltaxs', 'deltays']#'correls_max', 'deltaxs_approx',
+            #'deltays_approx', 'new_positions', 'deltaxs_tps', 'deltays_tps',
+            #'ixvecs_grid', 'iyvecs_grid'
         if hdf5_object is not None:
             if couple is not None:
                 self.couple = couple
@@ -200,7 +200,7 @@ class HeavyPIVResults(DataObject):
     def _load(self, path):
 
         with h5py.File(path, 'r') as f:
-            self.load_from_hdf5_object(f['piv0'])
+            self._load_from_hdf5_object(f['piv0'])
 
     def _load_from_hdf5_object(self, g_piv):
 
