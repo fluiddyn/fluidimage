@@ -12,17 +12,32 @@ from time import sleep
 from multiprocessing import cpu_count
 import logging
 from signal import signal
+import re
 
 from ..config import get_config
 from .waiting_queues.base import WaitingQueueThreading
 
 logger = logging.getLogger('fluidimage')
 
-config = get_config()
-
-nb_cores = cpu_count()
 dt = 0.5  # s
 
+nb_cores = cpu_count()
+
+# found in http://stackoverflow.com/questions/1006289/how-to-find-out-the-number-of-cpus-using-python
+try:  # should work on UNIX
+    m = re.search(r'(?m)^Cpus_allowed:\s*(.*)$',
+                  open('/proc/self/status').read())
+    if m:
+        nb_cpus_allowed = bin(int(m.group(1).replace(',', ''), 16)).count('1')
+
+    if nb_cpus_allowed > 0:
+        nb_cores = nb_cpus_allowed
+
+    print('Cpus_allowed: {}'.format(nb_cpus_allowed))
+except IOError:
+    pass
+
+config = get_config()
 if config is not None:
     try:
         nb_cores = eval(config['topology']['nb_cores'])
