@@ -175,7 +175,13 @@ def compute_tps_coeff(centers, U, smoothing_coef):
     PM = np.hstack([np.ones([N, 1]), centers.T])
     IM = np.vstack([EM + smoothing_mat,
                     np.hstack([PM.T, np.zeros([nb_dim + 1, nb_dim + 1])])])
-    U_tps, r, r2, r3 = np.linalg.lstsq(IM, U)
+
+    # print('det(IM)', np.linalg.det(IM))
+    # print('cond(IM)', np.linalg.cond(IM))
+
+    # U_tps, r, r2, r3 = np.linalg.lstsq(IM, U)
+    U_tps = np.linalg.solve(IM, U)
+
     U_smooth = np.dot(EM, U_tps)
     return U_smooth.ravel(), U_tps.ravel()
 
@@ -216,7 +222,7 @@ def compute_tps_matrix(dsites, centers):
     EM = np.zeros([N, M])
     for d in range(s):
         Dsites, Centers = np.meshgrid(dsites[d], centers[d])
-        EM = EM + (Dsites - Centers) ** 2
+        EM += (Dsites - Centers) ** 2
 
     nb_p = np.where(EM != 0)
     EM[nb_p] = EM[nb_p] * np.log(EM[nb_p]) / 2
