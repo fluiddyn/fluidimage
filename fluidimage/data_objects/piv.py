@@ -23,15 +23,12 @@
 import os
 
 import h5py
-
 import h5netcdf
 
-from fluiddyn.util.paramcontainer import ParamContainer
+import numpy as np
 
 from .display import display
-from .. import imread
-
-import numpy as np
+from .. import imread, ParamContainer
 
 
 def get_name_piv(serie, prefix='piv'):
@@ -199,6 +196,7 @@ class HeavyPIVResults(DataObject):
 
     def _load(self, path):
 
+        self.file_name = os.path.basename(path)
         with h5py.File(path, 'r') as f:
             self._load_from_hdf5_object(f['piv0'])
 
@@ -243,6 +241,10 @@ class MultipassPIVResults(DataObject):
         self.__dict__['piv{}'.format(i)] = results
 
     def _get_name(self):
+
+        if hasattr(self, 'file_name'):
+            return self.file_name
+
         r = self.passes[0]
         return r._get_name()
 
@@ -251,7 +253,11 @@ class MultipassPIVResults(DataObject):
         name = self._get_name()
 
         if path is not None:
-            path_file = os.path.join(path, name)
+            root, ext = os.path.splitext(path)
+            if ext in ['.h5', '.nc']:
+                path_file = path
+            else:
+                path_file = os.path.join(path, name)
         else:
             path_file = name
 
@@ -270,6 +276,7 @@ class MultipassPIVResults(DataObject):
 
     def _load(self, path):
 
+        self.file_name = os.path.basename(path)
         with h5py.File(path, 'r') as f:
             self.params = ParamContainer(hdf5_object=f['params'])
             self.couple = ArrayCouple(hdf5_parent=f)

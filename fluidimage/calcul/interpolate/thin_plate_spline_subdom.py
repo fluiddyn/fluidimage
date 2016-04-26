@@ -107,8 +107,7 @@ class ThinPlateSplineSubdom(object):
             U_tmp = U[self.ind_v_subdom[i]]
             U_smooth[i], U_tps[i] = self.compute_tps_coeff_iter(
                 centers_tmp, U_tmp)
-        
-        
+
         U_smooth_tmp = np.zeros(self.centers[0].shape)
         nb_tps = np.zeros(self.centers[0].shape, dtype=int)
 

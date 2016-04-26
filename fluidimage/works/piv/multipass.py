@@ -38,8 +38,10 @@ class WorkPIV(BaseWork):
         params._set_child(
             'multipass',
             attribs={'number': 1,
+                     'coeff_zoom': 2,
                      'use_tps': True,
-                     'coeff_zoom': 2})
+                     'subdom_size': 1000,
+                     'smoothing_coef': 0.5})
 
         params.multipass._set_doc(
             """Multipass PIV parameters:

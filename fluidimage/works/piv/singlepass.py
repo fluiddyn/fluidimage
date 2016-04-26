@@ -257,8 +257,8 @@ class BaseWorkPIV(BaseWork):
         if self.params.multipass.use_tps is True or \
            self.params.multipass.use_tps == 'last' and last:
             # compute TPS coef
-            smoothing_coef = 0.5
-            subdom_size = 250
+            smoothing_coef = self.params.multipass.smoothing_coef
+            subdom_size = self.params.multipass.subdom_size
 
             tps = ThinPlateSplineSubdom(
                 centers, subdom_size, smoothing_coef,

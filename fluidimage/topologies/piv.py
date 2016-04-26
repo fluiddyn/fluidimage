@@ -67,11 +67,11 @@ class TopologyPIV(TopologyBase):
             serie_arrays, params.series.strcouple,
             ind_stop=params.series.ind_stop)
 
-        if params.saving.path is not None:
-            raise NotImplementedError
-
         path_dir = self.series.serie.path_dir
-        path_dir_result = path_dir + '.' + params.saving.postfix
+        if params.saving.path is not None:
+            path_dir_result = params.saving.path
+        else:
+            path_dir_result = path_dir + '.' + params.saving.postfix
 
         how = params.saving.how
         if os.path.exists(path_dir_result):

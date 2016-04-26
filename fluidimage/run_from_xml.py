@@ -14,18 +14,22 @@ From matlab, something like::
 
 import os
 import sys
+import logging
 
 import numpy as np
 import scipy
 
-import logging
-log_level = logging.INFO  # to get information messages
-# log_level = logging.WARNING  # no information messages
-logging.basicConfig(format='%(message)s',
-                    level=log_level)
+from . import (
+    config_logging, ParamContainer, SerieOfArraysFromFiles)
 
-from fluiddyn.util.paramcontainer import ParamContainer, tidy_container
-from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
+from fluiddyn.util.paramcontainer import tidy_container
+
+from fluidimage.topologies.piv import TopologyPIV
+
+
+config_logging('info')
+
+logger = logging.getLogger('fluidimage')
 
 
 class InstructionsUVMAT(ParamContainer):
@@ -53,10 +57,8 @@ class InstructionsUVMAT(ParamContainer):
 
         input_table = self.input_table.split(' & ')
         self.input_table = '|'.join(input_table)
-        name_file = ''.join(input_table[2:])
-        path_dir_root = input_table[0]
-        path_dir_input = os.path.join(path_dir_root, input_table[1])
-        path_file_input = os.path.join(path_dir_input, name_file)
+        path_file_input = os.path.abspath(self.input_table.replace('|', ''))
+        path_dir_input = os.path.dirname(path_file_input)
         self._set_attrib('path_dir_input', path_dir_input)
         self._set_attrib('path_file_input', path_file_input)
 
@@ -68,9 +70,19 @@ class InstructionsUVMAT(ParamContainer):
         slice0 = [ir.first_i, ir.last_i+1, ir.incr_i]
         try:
             slice1 = [ir.first_j-1, ir.last_j, ir.incr_j]
-            self._set_attrib('index_slices', [slice0, slice1])
+            slices = [slice0, slice1]
         except AttributeError:
-            self._set_attrib('index_slices', [slice0])
+            slices = [slice0]
+
+        self._set_attrib('index_slices', slices)
+
+        if len(slices) == 1:
+            strcouple = '{}+i: {}+i'.format(ir.first_i, ir.first_i+ir.incr_i+1)
+            ind_stop = ir.last_i - ir.first_i
+        else:
+            raise NotImplementedError
+        self._set_attrib('strcouple', strcouple)
+        self._set_attrib('ind_stop', ind_stop)
 
 
 class ActionBase(object):
@@ -78,7 +90,7 @@ class ActionBase(object):
         self.instructions = instructions
 
         # create the serie of arrays
-        logging.info('Create the serie of arrays')
+        logger.info('Create the serie of arrays')
         self.serie_arrays = SerieOfArraysFromFiles(
             path=instructions.path_dir_input,
             index_slices=instructions.index_slices)
@@ -90,7 +102,7 @@ class ActionAverage(ActionBase):
         instructions = self.instructions
         serie = self.serie_arrays
         # compute the average
-        logging.info('Compute the average')
+        logger.info('Compute the average')
         a = serie.get_array_from_index(0)
         mean = np.zeros_like(a, dtype=np.float32)
         nb_fields = 0
@@ -109,9 +121,45 @@ class ActionAverage(ActionBase):
                      '.' + serie.extension_file)
 
         path_save = os.path.join(instructions.path_dir_output, name_file)
-        logging.info('Save in file:\n%s',  path_save)
+        logger.info('Save in file:\n%s',  path_save)
         scipy.misc.imsave(path_save, mean)
         return mean
+
+
+def params_from_uvmat_xml(instructions):
+    params = TopologyPIV.create_default_params()
+
+    params.series.path = instructions.input_table.replace('|', '')
+
+    params.series.strcouple = instructions.strcouple
+    params.series.ind_stop = instructions.ind_stop
+
+    params.saving.path = instructions.path_dir_output
+
+    n0 = int(instructions.action_input.civ1.search_box_size.split('\t')[0])
+    if n0 % 2 == 1:
+        n0 -= 1
+
+    params.piv0.shape_crop_im0 = n0
+
+    params.multipass.subdom_size = \
+        instructions.action_input.patch2.sub_domain_size
+
+    if hasattr(instructions.action_input, 'civ2'):
+        params.multipass.number = 2
+
+    return params
+
+
+class ActionPIV(ActionBase):
+    """Compute the average and save as a png file."""
+    def __init__(self, instructions):
+        self.instructions = instructions
+        self.params = params_from_uvmat_xml(instructions)
+        # self.topology = TopologyPIV(self.params)
+
+    def run(self):
+        raise NotImplemented
 
 
 actions_classes = {'aver_stat': ActionAverage}
@@ -123,14 +171,14 @@ def main():
     else:
         raise ValueError
 
-    logging.info('\nFrom Python, start with instructions in xml file:\n%s',
-                 path_instructions_xml)
+    logger.info('\nFrom Python, start with instructions in xml file:\n%s',
+                path_instructions_xml)
 
     instructions = InstructionsUVMAT(path_file=path_instructions_xml)
 
     action_name = instructions.action.action_name
-    logging.info('Check if the action "%s" is implemented by FluidImage',
-                 action_name)
+    logger.info('Check if the action "%s" is implemented by FluidImage',
+                action_name)
     if action_name not in actions_classes.keys():
         raise NotImplementedError(
             'action "' + action_name + '" is not yet implemented.')
