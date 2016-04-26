@@ -20,7 +20,7 @@ obtained as ``dot(U_tps, EMDX)`` and ``dot(U_tps, EMDY)``, where
 .. autoclass:: ThinPlateSpline
    :members:
 
-.. autofunction:: compute_tps_matrix
+.. autofunction:: compute_tps_matrix_numpy
 
 .. autofunction:: compute_tps_matrices_dxy
 
@@ -31,6 +31,8 @@ obtained as ``dot(U_tps, EMDX)`` and ``dot(U_tps, EMDY)``, where
 from __future__ import print_function
 
 import numpy as np
+
+import tps_pythran
 
 
 def compute_tps_coeff_subdom(centers, U, smoothing_coef, subdom_size,
@@ -169,7 +171,12 @@ def compute_tps_coeff(centers, U, smoothing_coef):
     nb_dim, N = centers.shape
     U = np.hstack([U, np.zeros(nb_dim + 1)])
     U = U.reshape([U.size, 1])
-    EM = compute_tps_matrix(centers, centers).T
+    try:
+        EM = compute_tps_matrix(centers, centers).T
+    except TypeError as e:
+        print(centers.dtype, centers.shape)
+        raise e
+        
     smoothing_mat = smoothing_coef * np.eye(N, N)
     smoothing_mat = np.hstack([smoothing_mat, np.zeros([N, nb_dim + 1])])
     PM = np.hstack([np.ones([N, 1]), centers.T])
@@ -186,7 +193,7 @@ def compute_tps_coeff(centers, U, smoothing_coef):
     return U_smooth.ravel(), U_tps.ravel()
 
 
-def compute_tps_matrix(dsites, centers):
+def compute_tps_matrix_numpy(dsites, centers):
     """calculate the thin plate spline (tps) interpolation at a set of points
 
     Parameters
@@ -228,6 +235,16 @@ def compute_tps_matrix(dsites, centers):
     EM[nb_p] = EM[nb_p] * np.log(EM[nb_p]) / 2
     EM = np.vstack([EM, np.ones(M), dsites])
     return EM
+
+
+if hasattr(tps_pythran, '__pythran__'):
+
+    def compute_tps_matrix(newcenters, centers):
+        return tps_pythran.compute_tps_matrix(
+            newcenters.astype(np.float64),
+            centers.astype(np.float64))
+else:
+    compute_tps_matrix = compute_tps_matrix_numpy
 
 
 def compute_tps_matrices_dxy(dsites, centers):

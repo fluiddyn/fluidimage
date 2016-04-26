@@ -8,8 +8,6 @@ try:
 except ImportError:
     use_pythran = False
 
-use_pythran = False
-
 # Get the long description from the relevant file
 with open('README.rst') as f:
     long_description = f.read()
@@ -27,11 +25,19 @@ on_rtd = os.environ.get('READTHEDOCS')
 if not on_rtd:
     install_requires.extend(['scipy', 'h5py'])
 
+# the class PythranExtension can not be use like that. For now it does work and
+# we have to compile Pythran file manually...
+use_pythran = False    
 if use_pythran:
-    ext_modules=[PythranExtension('fluidimage.calcul.correl_pythran',
-                                  ['fluidimage/calcul/correl_pythran.py'])]
+    ext_modules = [
+        PythranExtension(
+            'fluidimage.calcul.correl_pythran',
+            ['fluidimage/calcul/correl_pythran.py']),
+        PythranExtension(
+            'fluidimage.calcul.interpolate.tps_pythran',
+            ['fluidimage/calcul/interpolate/tps_pythran.py'])]
 else:
-    ext_modules=[]
+    ext_modules = []
 
 
 setup(

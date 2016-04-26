@@ -30,5 +30,6 @@ cProfile.runctx('result = piv.calcul(serie)',
 s = pstats.Stats('profile.pstats')
 s.strip_dirs().sort_stats('time').print_stats(10)
 
-# with gprof2dot and graphviz (command dot):
-# gprof2dot -f pstats profile.pstats | dot -Tpng -o profile.png
+print(
+'with gprof2dot and graphviz (command dot):\n'
+'gprof2dot -f pstats profile.pstats | dot -Tpng -o profile.png')
