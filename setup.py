@@ -23,7 +23,7 @@ install_requires = ['numpy', 'fluiddyn >= 0.0.12a3']
 
 on_rtd = os.environ.get('READTHEDOCS')
 if not on_rtd:
-    install_requires.extend(['scipy', 'h5py'])
+    install_requires.extend(['scipy', 'h5py', 'h5netcdf'])
 
 # the class PythranExtension can not be use like that. For now it does work and
 # we have to compile Pythran file manually...
