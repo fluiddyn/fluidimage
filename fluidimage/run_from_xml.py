@@ -15,6 +15,7 @@ From matlab, something like::
 import os
 import sys
 import logging
+from time import time
 
 import numpy as np
 import scipy
@@ -78,7 +79,7 @@ class InstructionsUVMAT(ParamContainer):
 
         if len(slices) == 1:
             strcouple = '{}+i: {}+i'.format(ir.first_i, ir.first_i+ir.incr_i+1)
-            ind_stop = ir.last_i - ir.first_i
+            ind_stop = 1 + ir.last_i - ir.first_i
         else:
             raise NotImplementedError
         self._set_attrib('strcouple', strcouple)
@@ -156,13 +157,17 @@ class ActionPIV(ActionBase):
     def __init__(self, instructions):
         self.instructions = instructions
         self.params = params_from_uvmat_xml(instructions)
-        # self.topology = TopologyPIV(self.params)
+        self.topology = TopologyPIV(self.params)
 
     def run(self):
-        raise NotImplemented
+        t = time()
+        self.topology.compute(sequential=False)
+        t = time() - t
 
+        print('ellapsed time: {}s'.format(t))
 
-actions_classes = {'aver_stat': ActionAverage}
+actions_classes = {'aver_stat': ActionAverage,
+                   'civ_series': ActionPIV}
 
 
 def main():

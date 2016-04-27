@@ -84,9 +84,12 @@ class BaseWorkPIV(BaseWork):
             raise NotImplementedError(
                 'For now, shape_crop_im0 has to be an integer!')
 
+        if n_interrogation_window % 2 == 1:
+            n_interrogation_window += 1
+
         niw = self.n_interrogation_window = n_interrogation_window
 
-        self.niwo2 = niw/2
+        self.niwo2 = niw//2
 
         self._init_correl()
 
@@ -318,6 +321,9 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
         self.params = params
         self.index_pass = index_pass
 
+        if shape_crop_im0 is None:
+            shape_crop_im0 = params.piv0.shape_crop_im0
+
         self.shape_crop_im = shape_crop_im0
         if isinstance(shape_crop_im0, int):
             n_interrogation_window = shape_crop_im0
@@ -325,10 +331,13 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
             raise NotImplementedError(
                 'For now, shape_crop_im0 has to be an integer!')
 
+        if n_interrogation_window % 2 == 1:
+            n_interrogation_window += 1
+
         niw = self.n_interrogation_window = n_interrogation_window
         self.overlap = params.piv0.grid.overlap
 
-        self.niwo2 = niw/2
+        self.niwo2 = niw//2
 
         self._init_correl()
 
