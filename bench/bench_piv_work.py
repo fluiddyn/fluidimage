@@ -14,9 +14,9 @@ params.piv0.grid.overlap = 0.5
 params.piv0.method_subpix = 'centroid'
 params.piv0.method_correl = 'fftw'
 
-params.multipass.number = 3
+params.multipass.number = 2
 params.multipass.use_tps = True
-params.multipass.coeff_zoom = [2, 1]
+params.multipass.coeff_zoom = [2]
 
 piv = WorkPIV(params=params)
 

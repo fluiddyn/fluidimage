@@ -25,8 +25,6 @@ obtained as ``dot(U_tps, EMDX)`` and ``dot(U_tps, EMDY)``, where
 .. autofunction:: compute_tps_matrices_dxy
 
 
-
-
 """
 from __future__ import print_function
 
@@ -238,7 +236,6 @@ def compute_tps_matrix_numpy(dsites, centers):
 
 
 if hasattr(tps_pythran, '__pythran__'):
-
     def compute_tps_matrix(newcenters, centers):
         return tps_pythran.compute_tps_matrix(
             newcenters.astype(np.float64),
