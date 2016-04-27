@@ -25,9 +25,6 @@ on_rtd = os.environ.get('READTHEDOCS')
 if not on_rtd:
     install_requires.extend(['scipy', 'h5py'])
 
-# the class PythranExtension can not be use like that. For now it does work and
-# we have to compile Pythran file manually...
-use_pythran = False    
 if use_pythran:
     ext_modules = [
         PythranExtension(
