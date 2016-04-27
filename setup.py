@@ -23,7 +23,7 @@ install_requires = ['numpy', 'fluiddyn >= 0.0.12a3']
 
 on_rtd = os.environ.get('READTHEDOCS')
 if not on_rtd:
-    install_requires.extend(['scipy', 'h5py'])
+    install_requires.extend(['scipy', 'h5py', 'h5netcdf'])
 
 if use_pythran:
     ext_modules = [

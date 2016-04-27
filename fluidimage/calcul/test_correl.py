@@ -27,6 +27,11 @@ try:
 except ImportError:
     classes.pop('skcufft')
 
+try:
+    import theano
+except ImportError:
+    classes.pop('theano')
+
 
 class TestCorrel(unittest.TestCase):
     @classmethod
