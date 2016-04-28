@@ -27,7 +27,7 @@ class SubPix(object):
     def __init__(self, method='centroid'):
         self.method = method
 
-        n = self.n = 2
+        n = self.n = 1
         xs = ys = np.arange(-n, n+1, dtype=float)
         X, Y = np.meshgrid(xs, ys)
 
@@ -93,7 +93,6 @@ class SubPix(object):
             correl_map[correl_map == 0.] = 1e-6
 
             coef = np.dot(self.Minv_subpix, np.log(correl_map))
-
             sigmax = 1/np.sqrt(-2*coef[0])
             sigmay = 1/np.sqrt(-2*coef[1])
             deplx = coef[2]*sigmax**2

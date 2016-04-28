@@ -7,7 +7,7 @@ import numpy as np
 
 from fluidimage.synthetic import make_synthetic_images
 from fluidimage.calcul.correl import correlation_classes
-
+import pylab
 
 classes = {k.replace('.', '_'): v for k, v in correlation_classes.items()}
 
@@ -36,10 +36,10 @@ except ImportError:
 class TestCorrel(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        nx = 64
+        nx = 32
         ny = 32
-        displacement_x = 0.5
-        displacement_y = 1.5
+        displacement_x = 3.3
+        displacement_y = 5.8
 
         cls.displacements = np.array([displacement_x, displacement_y])
 
@@ -47,7 +47,8 @@ class TestCorrel(unittest.TestCase):
 
         cls.im0, cls.im1 = make_synthetic_images(
             cls.displacements, nb_particles, shape_im0=(ny, nx), epsilon=0.)
-
+        pylab.imshow(cls.im0)
+        pylab.show()
 
 for k, cls in classes.items():
     def test(self, cls=cls, k=k):
@@ -57,8 +58,8 @@ for k, cls in classes.items():
         c, norm = correl(self.im0, self.im0)
         dx, dy, correl_max = correl.compute_displacement_from_correl(
             c, coef_norm=norm,
-            # method_subpix='2d_gaussian'
-            method_subpix='centroid'
+            method_subpix='2d_gaussian'
+            #method_subpix='centroid'
         )
         displacement_computed = np.array([dx, dy])
 #        inds_max = np.array(np.unravel_index(c.argmax(), c.shape))
@@ -74,8 +75,8 @@ for k, cls in classes.items():
         c, norm = correl(self.im0, self.im1)
         dx, dy, correl_max = correl.compute_displacement_from_correl(
             c, coef_norm=norm,
-            # method_subpix='2d_gaussian'
-            method_subpix='centroid'
+            method_subpix='2d_gaussian'
+            #method_subpix='centroid'
         )
 
         displacement_computed = np.array([dx, dy])
