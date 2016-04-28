@@ -28,7 +28,7 @@ class WorkFIX(BaseWork):
 
         params._set_child(tag, attribs={
             'correl_min': 0.4,
-            'delta_diff': 0.1,
+            # 'delta_diff': 0.1,
             'delta_max': 4,
             'remove_error_vec': True})
 
