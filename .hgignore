@@ -45,3 +45,5 @@ doc/ipynb/.ipynb_checkpoints/*
 doc/examples/oar_launcher*
 
 fluidimage/post_proc/*.h5
+
+bench/oar_launcher_*

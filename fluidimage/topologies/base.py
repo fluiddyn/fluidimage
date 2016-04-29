@@ -19,25 +19,51 @@ from .waiting_queues.base import WaitingQueueThreading
 
 logger = logging.getLogger('fluidimage')
 
+config = get_config()
+
 dt = 0.5  # s
 
 nb_cores = cpu_count()
 
-# found in http://stackoverflow.com/questions/1006289/how-to-find-out-the-number-of-cpus-using-python
+if config is not None:
+    try:
+        allow_hyperthreading = eval(config['topology']['allow_hyperthreading'])
+    except KeyError:
+        allow_hyperthreading = True
+
 try:  # should work on UNIX
-    m = re.search(r'(?m)^Cpus_allowed:\s*(.*)$',
-                  open('/proc/self/status').read())
+
+    # found in http://stackoverflow.com/questions/1006289/how-to-find-out-the-number-of-cpus-using-python
+    with open('/proc/self/status') as f:
+        status = f.read()
+    m = re.search(r'(?m)^Cpus_allowed:\s*(.*)$', status)
     if m:
         nb_cpus_allowed = bin(int(m.group(1).replace(',', ''), 16)).count('1')
 
     if nb_cpus_allowed > 0:
         nb_cores = nb_cpus_allowed
+        print('Cpus_allowed: {}'.format(nb_cpus_allowed))
 
-    print('Cpus_allowed: {}'.format(nb_cpus_allowed))
+    if allow_hyperthreading is False:
+        with open('/proc/cpuinfo') as f:
+            cpuinfo = f.read()
+
+        nb_proc_tot = 0
+        siblings = None
+        for line in cpuinfo.split('\n'):
+            if line.startswith('processor'):
+                nb_proc_tot += 1
+            if line.startswith('siblings') and siblings is None:
+                siblings = int(line.split()[-1])
+
+        if nb_proc_tot == siblings * 2:
+            print('We do not use hyperthreading.')
+            nb_cores /= 2
+
 except IOError:
     pass
 
-config = get_config()
+
 if config is not None:
     try:
         nb_cores = eval(config['topology']['nb_cores'])
