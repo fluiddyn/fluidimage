@@ -49,7 +49,7 @@ def correl_pythran(im0, im1, disp_max):
             for iy in range(nymax):
                 for ix in range(nxmax):
                     tmp += im1[iy+ny1dep, ix+nx1dep]*im0[ny0dep+iy, nx0dep+ix]
-            correl[xiy, xix] = tmp
+            correl[xiy, xix] = tmp/(nxmax*nymax)
         for xix in range(disp_max):
             dispx = xix + 1
             nxmax = nx1 - max(nx0//2 + nx1//2 + dispx - nx0, 0)
@@ -59,7 +59,7 @@ def correl_pythran(im0, im1, disp_max):
             for iy in range(nymax):
                 for ix in range(nxmax):
                     tmp += im1[iy+ny1dep, ix+nx1dep]*im0[ny0dep+iy, nx0dep+ix]
-            correl[xiy, xix + disp_max + 1] = tmp
+            correl[xiy, xix + disp_max + 1] = tmp/(nxmax*nymax)
     for xiy in range(disp_max):
         dispy = xiy + 1
         nymax = ny1 - max(ny0//2+ny1//2+dispy-ny0, 0)
@@ -74,7 +74,7 @@ def correl_pythran(im0, im1, disp_max):
             for iy in range(nymax):
                 for ix in range(nxmax):
                     tmp += im1[iy+ny1dep, ix+nx1dep]*im0[ny0dep+iy, nx0dep+ix]
-            correl[xiy + disp_max + 1, xix] = tmp
+            correl[xiy + disp_max + 1, xix] = tmp/(nxmax*nymax)
         for xix in range(disp_max):
             dispx = xix + 1
             nxmax = nx1 - max(nx0//2+nx1//2+dispx-nx0, 0)
@@ -84,6 +84,6 @@ def correl_pythran(im0, im1, disp_max):
             for iy in range(nymax):
                 for ix in range(nxmax):
                     tmp += im1[iy+ny1dep, ix+nx1dep]*im0[ny0dep+iy, nx0dep+ix]
-            correl[xiy + disp_max + 1, xix + disp_max + 1] = tmp
-
+            correl[xiy + disp_max + 1, xix + disp_max + 1] = tmp/(nxmax*nymax)
+    correl = correl * im1.size * im0.size
     return correl, norm
