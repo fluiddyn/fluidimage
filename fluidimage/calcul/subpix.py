@@ -24,11 +24,15 @@ class SubPix(object):
     """
     methods = ['2d_gaussian', 'centroid', 'no_subpix']
 
-    def __init__(self, method='centroid'):
-        self.method = method
+    def __init__(self, method='centroid', nsubpix=1):
+        self.prepare_subpix(method, nsubpix)
 
-        n = self.n = 1
-        xs = ys = np.arange(-n, n+1, dtype=float)
+    def prepare_subpix(self, method, nsubpix):
+        self.method = method
+        if nsubpix is None:
+            nsubpix=1
+        self.n = nsubpix
+        xs = ys = np.arange(-nsubpix, nsubpix+1, dtype=float)
         X, Y = np.meshgrid(xs, ys)
 
         # init for centroid method
@@ -43,7 +47,7 @@ class SubPix(object):
             (X**2, Y**2, X, Y, np.ones(nx*ny))), (5, nx*ny)).T
         self.Minv_subpix = np.linalg.pinv(M)
 
-    def compute_subpix(self, correl, ix, iy, method=None):
+    def compute_subpix(self, correl, ix, iy, method=None, nsubpix=None):
         """Find peak
 
         Parameters
@@ -67,27 +71,29 @@ class SubPix(object):
         using linalg.solve (buggy?)
 
         """
-        if method is None:
-            method = self.method
-
+        if method!=self.method or nsubpix!=self.n:
+            if method is None:
+                method = self.method
+            if nsubpix is None:
+                nsubpix = self.n   
+            self.prepare_subpix(method, nsubpix)
+           
         if method not in self.methods:
             raise ValueError('method has to be in {}'.format(self.methods))
-
-        n = self.n
-
+        
         ny, nx = correl.shape
 
-        if iy-n < 0 or iy+n+1 > ny or \
-           ix-n < 0 or ix+n+1 > nx:
+        if iy-nsubpix < 0 or iy+nsubpix+1 > ny or \
+           ix-nsubpix < 0 or ix+nsubpix+1 > nx:
             raise PIVError(explanation='close boundary',
                            result_compute_subpix=(iy, ix))
 
         if method == '2d_gaussian':
 
-            correl = correl[iy-n:iy+n+1, ix-n:ix+n+1]
+            correl = correl[iy-nsubpix:iy+nsubpix+1, ix-nsubpix:ix+nsubpix+1]
             ny, nx = correl.shape
 
-            assert nx == ny == 2*n + 1
+            assert nx == ny == 2*nsubpix + 1
 
             correl_map = correl.ravel()
             correl_map[correl_map == 0.] = 1e-6
@@ -99,9 +105,8 @@ class SubPix(object):
             deply = coef[3]*sigmay**2
 
         elif method == 'centroid':
-            n = self.n
 
-            correl = correl[iy-n:iy+n+1, ix-n:ix+n+1]
+            correl = correl[iy-nsubpix:iy+nsubpix+1, ix-nsubpix:ix+nsubpix+1]
             ny, nx = correl.shape
 
             sum_correl = np.sum(correl)
