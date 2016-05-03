@@ -91,9 +91,7 @@ class display(object):
         self.select_arrow(ind)
 
     def select_arrow(self, ind):
-        if isinstance(ind, list):
-            ind = ind[0]
-
+        ind = ind[0]
         q = self.q
 
         if ind >= len(q.X) or ind < 0:
@@ -107,7 +105,6 @@ class display(object):
         self.l.set_data(ix, iy)
 
         correl_max = self.piv_results.correls_max[ind]
-
         text = (
             'vector at ix = {} : iy = {} ; '
             'U = {:.3f} ; V = {:.3f}, C = {:.3f}').format(

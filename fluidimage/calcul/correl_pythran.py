@@ -26,7 +26,7 @@ def correl_pythran(im0, im1, disp_max):
     the computing correlation (size of computed correlation = disp_max*2 + 1)
 
     """
-    norm = np.sum(im1**2) * im0.size
+    norm = np.sum(im1**2)
 
     ny = nx = int(disp_max) * 2 + 1
     ny0, nx0 = im0.shape
@@ -85,5 +85,5 @@ def correl_pythran(im0, im1, disp_max):
                 for ix in range(nxmax):
                     tmp += im1[iy+ny1dep, ix+nx1dep]*im0[ny0dep+iy, nx0dep+ix]
             correl[xiy + disp_max + 1, xix + disp_max + 1] = tmp/(nxmax*nymax)
-    correl = correl * im1.size * im0.size
+    correl = correl * im1.size
     return correl, norm

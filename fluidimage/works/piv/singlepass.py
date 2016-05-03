@@ -77,24 +77,43 @@ class BaseWorkPIV(BaseWork):
         self.overlap = overlap
 
         shape_crop_im0 = params.piv0.shape_crop_im0
+        shape_crop_im1 = params.piv0.shape_crop_im1
         self.shape_crop_im0 = shape_crop_im0
+        self.shape_crop_im1 = shape_crop_im1
+
         if isinstance(shape_crop_im0, int):
-            n_interrogation_window = shape_crop_im0
+            n_interrogation_window0 = shape_crop_im0
         else:
             raise NotImplementedError(
                 'For now, shape_crop_im0 has to be an integer!')
 
-        if n_interrogation_window % 2 == 1:
-            n_interrogation_window += 1
+        if isinstance(shape_crop_im1, int):
+            n_interrogation_window1 = shape_crop_im1
+        else:
+            raise NotImplementedError(
+                'For now, shape_crop_im1 has to be an integer!')
 
-        niw = self.n_interrogation_window = n_interrogation_window
+        if shape_crop_im1 > shape_crop_im0:
+            raise NotImplementedError(
+                'shape_crop_im1 must be inferior or equal to shape_crop_im0')
 
-        self.niwo2 = niw//2
+        if n_interrogation_window0 % 2 == 1:
+            n_interrogation_window0 += 1
+
+        if n_interrogation_window1 % 2 == 1:
+            n_interrogation_window1 += 1
+
+        niw0 = self.n_interrogation_window0 = n_interrogation_window0
+        niw1 = self.n_interrogation_window1 = n_interrogation_window1
+
+        self.niw0o2 = niw0//2
+        self.niw1o2 = niw1//2
 
         self._init_correl()
 
     def _init_correl(self):
-        niw = self.n_interrogation_window
+        niw0 = self.n_interrogation_window0
+        niw1 = self.n_interrogation_window1
         try:
             correl_cls = correlation_classes[self.params.piv0.method_correl]
         except KeyError:
@@ -102,10 +121,11 @@ class BaseWorkPIV(BaseWork):
                 'params.piv0.method_correl should be in ' +
                 str(correlation_classes.keys()))
 
-        self.correl = correl_cls(im0_shape=(niw, niw),
+        self.correl = correl_cls(im0_shape=(niw0, niw0),
+                                 im1_shape=(niw1, niw1),
                                  method_subpix=self.params.piv0.method_subpix)
 
-    def _prepare_with_image(self, im):
+    def _prepare_with_image1(self, im1):
         """Initialize the object with an image.
 
         .. todo::
@@ -113,9 +133,9 @@ class BaseWorkPIV(BaseWork):
            Better ixvecs and iyvecs (starting from 0 and padding is silly).
 
         """
-        self.imshape = len_y, len_x = im.shape
-        niw = self.n_interrogation_window
-        niwo2 = self.niwo2
+        self.imshape1 = len_y, len_x = im1.shape
+        niw = self.n_interrogation_window1
+        niwo2 = self.niw1o2
 
         step = niw - int(np.round(self.overlap*niw))
         assert step >= 1
@@ -140,7 +160,8 @@ class BaseWorkPIV(BaseWork):
 
         im0, im1 = couple.get_arrays()
         if not hasattr(self, 'ixvecs_grid'):
-            self._prepare_with_image(im0)
+            self.imshape0 = im0.shape
+            self._prepare_with_image1(im1)
 
         deltaxs, deltays, xs, ys, correls_max, correls, errors = \
             self._loop_vectors(im0, im1)
@@ -202,9 +223,8 @@ class BaseWorkPIV(BaseWork):
             ixvec1 = ixs1_pad[ivec]
             iyvec1 = iys1_pad[ivec]
 
-            im0crop = self._crop_im(ixvec0, iyvec0, im0pad)
-            im1crop = self._crop_im(ixvec1, iyvec1, im1pad)
-
+            im0crop = self._crop_im0(ixvec0, iyvec0, im0pad)
+            im1crop = self._crop_im1(ixvec1, iyvec1, im1pad)
             correl, coef_norm = self.correl(im0crop, im1crop)
             correls[ivec] = correl
             try:
@@ -231,8 +251,15 @@ class BaseWorkPIV(BaseWork):
 
         return deltaxs, deltays, xs, ys, correls_max, correls, errors
 
-    def _crop_im(self, ixvec, iyvec, im):
-        niwo2 = self.niwo2
+    def _crop_im0(self, ixvec, iyvec, im):
+        niwo2 = self.niw0o2
+        subim = im[iyvec - niwo2:iyvec + niwo2,
+                   ixvec - niwo2:ixvec + niwo2]
+        subim = np.array(subim, dtype=np.float32)
+        return subim - subim.mean()
+
+    def _crop_im1(self, ixvec, iyvec, im):
+        niwo2 = self.niw1o2
         subim = im[iyvec - niwo2:iyvec + niwo2,
                    ixvec - niwo2:ixvec + niwo2]
         subim = np.array(subim, dtype=np.float32)
@@ -243,7 +270,8 @@ class BaseWorkPIV(BaseWork):
 
         im0, im1 = couple.get_arrays()
         if not hasattr(piv_results, 'ixvecs_grid'):
-            self._prepare_with_image(im0)
+            self.imshape0 = im0.shape
+            self._prepare_with_image1(im1)
             piv_results.ixvecs_grid = self.ixvecs_grid
             piv_results.iyvecs_grid = self.iyvecs_grid
 
@@ -313,7 +341,8 @@ class FirstWorkPIV(BaseWorkPIV):
 class WorkPIVFromDisplacement(BaseWorkPIV):
     """Work PIV working from already computed displacement (for multipass)."""
 
-    def __init__(self, params=None, index_pass=1, shape_crop_im0=None):
+    def __init__(self, params=None, index_pass=1, shape_crop_im0=None,
+                 shape_crop_im1=None):
 
         if params is None:
             params = self.__class__.create_default_params()
@@ -323,21 +352,42 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
 
         if shape_crop_im0 is None:
             shape_crop_im0 = params.piv0.shape_crop_im0
+        if shape_crop_im1 is None:
+            shape_crop_im1 = params.piv0.shape_crop_im1
 
-        self.shape_crop_im = shape_crop_im0
+        self.shape_crop_im0 = shape_crop_im0
+        self.shape_crop_im1 = shape_crop_im1
         if isinstance(shape_crop_im0, int):
-            n_interrogation_window = shape_crop_im0
+            n_interrogation_window0 = shape_crop_im0
         else:
             raise NotImplementedError(
                 'For now, shape_crop_im0 has to be an integer!')
+        if isinstance(shape_crop_im1, int):
+            n_interrogation_window1 = shape_crop_im1
+        else:
+            raise NotImplementedError(
+                'For now, shape_crop_im1 has to be an integer!')
 
-        if n_interrogation_window % 2 == 1:
-            n_interrogation_window += 1
+        if shape_crop_im1 > shape_crop_im0:
+            raise NotImplementedError(
+                'shape_crop_im1 must be inferior or equal to shape_crop_im0')
 
-        niw = self.n_interrogation_window = n_interrogation_window
+        if n_interrogation_window0 % 2 == 1:
+            n_interrogation_window0 += 1
+
+        if n_interrogation_window1 % 2 == 1:
+            n_interrogation_window1 += 1
+
+        niw0 = self.n_interrogation_window0 = n_interrogation_window0
+        niw1 = self.n_interrogation_window1 = n_interrogation_window1
+
+        self.niw0o2 = niw0//2
+        self.niw1o2 = niw1//2
+
         self.overlap = params.piv0.grid.overlap
 
-        self.niwo2 = niw//2
+        self.niw0o2 = niw0//2
+        self.niw1o2 = niw1//2
 
         self._init_correl()
 
@@ -402,21 +452,21 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
         # if a point is outside an image => shift of subimages used
         # for correlation
         ind_outside = np.argwhere(
-            (ixs0 > self.imshape[0]) | (ixs0 < 0) |
-            (ixs1 > self.imshape[0]) | (ixs1 < 0) |
-            (iys0 > self.imshape[1]) | (iys0 < 0) |
-            (iys1 > self.imshape[1]) | (iys1 < 0))
+            (ixs0 > self.imshape0[0]) | (ixs0 < 0) |
+            (ixs1 > self.imshape1[0]) | (ixs1 < 0) |
+            (iys0 > self.imshape0[1]) | (iys0 < 0) |
+            (iys1 > self.imshape1[1]) | (iys1 < 0))
 
         for ind in ind_outside:
-            if ((ixs1[ind] > self.imshape[0]) or
-                    (iys1[ind] > self.imshape[1]) or
+            if ((ixs1[ind] > self.imshape1[0]) or
+                    (iys1[ind] > self.imshape1[1]) or
                     (ixs1[ind] < 0) or (iys1[ind] < 0)):
                 ixs0[ind] = self.ixvecs_grid[ind] - deltaxs_approx[ind]
                 iys0[ind] = self.iyvecs_grid[ind] - deltays_approx[ind]
                 ixs1[ind] = self.ixvecs_grid[ind]
                 iys1[ind] = self.iyvecs_grid[ind]
-            elif ((ixs0[ind] > self.imshape[0]) or
-                  (iys0[ind] > self.imshape[1]) or
+            elif ((ixs0[ind] > self.imshape0[0]) or
+                  (iys0[ind] > self.imshape0[1]) or
                   (ixs0[ind] < 0) or (iys0[ind] < 0)):
                 ixs0[ind] = self.ixvecs_grid[ind]
                 iys0[ind] = self.iyvecs_grid[ind]
