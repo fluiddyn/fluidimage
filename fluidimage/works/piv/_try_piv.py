@@ -13,7 +13,7 @@ params = WorkPIV.create_default_params()
 # params.piv0.grid.overlap = 0.
 
 # params.piv0.method_subpix = 'centroid'
-# params.piv0.method_correl = 'fftw'
+params.piv0.method_correl = 'pythran'
 
 params.multipass.number = 1
 params.multipass.use_tps = True
