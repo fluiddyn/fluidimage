@@ -418,7 +418,7 @@ class CorrelCuFFT(CorrelBase):
         """Compute the correlation from images."""
         norm = np.sum(im1**2) * im0.size
         op = self.op
-        corr = op.ifft(op.fft(im0).conj() * op.fft(im1)).real
+        corr = op.ifft(op.fft(im0).conj() * op.fft(im1)).real * im0.size**2
         return np.fft.fftshift(corr[::-1, ::-1]), norm
 
 
