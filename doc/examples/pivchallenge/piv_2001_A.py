@@ -23,9 +23,9 @@ params.fix.correl_min = 0.1
 
 piv = WorkPIV(params=params)
 
-# DIR_DATA_PIV_CHALLENGE=$HOME/tmp/data
-path_challenge = os.environ['DIR_DATA_PIV_CHALLENGE']
-path = os.path.join(path_challenge, 'piv2001A', 'A*')
+DIR_DATA_PIV_CHALLENGE='/fsnet/project/meige/2016/16FLUIDIMAGE/samples/pivchallenge'
+#path_challenge = os.environ[DIR_DATA_PIV_CHALLENGE]
+path = os.path.join(DIR_DATA_PIV_CHALLENGE, 'PIV2001A', 'A*')
 
 series = SeriesOfArrays(path, 'i+1, 1:3')
 serie = series.get_serie_from_index(0)
