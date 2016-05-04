@@ -71,7 +71,9 @@ except ImportError:
 class CorrelBase(object):
     """This class is meant to be subclassed, not instantiated directly."""
     _tag = 'base'
-    def __init__(self, im0_shape, im1_shape, method_subpix='centroid', nsubpix=1):
+
+    def __init__(self, im0_shape, im1_shape, method_subpix='centroid',
+                 nsubpix=1):
         self.inds0 = tuple(np.array(im0_shape)//2 - 1)
         self.subpix = SubPix(method=method_subpix, nsubpix=nsubpix)
 
@@ -79,8 +81,9 @@ class CorrelBase(object):
         """Compute the displacement from a couple of indices."""
         return self.inds0[1] - indices[0], self.inds0[0] - indices[1]
 
-    def compute_displacement_from_correl(self, correl, coef_norm=1., method_subpix=None, nsubpix=None):
-        
+    def compute_displacement_from_correl(self, correl, coef_norm=1.,
+                                         method_subpix=None, nsubpix=None):
+
         """Compute the displacement (with subpix) from a correlation."""
         iy, ix = np.unravel_index(correl.argmax(), correl.shape)
         correl_max = correl[iy, ix]/coef_norm
@@ -105,7 +108,8 @@ class CorrelPythran(CorrelBase):
     _tag = 'pythran'
 
     def __init__(self, im0_shape, im1_shape=None,
-                 method_subpix='centroid', nsubpix=1, displacement_max=None, mode=None):
+                 method_subpix='centroid', nsubpix=1, displacement_max=None,
+                 mode=None):
 
         if displacement_max is None:
             displacement_max = max(im0_shape) // 2 #min(max(im0_shape), max(im1_shape)) // 2
@@ -132,7 +136,8 @@ class CorrelPyCuda(CorrelBase):
     _tag = 'pycuda'
 
     def __init__(self, im0_shape, im1_shape=None,
-                 method_subpix='centroid', nsubpix=1, displacement_max=None, mode=None):
+                 method_subpix='centroid', nsubpix=1, displacement_max=None,
+                 mode=None):
 
         if displacement_max is None:
             displacement_max = max(im0_shape) // 2 #min(max(im0_shape), max(im1_shape)) // 2
@@ -204,7 +209,8 @@ class CorrelScipyNdimage(CorrelBase):
     """Correlations using scipy.ndimage.correlate."""
     _tag = 'scipy.ndimage'
 
-    def __init__(self, im0_shape, im1_shape=None, method_subpix='centroid', nsubpix=1):
+    def __init__(self, im0_shape, im1_shape=None, method_subpix='centroid',
+                 nsubpix=1):
         super(CorrelScipyNdimage, self).__init__(
             im0_shape, im1_shape, method_subpix=method_subpix, nsubpix=nsubpix)
         self.inds0 = tuple(np.array(im0_shape)//2)
@@ -220,7 +226,8 @@ class CorrelTheano(CorrelBase):
     _tag = 'theano'
 
     def __init__(self, im0_shape, im1_shape=None,
-                 mode='disp', method_subpix='centroid', nsubpix=1, displacement_max=None):
+                 mode='disp', method_subpix='centroid', nsubpix=1,
+                 displacement_max=None):
         if im1_shape is None:
             im1_shape = im0_shape
 
@@ -352,7 +359,8 @@ class CorrelFFTNumpy(CorrelBase):
     """Correlations using numpy.fft."""
     _tag = 'np.fft'
 
-    def __init__(self, im0_shape, im1_shape=None, method_subpix='centroid', nsubpix=1):
+    def __init__(self, im0_shape, im1_shape=None, method_subpix='centroid',
+                 nsubpix=1):
         super(CorrelFFTNumpy, self).__init__(
             im0_shape, im1_shape, method_subpix=method_subpix, nsubpix=nsubpix)
 
@@ -360,7 +368,8 @@ class CorrelFFTNumpy(CorrelBase):
             im1_shape = im0_shape
 
         if im0_shape != im1_shape:
-            raise ValueError('The input images have to have the same shape.')
+            raise ValueError('with this correlation method the input images '
+                             'have to have the same shape.')
 
     def __call__(self, im0, im1):
         """Compute the correlation from images."""
@@ -374,7 +383,8 @@ class CorrelFFTW(CorrelBase):
     FFTClass = FFTW2DReal2Complex
     _tag = 'fftw'
 
-    def __init__(self, im0_shape, im1_shape=None, method_subpix='centroid', nsubpix=1):
+    def __init__(self, im0_shape, im1_shape=None, method_subpix='centroid',
+                 nsubpix=1):
         super(CorrelFFTW, self).__init__(
             im0_shape, im1_shape, method_subpix=method_subpix, nsubpix=nsubpix)
 
@@ -382,7 +392,8 @@ class CorrelFFTW(CorrelBase):
             im1_shape = im0_shape
 
         if im0_shape != im1_shape:
-            raise ValueError('The input images have to have the same shape.')
+            raise ValueError('with this correlation method the input images '
+                             'have to have the same shape.')
 
         n0, n1 = im1_shape
         self.op = self.FFTClass(n1, n0)
@@ -400,7 +411,8 @@ class CorrelCuFFT(CorrelBase):
     """Correlations using fluidimage.fft.CUFFT2DReal2Complex"""
     FFTClass = CUFFT2DReal2Complex
 
-    def __init__(self, im0_shape, im1_shape=None, method_subpix='centroid', nsubpix=1):
+    def __init__(self, im0_shape, im1_shape=None, method_subpix='centroid',
+                 nsubpix=1):
         super(CorrelCuFFT, self).__init__(
             im0_shape, im1_shape, method_subpix=method_subpix, nsubpix=nsubpix)
 
@@ -408,7 +420,8 @@ class CorrelCuFFT(CorrelBase):
             im1_shape = im0_shape
 
         if im0_shape != im1_shape:
-            raise ValueError('The input images have to have the same shape.')
+            raise ValueError('with this correlation method the input images '
+                             'have to have the same shape.')
 
         n0, n1 = im1_shape
         self.op = self.FFTClass(n1, n0)
@@ -426,7 +439,8 @@ class CorrelSKCuFFT(CorrelBase):
     FFTClass = SKCUFFT2DReal2Complex
     _tag = 'skcufft'
 
-    def __init__(self, im0_shape, im1_shape=None, method_subpix='centroid', nsubpix=1):
+    def __init__(self, im0_shape, im1_shape=None, method_subpix='centroid',
+                 nsubpix=1):
         super(CorrelSKCuFFT, self).__init__(
             im0_shape, im1_shape, method_subpix=method_subpix, nsubpix=nsubpix)
 
@@ -434,7 +448,8 @@ class CorrelSKCuFFT(CorrelBase):
             im1_shape = im0_shape
 
         if im0_shape != im1_shape:
-            raise ValueError('The input images have to have the same shape.')
+            raise ValueError('with this correlation method the input images '
+                             'have to have the same shape.')
 
         n0, n1 = im1_shape
         self.op = self.FFTClass(n1, n0)
