@@ -3,7 +3,7 @@ import numpy as np
 
 
 def make_synthetic_images(
-        displacements, nb_particles, shape_im0, shape_im1=None, epsilon=0.):
+        displacements, nb_particles, shape_im0, shape_im1=None, epsilon=0., part_size=np.sqrt(1/0.5)):
     ny, nx = tuple(shape_im0)
 
     displacement_x, displacement_y = tuple(displacements)
@@ -26,7 +26,7 @@ def make_synthetic_images(
         result = np.zeros_like(x, dtype='float32')
 
         for xpart, ypart in zip(xparts, yparts):
-            result += np.exp(-0.5*((x-xpart)**2 + (y-ypart)**2))
+            result += np.exp(-(1/part_size**2)*((x-xpart)**2 + (y-ypart)**2))
 
         return result
 
