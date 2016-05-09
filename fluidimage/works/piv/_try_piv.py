@@ -15,12 +15,12 @@ params = WorkPIV.create_default_params()
 # params.piv0.method_subpix = 'centroid'
 params.piv0.method_correl = 'pythran'
 
-params.multipass.number = 2
-params.multipass.use_tps = True
+params.multipass.number = 1
+params.multipass.use_tps = False
 # params.multipass.coeff_zoom = [2, 2]
 
-params.piv0.shape_crop_im0 = (32, 32)
-params.piv0.shape_crop_im1 = (16, 16)
+params.piv0.shape_crop_im0 = (32, 18)
+params.piv0.shape_crop_im1 = (26, 17)
 #params.fix.correl_min = 0.3
 # params.piv0.grid.overlap = 10
 

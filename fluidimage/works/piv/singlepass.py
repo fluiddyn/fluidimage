@@ -104,14 +104,10 @@ class BaseWorkPIV(BaseWork):
             raise NotImplementedError(
                 'shape_crop_im1 must be inferior or equal to shape_crop_im0')
 
-        if (n_interrogation_window0[0] % 2 == 1
-           or n_interrogation_window0[1] % 2 == 1):
-            raise NotImplementedError(
-                'shape_crop_im0 must be one or two even integer')
-        if (n_interrogation_window1[0] % 2 == 1
-           or n_interrogation_window1[1] % 2 == 1):
-            raise NotImplementedError(
-                'shape_crop_im1 must be one or two even integer')
+        n_interrogation_window0 = (int(np.ceil(n_interrogation_window0[0]/2)),
+                                   int(np.ceil(n_interrogation_window0[1]/2)))
+        n_interrogation_window1 = (int(np.ceil(n_interrogation_window1[0]/2)),
+                                   int(np.ceil(n_interrogation_window1[1]/2)))
 
         niw0 = self.n_interrogation_window0 = n_interrogation_window0
         niw1 = self.n_interrogation_window1 = n_interrogation_window1
@@ -174,7 +170,6 @@ class BaseWorkPIV(BaseWork):
 
         deltaxs, deltays, xs, ys, correls_max, correls, errors = \
             self._loop_vectors(im0, im1)
-
         result = HeavyPIVResults(
             deltaxs, deltays, xs, ys, errors,
             correls_max=correls_max, correls=correls,
@@ -390,14 +385,10 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
             raise NotImplementedError(
                 'shape_crop_im1 must be inferior or equal to shape_crop_im0')
 
-        if (n_interrogation_window0[0] % 2 == 1
-           or n_interrogation_window0[1] % 2 == 1):
-            raise NotImplementedError(
-                'shape_crop_im0 must be one or two even integer')
-        if (n_interrogation_window1[0] % 2 == 1
-           or n_interrogation_window1[1] % 2 == 1):
-            raise NotImplementedError(
-                'shape_crop_im1 must be one or two even integer')
+        n_interrogation_window0 = (int(np.ceil(n_interrogation_window0[0]/2)),
+                                   int(np.ceil(n_interrogation_window0[1]/2)))
+        n_interrogation_window1 = (int(np.ceil(n_interrogation_window1[0]/2)),
+                                   int(np.ceil(n_interrogation_window1[1]/2)))
 
         niw0 = self.n_interrogation_window0 = n_interrogation_window0
         niw1 = self.n_interrogation_window1 = n_interrogation_window1
@@ -470,21 +461,21 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
         # if a point is outside an image => shift of subimages used
         # for correlation
         ind_outside = np.argwhere(
-            (ixs0 > self.imshape0[0]) | (ixs0 < 0) |
-            (ixs1 > self.imshape1[0]) | (ixs1 < 0) |
-            (iys0 > self.imshape0[1]) | (iys0 < 0) |
-            (iys1 > self.imshape1[1]) | (iys1 < 0))
+            (ixs0 > self.imshape0[1]) | (ixs0 < 0) |
+            (ixs1 > self.imshape1[1]) | (ixs1 < 0) |
+            (iys0 > self.imshape0[0]) | (iys0 < 0) |
+            (iys1 > self.imshape1[0]) | (iys1 < 0))
 
         for ind in ind_outside:
-            if ((ixs1[ind] > self.imshape1[0]) or
-                    (iys1[ind] > self.imshape1[1]) or
+            if ((ixs1[ind] > self.imshape1[1]) or
+                    (iys1[ind] > self.imshape1[0]) or
                     (ixs1[ind] < 0) or (iys1[ind] < 0)):
                 ixs0[ind] = self.ixvecs_grid[ind] - deltaxs_approx[ind]
                 iys0[ind] = self.iyvecs_grid[ind] - deltays_approx[ind]
                 ixs1[ind] = self.ixvecs_grid[ind]
                 iys1[ind] = self.iyvecs_grid[ind]
-            elif ((ixs0[ind] > self.imshape0[0]) or
-                  (iys0[ind] > self.imshape0[1]) or
+            elif ((ixs0[ind] > self.imshape0[1]) or
+                  (iys0[ind] > self.imshape0[0]) or
                   (ixs0[ind] < 0) or (iys0[ind] < 0)):
                 ixs0[ind] = self.ixvecs_grid[ind]
                 iys0[ind] = self.iyvecs_grid[ind]

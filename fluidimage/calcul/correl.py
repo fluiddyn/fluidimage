@@ -115,7 +115,7 @@ class CorrelPythran(CorrelBase):
             if im0_shape == im1_shape:
                 displacement_max = max(im0_shape) // 2 #min(max(im0_shape), max(im1_shape)) // 2
             else:
-                displacement_max = max(im0_shape)-min(im1_shape)
+                displacement_max = max(im0_shape)-min(im1_shape)-1
 
         self.displacement_max = displacement_max
 
