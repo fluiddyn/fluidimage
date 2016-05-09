@@ -82,32 +82,40 @@ class BaseWorkPIV(BaseWork):
         self.shape_crop_im1 = shape_crop_im1
 
         if isinstance(shape_crop_im0, int):
+            n_interrogation_window0 = (shape_crop_im0, shape_crop_im0)
+        elif isinstance(shape_crop_im0, tuple) and len(shape_crop_im0) == 2:
             n_interrogation_window0 = shape_crop_im0
         else:
             raise NotImplementedError(
-                'For now, shape_crop_im0 has to be an integer!')
+                'For now, shape_crop_im0 has to be one or two even integer!')
 
         if isinstance(shape_crop_im1, int):
+            n_interrogation_window1 = (shape_crop_im1, shape_crop_im1)
+        elif isinstance(shape_crop_im1, tuple) and len(shape_crop_im1) == 2:
             n_interrogation_window1 = shape_crop_im1
         else:
             raise NotImplementedError(
-                'For now, shape_crop_im1 has to be an integer!')
+                'For now, shape_crop_im1 has to be one or two even integer!')
 
-        if shape_crop_im1 > shape_crop_im0:
+        if (n_interrogation_window1[0] > n_interrogation_window0[0]
+           or n_interrogation_window1[1] > n_interrogation_window0[1]):
             raise NotImplementedError(
                 'shape_crop_im1 must be inferior or equal to shape_crop_im0')
 
-        if n_interrogation_window0 % 2 == 1:
-            n_interrogation_window0 += 1
-
-        if n_interrogation_window1 % 2 == 1:
-            n_interrogation_window1 += 1
+        if (n_interrogation_window0[0] % 2 == 1
+           or n_interrogation_window0[1] % 2 == 1):
+            raise NotImplementedError(
+                'shape_crop_im0 must be one or two even integer')
+        if (n_interrogation_window1[0] % 2 == 1
+           or n_interrogation_window1[1] % 2 == 1):
+            raise NotImplementedError(
+                'shape_crop_im1 must be one or two even integer')
 
         niw0 = self.n_interrogation_window0 = n_interrogation_window0
         niw1 = self.n_interrogation_window1 = n_interrogation_window1
 
-        self.niw0o2 = niw0//2
-        self.niw1o2 = niw1//2
+        self.niw0o2 = (niw0[0]//2, niw0[1]//2)
+        self.niw1o2 = (niw1[0]//2, niw1[1]//2)
 
         self._init_correl()
 
@@ -121,8 +129,7 @@ class BaseWorkPIV(BaseWork):
                 'params.piv0.method_correl should be in ' +
                 str(correlation_classes.keys()))
 
-        self.correl = correl_cls(im0_shape=(niw0, niw0),
-                                 im1_shape=(niw1, niw1),
+        self.correl = correl_cls(im0_shape=niw0, im1_shape=niw1,
                                  method_subpix=self.params.piv0.method_subpix)
 
     def _prepare_with_image1(self, im1):
@@ -137,11 +144,13 @@ class BaseWorkPIV(BaseWork):
         niw = self.n_interrogation_window1
         niwo2 = self.niw1o2
 
-        step = niw - int(np.round(self.overlap*niw))
-        assert step >= 1
+        stepy = niw[0] - int(np.round(self.overlap*niw[0]))
+        stepx = niw[1] - int(np.round(self.overlap*niw[1]))
+        assert stepy >= 1
+        assert stepx >= 1
 
-        ixvecs = np.arange(niwo2, len_x-niwo2, step, dtype=int)
-        iyvecs = np.arange(niwo2, len_y-niwo2, step, dtype=int)
+        ixvecs = np.arange(niwo2[1], len_x-niwo2[1], stepx, dtype=int)
+        iyvecs = np.arange(niwo2[0], len_y-niwo2[0], stepy, dtype=int)
 
         self.ixvecs = ixvecs
         self.iyvecs = iyvecs
@@ -253,15 +262,15 @@ class BaseWorkPIV(BaseWork):
 
     def _crop_im0(self, ixvec, iyvec, im):
         niwo2 = self.niw0o2
-        subim = im[iyvec - niwo2:iyvec + niwo2,
-                   ixvec - niwo2:ixvec + niwo2]
+        subim = im[iyvec - niwo2[0]:iyvec + niwo2[0],
+                   ixvec - niwo2[1]:ixvec + niwo2[1]]
         subim = np.array(subim, dtype=np.float32)
         return subim - subim.mean()
 
     def _crop_im1(self, ixvec, iyvec, im):
         niwo2 = self.niw1o2
-        subim = im[iyvec - niwo2:iyvec + niwo2,
-                   ixvec - niwo2:ixvec + niwo2]
+        subim = im[iyvec - niwo2[0]:iyvec + niwo2[0],
+                   ixvec - niwo2[1]:ixvec + niwo2[1]]
         subim = np.array(subim, dtype=np.float32)
         return subim - subim.mean()
 

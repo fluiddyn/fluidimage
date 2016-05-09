@@ -19,8 +19,9 @@ params.multipass.number = 1
 params.multipass.use_tps = True
 # params.multipass.coeff_zoom = [2, 2]
 
-params.piv0.shape_crop_im0 = 27
-params.piv0.shape_crop_im1 = 15
+params.piv0.shape_crop_im0 = (46, 40)
+params.piv0.shape_crop_im1 = 14
+params.fix.correl_min = 0.3
 # params.piv0.grid.overlap = 10
 
 piv = WorkPIV(params=params)
