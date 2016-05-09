@@ -89,7 +89,7 @@ class BaseWorkPIV(BaseWork):
             n_interrogation_window0 = shape_crop_im0
         else:
             raise NotImplementedError(
-                'For now, shape_crop_im0 has to be one or two even integer!')
+                'For now, shape_crop_im0 has to be one or two integer!')
 
         if isinstance(shape_crop_im1, int):
             n_interrogation_window1 = (shape_crop_im1, shape_crop_im1)
@@ -97,7 +97,7 @@ class BaseWorkPIV(BaseWork):
             n_interrogation_window1 = shape_crop_im1
         else:
             raise NotImplementedError(
-                'For now, shape_crop_im1 has to be one or two even integer!')
+                'For now, shape_crop_im1 has to be one or two integer!')
 
         if (n_interrogation_window1[0] > n_interrogation_window0[0]
            or n_interrogation_window1[1] > n_interrogation_window0[1]):
@@ -358,9 +358,12 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
             shape_crop_im0 = params.piv0.shape_crop_im0
         if shape_crop_im1 is None:
             shape_crop_im1 = params.piv0.shape_crop_im1
-        if shape_crop_im1 is None:
-            shape_crop_im1 = shape_crop_im0
 
+        self.shape_crop_im0 = shape_crop_im0
+        self.shape_crop_im1 = shape_crop_im1
+
+        """if shape_crop_im1 is None:
+            shape_crop_im1 = shape_crop_im0
         self.shape_crop_im0 = shape_crop_im0
         self.shape_crop_im1 = shape_crop_im1
 
@@ -370,7 +373,7 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
             n_interrogation_window0 = shape_crop_im0
         else:
             raise NotImplementedError(
-                'For now, shape_crop_im0 has to be one or two even integer!')
+                'For now, shape_crop_im0 has to be one or two integer!')
 
         if isinstance(shape_crop_im1, int):
             n_interrogation_window1 = (shape_crop_im1, shape_crop_im1)
@@ -378,7 +381,7 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
             n_interrogation_window1 = shape_crop_im1
         else:
             raise NotImplementedError(
-                'For now, shape_crop_im1 has to be one or two even integer!')
+                'For now, shape_crop_im1 has to be one or two integer!')
 
         if (n_interrogation_window1[0] > n_interrogation_window0[0]
            or n_interrogation_window1[1] > n_interrogation_window0[1]):
@@ -389,6 +392,11 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
                                    int(np.ceil(n_interrogation_window0[1]/2)))
         n_interrogation_window1 = (int(np.ceil(n_interrogation_window1[0]/2)),
                                    int(np.ceil(n_interrogation_window1[1]/2)))
+"""
+        n_interrogation_window0 = (int(np.ceil(shape_crop_im0[0]/2)),
+                                   int(np.ceil(shape_crop_im0[1]/2)))
+        n_interrogation_window1 = (int(np.ceil(shape_crop_im1[0]/2)),
+                                   int(np.ceil(shape_crop_im1[1]/2)))
 
         niw0 = self.n_interrogation_window0 = n_interrogation_window0
         niw1 = self.n_interrogation_window1 = n_interrogation_window1

@@ -8,9 +8,10 @@ from fluidimage.works.piv import WorkPIV
 params = WorkPIV.create_default_params()
 
 # params.piv0.method_subpix = 'centroid'
-# params.piv0.method_correl = 'fftw'
+params.piv0.method_correl = 'fftw'
 
 params.piv0.shape_crop_im0 = 64
+params.piv0.shape_crop_im1 = 64
 # params.piv0.grid.overlap = 0.5
 
 params.multipass.number = 2
@@ -32,5 +33,4 @@ serie = series.get_serie_from_index(0)
 
 result = piv.calcul(serie)
 
-result.display(0)
 result.display()

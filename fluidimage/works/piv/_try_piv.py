@@ -15,7 +15,7 @@ params = WorkPIV.create_default_params()
 # params.piv0.method_subpix = 'centroid'
 params.piv0.method_correl = 'pythran'
 
-params.multipass.number = 1
+params.multipass.number = 2
 params.multipass.use_tps = False
 # params.multipass.coeff_zoom = [2, 2]
 

@@ -71,6 +71,22 @@ class WorkPIV(BaseWork):
 
         shape_crop_im0 = copy(params.piv0.shape_crop_im0)
         shape_crop_im1 = copy(params.piv0.shape_crop_im1)
+        if shape_crop_im1 is None:
+            shape_crop_im1 = shape_crop_im0
+
+        if isinstance(shape_crop_im0, int):
+            shape_crop_im0 = (shape_crop_im0, shape_crop_im0)
+        elif not(isinstance(shape_crop_im0, tuple) and
+                 len(shape_crop_im0) == 2):
+            raise NotImplementedError(
+                'For now, shape_crop_im0 has to be one or two integer!')
+        if isinstance(shape_crop_im1, int):
+            shape_crop_im1 = (shape_crop_im1, shape_crop_im1)
+        elif not(isinstance(shape_crop_im1, tuple) and
+                 len(shape_crop_im1) == 2):
+            raise NotImplementedError(
+                'For now, shape_crop_im1 has to be one or two integer!')
+
         for i in range(1, params.multipass.number):
 
             shape_crop_im0 = (copy(shape_crop_im0[0]/coeffs_zoom[i-1]),
