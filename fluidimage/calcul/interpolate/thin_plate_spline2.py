@@ -68,7 +68,7 @@ class ThinPlateSpline(object):
         max_coord = np.max(self.centers, 1)
         min_coord = np.min(self.centers, 1)
         range_coord = max_coord - min_coord
-        aspect_ratio = range_coord[1] / range_coord[0] 
+        aspect_ratio = range_coord[1] / range_coord[0]
     
         nb_subdom = self.centers[0,:].size / self.subdom_size
         nb_subdomx = int( np.max ( np.floor( np.sqrt( nb_subdom / aspect_ratio ) ), 0) )

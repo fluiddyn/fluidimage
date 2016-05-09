@@ -40,21 +40,21 @@ def compute_tps_coeff_subdom(centers, U, smoothing_coef, subdom_size,
     max_coord = np.max(centers, 1)
     min_coord = np.min(centers, 1)
     range_coord = max_coord - min_coord
-    aspect_ratio = range_coord[1] / range_coord[0]
+    aspect_ratio = range_coord[0] / range_coord[1]
 
     nb_subdom = centers[0, :].size / subdom_size
     nb_subdomx = int(np.max(np.floor(np.sqrt(nb_subdom / aspect_ratio)), 0))
     nb_subdomy = int(np.max(np.floor(np.sqrt(nb_subdom * aspect_ratio)), 0))
     nb_subdom = nb_subdomx * nb_subdomy
 
-    x_dom = np.arange(min_coord[0], max_coord[0], range_coord[0] / nb_subdomx)
-    x_dom = np.unique(np.append(x_dom, max_coord[0]))
-    y_dom = np.arange(min_coord[1], max_coord[1], range_coord[1] / nb_subdomy)
-    y_dom = np.unique(np.append(y_dom, max_coord[1]))
+    x_dom = np.arange(min_coord[1], max_coord[1], range_coord[1] / nb_subdomx)
+    x_dom = np.unique(np.append(x_dom, max_coord[1]))
+    y_dom = np.arange(min_coord[0], max_coord[0], range_coord[0] / nb_subdomy)
+    y_dom = np.unique(np.append(y_dom, max_coord[0]))
 
-    buffer_area_x = x_dom*0 + range_coord[0]/(nb_subdomx) * pourc_buffer_area
+    buffer_area_x = x_dom*0 + range_coord[1]/(nb_subdomx) * pourc_buffer_area
     # buffer_area_x[0], buffer_area_x[-1] = 0, 0
-    buffer_area_y = y_dom*0 + range_coord[1]/(nb_subdomy) * pourc_buffer_area
+    buffer_area_y = y_dom*0 + range_coord[0]/(nb_subdomy) * pourc_buffer_area
     # buffer_area_y[0], buffer_area_y[-1] = 0, 0
 
     ind_subdom = np.zeros([nb_subdom, 2])
@@ -67,36 +67,36 @@ def compute_tps_coeff_subdom(centers, U, smoothing_coef, subdom_size,
             ind_subdom[count, :] = [i, j]
 
             ind_v_subdom.append(np.argwhere(
-                (centers[0, :] >= x_dom[i] - buffer_area_x[i]) &
-                (centers[0, :] < x_dom[i+1] + buffer_area_x[i+1]) &
-                (centers[1, :] >= y_dom[j] - buffer_area_y[j]) &
-                (centers[1, :] < y_dom[j+1] + buffer_area_y[j+1])).flatten())
+                (centers[1, :] >= x_dom[i] - buffer_area_x[i]) &
+                (centers[1, :] < x_dom[i+1] + buffer_area_x[i+1]) &
+                (centers[0, :] >= y_dom[j] - buffer_area_y[j]) &
+                (centers[0, :] < y_dom[j+1] + buffer_area_y[j+1])).flatten())
 
             ind_new_positions_subdom.append(np.argwhere(
-                (new_positions[0, :] >= x_dom[i] - buffer_area_x[i]) &
-                (new_positions[0, :] < x_dom[i+1] + buffer_area_x[i+1]) &
-                (new_positions[1, :] >= y_dom[j] - buffer_area_y[j]) &
-                (new_positions[1, :] < y_dom[j+1] + buffer_area_y[j+1])
+                (new_positions[1, :] >= x_dom[i] - buffer_area_x[i]) &
+                (new_positions[1, :] < x_dom[i+1] + buffer_area_x[i+1]) &
+                (new_positions[0, :] >= y_dom[j] - buffer_area_y[j]) &
+                (new_positions[0, :] < y_dom[j+1] + buffer_area_y[j+1])
             ).flatten())
 
             count += 1
 
-    U_eval = np.zeros(new_positions[0].shape)
-    nb_tps = np.zeros(new_positions[0].shape)
+    U_eval = np.zeros(new_positions[1].shape)
+    nb_tps = np.zeros(new_positions[1].shape)
 
     U_tps = [None] * nb_subdom
     U_smooth = [None] * nb_subdom
 
     for i in range(nb_subdom):
-        centerstemp = np.vstack([centers[0][ind_v_subdom[i]],
-                                 centers[1][ind_v_subdom[i]]])
+        centerstemp = np.vstack([centers[1][ind_v_subdom[i]],
+                                 centers[0][ind_v_subdom[i]]])
         Utemp = U[ind_v_subdom[i]]
         U_smooth[i], U_tps[i] = compute_tps_coeff_iter(
             centerstemp, Utemp, smoothing_coef, threshold)
 
         centers_newposition_temp = np.vstack([
-            new_positions[0][ind_new_positions_subdom[i]],
-            new_positions[1][ind_new_positions_subdom[i]]])
+            new_positions[1][ind_new_positions_subdom[i]],
+            new_positions[0][ind_new_positions_subdom[i]]])
 
         EM = compute_tps_matrix(centers_newposition_temp, centerstemp)
 
@@ -174,7 +174,7 @@ def compute_tps_coeff(centers, U, smoothing_coef):
     except TypeError as e:
         print(centers.dtype, centers.shape)
         raise e
-        
+
     smoothing_mat = smoothing_coef * np.eye(N, N)
     smoothing_mat = np.hstack([smoothing_mat, np.zeros([N, nb_dim + 1])])
     PM = np.hstack([np.ones([N, 1]), centers.T])

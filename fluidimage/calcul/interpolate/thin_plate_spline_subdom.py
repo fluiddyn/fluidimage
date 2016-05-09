@@ -42,12 +42,12 @@ class ThinPlateSplineSubdom(object):
         self.compute_indices(pourc_buffer_area)
 
     def compute_indices(self, pourc_buffer_area=0.2):
-        xs = self.centers[0]
-        ys = self.centers[1]
+        xs = self.centers[1]
+        ys = self.centers[0]
         max_coord = np.max(self.centers, 1)
         min_coord = np.min(self.centers, 1)
         range_coord = max_coord - min_coord
-        aspect_ratio = range_coord[1] / range_coord[0]
+        aspect_ratio = range_coord[0] / range_coord[1]
 
         nb_subdom = xs.size / self.subdom_size
 
@@ -64,12 +64,12 @@ class ThinPlateSplineSubdom(object):
         self.nb_subdomx = nb_subdomx
         self.nb_subdomy = nb_subdomy
 
-        x_dom = np.linspace(min_coord[0], max_coord[0], nb_subdomx+1)
-        y_dom = np.linspace(min_coord[1], max_coord[1], nb_subdomy+1)
+        x_dom = np.linspace(min_coord[1], max_coord[1], nb_subdomx+1)
+        y_dom = np.linspace(min_coord[0], max_coord[0], nb_subdomy+1)
 
-        buffer_area_x = (range_coord[0]/(nb_subdomx)*pourc_buffer_area *
+        buffer_area_x = (range_coord[1]/(nb_subdomx)*pourc_buffer_area *
                          np.ones_like(x_dom))
-        buffer_area_y = (range_coord[1]/(nb_subdomy)*pourc_buffer_area *
+        buffer_area_y = (range_coord[0]/(nb_subdomy)*pourc_buffer_area *
                          np.ones_like(y_dom))
 
         self.x_dom = x_dom
@@ -108,8 +108,8 @@ class ThinPlateSplineSubdom(object):
             U_smooth[i], U_tps[i] = self.compute_tps_coeff_iter(
                 centers_tmp, U_tmp)
 
-        U_smooth_tmp = np.zeros(self.centers[0].shape)
-        nb_tps = np.zeros(self.centers[0].shape, dtype=int)
+        U_smooth_tmp = np.zeros(self.centers[1].shape)
+        nb_tps = np.zeros(self.centers[1].shape, dtype=int)
 
         for i in range(self.nb_subdom):
             U_smooth_tmp[self.ind_v_subdom[i]] += U_smooth[i]
@@ -133,10 +133,10 @@ class ThinPlateSplineSubdom(object):
         for i in range(self.nb_subdomx):
             for j in range(self.nb_subdomy):
                 ind_new_positions_subdom.append(np.where(
-                    (npos[0] >= x_dom[i] - buffer_area_x[i]) &
-                    (npos[0] < x_dom[i+1] + buffer_area_x[i+1]) &
-                    (npos[1] >= y_dom[j] - buffer_area_y[j]) &
-                    (npos[1] < y_dom[j+1] + buffer_area_y[j+1]))[0])
+                    (npos[1] >= x_dom[i] - buffer_area_x[i]) &
+                    (npos[1] < x_dom[i+1] + buffer_area_x[i+1]) &
+                    (npos[0] >= y_dom[j] - buffer_area_y[j]) &
+                    (npos[0] < y_dom[j+1] + buffer_area_y[j+1]))[0])
 
                 i_subdom += 1
 
@@ -158,8 +158,8 @@ class ThinPlateSplineSubdom(object):
 
     def compute_eval(self, U_tps):
 
-        U_eval = np.zeros(self.new_positions[0].shape)
-        nb_tps = np.zeros(self.new_positions[0].shape, dtype=int)
+        U_eval = np.zeros(self.new_positions[1].shape)
+        nb_tps = np.zeros(self.new_positions[1].shape, dtype=int)
 
         for i in range(self.nb_subdom):
             U_eval[self.ind_new_positions_subdom[i]] += np.dot(
