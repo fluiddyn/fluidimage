@@ -73,8 +73,10 @@ class WorkPIV(BaseWork):
         shape_crop_im1 = copy(params.piv0.shape_crop_im1)
         for i in range(1, params.multipass.number):
 
-            shape_crop_im0 = copy(shape_crop_im0/coeffs_zoom[i-1])
-            shape_crop_im1 = copy(shape_crop_im1/coeffs_zoom[i-1])
+            shape_crop_im0 = (copy(shape_crop_im0[0]/coeffs_zoom[i-1]),
+                              copy(shape_crop_im0[1]/coeffs_zoom[i-1]))
+            shape_crop_im1 = (copy(shape_crop_im1[0]/coeffs_zoom[i-1]),
+                              copy(shape_crop_im1[1]/coeffs_zoom[i-1]))
 
             self.works_piv.append(
                 WorkPIVFromDisplacement(
