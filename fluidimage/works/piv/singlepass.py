@@ -130,7 +130,7 @@ class BaseWorkPIV(BaseWork):
         self.correl = correl_cls(im0_shape=niw0, im1_shape=niw1,
                                  method_subpix=self.params.piv0.method_subpix)
 
-    def _prepare_with_image1(self, im1):
+    def _prepare_with_image0(self, im0):
         """Initialize the object with an image.
 
         .. todo::
@@ -138,9 +138,9 @@ class BaseWorkPIV(BaseWork):
            Better ixvecs and iyvecs (starting from 0 and padding is silly).
 
         """
-        self.imshape1 = len_y, len_x = im1.shape
-        niw = self.n_interrogation_window1
-        niwo2 = self.niw1o2
+        self.imshape0 = len_y, len_x = im0.shape
+        niw = self.n_interrogation_window0
+        niwo2 = self.niw0o2
 
         stepy = niw[0] - int(np.round(self.overlap*niw[0]))
         stepx = niw[1] - int(np.round(self.overlap*niw[1]))
@@ -165,8 +165,8 @@ class BaseWorkPIV(BaseWork):
 
         im0, im1 = couple.get_arrays()
         if not hasattr(self, 'ixvecs_grid'):
-            self.imshape0 = im0.shape
-            self._prepare_with_image1(im1)
+            self.imshape1 = im1.shape
+            self._prepare_with_image0(im0)
 
         deltaxs, deltays, xs, ys, correls_max, correls, errors = \
             self._loop_vectors(im0, im1)
@@ -274,8 +274,8 @@ class BaseWorkPIV(BaseWork):
 
         im0, im1 = couple.get_arrays()
         if not hasattr(piv_results, 'ixvecs_grid'):
-            self.imshape0 = im0.shape
-            self._prepare_with_image1(im1)
+            self.imshape1 = im1.shape
+            self._prepare_with_image0(im0)
             piv_results.ixvecs_grid = self.ixvecs_grid
             piv_results.iyvecs_grid = self.iyvecs_grid
 
@@ -284,7 +284,7 @@ class BaseWorkPIV(BaseWork):
 
         xs = piv_results.xs[selection]
         ys = piv_results.ys[selection]
-        centers = np.vstack([xs, ys])
+        centers = np.vstack([ys, xs])
 
         deltaxs = piv_results.deltaxs[selection]
         deltays = piv_results.deltays[selection]
@@ -308,7 +308,7 @@ class BaseWorkPIV(BaseWork):
             piv_results.deltays_tps = deltays_tps
 
             piv_results.new_positions = np.vstack([
-                self.ixvecs_grid, self.iyvecs_grid])
+                self.iyvecs_grid, self.ixvecs_grid])
             tps.init_with_new_positions(piv_results.new_positions)
 
             # displacement int32 with TPS
@@ -316,9 +316,9 @@ class BaseWorkPIV(BaseWork):
             piv_results.deltays_approx = tps.compute_eval(deltays_tps)
         else:
             piv_results.deltaxs_approx = griddata(centers, deltaxs,
-                                                  (self.ixvecs, self.iyvecs))
+                                                  (self.iyvecs, self.ixvecs))
             piv_results.deltays_approx = griddata(centers, deltays,
-                                                  (self.ixvecs, self.iyvecs))
+                                                  (self.iyvecs, self.ixvecs))
 
 
 class FirstWorkPIV(BaseWorkPIV):
@@ -362,37 +362,6 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
         self.shape_crop_im0 = shape_crop_im0
         self.shape_crop_im1 = shape_crop_im1
 
-        """if shape_crop_im1 is None:
-            shape_crop_im1 = shape_crop_im0
-        self.shape_crop_im0 = shape_crop_im0
-        self.shape_crop_im1 = shape_crop_im1
-
-        if isinstance(shape_crop_im0, int):
-            n_interrogation_window0 = (shape_crop_im0, shape_crop_im0)
-        elif isinstance(shape_crop_im0, tuple) and len(shape_crop_im0) == 2:
-            n_interrogation_window0 = shape_crop_im0
-        else:
-            raise NotImplementedError(
-                'For now, shape_crop_im0 has to be one or two integer!')
-
-        if isinstance(shape_crop_im1, int):
-            n_interrogation_window1 = (shape_crop_im1, shape_crop_im1)
-        elif isinstance(shape_crop_im1, tuple) and len(shape_crop_im1) == 2:
-            n_interrogation_window1 = shape_crop_im1
-        else:
-            raise NotImplementedError(
-                'For now, shape_crop_im1 has to be one or two integer!')
-
-        if (n_interrogation_window1[0] > n_interrogation_window0[0]
-           or n_interrogation_window1[1] > n_interrogation_window0[1]):
-            raise NotImplementedError(
-                'shape_crop_im1 must be inferior or equal to shape_crop_im0')
-
-        n_interrogation_window0 = (int(np.ceil(n_interrogation_window0[0]/2)),
-                                   int(np.ceil(n_interrogation_window0[1]/2)))
-        n_interrogation_window1 = (int(np.ceil(n_interrogation_window1[0]/2)),
-                                   int(np.ceil(n_interrogation_window1[1]/2)))
-"""
         n_interrogation_window0 = (int(np.ceil(shape_crop_im0[0]/2)),
                                    int(np.ceil(shape_crop_im0[1]/2)))
         n_interrogation_window1 = (int(np.ceil(shape_crop_im1[0]/2)),
@@ -461,8 +430,8 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
            image 0 and image 1.
 
         """
-        ixs0 = self.ixvecs_grid - deltaxs_approx//2
-        iys0 = self.iyvecs_grid - deltays_approx//2
+        ixs0 = self.ixvecs_grid - deltaxs_approx // 2
+        iys0 = self.iyvecs_grid - deltays_approx // 2
         ixs1 = ixs0 + deltaxs_approx
         iys1 = iys0 + deltays_approx
 

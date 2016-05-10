@@ -15,7 +15,13 @@ from .. import BaseWork
 
 
 class WorkFIX(BaseWork):
-    """Fix a displacement vector field."""
+    """Fix a displacement vector field.
+
+    .. todo::
+
+       Calculus default delta_max! Actual default value (4) is bad!
+
+    """
 
     @classmethod
     def create_default_params(cls):

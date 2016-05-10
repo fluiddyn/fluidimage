@@ -7,19 +7,19 @@ from fluidimage.works.piv import WorkPIV
 
 params = WorkPIV.create_default_params()
 
-params.piv0.method_subpix = 'centroid'
+#params.piv0.method_subpix = 'centroid'
 params.piv0.method_correl = 'fftw'
 
-params.piv0.shape_crop_im0 = 32
-params.piv0.shape_crop_im1 = 32
+params.piv0.shape_crop_im0 = 64
+params.piv0.shape_crop_im1 = 64
 # params.piv0.grid.overlap = 0.5
 
-params.multipass.number = 1
-params.multipass.use_tps = False
+params.multipass.number = 2
+params.multipass.use_tps = True
 # params.multipass.coeff_zoom = [2, 2]
 
 params.fix.remove_error_vec = False
-#params.fix.delta_max = 15
+params.fix.delta_max = 15
 params.fix.correl_min = 0.1
 
 piv = WorkPIV(params=params)

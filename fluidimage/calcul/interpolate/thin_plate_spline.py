@@ -62,21 +62,21 @@ def compute_tps_coeff_subdom(centers, U, smoothing_coef, subdom_size,
     ind_new_positions_subdom = []
 
     count = 0
-    for i in range(nb_subdomx):
-        for j in range(nb_subdomy):
+    for i in range(nb_subdomy):
+        for j in range(nb_subdomx):
             ind_subdom[count, :] = [i, j]
 
             ind_v_subdom.append(np.argwhere(
-                (centers[1, :] >= x_dom[i] - buffer_area_x[i]) &
-                (centers[1, :] < x_dom[i+1] + buffer_area_x[i+1]) &
-                (centers[0, :] >= y_dom[j] - buffer_area_y[j]) &
-                (centers[0, :] < y_dom[j+1] + buffer_area_y[j+1])).flatten())
+                (centers[1, :] >= x_dom[j] - buffer_area_x[j]) &
+                (centers[1, :] < x_dom[j+1] + buffer_area_x[j+1]) &
+                (centers[0, :] >= y_dom[i] - buffer_area_y[i]) &
+                (centers[0, :] < y_dom[i+1] + buffer_area_y[i+1])).flatten())
 
             ind_new_positions_subdom.append(np.argwhere(
-                (new_positions[1, :] >= x_dom[i] - buffer_area_x[i]) &
-                (new_positions[1, :] < x_dom[i+1] + buffer_area_x[i+1]) &
-                (new_positions[0, :] >= y_dom[j] - buffer_area_y[j]) &
-                (new_positions[0, :] < y_dom[j+1] + buffer_area_y[j+1])
+                (new_positions[1, :] >= x_dom[j] - buffer_area_x[j]) &
+                (new_positions[1, :] < x_dom[j+1] + buffer_area_x[j+1]) &
+                (new_positions[0, :] >= y_dom[i] - buffer_area_y[i]) &
+                (new_positions[0, :] < y_dom[i+1] + buffer_area_y[i+1])
             ).flatten())
 
             count += 1

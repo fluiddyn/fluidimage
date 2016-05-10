@@ -121,7 +121,6 @@ class CorrelPythran(CorrelBase):
             raise ValueError(
                 'displacement_max <= 0 : problem with images shapes')
         self.displacement_max = displacement_max
-
         super(CorrelPythran, self).__init__(
             im0_shape, im1_shape, method_subpix=method_subpix, nsubpix=nsubpix)
 
