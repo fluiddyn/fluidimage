@@ -145,7 +145,14 @@ class CorrelPyCuda(CorrelBase):
                  mode=None):
 
         if displacement_max is None:
-            displacement_max = max(im0_shape) // 2 #min(max(im0_shape), max(im1_shape)) // 2
+            if im0_shape == im1_shape:
+                displacement_max = max(im0_shape) // 2 #min(max(im0_shape), max(im1_shape)) // 2
+            else:
+                displacement_max = max(im0_shape[0]-im1_shape[0],
+                                       im0_shape[1]-im1_shape[1]) // 2 - 1
+        if displacement_max <= 0:
+            raise ValueError(
+                'displacement_max <= 0 : problem with images shapes')
 
         self.displacement_max = displacement_max
 
@@ -237,7 +244,14 @@ class CorrelTheano(CorrelBase):
             im1_shape = im0_shape
 
         if displacement_max is None:
-            displacement_max = min(max(im0_shape), max(im1_shape)) // 2
+            if im0_shape == im1_shape:
+                displacement_max = max(im0_shape) // 2 #min(max(im0_shape), max(im1_shape)) // 2
+            else:
+                displacement_max = max(im0_shape[0]-im1_shape[0],
+                                       im0_shape[1]-im1_shape[1]) // 2 - 1
+        if displacement_max <= 0:
+            raise ValueError(
+                'displacement_max <= 0 : problem with images shapes')
 
         super(CorrelTheano, self).__init__(
             im0_shape, im1_shape, method_subpix=method_subpix, nsubpix=nsubpix)

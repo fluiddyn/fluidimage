@@ -151,7 +151,7 @@ class BaseWorkPIV(BaseWork):
         iyvecs = np.arange(niwo2[0], len_y-niwo2[0], stepy, dtype=int)
         self.ixvecs = ixvecs
         self.iyvecs = iyvecs
-        ixvecs, iyvecs = np.meshgrid(ixvecs, iyvecs)
+        iyvecs, ixvecs = np.meshgrid(iyvecs, ixvecs)
 
         self.ixvecs_grid = ixvecs.flatten()
         self.iyvecs_grid = iyvecs.flatten()
@@ -165,7 +165,6 @@ class BaseWorkPIV(BaseWork):
 
         im0, im1 = couple.get_arrays()
         if not hasattr(self, 'ixvecs_grid'):
-            self.imshape1 = im1.shape
             self._prepare_with_image0(im0)
 
         deltaxs, deltays, xs, ys, correls_max, correls, errors = \
@@ -274,7 +273,6 @@ class BaseWorkPIV(BaseWork):
 
         im0, im1 = couple.get_arrays()
         if not hasattr(piv_results, 'ixvecs_grid'):
-            self.imshape1 = im1.shape
             self._prepare_with_image0(im0)
             piv_results.ixvecs_grid = self.ixvecs_grid
             piv_results.iyvecs_grid = self.iyvecs_grid
@@ -439,13 +437,13 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
         # for correlation
         ind_outside = np.argwhere(
             (ixs0 > self.imshape0[1]) | (ixs0 < 0) |
-            (ixs1 > self.imshape1[1]) | (ixs1 < 0) |
+            (ixs1 > self.imshape0[1]) | (ixs1 < 0) |
             (iys0 > self.imshape0[0]) | (iys0 < 0) |
-            (iys1 > self.imshape1[0]) | (iys1 < 0))
+            (iys1 > self.imshape0[0]) | (iys1 < 0))
 
         for ind in ind_outside:
-            if ((ixs1[ind] > self.imshape1[1]) or
-                    (iys1[ind] > self.imshape1[0]) or
+            if ((ixs1[ind] > self.imshape0[1]) or
+                    (iys1[ind] > self.imshape0[0]) or
                     (ixs1[ind] < 0) or (iys1[ind] < 0)):
                 ixs0[ind] = self.ixvecs_grid[ind] - deltaxs_approx[ind]
                 iys0[ind] = self.iyvecs_grid[ind] - deltays_approx[ind]
