@@ -115,8 +115,11 @@ class CorrelPythran(CorrelBase):
             if im0_shape == im1_shape:
                 displacement_max = max(im0_shape) // 2 #min(max(im0_shape), max(im1_shape)) // 2
             else:
-                displacement_max = max(im0_shape)-min(im1_shape)-1
-
+                displacement_max = max(im0_shape[0]-im1_shape[0],
+                                       im0_shape[1]-im1_shape[1]) // 2 - 1
+        if displacement_max <= 0:
+            raise ValueError(
+                'displacement_max <= 0 : problem with images shapes')
         self.displacement_max = displacement_max
 
         super(CorrelPythran, self).__init__(

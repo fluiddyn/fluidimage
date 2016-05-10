@@ -50,7 +50,6 @@ class ThinPlateSplineSubdom(object):
         aspect_ratio = range_coord[0] / range_coord[1]
 
         nb_subdom = xs.size / self.subdom_size
-
         nb_subdomx = int(np.floor(np.sqrt(nb_subdom / aspect_ratio)))
         nb_subdomx = nb_subdomx or 1
         nb_subdomy = int(np.ceil(np.sqrt(nb_subdom * aspect_ratio)))

@@ -42,7 +42,7 @@ def compute_tps_coeff_subdom(centers, U, smoothing_coef, subdom_size,
     range_coord = max_coord - min_coord
     aspect_ratio = range_coord[0] / range_coord[1]
 
-    nb_subdom = centers[0, :].size / subdom_size
+    nb_subdom = centers[1, :].size / subdom_size
     nb_subdomx = int(np.max(np.floor(np.sqrt(nb_subdom / aspect_ratio)), 0))
     nb_subdomy = int(np.max(np.floor(np.sqrt(nb_subdom * aspect_ratio)), 0))
     nb_subdom = nb_subdomx * nb_subdomy
@@ -274,9 +274,9 @@ def compute_tps_matrices_dxy(dsites, centers):
     s, M = dsites.shape
     s2, N = centers.shape
     assert s == s2
-    Dsites, Centers = np.meshgrid(dsites[0], centers[0])
-    DX = Dsites - Centers
     Dsites, Centers = np.meshgrid(dsites[1], centers[1])
+    DX = Dsites - Centers
+    Dsites, Centers = np.meshgrid(dsites[0], centers[0])
     DY = Dsites - Centers
     DM = DX * DX + DY * DY
     DM[DM != 0] = np.log(DM[DM != 0]) + 1
