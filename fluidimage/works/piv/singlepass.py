@@ -125,7 +125,7 @@ class BaseWorkPIV(BaseWork):
         self.correl = correl_cls(im0_shape=niw0, im1_shape=niw1,
                                  method_subpix=self.params.piv0.method_subpix)
 
-    def _prepare_with_image0(self, im0):
+    def _prepare_with_image(self, im0):
         """Initialize the object with an image.
 
         .. todo::
@@ -160,7 +160,7 @@ class BaseWorkPIV(BaseWork):
 
         im0, im1 = couple.get_arrays()
         if not hasattr(self, 'ixvecs_grid'):
-            self._prepare_with_image0(im0)
+            self._prepare_with_image(im0)
 
         deltaxs, deltays, xs, ys, correls_max, correls, errors = \
             self._loop_vectors(im0, im1)
@@ -268,7 +268,7 @@ class BaseWorkPIV(BaseWork):
 
         im0, im1 = couple.get_arrays()
         if not hasattr(piv_results, 'ixvecs_grid'):
-            self._prepare_with_image0(im0)
+            self._prepare_with_image(im0)
             piv_results.ixvecs_grid = self.ixvecs_grid
             piv_results.iyvecs_grid = self.iyvecs_grid
 
