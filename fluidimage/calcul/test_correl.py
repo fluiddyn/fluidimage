@@ -54,8 +54,8 @@ class TestCorrel(unittest.TestCase):
 method_subpix = 'centroid'
 n_subpix = np.arange(1,10)
 
-err = np.zeros([np.shape(classes.items())[0],n_subpix.size])
-temp = np.reshape(classes.items(),[len(classes.items()),2])
+err = np.zeros([np.shape(list(classes.items()))[0],n_subpix.size])
+temp = np.reshape(list(classes.items()),[len(classes.items()),2])
 leg = temp.T[0]
 
 indn = 0

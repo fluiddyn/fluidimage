@@ -130,8 +130,8 @@ class TestFFTW2DReal2Complex(unittest.TestCase):
             self.compute_and_check2(func1, op)
             rtime += time() - t0
 
-        print 'array size = %5d x %5d : gpu speedup = %g' % (nx,
-                                                             ny, ntime / rtime)
+        print('array size = %5d x %5d : gpu speedup = %g' % (nx,
+                                                             ny, ntime / rtime))
 
 if __name__ == '__main__':
     unittest.main()
