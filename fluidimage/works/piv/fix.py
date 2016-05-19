@@ -35,7 +35,7 @@ class WorkFIX(BaseWork):
         params._set_child(tag, attribs={
             'correl_min': 0.4,
             # 'delta_diff': 0.1,
-            'delta_max': 4,
+            'delta_max': None,
             'remove_error_vec': True})
 
     def __init__(self, params):
@@ -65,10 +65,11 @@ class WorkFIX(BaseWork):
         put_to_nan(inds, 'correl < correl_min')
 
         # condition delta2 < delta_max2
-        delta_max2 = self.params.delta_max**2
-        delta2s = deltaxs**2 + deltays**2
-        inds = (delta2s > delta_max2).nonzero()[0]
-        put_to_nan(inds, 'delta2 < delta_max2')
+	if self.params.delta_max:
+            delta_max2 = self.params.delta_max**2
+            delta2s = deltaxs**2 + deltays**2
+            inds = (delta2s > delta_max2).nonzero()[0]
+            put_to_nan(inds, 'delta2 < delta_max2')
 
         # warning condition neighbour not implemented...
 
