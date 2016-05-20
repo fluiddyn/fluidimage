@@ -39,7 +39,7 @@ class WorkPIV(BaseWork):
             'multipass',
             attribs={'number': 1,
                      'coeff_zoom': 2,
-                     'use_tps': True,
+                     'use_tps': 'last',
                      'subdom_size': 1000,
                      'smoothing_coef': 0.5})
 

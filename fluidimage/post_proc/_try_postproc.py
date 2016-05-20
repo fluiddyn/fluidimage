@@ -15,8 +15,8 @@ params.piv0.grid.overlap = 0.
 params.piv0.method_subpix = 'centroid'
 params.piv0.method_correl = 'fftw'
 
-params.multipass.number = 2
-params.multipass.use_tps = False
+params.multipass.number = 3
+#params.multipass.use_tps = 'last'
 
 piv = WorkPIV(params=params)
 
@@ -25,7 +25,7 @@ serie = series.get_serie_from_index(0)
 
 result = piv.calcul(serie)
 
-result.display()
+#result.display()
 
 lightresult = result.make_light_result()
 
