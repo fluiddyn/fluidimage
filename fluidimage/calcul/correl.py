@@ -87,7 +87,6 @@ class CorrelBase(object):
         """Compute the displacement (with subpix) from a correlation."""
         iy, ix = np.unravel_index(correl.argmax(), correl.shape)
         correl_max = correl[iy, ix]/coef_norm
-
         try:
             indices = self.subpix.compute_subpix(
                 correl, ix, iy, method_subpix, nsubpix=nsubpix)
@@ -113,9 +112,9 @@ class CorrelPythran(CorrelBase):
 
         if displacement_max is None:
             if im0_shape == im1_shape:
-                displacement_max = max(im0_shape) // 2 #min(max(im0_shape), max(im1_shape)) // 2
+                displacement_max = min(im0_shape) // 2 - 1
             else:
-                displacement_max = max(im0_shape[0]-im1_shape[0],
+                displacement_max = min(im0_shape[0]-im1_shape[0],
                                        im0_shape[1]-im1_shape[1]) // 2 - 1
         if displacement_max <= 0:
             raise ValueError(
