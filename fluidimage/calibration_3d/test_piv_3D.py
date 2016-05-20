@@ -61,7 +61,7 @@ import numpy as np
 calib = calib_parameters_from_uvmat('/.fsdyn_people/campagne8a/project/15DELDUCA/tmp/Antoine/piv_3D/Calibration/Calib.xml')
 
 p=[]
-for i in range(0,10,2):
+for i in range(0,9,2):
     pi = HeavyPIVResults(str_path='/.fsdyn_people/campagne8a/project/15DELDUCA/tmp/Antoine/piv_3D/test2/data_reorganized/level{}.piv/piv_im2-3.h5'.format(i+1))
     pi.level = i + 1    
     p.append(pi)

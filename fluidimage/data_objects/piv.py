@@ -404,8 +404,8 @@ class LightPIVResults(DataObject):
         self.deltays = deltays_approx
         self.couple = couple
         self.params = params
-        self.ys = ixvecs_grid
-        self.xs = iyvecs_grid
+        self.xs = ixvecs_grid
+        self.ys = iyvecs_grid
 
     def _get_name(self):
 

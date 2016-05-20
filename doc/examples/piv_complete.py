@@ -1,4 +1,3 @@
-
 from fluidimage.topologies.piv import TopologyPIV
 
 from fluidimage import config_logging
