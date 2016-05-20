@@ -7,6 +7,7 @@ config_logging('info')
 params = TopologyPIV.create_default_params()
 
 params.series.path = '../../image_samples/Karman/Images'
+params.series.ind_start = 1
 
 params.piv0.shape_crop_im0 = 32
 params.multipass.number = 2

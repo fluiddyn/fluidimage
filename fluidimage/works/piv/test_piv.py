@@ -15,8 +15,10 @@ class TestPIV(unittest.TestCase):
         params = WorkPIV.create_default_params()
 
         # for a very short computation
-        params.piv0.shape_crop_im0 = 16
-        params.piv0.grid.overlap = -9
+        params.piv0.shape_crop_im0 = 32
+        params.piv0.grid.overlap = -2
+
+        params.multipass.number = 2
 
         piv = WorkPIV(params=params)
 
@@ -25,7 +27,7 @@ class TestPIV(unittest.TestCase):
             'i+1:i+3')
         serie = series.get_serie_from_index(0)
 
-        piv.calcul(serie)
+        r = piv.calcul(serie)
 
 if __name__ == '__main__':
     unittest.main()

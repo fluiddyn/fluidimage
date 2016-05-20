@@ -8,7 +8,7 @@
 """
 from __future__ import print_function
 
-from time import sleep
+from time import sleep, time
 from multiprocessing import cpu_count
 import logging
 from signal import signal
@@ -87,8 +87,12 @@ class TopologyBase(object):
 
         signal(12, handler_signals)
 
-    def compute(self, sequential=None):
+    def compute(self, sequential=None, has_to_exit=True):
 
+        t_start = time()
+        
+        print('Start compute.')
+        
         workers = []
         workers_cpu = []
         while (not self._has_to_stop and
@@ -145,7 +149,9 @@ class TopologyBase(object):
 
                 workers[:] = [w for w in workers
                               if not w.fill_destination()]
+        print('Stop compute after t = {} s.'.format(time() - t_start))
 
+        if self._has_to_stop and has_to_exit:
             logger.info('Exit with signal 99.')
             exit(99)
 

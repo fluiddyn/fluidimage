@@ -40,8 +40,10 @@ class TopologyPIV(TopologyBase):
         params = ParamContainer(tag='params')
 
         params._set_child('series', attribs={'path': '',
-                                             'strcouple': 'i+1:i+3',
-                                             'ind_stop': None})
+                                             'strcouple': 'i:i+2',
+                                             'ind_start': 0,
+                                             'ind_stop': None,
+                                             'ind_step': 1})
 
         params._set_child('saving', attribs={'path': None,
                                              'how': 'ask',
@@ -65,6 +67,7 @@ class TopologyPIV(TopologyBase):
 
         self.series = SeriesOfArrays(
             serie_arrays, params.series.strcouple,
+            ind_start=params.series.ind_start,
             ind_stop=params.series.ind_stop)
 
         path_dir = self.series.serie.path_dir
@@ -129,6 +132,10 @@ class TopologyPIV(TopologyBase):
 
     def add_series(self, series):
 
+        if len(series) == 0:
+            print('Warning: add 0 couple. No PIV to compute.')
+            return
+
         if self.how_saving == 'complete':
             names = []
             index_series = []
@@ -142,16 +149,21 @@ class TopologyPIV(TopologyBase):
                     if name not in names:
                         names.append(name)
 
-                index_series.append(i)
+                index_series.append(i + series.ind_start)
+
+            if len(index_series) == 0:
+                print('Warning: topology in mode "complete" and '
+                      'work already done.')
+                return
 
             series.set_index_series(index_series)
 
             logger.debug(repr(names))
             logger.debug(repr([serie.get_name_files() for serie in series]))
-            if len(series) == 0:
-                return
         else:
             names = series.get_name_all_files()
+
+        print('Add {} PIV fields to compute.'.format(len(series)))
 
         self.wq0.add_name_files(names)
         self.wq_images.add_series(series)
