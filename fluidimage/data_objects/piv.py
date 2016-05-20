@@ -108,9 +108,9 @@ class HeavyPIVResults(DataObject):
                  couple=None, params=None,
                  str_path=None, hdf5_object=None):
         self._keys_to_be_saved = [
-            'xs', 'ys', 'deltaxs', 'deltays']#'correls_max', 'deltaxs_approx',
-            #'deltays_approx', 'new_positions', 'deltaxs_tps', 'deltays_tps',
-            #'ixvecs_grid', 'iyvecs_grid'
+            'xs', 'ys', 'deltaxs', 'deltays', 'correls_max', 'deltaxs_approx',
+            'deltays_approx', 'new_positions', 'deltaxs_tps', 'deltays_tps',
+            'ixvecs_grid', 'iyvecs_grid']
         if hdf5_object is not None:
             if couple is not None:
                 self.couple = couple
@@ -186,10 +186,9 @@ class HeavyPIVResults(DataObject):
         g_piv.attrs['module_name'] = 'fluidimage.data_objects.piv'
 
         for k in self._keys_to_be_saved:
-            try:
+            if k in self.__dict__:
                 g_piv.create_dataset(k, data=self.__dict__[k])
-            except:
-                pass
+
         g = g_piv.create_group('errors')
         g.create_dataset('keys', data=self.errors.keys())
         g.create_dataset('values', data=self.errors.values())
@@ -211,8 +210,9 @@ class HeavyPIVResults(DataObject):
             self.couple = ArrayCouple(hdf5_parent=f)
 
         for k in self._keys_to_be_saved:
-            dataset = g_piv[k]
-            self.__dict__[k] = dataset[:]
+            if k in g_piv:
+                dataset = g_piv[k]
+                self.__dict__[k] = dataset[:]
 
         g = g_piv['errors']
         keys = g['keys']

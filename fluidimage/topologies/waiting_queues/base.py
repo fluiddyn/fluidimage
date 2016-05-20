@@ -175,6 +175,10 @@ class WaitingQueueMakeCouple(WaitingQueueBase):
 
         couples = [serie.get_name_files() for serie in series]
 
+        if len(couples) > 0 and len(couples[0]) != 2:
+            raise ValueError(
+                'A couple has to be of length 2.')
+
         self.couples.update(couples)
         nb = self.nb_couples_to_create
 
