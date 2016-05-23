@@ -8,13 +8,17 @@ import numpy as np
 
 from fluidimage.synthetic import make_synthetic_images
 from fluidimage.calcul.correl import correlation_classes
-
-from fluidimage import config_logging
+from fluidimage.calcul.correl import CorrelScipySignal
+from fluidimage.calcul.correl import CorrelTheano, CorrelPythran, CorrelPyCuda
 
 # config_logging('debug')
 logger = logging.getLogger('fluidimage')
 
 classes = {k.replace('.', '_'): v for k, v in correlation_classes.items()}
+classes2 = {'sig': CorrelScipySignal,
+           'theano': CorrelTheano,
+           'pycuda': CorrelPyCuda,
+           'pythran': CorrelPythran}
 
 try:
     from reikna.cluda import any_api
@@ -26,6 +30,7 @@ try:
     import pycuda
 except ImportError:
     classes.pop('pycuda')
+    classes2.pop('pycuda')
 
 try:
     import skcuda
@@ -36,6 +41,7 @@ try:
     import theano
 except ImportError:
     classes.pop('theano')
+    classes2.pop('theano')
 
 
 class TestCorrel(unittest.TestCase):
@@ -48,8 +54,6 @@ class TestCorrel(unittest.TestCase):
         # nx = 16
         # ny = 16
 
-        #displacement_x = 2.3
-        #displacement_y = 1.8
         displacement_x = 3.3
         displacement_y = 5.8
 
@@ -91,13 +95,14 @@ for k, cls in classes.items():
             k + ', displacement = {}\t error= {}\n'.format(
                 self.displacements,
                 abs(displacement_computed-self.displacements)))
-        
+
         self.assertTrue(np.allclose(
             self.displacements,
             displacement_computed,
             atol=0.8))
 
     exec('TestCorrel.test_correl_square_image_' + k + ' = test')
+
 
 class TestCorrel1(unittest.TestCase):
     @classmethod
@@ -120,7 +125,7 @@ class TestCorrel1(unittest.TestCase):
             cls.displacements, nb_particles, shape_im0=(ny, nx), epsilon=0.)
 
 for k, cls in classes.items():
-    def test(self, cls=cls, k=k):
+    def test1(self, cls=cls, k=k):
         correl = cls(self.im0.shape, self.im1.shape)
 
         # first, no displacement
@@ -156,9 +161,57 @@ for k, cls in classes.items():
             displacement_computed,
             atol=0.8))
 
-    exec('TestCorrel1.test_correl_rectangular_image_' + k + ' = test')
+    exec('TestCorrel1.test_correl_rectangular_image_' + k + ' = test1')
 
 
+class TestCorrel2(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        nx0 = 48
+        ny0 = 96
+        nx1 = 32
+        ny1 = 64
+
+        # Sometimes errors with nx = ny = 16
+        # nx = 16
+        # ny = 16
+
+        displacement_x = 3.3
+        displacement_y = 5.8
+
+        cls.displacements = np.array([displacement_x, displacement_y])
+
+        nb_particles = (max(nx0, ny0) // 4)**2
+
+        cls.im0, cls.im1 = make_synthetic_images(
+            cls.displacements, nb_particles, shape_im0=(ny0, nx0),
+            shape_im1=(ny1, nx1), epsilon=0.)
+
+	cls.im1 = cls.im1.astype('float32')
+
+for k, cls in classes2.items():
+    def test2(self, cls=cls, k=k):
+        correl = cls(self.im0.shape, self.im1.shape, mode='valid')
+
+        # with the 2 figures with displacements
+        c, norm = correl(self.im0, self.im1)
+        dx, dy, correl_max = correl.compute_displacement_from_correl(
+            c, coef_norm=norm,
+            method_subpix='2d_gaussian')
+
+        displacement_computed = np.array([dx, dy])
+
+        logger.debug(
+            k + ', displacement = {}\t error= {}\n'.format(
+                self.displacements,
+                abs(displacement_computed-self.displacements)))
+
+        self.assertTrue(np.allclose(
+            self.displacements,
+            displacement_computed,
+            atol=0.8))
+
+    exec('TestCorrel2.test_correl_images_diff_sizes' + k + ' = test2')
 
 if __name__ == '__main__':
     unittest.main()
