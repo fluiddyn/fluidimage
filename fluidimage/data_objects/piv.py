@@ -109,8 +109,7 @@ class HeavyPIVResults(DataObject):
                  str_path=None, hdf5_object=None):
         self._keys_to_be_saved = [
             'xs', 'ys', 'deltaxs', 'deltays', 'correls_max', 'deltaxs_approx',
-            'deltays_approx', 'new_positions', 'deltaxs_tps', 'deltays_tps',
-            'ixvecs_grid', 'iyvecs_grid']
+            'deltays_approx', 'new_positions', 'ixvecs_grid', 'iyvecs_grid']
         if hdf5_object is not None:
             if couple is not None:
                 self.couple = couple
@@ -193,6 +192,16 @@ class HeavyPIVResults(DataObject):
         g.create_dataset('keys', data=self.errors.keys())
         g.create_dataset('values', data=self.errors.values())
 
+        if 'deltaxs_tps' in self.__dict__:
+            g = g_piv.create_group('deltaxs_tps')
+            for i, arr in enumerate(self.deltaxs_tps):
+                g.create_dataset('subdom{}'.format(i), data=arr)
+
+            g = g_piv.create_group('deltays_tps')
+            for i, arr in enumerate(self.deltays_tps):
+                g.create_dataset('subdom{}'.format(i), data=arr)
+                
+        
     def _load(self, path):
 
         self.file_name = os.path.basename(path)
