@@ -12,7 +12,7 @@ params = WorkPIV.create_default_params()
 params.piv0.shape_crop_im0 = 24
 params.piv0.grid.overlap = 0.
 
-params.piv0.method_subpix = 'centroid'
+params.piv0.method_subpix = '2d_gaussian'
 params.piv0.method_correl = 'fftw'
 
 params.multipass.number = 3
@@ -20,11 +20,11 @@ params.multipass.number = 3
 
 piv = WorkPIV(params=params)
 
-series = SeriesOfArrays('../../image_samples/Oseen/Images', 'i+1:i+3')
+series = SeriesOfArrays('../../image_samples/Karman/Images', 'i+1:i+3')
 serie = series.get_serie_from_index(0)
 
 result = piv.calcul(serie)
-
+result.save()
 #result.display()
 
 lightresult = result.make_light_result()

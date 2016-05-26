@@ -228,7 +228,16 @@ class HeavyPIVResults(DataObject):
         values = g['values']
         self.errors = {k: v for k, v in zip(keys, values)}
 
-
+        if 'deltaxs_tps' in g_piv.keys():                       
+            g = g_piv['deltaxs_tps']
+            self.deltaxs_tps = []
+            for arr in g.keys():
+                self.deltaxs_tps.append(g[arr].value)
+            g = g_piv['deltays_tps']
+            self.deltays_tps = []
+            for arr in g.keys():
+                self.deltays_tps.append(g[arr].value)
+                
 class MultipassPIVResults(DataObject):
 
     def __init__(self, str_path=None):
