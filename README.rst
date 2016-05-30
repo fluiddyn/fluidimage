@@ -11,10 +11,16 @@ FluidImage
    :target: http://fluidimage.readthedocs.org
    :alt: Documentation status
 
-We need a good software to compute PIV... We will try...
+FluidImage is a Python framework for scientific treatments of large
+series of images.  Today, this package is in a very early stage of
+development and the only treatment available is Particle Image
+Velocimetry (PIV), i.e. computation of velocity fields by correlations
+of images.
 
-What do we need?
+What do we want?
 ----------------
+
+There is still work to do, but we want:
 
 - easy installation
 
@@ -36,7 +42,7 @@ What do we need?
 
   * running on cluster
 
-- GUI (Qt)
+- today, only a very minimal GUI (Qt)
 
   * display images (zoom, colorbar, colormaps, info on a pixel)
 

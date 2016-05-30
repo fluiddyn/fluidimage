@@ -1,7 +1,11 @@
 
 
-0.0.0
------
+0.0.1b
+------
 
-- nothing
+- topology and waiting queues classes to run work in parallel.
+
+- PIV work and topology (multipass, different correlation methods).
+
+
 
