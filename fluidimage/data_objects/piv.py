@@ -31,14 +31,31 @@ from .display import display
 from .. import imread, ParamContainer
 
 
+def get_str_index(serie, i, index):
+    if serie._index_types[i] == 'digit':
+        code_format = '{:0' + str(serie._index_lens[i]) + 'd}'
+        str_index = code_format.format(index)
+    elif serie._index_types[i] == 'alpha':
+        if index > 25:
+            raise ValueError('"alpha" index larger than 25.')
+        str_index = chr(ord('a') + index)
+    else:
+        raise Exception('The type should be "digit" or "alpha".')
+    return str_index
+
+
 def get_name_piv(serie, prefix='piv'):
-    str_ind0 = serie._compute_strindices_from_indices(
-        *[inds[0] for inds in serie.get_index_slices()])
+    index_slices = serie._index_slices
+    str_indices = ''
+    for i, inds in enumerate(index_slices):
+        index = inds[0]
+        str_index = get_str_index(serie, i, index)
+        if len(inds) > 1:
+            str_index += '-' + get_str_index(serie, i, inds[1]-1)
 
-    str_ind1 = serie._compute_strindices_from_indices(
-        *[inds[1] - 1 for inds in serie.get_index_slices()])
+        str_indices += str_index + serie._index_separators[i]
 
-    name = (prefix + '_' + serie.base_name + str_ind0 + '-' + str_ind1 + '.h5')
+    name = prefix + '_' + str_indices + '.h5'
     return name
 
 
