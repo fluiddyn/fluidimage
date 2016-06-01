@@ -9,6 +9,7 @@ params = TopologyPIV.create_default_params()
 
 params.series.path = '../../image_samples/Karman/Images'
 params.series.ind_start = 1
+params.series.ind_step = 2
 
 params.piv0.shape_crop_im0 = 32
 params.multipass.number = 2
@@ -19,6 +20,11 @@ params.saving.postfix = 'piv_example'
 
 topology = TopologyPIV(params)
 
-topology.make_code_graphviz('topo.dot')
+# To produce a graph of the topology
+# topology.make_code_graphviz('topo.dot')
 
-topology.compute(sequential=False)
+# Compute in parallel
+topology.compute()
+
+# Compute in sequential (for debugging)
+# topology.compute(sequential=True)

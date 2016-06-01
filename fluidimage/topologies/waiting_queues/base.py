@@ -20,6 +20,15 @@ class WaitingQueueBase(dict):
         self.name = name
         self.work = work
         self.destination = destination
+
+        if work_name is None:
+            if hasattr(work, 'im_class') and hasattr(work, 'func_name'):
+                cls = work.im_class
+                work_name = (cls.__module__ + '.' + cls.__name__ + '.' +
+                             work.func_name)
+            elif hasattr(work, 'func_name'):
+                work_name = work.__module__ + '.' + work.func_name
+
         self.work_name = work_name
         self.topology = topology
         self._keys = []
@@ -84,7 +93,7 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
                 len(self.destination) >= self.topology.nb_items_lim):
             return
 
-        logger.info('launch work ' + repr(self.work))
+        logger.info('launch work ' + self.work_name)
 
         k = self._keys.pop(0)
         o = self.pop(k)
@@ -138,7 +147,7 @@ class WaitingQueueLoadFile(WaitingQueueThreading):
     def __init__(self, *args, **kwargs):
         self.path_dir = kwargs.pop('path_dir')
         super(WaitingQueueLoadFile, self).__init__(*args, **kwargs)
-        self.work_name = 'load'
+        self.work_name = __name__ + '.load'
 
     def add_name_files(self, names):
         self.update({name: os.path.join(self.path_dir, name)

@@ -90,9 +90,9 @@ class TopologyBase(object):
     def compute(self, sequential=None, has_to_exit=True):
 
         t_start = time()
-        
+
         print('Start compute.')
-        
+
         workers = []
         workers_cpu = []
         while (not self._has_to_stop and
@@ -110,7 +110,7 @@ class TopologyBase(object):
             for q in self.queues:
                 logger.debug(q)
                 if not q.is_empty():
-                    logger.info('check_and_act for work: ' + repr(q.work))
+                    logger.debug('check_and_act for work: ' + repr(q.work))
                     new_workers = q.check_and_act(sequential=sequential)
                     if new_workers is not None:
                         for worker in new_workers:

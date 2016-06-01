@@ -68,7 +68,8 @@ class TopologyPIV(TopologyBase):
         self.series = SeriesOfArrays(
             serie_arrays, params.series.strcouple,
             ind_start=params.series.ind_start,
-            ind_stop=params.series.ind_stop)
+            ind_stop=params.series.ind_stop,
+            ind_step=params.series.ind_step)
 
         path_dir = self.series.serie.path_dir
         if params.saving.path is not None:
@@ -80,9 +81,9 @@ class TopologyPIV(TopologyBase):
         if os.path.exists(path_dir_result):
             if how == 'ask':
                 answer = query(
-                    'The directory {} '.format(path_dir_result) +
+                    'The directory \n{}\n'.format(path_dir_result) +
                     'already exists. What do you want to do?\n'
-                    'New dir, Complete, Recompute or Stop?\n')
+                    'New dir, Complete, Recompute or Stop? ')
 
                 while answer.lower() not in ['n', 'c', 'r', 's']:
                     answer = query(
@@ -112,11 +113,13 @@ class TopologyPIV(TopologyBase):
         self.path_dir_result = path_dir_result
 
         self.results = {}
+
+        def save_piv_object(o):
+            o.save(path_dir_result)
         self.wq_piv = WaitingQueueThreading(
-            'delta', lambda o: o.save(path_dir_result), self.results,
-            work_name='save', topology=self)
+            'delta', save_piv_object, self.results, topology=self)
         self.wq_couples = WaitingQueueMultiprocessing(
-            'couple', self.piv_work.calcul, self.wq_piv, work_name='PIV',
+            'couple', self.piv_work.calcul, self.wq_piv,
             topology=self)
         self.wq_images = WaitingQueueMakeCouple(
             'array image', self.wq_couples, topology=self)
@@ -144,12 +147,11 @@ class TopologyPIV(TopologyBase):
                 if os.path.exists(os.path.join(
                         self.path_dir_result, name_piv)):
                     continue
-                names_serie = serie.get_name_files()
-                for name in names_serie:
+                for name in serie.get_name_files():
                     if name not in names:
                         names.append(name)
 
-                index_series.append(i + series.ind_start)
+                index_series.append(i*series.ind_step + series.ind_start)
 
             if len(index_series) == 0:
                 print('Warning: topology in mode "complete" and '
@@ -163,7 +165,13 @@ class TopologyPIV(TopologyBase):
         else:
             names = series.get_name_all_files()
 
-        print('Add {} PIV fields to compute.'.format(len(series)))
+        nb_series = len(series)
+        print('Add {} PIV fields to compute.'.format(nb_series))
+
+        for i, serie in enumerate(series):
+            if i > 1:
+                break
+            print('Files of serie {}: {}'.format(i, serie.get_name_files()))
 
         self.wq0.add_name_files(names)
         self.wq_images.add_series(series)
