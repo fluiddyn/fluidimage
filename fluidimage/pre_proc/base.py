@@ -10,28 +10,16 @@ Provides:
    :members:
    :private-members:
 
-.. autoclass:: PreprocSpecific
-   :members:
-   :private-members:
-
 """
-
-import logging
-from fluidimage.data_objects.piv import set_path_dir_result
 
 from .toolbox import PreprocTools
 from .. import ParamContainer, SerieOfArraysFromFiles, SeriesOfArrays
 
 
-logger = logging.getLogger('fluidimage')
-
-
 class PreprocBase(object):
     """
-    Preprocess series of images
+    Preprocess series of images.
 
-    .. TODO: Requires reorganizing. Has major similarities with `TopologyPIV` class in 
-             Both requires image loading.
     """
 
     @classmethod
@@ -41,18 +29,13 @@ class PreprocBase(object):
         params = ParamContainer(tag='params')
         params._set_child('preproc')
         params.preproc._set_child('series', attribs={'path': '',
-                                                     'strcouple':'i:i+2',
+                                                     'strcouple': 'i:i+2',
                                                      'ind_start': 0,
                                                      'ind_stop': None,
                                                      'ind_step': 1})
 
-        params.preproc._set_child('saving', attribs={'path': None,
-                                                     'how': 'ask',
-                                                     'postfix': 'pre'})
+        PreprocTools._complete_class_with_tools(params)
 
-        params.preproc.saving._set_doc(
-            "`how` can be 'ask', 'new_dir', 'complete' or 'recompute'.")
-        
         return params
 
     def __init__(self, params=None):
@@ -66,25 +49,17 @@ class PreprocBase(object):
             serie_arrays, params.preproc.series.strcouple,
             ind_start=params.preproc.series.ind_start,
             ind_stop=params.preproc.series.ind_stop)
-        
-        path_dir = params.preproc.series.path
-        self.path_dir_result, self.how_saving = set_path_dir_result(path_dir,
-                                                                    params.preproc.saving.path,
-                                                                    params.preproc.saving.postfix,
-                                                                    params.preproc.saving.how)
+
+        self.tools = PreprocTools(params)
         self.results = {}
 
+    def __call__(self, sequence=None):
+        """Apply all enabled preprocessing tools on the series of arrays
+        and saves them in self.results.
 
-class PreprocSpecific(PreprocBase):
-
-    @classmethod
-    def create_default_params(cls):
-        params = super(PreprocSpecific, cls).create_default_params()
-
-        PreprocTools._complete_class_with_tools(params)
-        return params
-
-    def __init__(self, params=None):
-        super(PreprocSpecific, self).__init__(params)
-        self.tools = PreprocTools(params)
-
+        """
+        for serie in self.series:
+            name_files = serie.get_name_files()
+            for i, img in enumerate(serie.iter_arrays()):
+                name = name_files[i]
+                self.results[name] = self.tools(img, sequence)

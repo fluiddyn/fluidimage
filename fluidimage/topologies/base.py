@@ -90,9 +90,9 @@ class TopologyBase(object):
     def compute(self, sequential=None, has_to_exit=True):
 
         t_start = time()
-        
+
         print('Start compute.')
-        
+
         workers = []
         workers_cpu = []
         while (not self._has_to_stop and
