@@ -99,8 +99,8 @@ class BaseWorkPIV(BaseWork):
             raise NotImplementedError(
                 'For now, shape_crop_im1 has to be one or two integer!')
 
-        if (n_interrogation_window1[0] > n_interrogation_window0[0]
-           or n_interrogation_window1[1] > n_interrogation_window0[1]):
+        if (n_interrogation_window1[0] > n_interrogation_window0[0] or
+                n_interrogation_window1[1] > n_interrogation_window0[1]):
             raise NotImplementedError(
                 'shape_crop_im1 must be inferior or equal to shape_crop_im0')
 
@@ -223,6 +223,7 @@ class BaseWorkPIV(BaseWork):
 
             im0crop = self._crop_im0(ixvec0, iyvec0, im0pad)
             im1crop = self._crop_im1(ixvec1, iyvec1, im1pad)
+            # print(im0crop.shape, im1crop.shape)
             correl, coef_norm = self.correl(im0crop, im1crop)
             correls[ivec] = correl
             try:
@@ -267,10 +268,13 @@ class BaseWorkPIV(BaseWork):
         couple = piv_results.couple
 
         im0, im1 = couple.get_arrays()
-        if not hasattr(piv_results, 'ixvecs_grid'):
-            self._prepare_with_image(im0)
-            piv_results.ixvecs_grid = self.ixvecs_grid
-            piv_results.iyvecs_grid = self.iyvecs_grid
+        if not last and not hasattr(piv_results, 'ixvecs_approx'):
+            piv_results.ixvecs_approx = self.ixvecs_grid
+            piv_results.iyvecs_approx = self.iyvecs_grid
+
+        if last and not hasattr(piv_results, 'ixvecs_final'):
+            piv_results.ixvecs_final = self.ixvecs_grid
+            piv_results.iyvecs_final = self.iyvecs_grid
 
         # for the interpolation
         selection = ~np.isnan(piv_results.deltaxs)
@@ -300,18 +304,25 @@ class BaseWorkPIV(BaseWork):
             piv_results.deltays_smooth = deltays_smooth
             piv_results.deltays_tps = deltays_tps
 
-            piv_results.new_positions = np.vstack([
+            new_positions = np.vstack([
                 self.iyvecs_grid, self.ixvecs_grid])
-            tps.init_with_new_positions(piv_results.new_positions)
 
-            # displacement int32 with TPS
-            piv_results.deltaxs_approx = tps.compute_eval(deltaxs_tps)
-            piv_results.deltays_approx = tps.compute_eval(deltays_tps)
+            tps.init_with_new_positions(new_positions)
+
+            deltaxs_approx = tps.compute_eval(deltaxs_tps)
+            deltays_approx = tps.compute_eval(deltays_tps)
         else:
-            piv_results.deltaxs_approx = griddata(centers, deltaxs,
-                                                  (self.iyvecs, self.ixvecs))
-            piv_results.deltays_approx = griddata(centers, deltays,
-                                                  (self.iyvecs, self.ixvecs))
+            deltaxs_approx = griddata(centers, deltaxs,
+                                      (self.iyvecs, self.ixvecs))
+            deltays_approx = griddata(centers, deltays,
+                                      (self.iyvecs, self.ixvecs))
+
+        if last:
+            piv_results.deltaxs_final = deltaxs_approx
+            piv_results.deltays_final = deltays_approx
+        else:
+            piv_results.deltaxs_approx = deltaxs_approx
+            piv_results.deltays_approx = deltays_approx
 
 
 class FirstWorkPIV(BaseWorkPIV):
@@ -379,20 +390,13 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
         couple = piv_results.couple
 
         im0, im1 = couple.get_arrays()
+        if not hasattr(self, 'ixvecs_grid'):
+            self._prepare_with_image(im0)
 
         self.apply_interp(piv_results)
 
         deltaxs_approx = piv_results.deltaxs_approx
         deltays_approx = piv_results.deltays_approx
-
-        debug = False
-        if debug:
-            import matplotlib.pyplot as plt
-            plt.figure()
-            ax = plt.gca()
-            ax.quiver(self.ixvecs_grid, self.iyvecs_grid,
-                      deltaxs_approx, deltays_approx)
-            plt.show()
 
         deltaxs_approx = np.round(deltaxs_approx).astype('int32')
         deltays_approx = np.round(deltays_approx).astype('int32')

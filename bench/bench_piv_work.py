@@ -11,11 +11,11 @@ params = WorkPIV.create_default_params()
 params.piv0.shape_crop_im0 = 32
 params.piv0.grid.overlap = 0.5
 
-params.piv0.method_subpix = 'centroid'
-params.piv0.method_correl = 'theano'
+# params.piv0.method_subpix = 'centroid'
+# params.piv0.method_correl = 'theano'
 
 params.multipass.number = 2
-params.multipass.use_tps = True
+params.multipass.use_tps = False
 params.multipass.coeff_zoom = [2]
 
 piv = WorkPIV(params=params)
@@ -31,5 +31,5 @@ s = pstats.Stats('profile.pstats')
 s.strip_dirs().sort_stats('time').print_stats(10)
 
 print(
-'with gprof2dot and graphviz (command dot):\n'
-'gprof2dot -f pstats profile.pstats | dot -Tpng -o profile.png')
+    'with gprof2dot and graphviz (command dot):\n'
+    'gprof2dot -f pstats profile.pstats | dot -Tpng -o profile.png')

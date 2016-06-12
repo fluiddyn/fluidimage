@@ -18,7 +18,7 @@ params.multipass.use_tps = False
 # params.multipass.coeff_zoom = [2, 2]
 
 params.fix.remove_error_vec = False
-params.fix.delta_max = 15
+params.fix.displacement_max = 15
 params.fix.correl_min = 0.1
 
 piv = WorkPIV(params=params)

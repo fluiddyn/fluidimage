@@ -27,7 +27,7 @@ import h5netcdf
 
 import numpy as np
 
-from .display import display
+from .display import DisplayPIV
 from .. import imread, ParamContainer
 
 
@@ -125,8 +125,14 @@ class HeavyPIVResults(DataObject):
                  couple=None, params=None,
                  str_path=None, hdf5_object=None):
         self._keys_to_be_saved = [
-            'xs', 'ys', 'deltaxs', 'deltays', 'correls_max', 'deltaxs_approx',
-            'deltays_approx', 'new_positions', 'ixvecs_grid', 'iyvecs_grid']
+            'xs', 'ys', 'deltaxs', 'deltays', 'correls_max',
+            'deltaxs_approx', 'deltays_approx',
+            'ixvecs_approx', 'iyvecs_approx',
+            'deltaxs_final', 'deltays_final',
+            'ixvecs_final', 'iyvecs_final']
+
+        self._dict_to_be_saved = ['errors', 'deltaxs_wrong', 'deltays_wrong']
+
         if hdf5_object is not None:
             if couple is not None:
                 self.couple = couple
@@ -154,10 +160,10 @@ class HeavyPIVResults(DataObject):
     def get_images(self):
         return self.couple.get_arrays()
 
-    def display(self):
+    def display(self, show_interp=False):
         im0, im1 = self.couple.get_arrays()
-        return display(
-            im0, im1, self)
+        return DisplayPIV(
+            im0, im1, self, show_interp=show_interp)
 
     def _get_name(self):
         serie = self.couple.serie
@@ -205,9 +211,14 @@ class HeavyPIVResults(DataObject):
             if k in self.__dict__:
                 g_piv.create_dataset(k, data=self.__dict__[k])
 
-        g = g_piv.create_group('errors')
-        g.create_dataset('keys', data=self.errors.keys())
-        g.create_dataset('values', data=self.errors.values())
+        for name_dict in self._dict_to_be_saved:
+            try:
+                d = self.__dict__[name_dict]
+                g = g_piv.create_group(name_dict)
+                g.create_dataset('keys', data=d.keys())
+                g.create_dataset('values', data=d.values())
+            except KeyError:
+                pass
 
         if 'deltaxs_tps' in self.__dict__:
             g = g_piv.create_group('deltaxs_tps')
@@ -217,8 +228,7 @@ class HeavyPIVResults(DataObject):
             g = g_piv.create_group('deltays_tps')
             for i, arr in enumerate(self.deltays_tps):
                 g.create_dataset('subdom{}'.format(i), data=arr)
-                
-        
+
     def _load(self, path):
 
         self.file_name = os.path.basename(path)
@@ -240,12 +250,16 @@ class HeavyPIVResults(DataObject):
                 dataset = g_piv[k]
                 self.__dict__[k] = dataset[:]
 
-        g = g_piv['errors']
-        keys = g['keys']
-        values = g['values']
-        self.errors = {k: v for k, v in zip(keys, values)}
+        for name_dict in self._dict_to_be_saved:
+            try:
+                g = g_piv[name_dict]
+                keys = g['keys']
+                values = g['values']
+                self.__dict__[name_dict] = {k: v for k, v in zip(keys, values)}
+            except KeyError:
+                pass
 
-        if 'deltaxs_tps' in g_piv.keys():                       
+        if 'deltaxs_tps' in g_piv.keys():
             g = g_piv['deltaxs_tps']
             self.deltaxs_tps = []
             for arr in g.keys():
@@ -254,7 +268,8 @@ class HeavyPIVResults(DataObject):
             self.deltays_tps = []
             for arr in g.keys():
                 self.deltays_tps.append(g[arr].value)
-                
+
+
 class MultipassPIVResults(DataObject):
 
     def __init__(self, str_path=None):
@@ -263,9 +278,9 @@ class MultipassPIVResults(DataObject):
         if str_path is not None:
             self._load(str_path)
 
-    def display(self, i=-1):
+    def display(self, i=-1, show_interp=False):
         r = self.passes[i]
-        return r.display()
+        return r.display(show_interp=show_interp)
 
     def __getitem__(self, key):
         return self.passes[key]
@@ -395,7 +410,7 @@ class MultipassPIVResults(DataObject):
             f.create_variable('Civ{}_F'.format(iuvmat), (str_nb_vec,),
                               data=tmp)
 
-            ## ADD
+            # ADD
             # f.create_variable('Civ1_Coord_tps',
             #                   ('nb_subdomain_1', 'nb_coord', 'nb_tps_1'),
             #                   data=???)

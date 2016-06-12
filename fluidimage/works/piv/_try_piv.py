@@ -13,15 +13,17 @@ params = WorkPIV.create_default_params()
 # params.piv0.grid.overlap = 0.
 
 # params.piv0.method_subpix = 'centroid'
-params.piv0.method_correl = 'pythran'
+# params.piv0.method_correl = 'pythran'
 
-params.multipass.number = 2
-params.multipass.use_tps = True
+params.multipass.number = 1
+params.multipass.use_tps = False
 # params.multipass.coeff_zoom = [2, 2]
 
-params.piv0.shape_crop_im0 = (80, 90)
-params.piv0.shape_crop_im1 = (38, 36)
-#params.fix.correl_min = 0.3
+# bug params.piv0.shape_crop_im0 = 128  # !!
+params.piv0.shape_crop_im0 = 64  # (80, 90)
+# params.piv0.shape_crop_im1 = (38, 36)
+params.fix.correl_min = 0.2
+params.fix.threshold_diff_neighbour = 4
 # params.piv0.grid.overlap = 10
 
 piv = WorkPIV(params=params)
@@ -35,18 +37,10 @@ result.display()
 
 result.save()
 
-lightresult = result.make_light_result()
+# lightresult = result.make_light_result()
+# lightresult.save()
 
-# LightPIVResults(
-#     result.piv1.deltaxs_approx, result.piv1.deltays_approx,
-#     result.piv1.ixvecs_grid, result.piv1.iyvecs_grid,
-#     couple=result.piv1.couple,
-#     params=result.piv1.params)
+# lightresultload = LightPIVResults(str_path='piv_Oseen_center01-02_light.h5')
 
-lightresult.save()
-
-lightresultload = LightPIVResults(str_path='piv_Oseen_center01-02_light.h5')
-
-
-#f=h5netcdf.File('piv_Oseen_center01-02.h5')
-#f=h5py.File('piv_Oseen_center01-02.h5')
+# f=h5netcdf.File('piv_Oseen_center01-02.h5')
+# f=h5py.File('piv_Oseen_center01-02.h5')

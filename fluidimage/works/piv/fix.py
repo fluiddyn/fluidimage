@@ -13,13 +13,11 @@ from fluiddyn.util.paramcontainer import ParamContainer
 
 from .. import BaseWork
 
+from ...calcul.smooth_clean import smooth_clean
+
 
 class WorkFIX(BaseWork):
     """Fix a displacement vector field.
-
-    .. todo::
-
-       Calculus default delta_max! Actual default value (4) is bad!
 
     """
 
@@ -33,15 +31,18 @@ class WorkFIX(BaseWork):
     def _complete_params_with_default(cls, params, tag='fix'):
 
         params._set_child(tag, attribs={
-            'correl_min': 0.4,
-            # 'delta_diff': 0.1,
-            'delta_max': None,
-            'remove_error_vec': True})
+            'correl_min': 0.2,
+            'threshold_diff_neighbour': 10,
+            'displacement_max': None})
 
-    def __init__(self, params):
+    def __init__(self, params, piv_work):
         self.params = params
+        self.piv_work = piv_work
 
     def calcul(self, piv_results):
+
+        deltaxs_wrong = {}
+        deltays_wrong = {}
 
         deltaxs = piv_results.deltaxs
         deltays = piv_results.deltays
@@ -53,6 +54,10 @@ class WorkFIX(BaseWork):
         def put_to_nan(inds, explanation):
             for ind in inds:
                 ind = int(ind)
+
+                deltaxs_wrong[ind] = deltaxs[ind]
+                deltays_wrong[ind] = deltays[ind]
+
                 deltaxs[ind] = np.nan
                 deltays[ind] = np.nan
                 try:
@@ -64,13 +69,29 @@ class WorkFIX(BaseWork):
         inds = (piv_results.correls_max < self.params.correl_min).nonzero()[0]
         put_to_nan(inds, 'correl < correl_min')
 
-        # condition delta2 < delta_max2
-	if self.params.delta_max:
-            delta_max2 = self.params.delta_max**2
+        # condition delta2 < displacement_max2
+        if self.params.displacement_max:
+            displacement_max2 = self.params.displacement_max**2
             delta2s = deltaxs**2 + deltays**2
-            inds = (delta2s > delta_max2).nonzero()[0]
-            put_to_nan(inds, 'delta2 < delta_max2')
+            inds = (delta2s > displacement_max2).nonzero()[0]
+            put_to_nan(inds, 'delta2 < displacement_max2')
 
         # warning condition neighbour not implemented...
+        if self.params.threshold_diff_neighbour is not None:
+            threshold = self.params.threshold_diff_neighbour
+            ixvecs = self.piv_work.ixvecs
+            iyvecs = self.piv_work.iyvecs
+            xs = piv_results.xs
+            ys = piv_results.ys
+
+            dxs, dys = smooth_clean(
+                xs, ys, deltaxs, deltays, iyvecs, ixvecs, threshold)
+
+            inds = (abs(dxs - deltaxs) +
+                    abs(dys - deltays) > threshold).nonzero()[0]
+            put_to_nan(inds, 'diff neighbour too large')
+
+            piv_results.deltaxs_wrong = deltaxs_wrong
+            piv_results.deltays_wrong = deltays_wrong
 
         return piv_results

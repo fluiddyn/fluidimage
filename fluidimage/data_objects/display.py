@@ -4,9 +4,10 @@ import matplotlib.pyplot as plt
 plt.ion()
 
 
-class display(object):
+class DisplayPIV(object):
 
-    def __init__(self, im0, im1, piv_results=None):
+    def __init__(self, im0, im1, piv_results=None, show_interp=False,
+                 scale=0.2):
 
         self.piv_results = piv_results
 
@@ -47,12 +48,38 @@ class display(object):
         ax1.set_ylabel('pixels')
 
         if piv_results is not None:
-            q = ax1.quiver(
-                piv_results.xs, piv_results.ys,
-                piv_results.deltaxs, piv_results.deltays,
-                picker=10, color='w')
+            if show_interp:
+                if hasattr(piv_results, 'deltaxs_approx'):
+                    deltaxs = piv_results.deltaxs_approx
+                    deltays = piv_results.deltays_approx
+                    xs = piv_results.ixvecs_approx
+                    ys = piv_results.iyvecs_approx
+                else:
+                    deltaxs = piv_results.deltaxs_final
+                    deltays = piv_results.deltays_final
+                    xs = piv_results.ixvecs_final
+                    ys = piv_results.iyvecs_final
+            else:
+                deltaxs = piv_results.deltaxs
+                deltays = piv_results.deltays
+                xs = piv_results.xs
+                ys = piv_results.ys
 
-        self.q = q
+            self.q = ax1.quiver(
+                xs, ys,
+                deltaxs, deltays,
+                picker=20, color='w', scale_units='xy', scale=scale)
+
+            self.inds_error = inds_error = piv_results.deltays_wrong.keys()
+
+            xs_wrong = xs[inds_error]
+            ys_wrong = ys[inds_error]
+            dxs_wrong = [piv_results.deltaxs_wrong[i] for i in inds_error]
+            dys_wrong = [piv_results.deltays_wrong[i] for i in inds_error]
+            self.q_wrong = ax1.quiver(
+                xs_wrong, ys_wrong,
+                dxs_wrong, dys_wrong,
+                picker=20, color='r', scale_units='xy', scale=scale)
 
         self.ind = 0
         fig.canvas.mpl_connect('pick_event', self.onpick)
@@ -81,44 +108,61 @@ class display(object):
             self.select_arrow(self.ind + 1)
 
     def onpick(self, event):
-        if event.artist != self.q:
+        if not (event.artist == self.q or event.artist == self.q_wrong):
             return True
 
         # the click locations
         # x = event.mouseevent.xdata
         # y = event.mouseevent.ydata
         ind = event.ind
-        self.select_arrow(ind)
+        self.select_arrow(ind, event.artist)
 
-    def select_arrow(self, ind):
-        ind = ind[0]
-        q = self.q
+    def select_arrow(self, ind, artist=None):
+        print(ind)
+        try:
+            ind = ind[0]
+        except (TypeError, IndexError):
+            pass
+
+        if artist is None:
+            if ind in self.piv_results.errors.keys():
+                artist = self.q_wrong
+                ind = self.inds_error.index(ind)
+            else:
+                artist = self.q
+
+        if artist == self.q:
+            ind_all = ind
+            q = self.q
+        elif artist == self.q_wrong:
+            ind_all = self.inds_error[ind]
+            q = self.q_wrong
 
         if ind >= len(q.X) or ind < 0:
             return
 
-        self.ind = ind
+        self.ind = ind_all
 
         ix = q.X[ind]
         iy = q.Y[ind]
         self.l.set_visible(True)
         self.l.set_data(ix, iy)
 
-        correl_max = self.piv_results.correls_max[ind]
+        correl_max = self.piv_results.correls_max[ind_all]
         text = (
             'vector at ix = {} : iy = {} ; '
             'U = {:.3f} ; V = {:.3f}, C = {:.3f}').format(
                 ix, iy, q.U[ind], q.V[ind], correl_max)
 
-        if ind in self.piv_results.errors:
-            text += ', error:' + self.piv_results.errors[ind]
+        if ind_all in self.piv_results.errors:
+            text += ', error: ' + self.piv_results.errors[ind_all]
 
         self.t.set_text(text)
 
         if self.has_correls:
             ax2 = self.ax2
             ax2.cla()
-            alphac = self.piv_results.correls[ind]
+            alphac = self.piv_results.correls[ind_all]
             alphac_max = alphac.max()
             correl = correl_max/alphac_max * alphac
 
