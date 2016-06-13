@@ -9,22 +9,22 @@ params.preproc.series.path = '../../image_samples/Karman/Images'
 
 print('Available preprocessing tools: ', params.preproc.tools.available_tools)
 
+params.preproc.tools.sequence = ['sliding_median', 'global_threshold']
 params.preproc.tools.sliding_median.enable = True
-params.preproc.tools.sliding_median.filter_size = 10.
+params.preproc.tools.sliding_median.window_size = 10
 
 params.preproc.tools.global_threshold.enable = True
 params.preproc.tools.global_threshold.minima = 0.
 params.preproc.tools.global_threshold.maxima = 255.
 
 preproc = PreprocBase(params)
-sequence = ['sliding_median', 'global_threshold']  # Optional
-preproc(sequence)
+preproc()
 
 
 def plot(nimages=None):
     after = preproc.results
     before = {}
-    name_files = preproc.serie_arrays.get_name_files()
+    name_files = preproc.serie_arrays.get_name_files()[:nimages]
     for fname in name_files:
         before[fname] = preproc.serie_arrays.get_array_from_name(fname)
 
@@ -34,9 +34,7 @@ def plot(nimages=None):
     fig, axes = plt.subplots(ncols=nimages, nrows=2)
     fig.tight_layout(h_pad=0.001, w_pad=0.001)
     ax = axes.ravel()
-    for n in range(0, nimages):
-        fname = name_files[n]
-
+    for n, fname in enumerate(name_files):
         ax[2 * n].imshow(before[fname], cmap='gray', aspect='auto')
         ax[2 * n].set_title('Before: ' + fname, size='small')
 
