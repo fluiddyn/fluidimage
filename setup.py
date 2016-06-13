@@ -1,5 +1,7 @@
 
 import os
+from runpy import run_path
+
 from setuptools import setup, find_packages
 
 try:
@@ -12,14 +14,16 @@ except ImportError:
 with open('README.rst') as f:
     long_description = f.read()
 lines = long_description.splitlines(True)
-long_description = ''.join(lines[8:])
+long_description = ''.join(lines[13:])
+
+
+print(long_description)
 
 # Get the version from the relevant file
-from runpy import run_path
 d = run_path('fluidimage/_version.py')
 __version__ = d['__version__']
 
-install_requires = ['numpy', 'fluiddyn >= 0.0.12a3']
+install_requires = ['numpy', 'fluiddyn >= 0.0.12a4']
 
 on_rtd = os.environ.get('READTHEDOCS')
 if not on_rtd:
