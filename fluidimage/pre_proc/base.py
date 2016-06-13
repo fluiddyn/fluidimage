@@ -17,39 +17,26 @@ from .. import ParamContainer, SerieOfArraysFromFiles, SeriesOfArrays
 
 
 class PreprocBase(object):
-    """
-    Preprocess series of images.
-
-    """
+    """Preprocess series of images with spatial filters. """
 
     @classmethod
     def create_default_params(cls):
         """Class method returning the default parameters."""
-        # params = super(PreprocBase, cls).create_default_params()
         params = ParamContainer(tag='params')
         params._set_child('preproc')
-        params.preproc._set_child('series', attribs={'path': '',
-                                                     'strcouple': 'i:i+2',
-                                                     'ind_start': 0,
-                                                     'ind_stop': None,
-                                                     'ind_step': 1})
+        params.preproc._set_child('series', attribs={'path': ''})
 
         PreprocTools._complete_class_with_tools(params)
 
         return params
 
     def __init__(self, params=None):
-        """Set path for results and loads images as SeriesOfArrays."""
+        """Set path for results and loads images as SeriesOfArraysFromFiles."""
         if params is None:
             params = self.__class__.create_default_params()
 
         self.params = params
-        serie_arrays = SerieOfArraysFromFiles(params.preproc.series.path)
-        self.series = SeriesOfArrays(
-            serie_arrays, params.preproc.series.strcouple,
-            ind_start=params.preproc.series.ind_start,
-            ind_stop=params.preproc.series.ind_stop)
-
+        self.serie_arrays = SerieOfArraysFromFiles(params.preproc.series.path)
         self.tools = PreprocTools(params)
         self.results = {}
 
@@ -58,8 +45,24 @@ class PreprocBase(object):
         and saves them in self.results.
 
         """
-        for serie in self.series:
-            name_files = serie.get_name_files()
-            for i, img in enumerate(serie.iter_arrays()):
-                name = name_files[i]
-                self.results[name] = self.tools(img, sequence)
+        name_files = self.serie_arrays.get_name_files()
+        for i, img in enumerate(self.serie_arrays.iter_arrays()):
+            name = name_files[i]
+            self.results[name] = self.tools(img, sequence)
+
+
+class PreprocBaseTemporalFilters(PreprocBase):
+    """Preprocess series of images with spatial and temporal filters. """
+
+    def __init__(self, params=None):
+        """Loads images as SeriesOfArrays."""
+        super(PreprocBaseTimeFiltering, self).__init__(params)
+        attribs = {'strcouple': 'i:i+2',
+                   'ind_start': 0,
+                   'ind_stop': None,
+                   'ind_step': 1}
+        self.params.series.set_attribs(attribs)
+        self.series = SeriesOfArrays(
+            self.serie_arrays, params.preproc.series.strcouple,
+            ind_start=params.preproc.series.ind_start,
+            ind_stop=params.preproc.series.ind_stop)
