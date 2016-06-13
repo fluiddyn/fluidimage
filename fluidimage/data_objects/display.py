@@ -118,7 +118,6 @@ class DisplayPIV(object):
         self.select_arrow(ind, event.artist)
 
     def select_arrow(self, ind, artist=None):
-        print(ind)
         try:
             ind = ind[0]
         except (TypeError, IndexError):

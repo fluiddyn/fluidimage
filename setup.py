@@ -1,5 +1,7 @@
 
 import os
+import subprocess
+
 from runpy import run_path
 
 from setuptools import setup, find_packages
@@ -16,18 +18,26 @@ with open('README.rst') as f:
 lines = long_description.splitlines(True)
 long_description = ''.join(lines[13:])
 
-
-print(long_description)
-
 # Get the version from the relevant file
 d = run_path('fluidimage/_version.py')
 __version__ = d['__version__']
 
-install_requires = ['numpy', 'fluiddyn >= 0.0.12a4']
+try:
+    hg_rev = subprocess.check_output(['hg', 'id', '--id']).strip()
+except (OSError, subprocess.CalledProcessError):
+    pass
+else:
+    with open('fluidimage/_hg_rev.py', 'w') as f:
+        f.write('hg_rev = "{}"\n'.format(hg_rev))
+
+install_requires = ['fluiddyn >= 0.0.12a4']
 
 on_rtd = os.environ.get('READTHEDOCS')
 if not on_rtd:
-    install_requires.extend(['scipy', 'h5py', 'h5netcdf'])
+    install_requires.extend([
+        'scipy >= 0.14.1', 'numpy >= 1.8',
+        'matplotlib >= 1.4.2',
+        'h5py', 'h5netcdf'])
 
 if use_pythran:
     ext_modules = [

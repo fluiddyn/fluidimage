@@ -29,6 +29,8 @@ import numpy as np
 
 from .display import DisplayPIV
 from .. import imread, ParamContainer
+from .. import __version__ as fluidimage_version
+from .._hg_rev import hg_rev
 
 
 def get_str_index(serie, i, index):
@@ -160,10 +162,10 @@ class HeavyPIVResults(DataObject):
     def get_images(self):
         return self.couple.get_arrays()
 
-    def display(self, show_interp=False):
+    def display(self, show_interp=False, scale=0.2):
         im0, im1 = self.couple.get_arrays()
         return DisplayPIV(
-            im0, im1, self, show_interp=show_interp)
+            im0, im1, self, show_interp=show_interp, scale=scale)
 
     def _get_name(self):
         serie = self.couple.serie
@@ -278,9 +280,9 @@ class MultipassPIVResults(DataObject):
         if str_path is not None:
             self._load(str_path)
 
-    def display(self, i=-1, show_interp=False):
+    def display(self, i=-1, show_interp=False, scale=0.2):
         r = self.passes[i]
-        return r.display(show_interp=show_interp)
+        return r.display(show_interp=show_interp, scale=scale)
 
     def __getitem__(self, key):
         return self.passes[key]
@@ -320,6 +322,9 @@ class MultipassPIVResults(DataObject):
                 f.attrs['module_name'] = 'fluidimage.data_objects.piv'
 
                 f.attrs['nb_passes'] = len(self.passes)
+
+                f.attrs['fluidimage_version'] = fluidimage_version
+                f.attrs['fluidimage_hg_rev'] = hg_rev
 
                 for i, r in enumerate(self.passes):
                     r._save_in_hdf5_object(f, tag='piv{}'.format(i))
