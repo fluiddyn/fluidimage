@@ -179,7 +179,7 @@ class BaseWorkPIV(BaseWork):
            Choose correctly the variable npad.
 
         """
-        npad = self.npad = 20
+        npad = self.npad = max(self.niw0o2)
         tmp = [(npad, npad), (npad, npad)]
         im0pad = np.pad(im0 - im0.min(), tmp, 'constant')
         im1pad = np.pad(im1 - im1.min(), tmp, 'constant')
