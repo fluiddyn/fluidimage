@@ -162,10 +162,11 @@ class HeavyPIVResults(DataObject):
     def get_images(self):
         return self.couple.get_arrays()
 
-    def display(self, show_interp=False, scale=0.2):
+    def display(self, show_interp=False, scale=0.2, show_error=True):
         im0, im1 = self.couple.get_arrays()
         return DisplayPIV(
-            im0, im1, self, show_interp=show_interp, scale=scale)
+            im0, im1, self, show_interp=show_interp, scale=scale,
+            show_error=show_error)
 
     def _get_name(self):
         serie = self.couple.serie
@@ -280,9 +281,10 @@ class MultipassPIVResults(DataObject):
         if str_path is not None:
             self._load(str_path)
 
-    def display(self, i=-1, show_interp=False, scale=0.2):
+    def display(self, i=-1, show_interp=False, scale=0.2, show_error=True):
         r = self.passes[i]
-        return r.display(show_interp=show_interp, scale=scale)
+        return r.display(show_interp=show_interp, scale=scale,
+                         show_error=show_error)
 
     def __getitem__(self, key):
         return self.passes[key]

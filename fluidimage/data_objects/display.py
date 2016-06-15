@@ -7,7 +7,7 @@ plt.ion()
 class DisplayPIV(object):
 
     def __init__(self, im0, im1, piv_results=None, show_interp=False,
-                 scale=0.2):
+                 scale=0.2, show_error=True):
 
         self.piv_results = piv_results
 
@@ -72,14 +72,15 @@ class DisplayPIV(object):
 
             self.inds_error = inds_error = piv_results.deltays_wrong.keys()
 
-            xs_wrong = xs[inds_error]
-            ys_wrong = ys[inds_error]
-            dxs_wrong = [piv_results.deltaxs_wrong[i] for i in inds_error]
-            dys_wrong = [piv_results.deltays_wrong[i] for i in inds_error]
-            self.q_wrong = ax1.quiver(
-                xs_wrong, ys_wrong,
-                dxs_wrong, dys_wrong,
-                picker=20, color='r', scale_units='xy', scale=scale)
+            if show_error:
+                xs_wrong = xs[inds_error]
+                ys_wrong = ys[inds_error]
+                dxs_wrong = [piv_results.deltaxs_wrong[i] for i in inds_error]
+                dys_wrong = [piv_results.deltays_wrong[i] for i in inds_error]
+                self.q_wrong = ax1.quiver(
+                    xs_wrong, ys_wrong,
+                    dxs_wrong, dys_wrong,
+                    picker=20, color='r', scale_units='xy', scale=scale)
 
         self.ind = 0
         fig.canvas.mpl_connect('pick_event', self.onpick)
