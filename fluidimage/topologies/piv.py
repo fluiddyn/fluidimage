@@ -115,7 +115,7 @@ class TopologyPIV(TopologyBase):
         self.results = {}
 
         def save_piv_object(o):
-            o.save(path_dir_result)
+            return o.save(path_dir_result)
         self.wq_piv = WaitingQueueThreading(
             'delta', save_piv_object, self.results, topology=self)
         self.wq_couples = WaitingQueueMultiprocessing(
@@ -181,3 +181,18 @@ class TopologyPIV(TopologyBase):
         self.wq0.fill_destination(k, im)
 
         self.piv_work._prepare_with_image(im)
+
+    def _print_at_exit(self, time_since_start):
+
+        txt = 'Stop compute after t = {:.2f} s'.format(time_since_start)
+        try:
+            nb_results = len(self.results)
+        except AttributeError:
+            nb_results = None
+        if nb_results is not None and nb_results > 0:
+            txt += (' ({} piv fields, {:.2f} s/field).'.format(
+                nb_results, time_since_start/nb_results))
+        else:
+            txt += '.'
+
+        print(txt)

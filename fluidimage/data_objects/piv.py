@@ -191,8 +191,7 @@ class HeavyPIVResults(DataObject):
 
                 for i, r in enumerate(self.passes):
                     r._save_in_hdf5_object(f, tag='piv{}'.format(i))
-
-        return self
+        return path_file
 
     def _save_in_hdf5_object(self, f, tag='piv0'):
 
@@ -331,6 +330,8 @@ class MultipassPIVResults(DataObject):
                 for i, r in enumerate(self.passes):
                     r._save_in_hdf5_object(f, tag='piv{}'.format(i))
 
+        return path_file
+                    
     def _load(self, path):
 
         self.file_name = os.path.basename(path)
