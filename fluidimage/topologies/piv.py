@@ -66,7 +66,8 @@ class TopologyPIV(TopologyBase):
         self.series = SeriesOfArrays(
             serie_arrays, params.series.strcouple,
             ind_start=params.series.ind_start,
-            ind_stop=params.series.ind_stop)
+            ind_stop=params.series.ind_stop,
+            ind_step=params.series.ind_step)
 
         path_dir = params.series.path
         path_dir_result, self.how_saving = set_path_dir_result(path_dir,
@@ -74,11 +75,13 @@ class TopologyPIV(TopologyBase):
                                                                params.saving.postfix,
                                                                params.saving.how)
         self.results = {}
+
+        def save_piv_object(o):
+            return o.save(path_dir_result)
         self.wq_piv = WaitingQueueThreading(
-            'delta', lambda o: o.save(path_dir_result), self.results,
-            work_name='save', topology=self)
+            'delta', save_piv_object, self.results, topology=self)
         self.wq_couples = WaitingQueueMultiprocessing(
-            'couple', self.piv_work.calcul, self.wq_piv, work_name='PIV',
+            'couple', self.piv_work.calcul, self.wq_piv,
             topology=self)
         self.wq_images = WaitingQueueMakeCouple(
             'array image', self.wq_couples, topology=self)
@@ -106,12 +109,11 @@ class TopologyPIV(TopologyBase):
                 if os.path.exists(os.path.join(
                         self.path_dir_result, name_piv)):
                     continue
-                names_serie = serie.get_name_files()
-                for name in names_serie:
+                for name in serie.get_name_files():
                     if name not in names:
                         names.append(name)
 
-                index_series.append(i + series.ind_start)
+                index_series.append(i*series.ind_step + series.ind_start)
 
             if len(index_series) == 0:
                 print('Warning: topology in mode "complete" and '
@@ -125,7 +127,13 @@ class TopologyPIV(TopologyBase):
         else:
             names = series.get_name_all_files()
 
-        print('Add {} PIV fields to compute.'.format(len(series)))
+        nb_series = len(series)
+        print('Add {} PIV fields to compute.'.format(nb_series))
+
+        for i, serie in enumerate(series):
+            if i > 1:
+                break
+            print('Files of serie {}: {}'.format(i, serie.get_name_files()))
 
         self.wq0.add_name_files(names)
         self.wq_images.add_series(series)
@@ -135,3 +143,18 @@ class TopologyPIV(TopologyBase):
         self.wq0.fill_destination(k, im)
 
         self.piv_work._prepare_with_image(im)
+
+    def _print_at_exit(self, time_since_start):
+
+        txt = 'Stop compute after t = {:.2f} s'.format(time_since_start)
+        try:
+            nb_results = len(self.results)
+        except AttributeError:
+            nb_results = None
+        if nb_results is not None and nb_results > 0:
+            txt += (' ({} piv fields, {:.2f} s/field).'.format(
+                nb_results, time_since_start/nb_results))
+        else:
+            txt += '.'
+
+        print(txt)

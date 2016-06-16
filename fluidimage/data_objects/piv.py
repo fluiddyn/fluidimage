@@ -27,18 +27,37 @@ import numpy as np
 
 from fluiddyn.util.query import query
 
-from .display import display
+from .display import DisplayPIV
 from .. import imread, ParamContainer
+from .. import __version__ as fluidimage_version
+from .._hg_rev import hg_rev
+
+
+def get_str_index(serie, i, index):
+    if serie._index_types[i] == 'digit':
+        code_format = '{:0' + str(serie._index_lens[i]) + 'd}'
+        str_index = code_format.format(index)
+    elif serie._index_types[i] == 'alpha':
+        if index > 25:
+            raise ValueError('"alpha" index larger than 25.')
+        str_index = chr(ord('a') + index)
+    else:
+        raise Exception('The type should be "digit" or "alpha".')
+    return str_index
 
 
 def get_name_piv(serie, prefix='piv'):
-    str_ind0 = serie._compute_strindices_from_indices(
-        *[inds[0] for inds in serie.get_index_slices()])
+    index_slices = serie._index_slices
+    str_indices = ''
+    for i, inds in enumerate(index_slices):
+        index = inds[0]
+        str_index = get_str_index(serie, i, index)
+        if len(inds) > 1:
+            str_index += '-' + get_str_index(serie, i, inds[1]-1)
 
-    str_ind1 = serie._compute_strindices_from_indices(
-        *[inds[1] - 1 for inds in serie.get_index_slices()])
+        str_indices += str_index + serie._index_separators[i]
 
-    name = (prefix + '_' + serie.base_name + str_ind0 + '-' + str_ind1 + '.h5')
+    name = prefix + '_' + str_indices + '.h5'
     return name
 
 
@@ -150,8 +169,14 @@ class HeavyPIVResults(DataObject):
                  couple=None, params=None,
                  str_path=None, hdf5_object=None):
         self._keys_to_be_saved = [
-            'xs', 'ys', 'deltaxs', 'deltays', 'correls_max', 'deltaxs_approx',
-            'deltays_approx', 'new_positions', 'ixvecs_grid', 'iyvecs_grid']
+            'xs', 'ys', 'deltaxs', 'deltays', 'correls_max',
+            'deltaxs_approx', 'deltays_approx',
+            'ixvecs_approx', 'iyvecs_approx',
+            'deltaxs_final', 'deltays_final',
+            'ixvecs_final', 'iyvecs_final']
+
+        self._dict_to_be_saved = ['errors', 'deltaxs_wrong', 'deltays_wrong']
+
         if hdf5_object is not None:
             if couple is not None:
                 self.couple = couple
@@ -179,10 +204,11 @@ class HeavyPIVResults(DataObject):
     def get_images(self):
         return self.couple.get_arrays()
 
-    def display(self):
+    def display(self, show_interp=False, scale=0.2, show_error=True):
         im0, im1 = self.couple.get_arrays()
-        return display(
-            im0, im1, self)
+        return DisplayPIV(
+            im0, im1, self, show_interp=show_interp, scale=scale,
+            show_error=show_error)
 
     def _get_name(self):
         serie = self.couple.serie
@@ -207,8 +233,7 @@ class HeavyPIVResults(DataObject):
 
                 for i, r in enumerate(self.passes):
                     r._save_in_hdf5_object(f, tag='piv{}'.format(i))
-
-        return self
+        return path_file
 
     def _save_in_hdf5_object(self, f, tag='piv0'):
 
@@ -230,9 +255,14 @@ class HeavyPIVResults(DataObject):
             if k in self.__dict__:
                 g_piv.create_dataset(k, data=self.__dict__[k])
 
-        g = g_piv.create_group('errors')
-        g.create_dataset('keys', data=self.errors.keys())
-        g.create_dataset('values', data=self.errors.values())
+        for name_dict in self._dict_to_be_saved:
+            try:
+                d = self.__dict__[name_dict]
+                g = g_piv.create_group(name_dict)
+                g.create_dataset('keys', data=d.keys())
+                g.create_dataset('values', data=d.values())
+            except KeyError:
+                pass
 
         if 'deltaxs_tps' in self.__dict__:
             g = g_piv.create_group('deltaxs_tps')
@@ -242,8 +272,7 @@ class HeavyPIVResults(DataObject):
             g = g_piv.create_group('deltays_tps')
             for i, arr in enumerate(self.deltays_tps):
                 g.create_dataset('subdom{}'.format(i), data=arr)
-                
-        
+
     def _load(self, path):
 
         self.file_name = os.path.basename(path)
@@ -265,12 +294,16 @@ class HeavyPIVResults(DataObject):
                 dataset = g_piv[k]
                 self.__dict__[k] = dataset[:]
 
-        g = g_piv['errors']
-        keys = g['keys']
-        values = g['values']
-        self.errors = {k: v for k, v in zip(keys, values)}
+        for name_dict in self._dict_to_be_saved:
+            try:
+                g = g_piv[name_dict]
+                keys = g['keys']
+                values = g['values']
+                self.__dict__[name_dict] = {k: v for k, v in zip(keys, values)}
+            except KeyError:
+                pass
 
-        if 'deltaxs_tps' in g_piv.keys():                       
+        if 'deltaxs_tps' in g_piv.keys():
             g = g_piv['deltaxs_tps']
             self.deltaxs_tps = []
             for arr in g.keys():
@@ -279,7 +312,8 @@ class HeavyPIVResults(DataObject):
             self.deltays_tps = []
             for arr in g.keys():
                 self.deltays_tps.append(g[arr].value)
-                
+
+
 class MultipassPIVResults(DataObject):
 
     def __init__(self, str_path=None):
@@ -288,9 +322,10 @@ class MultipassPIVResults(DataObject):
         if str_path is not None:
             self._load(str_path)
 
-    def display(self, i=-1):
+    def display(self, i=-1, show_interp=False, scale=0.2, show_error=True):
         r = self.passes[i]
-        return r.display()
+        return r.display(show_interp=show_interp, scale=scale,
+                         show_error=show_error)
 
     def __getitem__(self, key):
         return self.passes[key]
@@ -331,9 +366,14 @@ class MultipassPIVResults(DataObject):
 
                 f.attrs['nb_passes'] = len(self.passes)
 
+                f.attrs['fluidimage_version'] = fluidimage_version
+                f.attrs['fluidimage_hg_rev'] = hg_rev
+
                 for i, r in enumerate(self.passes):
                     r._save_in_hdf5_object(f, tag='piv{}'.format(i))
 
+        return path_file
+                    
     def _load(self, path):
 
         self.file_name = os.path.basename(path)
@@ -420,7 +460,7 @@ class MultipassPIVResults(DataObject):
             f.create_variable('Civ{}_F'.format(iuvmat), (str_nb_vec,),
                               data=tmp)
 
-            ## ADD
+            # ADD
             # f.create_variable('Civ1_Coord_tps',
             #                   ('nb_subdomain_1', 'nb_coord', 'nb_tps_1'),
             #                   data=???)

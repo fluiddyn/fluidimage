@@ -197,5 +197,5 @@ class ThinPlateSplineSubdom(object):
                     print('tps stopped after 10 iterations')
                     break
         if count > 1:
-            print ('tps done after ', count, ' attempt(s)')
+            print('tps done after ', count, ' attempt(s)')
         return U_smooth, U_tps

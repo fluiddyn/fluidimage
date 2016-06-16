@@ -110,7 +110,7 @@ class TopologyBase(object):
             for q in self.queues:
                 logger.debug(q)
                 if not q.is_empty():
-                    logger.info('check_and_act for work: ' + repr(q.work))
+                    logger.debug('check_and_act for work: ' + repr(q.work))
                     new_workers = q.check_and_act(sequential=sequential)
                     if new_workers is not None:
                         for worker in new_workers:
@@ -149,11 +149,27 @@ class TopologyBase(object):
 
                 workers[:] = [w for w in workers
                               if not w.fill_destination()]
-        print('Stop compute after t = {} s.'.format(time() - t_start))
+
+        self._print_at_exit(time() - t_start)
 
         if self._has_to_stop and has_to_exit:
             logger.info('Exit with signal 99.')
             exit(99)
+
+    def _print_at_exit(self, time_since_start):
+
+        txt = 'Stop compute after t = {:.2f} s'.format(time_since_start)
+        try:
+            nb_results = len(self.results)
+        except AttributeError:
+            nb_results = None
+        if nb_results is not None and nb_results > 0:
+            txt += (' ({} results, {:.2f} s/result).'.format(
+                nb_results, time_since_start/nb_results))
+        else:
+            txt += '.'
+
+        print(txt)
 
     def make_code_graphviz(self, name_file):
         """Generate the graphviz / dot code."""

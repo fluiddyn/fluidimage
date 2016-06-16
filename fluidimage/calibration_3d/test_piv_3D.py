@@ -8,24 +8,29 @@ Created on Thu Apr 21 15:32:26 2016
 
 from fluidimage.topologies.piv import TopologyPIV
 from fluidimage.data_objects.piv import HeavyPIVResults
-#from fluidimage.calibration_3d.
+# from fluidimage.calibration_3d.
 from get_calib import calib_parameters_from_uvmat
-#from fluidimage.calibration_3d.
+# from fluidimage.calibration_3d.
 from apply_calib import pix2phys, pix2phys_UV
 
 params = TopologyPIV.create_default_params()
 params.piv0.shape_crop_im0 = 64
-params.fix.delta_max=1000
-params.fix.correl_min=0.1
+
+params.fix.displacement_max = None
+params.fix.correl_min = 0.1
+
 params.piv0.grid.overlap=50
 params.piv0.grid.overlap = 0
 
 
 # path = '../../image_samples/Oseen/Images/Oseen_center*'
-#path = '../../image_samples/Karman/Images'
+# path = '../../image_samples/Karman/Images'
 
 for i in range(10):
-    path = '/.fsdyn_people/campagne8a/project/15DELDUCA/tmp/Antoine/piv_3D/test2/data_reorganized/level{}'.format(i+1)
+    path = (
+        '/.fsdyn_people/campagne8a/project/'
+        '15DELDUCA/tmp/Antoine/piv_3D/test2/'
+        'data_reorganized/level{}').format(i+1)
     print(path)
 # path = '../../image_samples/Jet/Images/c*'
 # params.series.strcouple = 'i+60, 0:2'
@@ -42,13 +47,11 @@ for i in range(10):
 # dot topo.dot -Tpng -o topo.png
 # dot topo.dot -Tx11
 
-
-
-#%% movie at 1 level
+#% movie at 1 level
 p =[]
 for i in range(18):
     p.append(HeavyPIVResults(str_path='/.fsdyn_people/campagne8a/project/15DELDUCA/tmp/Antoine/piv_3D/test2/data_reorganized/level1.piv/piv_im{}-{}.h5'.format(i+1,i+2)))
-    
+
 for pi in p:
     pi.display()
 #%% quiver 3D at a given time

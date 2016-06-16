@@ -55,8 +55,9 @@ class WorkPIV(BaseWork):
         self.works_piv = []
         self.works_fix = []
 
-        self.works_piv.append(FirstWorkPIV(params))
-        self.works_fix.append(WorkFIX(params.fix))
+        work_piv = FirstWorkPIV(params)
+        self.works_piv.append(work_piv)
+        self.works_fix.append(WorkFIX(params.fix, work_piv))
 
         coeff_zoom = params.multipass.coeff_zoom
 
@@ -94,11 +95,11 @@ class WorkPIV(BaseWork):
             shape_crop_im1 = (copy(shape_crop_im1[0]/coeffs_zoom[i-1]),
                               copy(shape_crop_im1[1]/coeffs_zoom[i-1]))
 
-            self.works_piv.append(
-                WorkPIVFromDisplacement(
-                    params, index_pass=i, shape_crop_im0=shape_crop_im0,
-                    shape_crop_im1=shape_crop_im1))
-            self.works_fix.append(WorkFIX(params.fix))
+            work_piv = WorkPIVFromDisplacement(
+                params, index_pass=i, shape_crop_im0=shape_crop_im0,
+                shape_crop_im1=shape_crop_im1)
+            self.works_piv.append(work_piv)
+            self.works_fix.append(WorkFIX(params.fix, work_piv))
 
     def calcul(self, couple):
 

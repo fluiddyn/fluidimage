@@ -75,12 +75,12 @@ class SubPix(object):
             if method is None:
                 method = self.method
             if nsubpix is None:
-                nsubpix = self.n   
+                nsubpix = self.n
             self.prepare_subpix(method, nsubpix)
-           
+
         if method not in self.methods:
             raise ValueError('method has to be in {}'.format(self.methods))
-        
+
         ny, nx = correl.shape
 
         if iy-nsubpix < 0 or iy+nsubpix+1 > ny or \

@@ -20,6 +20,8 @@ syntax: glob
 *_wrap.cxx
 *.out
 
+fluidimage/_hg_rev.py
+
 src_cy/fft*_cy.pyx
 src_cy/fft*_pxd.pxd
 
