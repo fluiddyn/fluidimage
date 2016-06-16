@@ -87,11 +87,20 @@ class WorkFIX(BaseWork):
             dxs, dys = smooth_clean(
                 xs, ys, deltaxs, deltays, iyvecs, ixvecs, threshold)
 
+            piv_results.dxs_smooth_clean = dxs
+            piv_results.dys_smooth_clean = dys
+
             inds = (abs(dxs - deltaxs) +
                     abs(dys - deltays) > threshold).nonzero()[0]
+
+            # from fluiddyn.debug import ipydebug
+            # import matplotlib.pylab as plb
+            # plb.ion()
+            # ipydebug()
+
             put_to_nan(inds, 'diff neighbour too large')
 
-            piv_results.deltaxs_wrong = deltaxs_wrong
-            piv_results.deltays_wrong = deltays_wrong
+        piv_results.deltaxs_wrong = deltaxs_wrong
+        piv_results.deltays_wrong = deltays_wrong
 
         return piv_results

@@ -23,12 +23,12 @@ def smooth_clean(xs, ys, deltaxs, deltays, iyvecs, ixvecs, threshold):
     for_norm = np.ones(shape)
 
     selection = ~np.isnan(deltaxs)
-    centers = np.vstack([ys[selection], xs[selection]])
-    dxs = deltaxs[selection]
-    dys = deltays[selection]
+    centers = np.vstack([xs[selection], ys[selection]])
+    dxs_select = deltaxs[selection]
+    dys_select = deltays[selection]
 
-    dxs = griddata(centers, dxs, (iyvecs, ixvecs)).reshape(shape)
-    dys = griddata(centers, dys, (iyvecs, ixvecs)).reshape(shape)
+    dxs = griddata(centers, dxs_select, (ixvecs, iyvecs)).reshape([ny, nx])
+    dys = griddata(centers, dys_select, (ixvecs, iyvecs)).reshape([ny, nx])
 
     dxs2 = _smooth(dxs, for_norm)
     dys2 = _smooth(dys, for_norm)
@@ -39,12 +39,12 @@ def smooth_clean(xs, ys, deltaxs, deltays, iyvecs, ixvecs, threshold):
     dys[inds] = 0
     for_norm[inds] = 0
 
-    dxs = _smooth(dxs, for_norm)
-    dys = _smooth(dys, for_norm)
+    dxs_smooth = _smooth(dxs, for_norm)
+    dys_smooth = _smooth(dys, for_norm)
 
     # come back to the unstructured grid
-    fxs = interp2d(ixvecs, iyvecs, dxs, kind='linear')
-    fys = interp2d(ixvecs, iyvecs, dys, kind='linear')
+    fxs = interp2d(ixvecs, iyvecs, dxs_smooth, kind='linear')
+    fys = interp2d(ixvecs, iyvecs, dys_smooth, kind='linear')
 
     out_dxs = np.empty_like(deltaxs)
     out_dys = np.empty_like(deltays)
@@ -52,5 +52,10 @@ def smooth_clean(xs, ys, deltaxs, deltays, iyvecs, ixvecs, threshold):
     for i, (x, y) in enumerate(zip(xs, ys)):
         out_dxs[i] = fxs(x, y)[0]
         out_dys[i] = fys(x, y)[0]
+
+    # from fluiddyn.debug import ipydebug
+    # import matplotlib.pylab as plb
+    # plb.ion()
+    # ipydebug()
 
     return out_dxs, out_dys

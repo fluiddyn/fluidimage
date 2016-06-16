@@ -223,6 +223,14 @@ class BaseWorkPIV(BaseWork):
 
             im0crop = self._crop_im0(ixvec0, iyvec0, im0pad)
             im1crop = self._crop_im1(ixvec1, iyvec1, im1pad)
+
+            if im0crop.shape != self.n_interrogation_window0 or \
+               im1crop.shape != self.n_interrogation_window1:
+                deltaxs[ivec] = np.nan
+                deltays[ivec] = np.nan
+                correls_max[ivec] = np.nan
+                continue
+
             # print(im0crop.shape, im1crop.shape)
             correl, coef_norm = self.correl(im0crop, im1crop)
             correls[ivec] = correl
