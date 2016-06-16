@@ -13,7 +13,6 @@ Provides:
 
 import inspect
 import numpy as np
-import matplotlib.pyplot as plt
 import scipy.ndimage as nd
 
 
@@ -23,7 +22,7 @@ available_tools = ['sliding_median', 'sliding_minima',
 
 
 def imstats(img, hist_bins=256):
-    histogram = ndimage.measurements.histogram(bins=hist_bins)
+    histogram = nd.measurements.histogram(bins=hist_bins)
     return histogram
 
 
@@ -136,6 +135,7 @@ def rescale_intensities(img=None, minima=0., maxima=1e4):
 
 def tanh_intensities(img=None, maxima=1e4):
     # TODO: mean filter
+    img_out = img
     img_out = np.tanh(img_out)
     # TODO: maxima from histogram??
     img_out = rescale_intensities(img_out, maxima=maxima)
@@ -181,21 +181,32 @@ class PreprocTools(object):
 
         for tool in available_tools:
             func = globals()[tool]
+
+            # Add tools as `staticmethods` of the class
             setattr(PreprocTools, tool, func)
 
             # TODO: Replace with inspect.getfullargspec (Python >= 3).
             func_args = inspect.getcallargs(func)
             for arg in func_args.keys():
-                if arg in ['img']:  # Remove arguments which are not parameters
+                if arg in ['img']:
+                    # Remove arguments which are not parameters
                     del(func_args[arg])
 
             func_args.update({'enable': False})
-            params._set_child(tool, func_args)
+
+            # New parameter child for each tool and parameter attributes
+            # from its function arguments and default values
+            params._set_child(tool, attribs=func_args)
+
+            # Adds docstring to the parameter
+            if func.func_doc is not None:
+                enable_doc = 'enable : bool\n        Set as `True` to enable the tool'
+                params.__dict__[tool]._set_doc(func.func_doc + enable_doc)
 
     def __init__(self, params):
         self.params = params.preproc.tools
 
-    def __call__(self, img, sequence=None):
+    def __call__(self, img):
         """
         Apply all preprocessing tools for which `enable` is `True`.
         Return the preprocessed image (numpy array).
@@ -204,8 +215,6 @@ class PreprocTools(object):
         ----------
         img : nd-array
             Image as a numpy array
-        sequence : list of strings
-            Order in which tools have to be applied on `img`
 
         """
         if type(img) is not np.ndarray:

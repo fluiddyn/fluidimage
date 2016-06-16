@@ -67,12 +67,12 @@ class TopologyPIV(TopologyBase):
             serie_arrays, params.series.strcouple,
             ind_start=params.series.ind_start,
             ind_stop=params.series.ind_stop)
-        
+
         path_dir = params.series.path
-        self.path_dir_result, self.how_saving = set_path_dir_result(path_dir,
-                                                                    params.saving.path,
-                                                                    params.saving.postfix,
-                                                                    params.saving.how)
+        path_dir_result, self.how_saving = set_path_dir_result(path_dir,
+                                                               params.saving.path,
+                                                               params.saving.postfix,
+                                                               params.saving.how)
         self.results = {}
         self.wq_piv = WaitingQueueThreading(
             'delta', lambda o: o.save(path_dir_result), self.results,

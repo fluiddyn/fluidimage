@@ -35,12 +35,12 @@ class PreprocBase(object):
         if params is None:
             params = self.__class__.create_default_params()
 
-        self.params = params
+        self.params = params.preproc
         self.serie_arrays = SerieOfArraysFromFiles(params.preproc.series.path)
         self.tools = PreprocTools(params)
         self.results = {}
 
-    def __call__(self, sequence=None):
+    def __call__(self):
         """Apply all enabled preprocessing tools on the series of arrays
         and saves them in self.results.
 
@@ -48,7 +48,7 @@ class PreprocBase(object):
         name_files = self.serie_arrays.get_name_files()
         for i, img in enumerate(self.serie_arrays.iter_arrays()):
             name = name_files[i]
-            self.results[name] = self.tools(img, sequence)
+            self.results[name] = self.tools(img)
 
 
 class PreprocBaseTemporalFilters(PreprocBase):
@@ -56,7 +56,7 @@ class PreprocBaseTemporalFilters(PreprocBase):
 
     def __init__(self, params=None):
         """Loads images as SeriesOfArrays."""
-        super(PreprocBaseTimeFiltering, self).__init__(params)
+        super(PreprocBaseTemporalFilters, self).__init__(params)
         attribs = {'strcouple': 'i:i+2',
                    'ind_start': 0,
                    'ind_stop': None,

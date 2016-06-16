@@ -6,6 +6,9 @@ syntax: glob
 *tmp
 *.html
 
+*.swp
+*.swo
+
 \#*\#
 
 *build/*
