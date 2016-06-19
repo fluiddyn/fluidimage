@@ -52,3 +52,5 @@ doc/examples/oar_launcher*
 fluidimage/post_proc/*.h5
 
 bench/oar_launcher_*
+image_samples/*/*.pre
+image_samples/*/*.piv

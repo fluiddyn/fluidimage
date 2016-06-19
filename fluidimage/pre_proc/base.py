@@ -13,11 +13,11 @@ Provides:
 """
 
 from .toolbox import PreprocTools
-from .. import ParamContainer, SerieOfArraysFromFiles, SeriesOfArrays
+from .. import ParamContainer, SerieOfArraysFromFiles
 
 
 class PreprocBase(object):
-    """Preprocess series of images with spatial filters. """
+    """Preprocess series of images with various tools. """
 
     @classmethod
     def create_default_params(cls):
@@ -49,20 +49,3 @@ class PreprocBase(object):
         for i, img in enumerate(self.serie_arrays.iter_arrays()):
             name = name_files[i]
             self.results[name] = self.tools(img)
-
-
-class PreprocBaseTemporalFilters(PreprocBase):
-    """Preprocess series of images with spatial and temporal filters. """
-
-    def __init__(self, params=None):
-        """Loads images as SeriesOfArrays."""
-        super(PreprocBaseTemporalFilters, self).__init__(params)
-        attribs = {'strcouple': 'i:i+2',
-                   'ind_start': 0,
-                   'ind_stop': None,
-                   'ind_step': 1}
-        self.params.series.set_attribs(attribs)
-        self.series = SeriesOfArrays(
-            self.serie_arrays, params.preproc.series.strcouple,
-            ind_start=params.preproc.series.ind_start,
-            ind_stop=params.preproc.series.ind_stop)

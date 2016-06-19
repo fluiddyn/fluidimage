@@ -11,10 +11,13 @@ Provides:
    :private-members:
 
 """
-
+import logging
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
 from fluidimage.pre_proc.base import PreprocBase
 from fluidimage.data_objects.pre_proc import ArraySerie, PreprocResults
+
+
+logger = logging.getLogger('fluidimage')
 
 
 class WorkPreproc(PreprocBase):
@@ -32,9 +35,30 @@ class WorkPreproc(PreprocBase):
 
         result = PreprocResults(serie, self.params)
         name_files = serie.names
-        for i, img in enumerate(serie.get_arrays()):
-            name = name_files[i]
-            img_out = self.tools(img)
-            result.data.update({name: img_out})
+        images_in = serie.get_arrays()
+        images_out = self.tools(images_in)
+        data = self._make_data_to_save(serie, name_files, images_out)
+        result.data.update(data)
 
         return result
+
+    def _make_data_to_save(self, serie, name_files, images_out):
+        nb_series = serie.nb_series
+        ind_serie = serie.ind_serie
+        nb_img = len(name_files)
+        ind_middle_img = nb_img // 2
+
+        if ind_serie == 0 and nb_series == 1:
+            logger.info('Preprocessed single serie, 1 out of 1')
+            s = slice(None, None)
+        elif ind_serie == 0:
+            logger.info('Preprocessed first serie, %d out of %d', ind_serie + 1, nb_series)
+            s = slice(0, ind_middle_img + 1)
+        elif ind_serie == nb_series - 1:
+            logger.info('Preprocessed last serie, %d out of %d', ind_serie + 1, nb_series)
+            s = slice(ind_middle_img, None)
+        else:
+            logger.info('Preprocessed next serie, %d out of %d', ind_serie + 1, nb_series)
+            s = slice(ind_middle_img, ind_middle_img + 1)
+
+        return dict(zip(name_files[s], images_out[s]))

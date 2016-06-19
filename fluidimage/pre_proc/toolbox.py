@@ -15,8 +15,11 @@ import inspect
 import numpy as np
 import scipy.ndimage as nd
 
+from .io import iterate_multiple_imgs, multiple_imgs_as_ndarray
+
 
 available_tools = ['sliding_median', 'sliding_minima',
+                   'temporal_median', 'temporal_minima',
                    'global_threshold', 'rescale_intensities',
                    'tanh_intensities', 'sharpen']
 
@@ -30,11 +33,7 @@ def imstats(img, hist_bins=256):
 #   SPATIAL FILTERS
 # ----------------------------------------------------
 
-
-def sliding_mean(img=None, weight=1.):
-    pass
-
-
+@iterate_multiple_imgs
 def sliding_median(img=None, weight=1., window_size=3,
                    boundary_condition='reflect'):
     '''
@@ -43,8 +42,8 @@ def sliding_median(img=None, weight=1., window_size=3,
 
     Parameters
     ----------
-    img : nd-array
-        Image as a numpy array
+    img : array_like
+        Single image as numpy array or multiple images as array-like object
     weight : scalar
         Fraction of median to be subtracted from each pixel.
         Value of `weight` should be in the interval (0.0,1.0).
@@ -61,6 +60,7 @@ def sliding_median(img=None, weight=1., window_size=3,
     return img_out
 
 
+@iterate_multiple_imgs
 def sliding_minima(img=None, weight=1., window_size=3,
                    boundary_condition='reflect'):
     '''
@@ -69,10 +69,10 @@ def sliding_minima(img=None, weight=1., window_size=3,
 
     Parameters
     ----------
-    img : nd-array
-        Image as a numpy array
+    img : array_like
+        Single image as numpy array or multiple images as array-like object
     weight : scalar
-        Fraction of median to be subtracted from each pixel.
+        Fraction of minima to be subtracted from each pixel.
         Value of `weight` should be in the interval (0.0,1.0).
     window_size : scalar or tuple
         Sets the size of the sliding window.
@@ -88,18 +88,81 @@ def sliding_minima(img=None, weight=1., window_size=3,
 
 
 # ----------------------------------------------------
+#   TEMPORAL FILTERS
+# ----------------------------------------------------
+
+@multiple_imgs_as_ndarray
+def temporal_median(img=None, weight=1., window_shape=None):
+    '''
+    Subtracts the median calculated in time,for each pixel.
+
+    Parameters
+    ----------
+    img : array_like
+        Series of images as a 3D numpy array, or a list or a set
+    weight : scalar
+        Fraction of median to be subtracted from each pixel.
+        Value of `weight` should be in the interval (0.0,1.0).
+    window_shape : tuple of integers
+        Specifies the shape of the window as follows (dt, dy, dx)
+
+    '''
+    time_axis = 0
+    nb_imgs = img.shape[time_axis]
+    if img.ndim <= 2 or nb_imgs <= 1:
+        raise ValueError('Need more than one image to apply temporal filtering.')
+
+    if window_shape is None:
+        window_shape = (nb_imgs, 1, 1)
+    elif not isinstance(window_shape, tuple):
+        raise ValueError('window_shape must be a tuple.')
+    elif window_shape[0] <= 1:
+        raise ValueError('Cannot perform temporal filtering, try spatial filtering.')
+
+    img_out = img - weight * nd.median_filter(img,
+                                              size=window_shape)
+    return img_out
+
+
+@multiple_imgs_as_ndarray
+def temporal_minima(img=None, weight=1.):
+    '''
+    Subtracts the minima calculated in time,for each pixel.
+
+    Parameters
+    ----------
+    imgs : array_like
+        Series of images as a 3D numpy array, or a list or a set
+    weight : scalar
+        Fraction of minima to be subtracted from each pixel.
+        Value of `weight` should be in the interval (0.0,1.0).
+
+    '''
+    time_axis = 0
+    nb_imgs = img.shape[time_axis]
+    if img.ndim < 3 or nb_imgs <= 1:
+        raise ValueError('Need more than one image to apply temporal filtering.')
+
+    window_size = img.shape[time_axis]
+    img_out = img - weight * nd.minimum_filter1d(img,
+                                                 size=window_size,
+                                                 axis=time_axis)
+    return img_out
+
+
+# ----------------------------------------------------
 #   BRIGHTNESS / CONTRAST TOOLS
 # ----------------------------------------------------
 
-
+@iterate_multiple_imgs
 def global_threshold(img=None, minima=0., maxima=1e4):
     '''
     Trims pixel intensities which are outside the interval (minima, maxima).
 
     Parameters
     ----------
-    img : nd-array
-        Image as a numpy array# Replace with inspect.getfullargspec
+    img : array_like
+        Single image as numpy array or multiple images as array-like object
 
     minima, maxima : float
         Sets the threshold
@@ -111,6 +174,7 @@ def global_threshold(img=None, minima=0., maxima=1e4):
     return img_out
 
 
+@iterate_multiple_imgs
 def rescale_intensities(img=None, minima=0., maxima=1e4):
     '''
     Rescale image intensities, between the specified minima and maxima,
@@ -118,38 +182,40 @@ def rescale_intensities(img=None, minima=0., maxima=1e4):
 
     Parameters
     ----------
-    img : nd-array
-        Image as a numpy array
+    img : array_like
+        Single image as numpy array or multiple images as array-like object
     minima, maxima : float
         Sets the range within which current intensities
         have to be rescaled.
 
     '''
+    offset = minima - img.min()
+    img += offset
     initial_min = img.min()
     initial_max = img.max()
     mfactor = (maxima - minima) / (initial_max - initial_min)
-    offset = minima - initial_min
-    img_out = img * mfactor + offset
+    img_out = img * mfactor
     return img_out
 
 
-def tanh_intensities(img=None, maxima=1e4):
-    # TODO: mean filter
-    img_out = img
+@iterate_multiple_imgs
+def tanh_intensities(img=None, maxima=1.):
+    ''' FIXME: Doesn't work as of now. '''
+
+    img_out = rescale_intensities(img, maxima=maxima)
     img_out = np.tanh(img_out)
-    # TODO: maxima from histogram??
-    img_out = rescale_intensities(img_out, maxima=maxima)
     return img_out
 
 
+@iterate_multiple_imgs
 def sharpen(img=None, sigma1=3., sigma2=1., alpha=30.):
     '''
     Sharpen image edges.
 
     Parameters
     ----------
-    img : nd-array
-        Image as a numpy array
+    img : array_like
+        Single image as numpy array or multiple images as array-like object
     sigma1, sigma2 : float
         Std deviation for two passes gaussian filters. sigma1 > sigma2
     alpha : float
@@ -213,16 +279,10 @@ class PreprocTools(object):
 
         Parameters
         ----------
-        img : nd-array
-            Image as a numpy array
+        img : array_like
+            Single image as numpy array or multiple images as array-like object
 
         """
-        if type(img) is not np.ndarray:
-            raise ValueError('Expected a numpy array, instead received %s = %s'
-                             % (type(img), img))
-
-        img_out = img.copy()
-
         sequence = self.params.sequence
         if sequence is None:
             sequence = self.params.available_tools
@@ -236,6 +296,6 @@ class PreprocTools(object):
                         kwargs.pop(k)
 
                 cls = self.__class__
-                img_out = cls.__dict__[tool](img_out, **kwargs)
+                img = cls.__dict__[tool](img, **kwargs)
 
-        return img_out
+        return img

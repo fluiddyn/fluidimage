@@ -247,6 +247,8 @@ class WaitingQueueMakeSerie(WaitingQueueBase):
     def __init__(self, name, destination,
                  work_name='make serie', topology=None):
 
+        self.nb_series = 0
+        self.ind_series = []
         self.nb_serie_to_create = {}
         self.serie_set = set()
         self.series = {}
@@ -267,32 +269,32 @@ class WaitingQueueMakeSerie(WaitingQueueBase):
         serie_set = [serie.get_name_files() for serie in series]
 
         self.serie_set.update(serie_set)
+        self.nb_series = len(serie_set)
+        self.ind_series = range(self.nb_series)
         nb = self.nb_serie_to_create
 
         for names in serie_set:
             for name in names:
-                print(name)
                 if name in nb:
                     nb[name] = nb[name] + 1
                 else:
                     nb[name] = 1
 
     def check_and_act(self, sequential=None):
+        logger.info('launch work with ' + self.work_name)
         for names in copy(self.serie_set):
-            nb_names = len(names)
             k0 = names[0]
-            k1 = names[nb_names // 2]
-            k2 = names[-1]
-            newk = k0 + '-' + k1 + '-' + k2
+            k1 = names[-1]
+            newk = k0 + '-' + k1
 
             if all([name in self for name in names]):
                 self.serie_set.remove(names)
                 serie = self.series.pop(names)
+                ind_serie = self.ind_series.pop(0)
 
                 values = []
-                print(self.nb_serie_to_create)
+                logger.debug('Creating a serie for ' + repr(names))
                 for name in names:
-                    print(name)
                     if self.nb_serie_to_create[name] == 1:
                         values.append(self.pop(name))
                         del self.nb_serie_to_create[name]
@@ -302,4 +304,4 @@ class WaitingQueueMakeSerie(WaitingQueueBase):
                         self.nb_serie_to_create[name] -= 1
 
                 self.destination[newk] = ArraySerie(
-                    names, values, serie)
+                    names, values, serie, ind_serie, self.nb_series)

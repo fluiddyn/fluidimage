@@ -13,15 +13,20 @@
 
 import os
 import h5py
+import logging
 
 from scipy.misc import imsave
 from .piv import ArrayCouple, LightPIVResults
 from .. import ParamContainer
 
 
+logger = logging.getLogger('fluidimage')
+
+
 class ArraySerie(ArrayCouple):
     def __init__(
             self, names=None, arrays=None, serie=None,
+            ind_serie=0, nb_series=1,
             str_path=None, hdf5_parent=None):
 
         if str_path is not None:
@@ -40,6 +45,8 @@ class ArraySerie(ArrayCouple):
             if arrays is None:
                 arrays = serie.get_arrays()
 
+        self.ind_serie = ind_serie
+        self.nb_series = nb_series
         self.names = tuple(names)
         self.arrays = tuple(arrays)
         self.serie = serie
@@ -81,29 +88,30 @@ class PreprocResults(LightPIVResults):
         self.params = params
         self.data = {}
 
-    def _get_name(self):
+    def _get_name(self, out_format):
+        if out_format == 'img':
+            return ''
+        elif out_format == 'hdf5':
+            return 'im_' + self.params.saving.postfix + '.h5'
 
-        name = ' TODO'
-        return name
-
-    def save(self, path=None, out_format='img'):
-
-        name = self._get_name()
+    def save(self, path=None):
+        out_format = self.params.saving.format
+        name = self._get_name(out_format)
 
         if path is not None:
             path_file = os.path.join(path, name)
         else:
             path_file = name
 
-        if out_format == 'hdf5':
+        if out_format == 'img':
+            for k, v in self.data.items():
+                imsave(path_file + k, v)
+                logger.debug(k + ' saved with intensity range: (%f, %f)', v.min(), v.max())
+        elif out_format == 'hdf5':
             with h5py.File(path_file, 'w') as f:
                 f.attrs['class_name'] = 'PreprocResults'
                 f.attrs['module_name'] = 'fluidimage.data_objects.pre_proc'
-
                 self._save_in_hdf5_object(f, tag='pre_proc')
-        elif out_format == 'img':
-            for k, v in self.data.items():
-                imsave(path_file + k, v)
 
         return self
 
