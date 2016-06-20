@@ -64,7 +64,6 @@ class TopologyPreproc(TopologyBase):
             ind_start=params.preproc.series.ind_start,
             ind_stop=params.preproc.series.ind_stop)
 
-        super(TopologyPreproc, self).__init__(params)
         path_dir = params.preproc.series.path
         path_dir_result, self.how_saving = set_path_dir_result(
             path_dir, params.preproc.saving.path,
@@ -89,18 +88,20 @@ class TopologyPreproc(TopologyBase):
         self.wq0 = WaitingQueueLoadImage(
             destination=self.wq_images, path_dir=path_dir, topology=self)
 
-        self.queues = [self.wq0, self.wq_images, self.wq_serie, self.wq_preproc]
+        queues = [self.wq0, self.wq_images, self.wq_serie, self.wq_preproc]
+        super(TopologyPreproc, self).__init__(queues)
         self.add_series(self.series)
 
         path_params_xml = os.path.join(path_dir_result, 'params.xml')
         if os.path.isfile(path_params_xml):
             os.remove(path_params_xml)
+
         params._save_as_xml(path_params_xml)
 
     def add_series(self, series):
 
         if len(series) == 0:
-            print('Warning: encountered empty series. No images to preprocess.')
+            print('Warning:Encountered empty series. No images to preprocess.')
             return
 
         if self.how_saving == 'complete':

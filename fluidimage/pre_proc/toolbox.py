@@ -15,13 +15,17 @@ import inspect
 import numpy as np
 import scipy.ndimage as nd
 
+from skimage import exposure, filters, morphology
 from .io import iterate_multiple_imgs, multiple_imgs_as_ndarray
 
 
 available_tools = ['sliding_median', 'sliding_minima',
                    'temporal_median', 'temporal_minima',
-                   'global_threshold', 'rescale_intensities',
-                   'tanh_intensities', 'sharpen']
+                   'global_threshold', 'rescale_intensity',
+                   'equalize_hist_global', 'equalize_hist_local',
+                   'gamma_correction', 'sharpen']
+
+__all__ = available_tools + ['PreprocTools']
 
 
 def imstats(img, hist_bins=256):
@@ -94,7 +98,7 @@ def sliding_minima(img=None, weight=1., window_size=3,
 @multiple_imgs_as_ndarray
 def temporal_median(img=None, weight=1., window_shape=None):
     '''
-    Subtracts the median calculated in time,for each pixel.
+    Subtracts the median calculated in time, for each pixel.
 
     Parameters
     ----------
@@ -110,14 +114,16 @@ def temporal_median(img=None, weight=1., window_shape=None):
     time_axis = 0
     nb_imgs = img.shape[time_axis]
     if img.ndim <= 2 or nb_imgs <= 1:
-        raise ValueError('Need more than one image to apply temporal filtering.')
+        raise ValueError(
+            'Need more than one image to apply temporal filtering.')
 
     if window_shape is None:
         window_shape = (nb_imgs, 1, 1)
     elif not isinstance(window_shape, tuple):
         raise ValueError('window_shape must be a tuple.')
     elif window_shape[0] <= 1:
-        raise ValueError('Cannot perform temporal filtering, try spatial filtering.')
+        raise ValueError(
+            'Cannot perform temporal filtering, try spatial filtering.')
 
     img_out = img - weight * nd.median_filter(img,
                                               size=window_shape)
@@ -141,7 +147,8 @@ def temporal_minima(img=None, weight=1.):
     time_axis = 0
     nb_imgs = img.shape[time_axis]
     if img.ndim < 3 or nb_imgs <= 1:
-        raise ValueError('Need more than one image to apply temporal filtering.')
+        raise ValueError(
+            'Need more than one image to apply temporal filtering.')
 
     window_size = img.shape[time_axis]
     img_out = img - weight * nd.minimum_filter1d(img,
@@ -175,7 +182,7 @@ def global_threshold(img=None, minima=0., maxima=1e4):
 
 
 @iterate_multiple_imgs
-def rescale_intensities(img=None, minima=0., maxima=1e4):
+def rescale_intensity(img=None, minima=0., maxima=1e4):
     '''
     Rescale image intensities, between the specified minima and maxima,
     by using a multiplicative factor.
@@ -185,25 +192,90 @@ def rescale_intensities(img=None, minima=0., maxima=1e4):
     img : array_like
         Single image as numpy array or multiple images as array-like object
     minima, maxima : float
-        Sets the range within which current intensities
-        have to be rescaled.
+        Sets the range to which current intensities have to be rescaled.
 
     '''
-    offset = minima - img.min()
-    img += offset
-    initial_min = img.min()
-    initial_max = img.max()
-    mfactor = (maxima - minima) / (initial_max - initial_min)
-    img_out = img * mfactor
+    out_range = (minima, maxima)
+    img_out = exposure.rescale_intensity(img, out_range=out_range)
     return img_out
 
 
 @iterate_multiple_imgs
-def tanh_intensities(img=None, maxima=1.):
-    ''' FIXME: Doesn't work as of now. '''
+def equalize_hist_global(img=None, nbins=256):
+    '''
+    Increases global contrast of the image. Equalized image would have a
+    roughly linear cumulative distribution function for each pixel
+    neighborhood. It works well when pixel intensities are nearly uniform [1,2]. 
 
-    img_out = rescale_intensities(img, maxima=maxima)
-    img_out = np.tanh(img_out)
+    Parameters
+    ----------
+    img : array_like
+        Single image as numpy array or multiple images as array-like object
+    nbins : integer
+        Number of bins to calculate histogram
+
+    References
+    ----------
+    .. [1] http://scikit-image.org/docs/dev/auto_examples/color_exposure/plot_local_equalize.html # noqa
+    .. [2] https://en.wikipedia.org/wiki/Histogram_equalization
+
+    '''
+    img_out = exposure.equalize_hist(img, nbins=nbins, mask=None)
+    return img_out
+
+
+@iterate_multiple_imgs
+def equalize_hist_local(img=None, radius=10):
+    '''
+    Adaptive histogram equalization (AHE) emphasizes every local graylevel variations [1].
+    Caution: It has a tendency to overamplify noise in homogenous regions [2].
+
+    Parameters
+    ----------
+    img : array_like
+        Single image as numpy array or multiple images as array-like object
+    radius : integer
+        Radius of the disk shaped window.
+
+    References
+    ----------
+    .. [1] http://scikit-image.org/docs/dev/auto_examples/color_exposure/plot_local_equalize.html # noqa
+    .. [2] https://en.wikipedia.org/wiki/Adaptive_histogram_equalization
+
+    '''
+    selem = morphology.disk(radius)
+    img_out = filters.rank.equalize(img, selem, mask=None)
+    return img_out
+
+
+@iterate_multiple_imgs
+def gamma_correction(img=None, gamma=1., gain=1.):
+    r'''
+    Gamma correction or power law transform. It can be expressed as:
+
+    .. math::
+        I_{out} = gain \times {I_{in}} ^ {\gamma}
+
+    Adjusts contrast without changing the shape of the histogram. For the values
+    .. :math:`\gamma > 1` : Histogram shifts towards left (darker)
+    .. :math:`\gamma < 1` : Histogram shifts towards right (lighter)
+
+    Parameters
+    ----------
+    img : array_like
+        Single image as numpy array or multiple images as array-like object
+    gamma : float
+        Non-negative real number
+    gain : float
+        Multiplying factor
+
+    References
+    ----------
+    .. [1] http://scikit-image.org/docs/dev/auto_examples/color_exposure/plot_log_gamma.html # noqa
+    .. [2] http://en.wikipedia.org/wiki/Gamma_correction
+
+    '''
+    img_out = exposure.adjust_gamma(img, gamma, gain)
     return img_out
 
 
@@ -266,7 +338,8 @@ class PreprocTools(object):
 
             # Adds docstring to the parameter
             if func.func_doc is not None:
-                enable_doc = 'enable : bool\n        Set as `True` to enable the tool'
+                enable_doc = 'enable : bool\n' + \
+                             '        Set as `True` to enable the tool'
                 params.__dict__[tool]._set_doc(func.func_doc + enable_doc)
 
     def __init__(self, params):

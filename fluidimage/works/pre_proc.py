@@ -12,6 +12,8 @@ Provides:
 
 """
 import logging
+import numpy as np
+
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
 from fluidimage.pre_proc.base import PreprocBase
 from fluidimage.data_objects.pre_proc import ArraySerie, PreprocResults
@@ -52,13 +54,16 @@ class WorkPreproc(PreprocBase):
             logger.info('Preprocessed single serie, 1 out of 1')
             s = slice(None, None)
         elif ind_serie == 0:
-            logger.info('Preprocessed first serie, %d out of %d', ind_serie + 1, nb_series)
+            logger.info('Preprocessed first serie, %d out of %d',
+                        ind_serie + 1, nb_series)
             s = slice(0, ind_middle_img + 1)
         elif ind_serie == nb_series - 1:
-            logger.info('Preprocessed last serie, %d out of %d', ind_serie + 1, nb_series)
+            logger.info('Preprocessed last serie, %d out of %d',
+                        ind_serie + 1, nb_series)
             s = slice(ind_middle_img, None)
         else:
-            logger.info('Preprocessed next serie, %d out of %d', ind_serie + 1, nb_series)
+            logger.info('Preprocessed next serie, %d out of %d',
+                        ind_serie + 1, nb_series)
             s = slice(ind_middle_img, ind_middle_img + 1)
 
         return dict(zip(name_files[s], images_out[s]))

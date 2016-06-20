@@ -48,8 +48,11 @@ def _get_array_like_type(array_like, convert_to_ndarray=False):
 
 @decorator
 def iterate_multiple_imgs(tool, *args, **kwargs):
-    """Feeds one image at a time to the function `tool`, typically a spatial filter."""
+    """
+    Feeds one image at a time to the function `tool`,
+    typically a spatial filter, or a brightness/contrast adjustment tool.
 
+    """
     img_array_in = _get_img_arg(*args, **kwargs)
     ImgArrayLike = _get_array_like_type(img_array_in)
 
