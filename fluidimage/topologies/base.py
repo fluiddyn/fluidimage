@@ -33,7 +33,7 @@ if config is not None:
 
 try:  # should work on UNIX
 
-    # found in http://stackoverflow.com/questions/1006289/how-to-find-out-the-number-of-cpus-using-python
+    # found in http://stackoverflow.com/questions/1006289/how-to-find-out-the-number-of-cpus-using-python # noqa
     with open('/proc/self/status') as f:
         status = f.read()
     m = re.search(r'(?m)^Cpus_allowed:\s*(.*)$', status)

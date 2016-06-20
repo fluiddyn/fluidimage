@@ -254,7 +254,6 @@ class WaitingQueueMakeSerie(WaitingQueueBase):
         self.series = {}
         self.topology = topology
         work = 'make_serie'
-
         super(WaitingQueueMakeSerie, self).__init__(
             name, work, destination, work_name, topology)
 
@@ -267,7 +266,6 @@ class WaitingQueueMakeSerie(WaitingQueueBase):
                             for serie in series})
 
         serie_set = [serie.get_name_files() for serie in series]
-
         self.serie_set.update(serie_set)
         self.nb_series = len(serie_set)
         self.ind_series = range(self.nb_series)
@@ -281,13 +279,13 @@ class WaitingQueueMakeSerie(WaitingQueueBase):
                     nb[name] = 1
 
     def check_and_act(self, sequential=None):
-        logger.info('launch work with ' + self.work_name)
         for names in copy(self.serie_set):
-            k0 = names[0]
-            k1 = names[-1]
-            newk = k0 + '-' + k1
-
             if all([name in self for name in names]):
+                logger.info('launch work with ' + self.work_name + repr(names))
+                k0 = names[0]
+                k1 = names[-1]
+                newk = k0 + '-' + k1
+
                 self.serie_set.remove(names)
                 serie = self.series.pop(names)
                 ind_serie = self.ind_series.pop(0)

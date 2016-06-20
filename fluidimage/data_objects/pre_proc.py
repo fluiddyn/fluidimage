@@ -51,6 +51,9 @@ class ArraySerie(ArrayCouple):
         self.arrays = tuple(arrays)
         self.serie = serie
 
+    def _clear_data(self):
+        self.arrays = tuple()
+
     def save(self, path=None, hdf5_parent=None):
         if path is not None:
             raise NotImplementedError
@@ -88,6 +91,9 @@ class PreprocResults(LightPIVResults):
         self.params = params
         self.data = {}
 
+    def _clear_data(self):
+        self.data = {}
+
     def _get_name(self, out_format):
         if out_format == 'img':
             return ''
@@ -106,13 +112,16 @@ class PreprocResults(LightPIVResults):
         if out_format == 'img':
             for k, v in self.data.items():
                 imsave(path_file + k, v)
-                logger.debug(k + ' saved with intensity range: (%f, %f)', v.min(), v.max())
+                logger.debug(k + ' saved with intensity range: (%f, %f)',
+                             v.min(), v.max())
+
         elif out_format == 'hdf5':
             with h5py.File(path_file, 'w') as f:
                 f.attrs['class_name'] = 'PreprocResults'
                 f.attrs['module_name'] = 'fluidimage.data_objects.pre_proc'
                 self._save_in_hdf5_object(f, tag='pre_proc')
 
+        self._clear_data()
         return self
 
     def _save_in_hdf5_object(self, f, tag='pre_proc'):

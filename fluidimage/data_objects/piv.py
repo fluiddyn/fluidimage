@@ -61,7 +61,8 @@ def get_name_piv(serie, prefix='piv'):
     return name
 
 
-def set_path_dir_result(path_dir_input, path_saving, postfix_saving, how_saving):
+def set_path_dir_result(path_dir_input, path_saving,
+                        postfix_saving, how_saving):
     """Makes new directory for results, if required, and returns its path."""
 
     if path_saving is not None:
@@ -373,7 +374,7 @@ class MultipassPIVResults(DataObject):
                     r._save_in_hdf5_object(f, tag='piv{}'.format(i))
 
         return path_file
-                    
+
     def _load(self, path):
 
         self.file_name = os.path.basename(path)

@@ -37,9 +37,10 @@ class WorkPreproc(PreprocBase):
 
         result = PreprocResults(serie, self.params)
         name_files = serie.names
-        images_in = serie.get_arrays()
-        images_out = self.tools(images_in)
-        data = self._make_data_to_save(serie, name_files, images_out)
+        images = serie.get_arrays()
+        images = self.tools(images)
+        serie._clear_data()
+        data = self._make_data_to_save(serie, name_files, images)
         result.data.update(data)
 
         return result
