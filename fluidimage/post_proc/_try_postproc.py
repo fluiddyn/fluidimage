@@ -35,7 +35,7 @@ lightresult.save()
 #%%
 from postproc import PIV_Postproc
 
-postp = PIV_Postproc(path='piv_Oseen_center01-02_light.h5')
+postp = PIV_Postproc(path='piv_Karman01-02_light.h5')
 
 rot = postp.compute_rot()
 
@@ -50,7 +50,7 @@ postp.displayf(bg=rot)
 #%%
 from postproc import PIV_PostProc_serie
 
-postp = PIV_PostProc_serie(path=['piv_Oseen_center01-02_light.h5']*10)
+postp = PIV_PostProc_serie(path=['piv_Karman01-02_light.h5']*10)
 postp.set_time(np.linspace(0, 10, 10))
 
 rot = postp.compute_rot()
@@ -71,8 +71,8 @@ postp.displayf(U=postp.U, V=postp.V)
 
 # tests Fourier transform
 from postproc import PIV_PostProc_serie
-Nt = 1000
-postp = PIV_PostProc_serie(path=['piv_Oseen_center01-02_light.h5']*Nt)
+Nt = 100
+postp = PIV_PostProc_serie(path=['piv_Karman01-02_light.h5']*Nt)
 
 t = np.linspace(0, 1000, Nt)
 
@@ -84,7 +84,7 @@ omega = 0.02
 
 for i in range(np.shape(postp.U)[0]):
     postp.U[i] = np.cos(omega*t[i]+kx*postp.X+ky*postp.Y)
-    postp.U[i] = np.cos(omega*t[i]+kx*postp.X+ky*postp.Y)
+    postp.V[i] = np.cos(omega*t[i]+kx*postp.X+ky*postp.Y)
 
 
 # FFT temporelle

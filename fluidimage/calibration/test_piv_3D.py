@@ -22,6 +22,7 @@ params.fix.correl_min = 0.1
 params.piv0.grid.overlap=50
 params.piv0.grid.overlap = 0
 
+params.saving.how= 'recompute'
 
 # path = '../../image_samples/Oseen/Images/Oseen_center*'
 # path = '../../image_samples/Karman/Images'

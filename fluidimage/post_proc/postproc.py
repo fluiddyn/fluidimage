@@ -93,6 +93,7 @@ class PIV_Postproc(LightPIVResults):
             print energphys
             print 'np.sum(psd) * dkx*dky='
             print energspectral 
+            
 class PIV_PostProc_serie(LightPIVResults):
     
     def __init__(self, path=None):

@@ -427,9 +427,21 @@ class MultipassPIVResults(DataObject):
 
     def make_light_result(self, ind_pass=-1):
         piv = self.passes[ind_pass]
+        if ind_pass == -1:
+            deltaxs = piv.deltaxs_final
+            deltays = piv.deltays_final
+            ixvec = piv.ixvecs_final
+            iyvec = piv.iyvecs_final
+
+        else:
+            deltaxs = piv.deltaxs_approx
+            deltays = piv.deltays_approx
+            ixvec = piv.ixvecs_approx
+            iyvec = piv.ixvecs_approx
+        
         return LightPIVResults(
-            piv.deltaxs_approx, piv.deltays_approx,
-            piv.ixvecs_grid, piv.iyvecs_grid,
+            deltaxs, deltays,
+            ixvec, iyvec,
             couple=piv.couple,
             params=piv.params)
 
