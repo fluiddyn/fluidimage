@@ -109,11 +109,15 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
 
         def fill_destination():
             if isinstance(p, multiprocessing.Process):
-                try:
-                    result = comm.get_nowait()
-                    is_done = True
-                except Queue.Empty:
-                    is_done = False
+                if p.exitcode:
+                    logger.info('Error in work')
+                    return True
+                else:
+                    try:
+                        result = comm.get_nowait()
+                        is_done = True
+                    except Queue.Empty:
+                        is_done = False
             else:
                 is_done = not p.is_alive()
 

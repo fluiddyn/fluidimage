@@ -195,4 +195,6 @@ class TopologyPIV(TopologyBase):
         else:
             txt += '.'
 
+        txt += '\npath results:\n' + self.path_dir_result
+
         print(txt)

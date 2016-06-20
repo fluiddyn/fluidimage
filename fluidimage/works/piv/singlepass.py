@@ -285,7 +285,8 @@ class BaseWorkPIV(BaseWork):
             piv_results.iyvecs_final = self.iyvecs_grid
 
         # for the interpolation
-        selection = ~np.isnan(piv_results.deltaxs)
+        selection = ~(np.isnan(piv_results.deltaxs) |
+                      np.isnan(piv_results.deltays))
 
         xs = piv_results.xs[selection]
         ys = piv_results.ys[selection]

@@ -22,7 +22,7 @@ def smooth_clean(xs, ys, deltaxs, deltays, iyvecs, ixvecs, threshold):
     shape = [ny, nx]
     for_norm = np.ones(shape)
 
-    selection = ~np.isnan(deltaxs)
+    selection = ~(np.isnan(deltaxs) | np.isnan(deltays))
     centers = np.vstack([xs[selection], ys[selection]])
     dxs_select = deltaxs[selection]
     dys_select = deltays[selection]
