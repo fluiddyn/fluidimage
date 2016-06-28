@@ -15,7 +15,7 @@ import os
 import h5py
 import logging
 
-from scipy.misc import imsave
+from fluidimage import imsave, imsave_h5
 from .piv import ArrayCouple, LightPIVResults
 from .. import ParamContainer
 
@@ -94,78 +94,20 @@ class PreprocResults(LightPIVResults):
     def _clear_data(self):
         self.data = {}
 
-    def _get_name(self, out_format):
-        if out_format == 'img':
-            return ''
-        elif out_format == 'hdf5':
-            return 'im_' + self.params.saving.postfix + '.h5'
-
     def save(self, path=None):
         out_format = self.params.saving.format
-        name = self._get_name(out_format)
 
-        if path is not None:
-            path_file = os.path.join(path, name)
-        else:
-            path_file = name
-
-        if out_format == 'img':
-            for k, v in self.data.items():
-                imsave(path_file + k, v)
-                logger.debug(k + ' saved with intensity range: (%f, %f)',
-                             v.min(), v.max())
-
-        elif out_format == 'hdf5':
-            with h5py.File(path_file, 'w') as f:
-                f.attrs['class_name'] = 'PreprocResults'
-                f.attrs['module_name'] = 'fluidimage.data_objects.pre_proc'
-                self._save_in_hdf5_object(f, tag='pre_proc')
+        for k, v in self.data.items():
+            path_file = os.path.join(path, k)
+            if out_format == 'img':
+                imsave(path_file, v, as_int=True)
+            elif out_format == 'h5':
+                attrs = {'class_name': 'PreprocResults',
+                         'module_name': self.__module__}
+                imsave_h5(path_file, v, self.params, attrs, as_int=True)
+            else:
+                # Try to save in formats supported by PIL.Image
+                imsave(path_file, v, format=out_format, as_int=True)
 
         self._clear_data()
         return self
-
-    def _save_in_hdf5_object(self, f, tag='pre_proc'):
-
-        if 'class_name' not in f.attrs.keys():
-            f.attrs['class_name'] = 'PreprocResults'
-            f.attrs['module_name'] = 'fluidimage.data_objects.pre_proc'
-        if 'params' not in f.keys():
-            self.params._save_as_hdf5(hdf5_parent=f)
-        if 'serie' not in f.keys():
-            self.serie.save(hdf5_parent=f)
-
-        g_piv = f.create_group(tag)
-        g_piv.attrs['class_name'] = 'PreprocResults'
-        g_piv.attrs['module_name'] = 'fluidimage.data_objects.pre_proc'
-
-        for k in self._keys_to_be_saved:
-            data = self.__dict__[k]
-            if isinstance(data, dict):
-                g_piv.create_group(k)
-                for key, value in data.items():
-                    print(key, type(value))
-                    g_piv[k].create_dataset(key, value)
-            else:
-                g_piv.create_dataset(k, data)
-
-    def _load(self, path):
-        with h5py.File(path, 'r') as f:
-            self.params = ParamContainer(hdf5_object=f['params'])
-            self.couple = ArrayCouple(hdf5_parent=f)
-
-        with h5py.File(path, 'r') as f:
-            self._load_from_hdf5_object(f['piv'])
-
-    def _load_from_hdf5_object(self, g_piv):
-
-        f = g_piv.parent
-
-        if not hasattr(self, 'params'):
-            self.params = ParamContainer(hdf5_object=f['params'])
-
-        if not hasattr(self, 'serie'):
-            self.serie = ArraySerie(hdf5_parent=f)
-
-        for k in self._keys_to_be_saved:
-            dataset = g_piv[k]
-            self.__dict__[k] = dataset[:]

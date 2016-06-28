@@ -15,6 +15,7 @@ import logging
 import numpy as np
 
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
+from fluiddyn.util.util import print_memory_usage
 from fluidimage.pre_proc.base import PreprocBase
 from fluidimage.data_objects.pre_proc import ArraySerie, PreprocResults
 
@@ -42,6 +43,7 @@ class WorkPreproc(PreprocBase):
         serie._clear_data()
         data = self._make_data_to_save(serie, name_files, images)
         result.data.update(data)
+        print_memory_usage('Memory usage after preprocessing one serie')
 
         return result
 

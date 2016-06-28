@@ -4,7 +4,7 @@ from fluidimage import config_logging
 from fluidimage.topologies.pre_proc import TopologyPreproc
 
 
-config_logging('debug')
+config_logging('info')
 
 params = TopologyPreproc.create_default_params()
 

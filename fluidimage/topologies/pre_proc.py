@@ -21,7 +21,7 @@ from fluidimage.works.pre_proc import WorkPreproc
 from .base import TopologyBase
 from .waiting_queues.base import (
     WaitingQueueMultiprocessing, WaitingQueueThreading,
-    WaitingQueueMakeSerie, WaitingQueueLoadImage)
+    WaitingQueueMakeSerie, WaitingQueueLoadImageSeries)
 
 
 logger = logging.getLogger('fluidimage')
@@ -64,12 +64,16 @@ class TopologyPreproc(TopologyBase):
             ind_start=params.preproc.series.ind_start,
             ind_stop=params.preproc.series.ind_stop)
 
+        indserie_start = self.series.indslices_from_indserie(0)[0][0]
+        indserie_end = self.series.indslices_from_indserie(0)[0][1]
+        self.nb_items_per_serie = indserie_end - indserie_start
+
         path_dir = params.preproc.series.path
         path_dir_result, self.how_saving = set_path_dir_result(
             path_dir, params.preproc.saving.path,
             params.preproc.saving.postfix, params.preproc.saving.how)
 
-        self.results = {}
+        self.results = self.preproc_work.results
 
         def save_preproc_results_object(o):
             return o.save(path=path_dir_result)
@@ -85,7 +89,7 @@ class TopologyPreproc(TopologyBase):
         self.wq_images = WaitingQueueMakeSerie(
             'make serie', self.wq_serie, topology=self)
 
-        self.wq0 = WaitingQueueLoadImage(
+        self.wq0 = WaitingQueueLoadImageSeries(
             destination=self.wq_images, path_dir=path_dir, topology=self)
 
         queues = [self.wq0, self.wq_images, self.wq_serie, self.wq_preproc]

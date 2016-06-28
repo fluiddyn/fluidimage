@@ -17,12 +17,14 @@ import scipy.ndimage as nd
 
 from skimage import exposure, filters, morphology
 from .io import iterate_multiple_imgs, multiple_imgs_as_ndarray
+from .. import logger
 
 
 available_tools = ['sliding_median', 'sliding_minima',
                    'temporal_median', 'temporal_minima',
                    'global_threshold', 'rescale_intensity',
                    'equalize_hist_global', 'equalize_hist_local',
+                   'equalize_hist_adapt',
                    'gamma_correction', 'sharpen']
 
 __all__ = available_tools + ['PreprocTools']
@@ -225,6 +227,36 @@ def equalize_hist_global(img=None, nbins=256):
 
 
 @iterate_multiple_imgs
+def equalize_hist_adapt(img=None, window_shape=(10, 10), nbins=256):
+    '''
+    Contrast Limited Adaptive Histogram Equalization (CLAHE).
+    Increases local contrast.
+
+    Parameters
+    ----------
+    img : array_like
+        Single image as numpy array or multiple images as array-like object
+    window_shape : tuple of integers
+        Specifies the shape of the window as follows (dx, dy)
+    nbins : integer
+        Number of bins to calculate histogram
+
+    References
+    ----------
+    .. [1] http://scikit-image.org/docs/dev/auto_examples/color_exposure/plot_local_equalize.html # noqa
+    .. [2] https://en.wikipedia.org/wiki/Histogram_equalization
+
+    '''
+    minimum = img.min()
+    maximum = img.max()
+    img = rescale_intensity(img, 0, 1)
+    img_out = exposure.equalize_adapthist(img, kernel_size=window_shape,
+                                          nbins=nbins)
+    img_out = rescale_intensity(img, minimum, maximum)
+    return img_out
+
+
+@iterate_multiple_imgs
 def equalize_hist_local(img=None, radius=10):
     '''
     Adaptive histogram equalization (AHE) emphasizes every local graylevel variations [1].
@@ -244,7 +276,11 @@ def equalize_hist_local(img=None, radius=10):
 
     '''
     selem = morphology.disk(radius)
-    img_out = filters.rank.equalize(img, selem, mask=None)
+    minimum = img.min()
+    maximum = img.max()
+    img = rescale_intensity(img, 0, 1)
+    img = filters.rank.equalize(img, selem, mask=None)
+    img_out = rescale_intensity(img, minimum, maximum)
     return img_out
 
 
@@ -363,6 +399,7 @@ class PreprocTools(object):
         for tool in sequence:
             tool_params = self.params.__dict__[tool]
             if tool_params.enable:
+                logger.debug('Apply ' + tool)
                 kwargs = tool_params._make_dict()
                 for k in kwargs.keys():
                     if k in ['_attribs', '_tag', '_tag_children', 'enable']:

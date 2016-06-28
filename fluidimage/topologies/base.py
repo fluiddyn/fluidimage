@@ -10,14 +10,16 @@ from __future__ import print_function
 
 from time import sleep, time
 from multiprocessing import cpu_count
-import logging
 from signal import signal
 import re
+
+from fluiddyn.util.util import print_memory_usage
+from fluiddyn.util import terminal_colors as term
+from fluidimage import logger
 
 from ..config import get_config
 from .waiting_queues.base import WaitingQueueThreading
 
-logger = logging.getLogger('fluidimage')
 
 config = get_config()
 
@@ -92,6 +94,9 @@ class TopologyBase(object):
         t_start = time()
 
         print('Start compute.')
+        print_memory_usage(
+            term.OKGREEN + 'Memory usage at the beginning of compute' +
+            term.ENDC)
 
         workers = []
         workers_cpu = []
@@ -104,12 +109,13 @@ class TopologyBase(object):
             # slow down this loop...
             sleep(0.05)
             if self.nb_workers_cpu >= nb_cores:
-                logger.debug('sleep {} s'.format(dt))
+                logger.debug('{} Saturated workers: {}, sleep {} s {}'.format(
+                    term.WARNING, self.nb_workers_cpu, dt, term.ENDC))
                 sleep(dt)
 
             for q in self.queues:
-                logger.debug(q)
                 if not q.is_empty():
+                    logger.debug(q)
                     logger.debug('check_and_act for work: ' + repr(q.work))
                     new_workers = q.check_and_act(sequential=sequential)
                     if new_workers is not None:
@@ -128,8 +134,8 @@ class TopologyBase(object):
                               if w.is_alive()]
 
         if self._has_to_stop:
-            logger.info('Will exist because of signal 12. '
-                        'Waiting for all workers to finish...')
+            logger.info(term.FAIL + 'Will exist because of signal 12. ' +
+                        'Waiting for all workers to finish...' + term.ENDC)
 
             q = self.queues[-1]
 
@@ -151,9 +157,12 @@ class TopologyBase(object):
                               if not w.fill_destination()]
 
         self._print_at_exit(time() - t_start)
+        print_memory_usage(
+            term.OKGREEN + 'Memory usage at the exit' +
+            term.ENDC)
 
         if self._has_to_stop and has_to_exit:
-            logger.info('Exit with signal 99.')
+            logger.info(term.FAIL + 'Exit with signal 99.' + term.ENDC)
             exit(99)
 
     def _print_at_exit(self, time_since_start):

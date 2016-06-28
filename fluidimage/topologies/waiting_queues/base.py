@@ -7,6 +7,8 @@ import multiprocessing
 import threading
 import Queue
 
+from fluiddyn.util.util import print_memory_usage
+from fluiddyn.util import terminal_colors as term
 from ...data_objects.piv import ArrayCouple
 from ...data_objects.pre_proc import ArraySerie
 from ...works import load_image
@@ -35,8 +37,8 @@ class WaitingQueueBase(dict):
         self._keys = []
 
     def __str__(self):
-        return ('WaitingQueue "' + self.name + '" with keys ' +
-                repr(self._keys))
+        return (term.OKBLUE + 'WaitingQueue ' + repr(self.name) + term.ENDC +
+                ' with keys ' + repr(self._keys))
 
     def __setitem__(self, key, value):
         super(WaitingQueueBase, self).__setitem__(key, value)
@@ -81,6 +83,11 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
     def _Process(*args, **kwargs):
         return multiprocessing.Process(*args, **kwargs)
 
+    def is_destination_full(self):
+        cond_instance = isinstance(self.destination, WaitingQueueBase)
+        cond_nb_items = len(self.destination) >= self.topology.nb_items_lim
+        return (cond_instance and cond_nb_items)
+
     def check_and_act(self, sequential=None):
 
         if sequential:
@@ -90,8 +97,7 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
            self.topology.nb_workers_cpu >= self.topology.nb_cores:
             return
 
-        if (isinstance(self.destination, WaitingQueueBase) and
-                len(self.destination) >= self.topology.nb_items_lim):
+        if self.is_destination_full():
             return
 
         logger.info('launch work ' + self.work_name)
@@ -129,6 +135,9 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
                 return True
 
         p.fill_destination = fill_destination
+        print_memory_usage(
+            term.WARNING + 'Memory usage after one work: ' +
+            self.work_name + term.ENDC)
         return [p]
 
 
@@ -231,6 +240,21 @@ class WaitingQueueMakeCouple(WaitingQueueBase):
 
                     self.destination[newk] = ArrayCouple(
                         (k0, k1), (v0, v1), serie)
+
+
+class WaitingQueueLoadImageSeries(WaitingQueueLoadFile):
+
+    def __init__(self, *args, **kwargs):
+        super(WaitingQueueLoadImageSeries, self).__init__(
+            'load image', load_image, *args, **kwargs)
+
+    def is_destination_full(self):
+        cond_instance = isinstance(self.destination, WaitingQueueBase)
+        buffer_limit = max(self.topology.nb_items_lim,
+                           self.topology.nb_items_per_serie)
+
+        cond_nb_items = len(self.destination) >= buffer_limit
+        return (cond_instance and cond_nb_items)
 
 
 class WaitingQueueMakeSerie(WaitingQueueBase):

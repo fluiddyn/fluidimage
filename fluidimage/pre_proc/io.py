@@ -57,7 +57,7 @@ def iterate_multiple_imgs(tool, *args, **kwargs):
     ImgArrayLike = _get_array_like_type(img_array_in)
 
     if isinstance(img_array_in, np.ndarray) and img_array_in.ndim == 2:
-        return tool(*args, **kwargs)
+        return tool(*args, **kwargs)  # Function call!
 
     img_array_out = []
     for img in img_array_in:
