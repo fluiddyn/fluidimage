@@ -13,6 +13,7 @@ from multiprocessing import cpu_count
 import logging
 from signal import signal
 import re
+import sys
 
 from ..config import get_config
 from .waiting_queues.base import WaitingQueueThreading
@@ -81,12 +82,13 @@ class TopologyBase(object):
 
         self._has_to_stop = False
 
-        def handler_signals(signal_number, stack):
-            print('signal {} received: set _has_to_stop to True'.format(
-                signal_number))
-            self._has_to_stop = True
+        if sys.platform != 'win32':
+            def handler_signals(signal_number, stack):
+                print('signal {} received: set _has_to_stop to True'.format(
+                    signal_number))
+                self._has_to_stop = True
 
-        signal(12, handler_signals)
+            signal(12, handler_signals)
 
     def compute(self, sequential=None, has_to_exit=True):
 

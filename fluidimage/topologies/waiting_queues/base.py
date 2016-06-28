@@ -69,6 +69,10 @@ class WaitingQueueBase(dict):
         return k, o
 
 
+def exec_work_and_comm(work, o, comm):
+    result = work(o)
+    comm.put(result)
+
 class WaitingQueueMultiprocessing(WaitingQueueBase):
     do_use_cpu = True
 
@@ -103,7 +107,10 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
             result = self.work(o)
             comm.put(result)
 
-        p = self._Process(target=f, args=(comm,))
+#        p = self._Process(target=f, args=(comm,))
+
+        p = self._Process(target=exec_work_and_comm, args=(self.work, o, comm))
+        
         p.start()
         p.do_use_cpu = self.do_use_cpu
 

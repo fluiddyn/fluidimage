@@ -1,6 +1,7 @@
 
 import os
 import subprocess
+import sys
 
 from runpy import run_path
 
@@ -12,6 +13,10 @@ try:
 except ImportError:
     use_pythran = False
 
+# I have not yet manage to use Pythran on Windows...    
+if sys.platform == 'win32':
+    use_pythran = False
+    
 # Get the long description from the relevant file
 with open('README.rst') as f:
     long_description = f.read()

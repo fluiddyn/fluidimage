@@ -21,9 +21,11 @@ class TestPIV(unittest.TestCase):
         params.multipass.number = 2
 
         piv = WorkPIV(params=params)
-
+        
         series = SeriesOfArrays(
-            os.path.join(here, '../../../image_samples/Oseen/Images'),
+            os.path.join(
+                here, '..', '..', '..',
+                'image_samples', 'Oseen', 'Images', 'Oseen*'),
             'i+1:i+3')
         serie = series.get_serie_from_index(0)
 

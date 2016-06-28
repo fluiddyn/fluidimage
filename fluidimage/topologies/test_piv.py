@@ -14,10 +14,13 @@ class TestPIV(unittest.TestCase):
     def test_piv(self):
         params = TopologyPIV.create_default_params()
 
+
         params.series.path = os.path.join(
-            here, '../../image_samples/Karman/Images')
+            here, '..', '..', 'image_samples', 'Karman', 'Images')
         params.series.ind_start = 1
 
+        # temporary, avoid a bug on Windows
+        params.piv0.method_correl = 'pythran'
         params.piv0.shape_crop_im0 = 16
 
         # compute only few vectors
