@@ -9,8 +9,6 @@
 import os
 import logging
 
-from fluiddyn.util.query import query
-
 from .. import ParamContainer, SerieOfArraysFromFiles, SeriesOfArrays
 
 from .base import TopologyBase
@@ -20,7 +18,7 @@ from .waiting_queues.base import (
     WaitingQueueMakeCouple, WaitingQueueLoadImage)
 
 from ..works.piv import WorkPIV
-from ..data_objects.piv import get_name_piv
+from ..data_objects.piv import get_name_piv, set_path_dir_result
 
 logger = logging.getLogger('fluidimage')
 
@@ -71,46 +69,10 @@ class TopologyPIV(TopologyBase):
             ind_stop=params.series.ind_stop,
             ind_step=params.series.ind_step)
 
-        path_dir = self.series.serie.path_dir
-        if params.saving.path is not None:
-            path_dir_result = params.saving.path
-        else:
-            path_dir_result = path_dir + '.' + params.saving.postfix
-
-        how = params.saving.how
-        if os.path.exists(path_dir_result):
-            if how == 'ask':
-                answer = query(
-                    'The directory \n{}\n'.format(path_dir_result) +
-                    'already exists. What do you want to do?\n'
-                    'New dir, Complete, Recompute or Stop? ')
-
-                while answer.lower() not in ['n', 'c', 'r', 's']:
-                    answer = query(
-                        "The answer should be in ['n', 'c', 'r', 's']\n"
-                        "Please type your answer again...\n")
-
-                if answer == 's':
-                    raise ValueError('Stopped by the user.')
-                elif answer == 'n':
-                    how = 'new_dir'
-                elif answer == 'c':
-                    how = 'complete'
-                elif answer == 'r':
-                    how = 'recompute'
-
-            if how == 'new_dir':
-                i = 0
-                while os.path.exists(path_dir_result + str(i)):
-                    i += 1
-                path_dir_result += str(i)
-
-        self.how_saving = how
-
-        if not os.path.exists(path_dir_result):
-            os.mkdir(path_dir_result)
-
-        self.path_dir_result = path_dir_result
+        path_dir = params.series.path
+        path_dir_result, self.how_saving = set_path_dir_result(
+            path_dir, params.saving.path,
+            params.saving.postfix, params.saving.how)
 
         self.results = {}
 

@@ -7,11 +7,10 @@ import multiprocessing
 import threading
 import Queue
 
+from fluidimage import logger, log_memory_usage
+from fluiddyn.util import terminal_colors as term
 from ...data_objects.piv import ArrayCouple
 from ...works import load_image
-
-
-logger = logging.getLogger('fluidimage')
 
 
 class WaitingQueueBase(dict):
@@ -34,8 +33,8 @@ class WaitingQueueBase(dict):
         self._keys = []
 
     def __str__(self):
-        return ('WaitingQueue "' + self.name + '" with keys ' +
-                repr(self._keys))
+        return (term.OKBLUE + 'WaitingQueue ' + repr(self.name) + term.ENDC +
+                ' with keys ' + repr(self._keys))
 
     def __setitem__(self, key, value):
         super(WaitingQueueBase, self).__setitem__(key, value)
@@ -84,6 +83,11 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
     def _Process(*args, **kwargs):
         return multiprocessing.Process(*args, **kwargs)
 
+    def is_destination_full(self):
+        cond_instance = isinstance(self.destination, WaitingQueueBase)
+        cond_nb_items = len(self.destination) >= self.topology.nb_items_lim
+        return (cond_instance and cond_nb_items)
+
     def check_and_act(self, sequential=None):
 
         if sequential:
@@ -93,8 +97,7 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
            self.topology.nb_workers_cpu >= self.topology.nb_cores:
             return
 
-        if (isinstance(self.destination, WaitingQueueBase) and
-                len(self.destination) >= self.topology.nb_items_lim):
+        if self.is_destination_full():
             return
 
         logger.info('launch work ' + self.work_name)
@@ -139,6 +142,7 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
                 return True
 
         p.fill_destination = fill_destination
+        log_memory_usage('Memory usage on launching work: ' + self.work_name)
         return [p]
 
 
@@ -172,18 +176,18 @@ class WaitingQueueLoadImage(WaitingQueueLoadFile):
 
 
 class WaitingQueueMakeCouple(WaitingQueueBase):
-    def __init__(self, name, destination, topology=None):
+
+    def __init__(self, name, destination,
+                 work_name='make couples', topology=None):
 
         self.nb_couples_to_create = {}
         self.couples = set()
         self.series = {}
         self.topology = topology
-
         work = 'make_couples'
 
         super(WaitingQueueMakeCouple, self).__init__(
-            name, work, destination=destination, work_name='make couples',
-            topology=topology)
+            name, work, destination, work_name, topology)
 
     def is_empty(self):
         return len(self.couples) == 0
