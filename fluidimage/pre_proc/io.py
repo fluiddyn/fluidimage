@@ -76,6 +76,10 @@ def multiple_imgs_as_ndarray(tool, *args, **kwargs):
 
     """
     img_array_in = _get_img_arg(*args, **kwargs)
+
+    if isinstance(img_array_in, np.ndarray) and img_array_in.ndim == 3:
+        return tool(*args, **kwargs)  # Function call!
+
     img_ndarray_in, ImgArrayLike = _get_array_like_type(img_array_in, True)
     args, kwargs = _replace_img_arg(img_ndarray_in, *args, **kwargs)
 

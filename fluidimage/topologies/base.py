@@ -13,9 +13,8 @@ from multiprocessing import cpu_count
 from signal import signal
 import re
 
-from fluiddyn.util.util import print_memory_usage
 from fluiddyn.util import terminal_colors as term
-from fluidimage import logger
+from fluidimage import logger, log_memory_usage
 
 from ..config import get_config
 from .waiting_queues.base import WaitingQueueThreading
@@ -94,9 +93,7 @@ class TopologyBase(object):
         t_start = time()
 
         print('Start compute.')
-        print_memory_usage(
-            term.OKGREEN + 'Memory usage at the beginning of compute' +
-            term.ENDC)
+        log_memory_usage('Memory usage at the beginning of compute', 'OKGREEN')
 
         workers = []
         workers_cpu = []
@@ -157,9 +154,7 @@ class TopologyBase(object):
                               if not w.fill_destination()]
 
         self._print_at_exit(time() - t_start)
-        print_memory_usage(
-            term.OKGREEN + 'Memory usage at the exit' +
-            term.ENDC)
+        log_memory_usage('Memory usage at the exit', 'OKGREEN')
 
         if self._has_to_stop and has_to_exit:
             logger.info(term.FAIL + 'Exit with signal 99.' + term.ENDC)

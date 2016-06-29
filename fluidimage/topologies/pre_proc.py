@@ -20,7 +20,8 @@ from fluidimage.data_objects.piv import set_path_dir_result
 from fluidimage.works.pre_proc import WorkPreproc
 from .base import TopologyBase
 from .waiting_queues.base import (
-    WaitingQueueMultiprocessing, WaitingQueueThreading,
+    WaitingQueueMultiprocessing, WaitingQueueThreading)
+from .waiting_queues.series import (
     WaitingQueueMakeSerie, WaitingQueueLoadImageSeries)
 
 

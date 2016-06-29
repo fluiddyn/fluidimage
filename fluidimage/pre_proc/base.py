@@ -11,7 +11,7 @@ Provides:
    :private-members:
 
 """
-
+import os
 from .toolbox import PreprocTools
 from .. import ParamContainer, SerieOfArraysFromFiles
 
@@ -36,7 +36,12 @@ class PreprocBase(object):
             params = self.__class__.create_default_params()
 
         self.params = params.preproc
-        self.serie_arrays = SerieOfArraysFromFiles(params.preproc.series.path)
+
+        path = params.preproc.series.path
+        if not os.path.exists(path):
+            path = params.preproc.series.path = os.path.expandvars(path)
+
+        self.serie_arrays = SerieOfArraysFromFiles(path)
         self.tools = PreprocTools(params)
         self.results = {}
 
