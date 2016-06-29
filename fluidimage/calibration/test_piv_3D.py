@@ -27,7 +27,7 @@ params.saving.how= 'recompute'
 # path = '../../image_samples/Oseen/Images/Oseen_center*'
 # path = '../../image_samples/Karman/Images'
 
-for i in range(10):
+for i in range(1):
     path = (
         '/.fsdyn_people/campagne8a/project/'
         '15DELDUCA/tmp/Antoine/piv_3D/test2/'
@@ -63,6 +63,8 @@ import numpy as np
 
 
 calib = calib_parameters_from_uvmat('/.fsdyn_people/campagne8a/project/15DELDUCA/tmp/Antoine/piv_3D/Calibration/Calib.xml')
+#calib.interface_coord = np.asarray([0,0,80])
+#calib.refraction_index = 1.34
 
 p=[]
 for i in range(0,9,2):

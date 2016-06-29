@@ -47,7 +47,13 @@ def pix2phys(calib, X, Y, Zindex):
     else:
         Z0 = calib.slices.zsliceCoord[Zindex][2]
     Z0virt = Z0
+    if hasattr(calib,'interface_coord') and hasattr(calib,'refraction_index'):
+        H=calib.interface_coord[2]
+        if H>Z0:
+            Z0virt=H-(H-Z0)/calib.refraction_index #corrected z (virtual object)
+            test_refraction=1;
 
+    
     if hasattr(calib, 'f') is False:
         calib.f = np.asarray([1, 1])
     if hasattr(calib, 'T') is False:
@@ -63,6 +69,10 @@ def pix2phys(calib, X, Y, Zindex):
         if testangle:
             a = -norm_plane[0]/norm_plane[2]
             b = -norm_plane[1]/norm_plane[2]
+            if test_refraction:
+                a /= calib.refraction_index;
+                b /= calib.refraction_index;
+
             R[0] = R[0]+a*R[2]
             R[1] = R[1]+b*R[2]
             R[3] = R[3]+a*R[5]
@@ -131,17 +141,21 @@ def phys2pix(calib, Xphys, Yphys, Zphys=0):
     # general case
     if hasattr(calib, 'R'):
         R = calib.R
-
-        # camera coordinates
-        xc = R[0]*Xphys+R[1]*Yphys+R[2]*Zphys+calib.T[0]
-        yc = R[3]*Xphys+R[4]*Yphys+R[5]*Zphys+calib.T[1]
-        zc = R[6]*Xphys+R[7]*Yphys+R[8]*Zphys+calib.T[2]
-
-        # undistorted image coordinates
-        Xu = xc/zc
-        Yu = yc/zc
-
-        # radial quadratic correction factor
+        if hasattr(calib,'interface_coord') and hasattr(calib,'refraction_index'):
+            H=calib.interface_coord[2];
+            if H>Zphys:
+                Zphys=H-(H-Zphys)/calib.refraction_index; #%corrected z (virtual object)
+                
+        #%camera coordinates
+        xc=R[0]*Xphys+R[1]*Yphys+R[2]*Zphys+calib.T[0]
+        yc=R[3]*Xphys+R[4]*Yphys+R[5]*Zphys+calib.T[1]
+        zc=R[6]*Xphys+R[7]*Yphys+R[8]*Zphys+calib.T[2]
+    
+        #%undistorted image coordinates
+        Xu=xc/zc;
+        Yu=yc/zc;
+    
+        #%radial quadratic correction factor
         if hasattr(calib, 'kc') is False:
             r2 = 1  # no quadratic distortion
         else:
@@ -160,3 +174,5 @@ def phys2pix(calib, Xphys, Yphys, Zphys=0):
         Y = calib.f[1]*(Yphys+calib.T[1])
 
     return X, Y
+ 
+    

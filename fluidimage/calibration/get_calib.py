@@ -58,7 +58,12 @@ def calib_parameters_from_uvmat(fic):
                     GeometryCalib['slice_angle_{}'.format(i+1)])
 
         calib_param.slices = slices
-
+        
+    if hasattr(GeometryCalib, 'refraction_index'):
+        calib_param.refraction_index =  GeometryCalib['refraction_index']
+    if hasattr(GeometryCalib, 'interface_coord'):
+        calib_param.interface_coord =  np.asarray(get_number_from_string(GeometryCalib['interface_coord']))
+        
     return calib_param
 
 
