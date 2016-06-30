@@ -346,7 +346,7 @@ class FirstWorkPIV(BaseWorkPIV):
             'delta_max': None,
             'delta_mean': None,
             'method_correl': 'fftw',
-            'method_subpix': 'centroid'})
+            'method_subpix': '2d_gaussian'})
 
         params.piv0._set_child('grid', attribs={
             'overlap': 0.5,

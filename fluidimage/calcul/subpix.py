@@ -30,7 +30,7 @@ class SubPix(object):
     def prepare_subpix(self, method, nsubpix):
         self.method = method
         if nsubpix is None:
-            nsubpix=1
+            nsubpix = 1
         self.n = nsubpix
         xs = ys = np.arange(-nsubpix, nsubpix+1, dtype=float)
         X, Y = np.meshgrid(xs, ys)

@@ -69,7 +69,7 @@ class TopologyPIV(TopologyBase):
             ind_stop=params.series.ind_stop,
             ind_step=params.series.ind_step)
 
-        path_dir = params.series.path
+        path_dir = self.series.serie.path_dir
         path_dir_result, self.how_saving = set_path_dir_result(
             path_dir, params.saving.path,
             params.saving.postfix, params.saving.how)
