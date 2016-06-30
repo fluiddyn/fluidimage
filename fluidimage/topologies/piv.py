@@ -74,6 +74,8 @@ class TopologyPIV(TopologyBase):
             path_dir, params.saving.path,
             params.saving.postfix, params.saving.how)
 
+        self.path_dir_result = path_dir_result
+
         self.results = {}
 
         def save_piv_object(o):
