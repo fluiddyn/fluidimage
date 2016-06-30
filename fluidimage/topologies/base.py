@@ -10,7 +10,6 @@ from __future__ import print_function
 
 from time import sleep, time
 from multiprocessing import cpu_count
-import logging
 from signal import signal
 import re
 import sys
@@ -20,13 +19,12 @@ from fluidimage import logger, log_memory_usage
 from ..config import get_config
 from .waiting_queues.base import WaitingQueueThreading
 
-logger = logging.getLogger('fluidimage')
-
 config = get_config()
 
 dt = 0.5  # s
 
 nb_cores = cpu_count()
+overloading_coef = 2
 
 if config is not None:
     try:
@@ -73,6 +71,14 @@ if config is not None:
     except KeyError:
         pass
 
+    try:
+        overloading_coef = eval(config['topology']['overloading_coef'])
+    except KeyError:
+        pass
+
+
+nb_max_workers = nb_cores * overloading_coef
+
 
 class TopologyBase(object):
 
@@ -108,7 +114,7 @@ class TopologyBase(object):
 
             # slow down this loop...
             sleep(0.05)
-            if self.nb_workers_cpu >= nb_cores:
+            if self.nb_workers_cpu >= nb_max_workers:
                 logger.debug('{} Saturated workers: {}, sleep {} s {}'.format(
                     term.WARNING, self.nb_workers_cpu, dt, term.ENDC))
                 sleep(dt)

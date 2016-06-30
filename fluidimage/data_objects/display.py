@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import numpy as np
 import matplotlib.pyplot as plt
 plt.ion()
 
@@ -28,22 +29,31 @@ class DisplayPIV(object):
 
         self.fig = fig
         self.ax1 = ax1
-
-        self.axi0 = ax1.imshow(im0, interpolation='nearest')
-        self.axi1 = ax1.imshow(im1, interpolation='nearest')
-        self.axi1.set_visible(False)
-
-        ax1.set_title('im 0 (alt+s to switch)')
+        
+        self.image0 = ax1.imshow(
+            im0, interpolation='nearest', cmap=plt.cm.gray, origin='upper',
+            extent=[0, im0.shape[1], im0.shape[0], 0])
+        
+        self.image1 = ax1.imshow(
+            im1, interpolation='nearest', cmap=plt.cm.gray, origin='upper',
+            extent=[0, im0.shape[1], im0.shape[0], 0])
+        self.image1.set_visible(False)
 
         l, = ax1.plot(0, 0, 'oy')
         l.set_visible(False)
+        
+        ax1.set_title('im 0 (alt+s to switch)')
+
         t = fig.text(0.1, 0.05, '')
 
         self.t = t
         self.l = l
 
-        ax1.set_xlim([0, im0.shape[1]])
-        ax1.set_ylim([0, im0.shape[0]])
+        ax1.set_xlim(0, im0.shape[1])
+
+        # bug
+        # ax1.set_ylim(0, im0.shape[0])
+        
         ax1.set_xlabel('pixels')
         ax1.set_ylabel('pixels')
 
@@ -67,19 +77,21 @@ class DisplayPIV(object):
 
             self.q = ax1.quiver(
                 xs, ys,
-                deltaxs, deltays,
-                picker=20, color='w', scale_units='xy', scale=scale)
+                deltaxs, -deltays,
+                picker=20, color='y', scale_units='xy', scale=scale)
 
             self.inds_error = inds_error = piv_results.deltays_wrong.keys()
 
             if show_error:
                 xs_wrong = xs[inds_error]
                 ys_wrong = ys[inds_error]
-                dxs_wrong = [piv_results.deltaxs_wrong[i] for i in inds_error]
-                dys_wrong = [piv_results.deltays_wrong[i] for i in inds_error]
+                dxs_wrong = np.array(
+                    [piv_results.deltaxs_wrong[i] for i in inds_error])
+                dys_wrong = np.array(
+                    [piv_results.deltays_wrong[i] for i in inds_error])
                 self.q_wrong = ax1.quiver(
                     xs_wrong, ys_wrong,
-                    dxs_wrong, dys_wrong,
+                    dxs_wrong, -dys_wrong,
                     picker=20, color='r', scale_units='xy', scale=scale)
 
         self.ind = 0
@@ -177,10 +189,10 @@ class DisplayPIV(object):
         self.fig.canvas.draw()
 
     def switch(self):
-        self.axi0.set_visible(not self.axi0.get_visible())
-        self.axi1.set_visible(not self.axi1.get_visible())
+        self.image0.set_visible(not self.image0.get_visible())
+        self.image1.set_visible(not self.image1.get_visible())
 
         self.ax1.set_title('im {} (alt+s to switch)'.format(
-            int(self.axi1.get_visible())))
+            int(self.image1.get_visible())))
 
         self.fig.canvas.draw()

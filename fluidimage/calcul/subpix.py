@@ -71,7 +71,8 @@ class SubPix(object):
         using linalg.solve (buggy?)
 
         """
-        if method!=self.method or nsubpix!=self.n:
+
+        if method != self.method or nsubpix != self.n:
             if method is None:
                 method = self.method
             if nsubpix is None:
@@ -80,7 +81,7 @@ class SubPix(object):
 
         if method not in self.methods:
             raise ValueError('method has to be in {}'.format(self.methods))
-
+            
         ny, nx = correl.shape
 
         if iy-nsubpix < 0 or iy+nsubpix+1 > ny or \
@@ -90,13 +91,13 @@ class SubPix(object):
 
         if method == '2d_gaussian':
 
-            correl = correl[iy-nsubpix:iy+nsubpix+1, ix-nsubpix:ix+nsubpix+1]
-            ny, nx = correl.shape
+            correl2 = correl[iy-nsubpix:iy+nsubpix+1, ix-nsubpix:ix+nsubpix+1]
+            ny, nx = correl2.shape
 
             assert nx == ny == 2*nsubpix + 1
 
-            correl_map = correl.ravel()
-            correl_map[correl_map == 0.] = 1e-6
+            correl_map = correl2.ravel()
+            correl_map[correl_map <= 0.] = 1e-6
 
             coef = np.dot(self.Minv_subpix, np.log(correl_map))
             sigmax = 1/np.sqrt(-2*coef[0])
@@ -104,15 +105,19 @@ class SubPix(object):
             deplx = coef[2]*sigmax**2
             deply = coef[3]*sigmay**2
 
+            if np.isnan(deplx) or np.isnan(deply):
+                return self.compute_subpix(
+                    correl, ix, iy, method='centroid', nsubpix=nsubpix)
+
         elif method == 'centroid':
 
-            correl = correl[iy-nsubpix:iy+nsubpix+1, ix-nsubpix:ix+nsubpix+1]
-            ny, nx = correl.shape
+            correl2 = correl[iy-nsubpix:iy+nsubpix+1, ix-nsubpix:ix+nsubpix+1]
+            ny, nx = correl2.shape
 
-            sum_correl = np.sum(correl)
+            sum_correl = np.sum(correl2)
 
-            deplx = np.sum(self.X_centroid * correl) / sum_correl
-            deply = np.sum(self.Y_centroid * correl) / sum_correl
+            deplx = np.sum(self.X_centroid * correl2) / sum_correl
+            deply = np.sum(self.Y_centroid * correl2) / sum_correl
 
         elif method == 'no_subpix':
             deplx = deply = 0.
