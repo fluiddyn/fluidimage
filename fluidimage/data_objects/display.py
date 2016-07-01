@@ -50,9 +50,7 @@ class DisplayPIV(object):
         self.l = l
 
         ax1.set_xlim(0, im0.shape[1])
-
-        # bug
-        # ax1.set_ylim(0, im0.shape[0])
+        ax1.set_ylim(im0.shape[0], 0)
         
         ax1.set_xlabel('pixels')
         ax1.set_ylabel('pixels')
