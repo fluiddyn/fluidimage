@@ -70,14 +70,14 @@ class TopologyPIV(TopologyBase):
             ind_step=params.series.ind_step)
 
         path_dir = params.series.path
-        path_dir_result, self.how_saving = set_path_dir_result(
+        self.path_dir_result, self.how_saving = set_path_dir_result(
             path_dir, params.saving.path,
             params.saving.postfix, params.saving.how)
 
         self.results = {}
 
         def save_piv_object(o):
-            return o.save(path_dir_result)
+            return o.save(self.path_dir_result)
         self.wq_piv = WaitingQueueThreading(
             'delta', save_piv_object, self.results, topology=self)
         self.wq_couples = WaitingQueueMultiprocessing(

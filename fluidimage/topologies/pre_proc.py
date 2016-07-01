@@ -24,6 +24,7 @@ from .waiting_queues.base import (
 from .waiting_queues.series import (
     WaitingQueueMakeSerie, WaitingQueueLoadImageSeries)
 
+from ..data_objects.pre_proc import get_name_preproc
 
 logger = logging.getLogger('fluidimage')
 
@@ -70,14 +71,14 @@ class TopologyPreproc(TopologyBase):
         self.nb_items_per_serie = indserie_end - indserie_start
 
         path_dir = params.preproc.series.path
-        path_dir_result, self.how_saving = set_path_dir_result(
+        self.path_dir_result, self.how_saving = set_path_dir_result(
             path_dir, params.preproc.saving.path,
             params.preproc.saving.postfix, params.preproc.saving.how)
 
         self.results = self.preproc_work.results
 
         def save_preproc_results_object(o):
-            return o.save(path=path_dir_result)
+            return o.save(path=self.path_dir_result)
 
         self.wq_preproc = WaitingQueueThreading(
             'save results', save_preproc_results_object,
@@ -97,7 +98,7 @@ class TopologyPreproc(TopologyBase):
         super(TopologyPreproc, self).__init__(queues)
         self.add_series(self.series)
 
-        path_params_xml = os.path.join(path_dir_result, 'params.xml')
+        path_params_xml = os.path.join(self.path_dir_result, 'params.xml')
         if os.path.isfile(path_params_xml):
             os.remove(path_params_xml)
 
@@ -114,6 +115,13 @@ class TopologyPreproc(TopologyBase):
             index_series = []
             for i, serie in enumerate(series):
                 names_serie = serie.get_name_files()
+                name_preproc = get_name_preproc(
+                    serie, names_serie, i, series.nb_series,
+                    self.params.saving.format)
+                if os.path.exists(os.path.join(
+                        self.path_dir_result, name_preproc)):
+                    continue
+
                 for name in names_serie:
                     if name not in names:
                         names.append(name)
@@ -132,7 +140,7 @@ class TopologyPreproc(TopologyBase):
         else:
             names = series.get_name_all_files()
 
-        print('Add {} PIV fields to compute.'.format(len(series)))
+        print('Add {} image series to compute.'.format(len(series)))
 
         self.wq0.add_name_files(names)
         self.wq_images.add_series(series)

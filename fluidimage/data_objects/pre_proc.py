@@ -23,6 +23,26 @@ from .. import ParamContainer
 logger = logging.getLogger('fluidimage')
 
 
+def get_name_preproc(serie, name_files, ind_serie, nb_series, out_format):
+    ind_middle_img = len(name_files) // 2
+
+    if ind_serie == 0 and nb_series == 1:
+        s = -1
+    elif ind_serie == 0:
+        s = 0
+    elif ind_serie == nb_series - 1:
+        s = -1
+    else:
+        s = ind_middle_img
+
+    if out_format == 'img':
+        return name_files[s]
+    else:
+        fname, ext = os.path.splitext(name_files[s])
+        fname += '.' + out_format
+        return fname
+
+
 class ArraySerie(ArrayCouple):
     def __init__(
             self, names=None, arrays=None, serie=None,
