@@ -1,7 +1,7 @@
 
 from copy import deepcopy, copy
 
-from fluidimage import logger
+from fluidimage.util.util import logger
 from .base import WaitingQueueLoadFile, WaitingQueueBase
 from ...data_objects.pre_proc import ArraySerie
 from ...works import load_image

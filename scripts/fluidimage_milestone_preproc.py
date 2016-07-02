@@ -23,7 +23,7 @@ from __future__ import print_function
 
 import argparse
 from fluidimage import config_logging
-from fluidimage.params_list import ParamsListPreproc
+from fluidimage.util.paramlist import ParamListPreproc
 
 
 def params_PCO(params, frames, letter=None):
@@ -93,20 +93,20 @@ if __name__ == '__main__':
         print('Logger in DEBUG mode')
         config_logging('debug')
 
-    params_functions = {'PCO_top': params_PCO,
-                        'PCO_bottom': params_PCO,
-                        'PCO_side': params_PCO}
+    camera_params = {'PCO_top': params_PCO,
+                     'PCO_bottom': params_PCO,
+                     'PCO_side': params_PCO}
 
-    params_list = ParamsListPreproc(camera_specific_params=params_functions)
-    params_list.init_directory(args.exp, args.camera)
+    param_list = ParamListPreproc(camera_specific_params=camera_params)
+    param_list.init_directory(args.exp, args.camera)
 
     if args.level is not None:
-        params_list.fill_params(args.level)
+        param_list.fill_params(args.level)
     else:
-        for level in params_list.get_levels(args.pattern):
-            params_list.fill_params(level)
+        for level in param_list.get_levels(args.pattern):
+            param_list.fill_params(level)
 
     if not args.test:
-        params_list.launch_topologies(args.verbose)
+        param_list.launch_topologies(args.verbose)
     else:
         raise NotImplementedError

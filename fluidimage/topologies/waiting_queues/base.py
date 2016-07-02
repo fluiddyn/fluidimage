@@ -7,7 +7,7 @@ import multiprocessing
 import threading
 import Queue
 
-from fluidimage import logger, log_memory_usage
+from fluidimage.util.util import logger, log_memory_usage
 from fluiddyn.util import terminal_colors as term
 from ...data_objects.piv import ArrayCouple
 from ...works import load_image

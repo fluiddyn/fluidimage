@@ -11,17 +11,12 @@ Provides:
    :private-members:
 
 """
-import logging
 import numpy as np
 
-from fluiddyn.util import terminal_colors as term
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
-from fluidimage import log_memory_usage
+from fluidimage.util.util import logger, log_memory_usage
 from fluidimage.pre_proc.base import PreprocBase
 from fluidimage.data_objects.pre_proc import ArraySerie, PreprocResults
-
-
-logger = logging.getLogger('fluidimage')
 
 
 class WorkPreproc(PreprocBase):

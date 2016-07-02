@@ -1,5 +1,5 @@
 '''
-ParamsList(:mod:`fluidimage.params_list`)
+ParamList(:mod:`fluidimage.util.paramlist`)
 ==========================================
 To launch topologies in bulk, parameters have to be stored in bulk.
 
@@ -8,15 +8,15 @@ for a directory tree. It assumes the following hierarchy of directories:
 
 .. Experiment --> Camera --> Level --> Images
 
-.. currentmodule:: fluidimage.params_list
+.. currentmodule:: fluidimage.util.paramlist
 
 Provides:
 
-.. autoclass:: ParamsListBase
+.. autoclass:: ParamListBase
    :members:
    :private-members:
 
-.. autoclass:: ParamsListPreproc
+.. autoclass:: ParamListPreproc
    :members:
    :private-members:
 
@@ -24,17 +24,15 @@ Provides:
 from __future__ import print_function
 
 import os
-import argparse
 from glob import glob
 from warnings import warn
 from fluidcoriolis.milestone import path_exp
-from fluidimage import config_logging
 from fluidimage.topologies.pre_proc import TopologyPreproc
 
 
-class ParamsListBase(list):
+class ParamListBase(list):
     def __init__(self, *args, **kwargs):
-        super(ParamsListBase, self).__init__(*args)
+        super(ParamListBase, self).__init__(*args)
         self.TopologyClass = None
 
         # Dictionary of functions which return parameters
@@ -42,6 +40,9 @@ class ParamsListBase(list):
 
     def init_directory(self, ind_exp, camera):
         self.path = path_exp[ind_exp]
+        if camera in self.camera_specific_params.keys():
+            raise ValueError('Unexpected camera name')
+
         self.camera = camera
         self.frames = self._detect_frames()
 
@@ -87,10 +88,7 @@ class ParamsListBase(list):
         params = self.TopologyClass.create_default_params()
         params = self._set_complete_path(params, level)
 
-        try:
-            get_params = self.camera_specific_params[self.camera]
-        except KeyError:
-            raise ValueError('Unexpected camera name')
+        get_params = self.camera_specific_params[self.camera]
 
         if self.frames == 1:
             params = get_params(params, self.frames)
@@ -109,9 +107,9 @@ class ParamsListBase(list):
             topology.compute(sequential=False)
 
 
-class ParamsListPreproc(ParamsListBase):
+class ParamListPreproc(ParamListBase):
     def __init__(self, *args, **kwargs):
-        super(ParamsListPreproc, self).__init__(*args, **kwargs)
+        super(ParamListPreproc, self).__init__(*args, **kwargs)
         self.TopologyClass = TopologyPreproc
 
     def _set_complete_path(self, params, level):
