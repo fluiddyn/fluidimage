@@ -229,6 +229,7 @@ class BaseWorkPIV(BaseWork):
                 deltaxs[ivec] = np.nan
                 deltays[ivec] = np.nan
                 correls_max[ivec] = np.nan
+                errors[ivec] = 'Bad im_crop shape.'
                 continue
 
             # print(im0crop.shape, im1crop.shape)
@@ -248,6 +249,9 @@ class BaseWorkPIV(BaseWork):
                     deltays = np.nan
                     correl_max = np.nan
 
+            if np.isnan(deltax) or np.isnan(deltay):
+                errors[ivec] = 'Problem compute_displacement_from_correl.'
+                    
             deltaxs[ivec] = deltax
             deltays[ivec] = deltay
             correls_max[ivec] = correl_max
@@ -346,7 +350,7 @@ class FirstWorkPIV(BaseWorkPIV):
             'delta_max': None,
             'delta_mean': None,
             'method_correl': 'fftw',
-            'method_subpix': 'centroid'})
+            'method_subpix': '2d_gaussian'})
 
         params.piv0._set_child('grid', attribs={
             'overlap': 0.5,

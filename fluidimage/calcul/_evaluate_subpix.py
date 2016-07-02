@@ -40,12 +40,14 @@ def setUpImages(nx, ny, dx, dy, part_size):
     nb_particles = (nx // 4)**2
 
     im0, im1 = make_synthetic_images(
-        displacements, nb_particles, shape_im0=(ny, nx), epsilon=0., part_size = part_size)
+        displacements, nb_particles, shape_im0=(ny, nx), epsilon=0.,
+        part_size = part_size)
 
     return displacements, im0, im1
 
 def compute_displacement(cls, im0, im1, nsubpix, method_subpix):
-    correl = cls(im0.shape, im1.shape, method_subpix=method_subpix, nsubpix=nsubpix)
+    correl = cls(im0.shape, im1.shape, method_subpix=method_subpix,
+                 nsubpix=nsubpix)
      
     c, norm = correl(im0, im1)
     dx, dy, correl_max = correl.compute_displacement_from_correl(
@@ -74,7 +76,8 @@ def error_vs_nsubpix(nx, ny, dx, dy, method_subpix, n_subpix, part_size):
         indk = 0
         for k, cls in classes.items():
             try:
-                displacement_computed = compute_displacement(cls, im0, im1, nsubpix, method_subpix)
+                displacement_computed = compute_displacement(
+                    cls, im0, im1, nsubpix, method_subpix)
             except:
                 displacement_computed = np.array([np.nan, np.nan])
             errdx[indk][indn] =  np.abs(displacement_computed-displacements)[0]
@@ -89,7 +92,8 @@ def error_vs_nsubpix(nx, ny, dx, dy, method_subpix, n_subpix, part_size):
     pylab.legend(leg)
     pylab.xlabel('nsubpix')
     pylab.ylabel('error in pix')
-    title = method_subpix + ' _part_size={}'.format(part_size) + ' _nx_ny = {}_{}'.format(nx, ny)
+    title = (method_subpix + ' _part_size={}'.format(part_size) +
+             ' _nx_ny = {}_{}'.format(nx, ny))
     pylab.title(title)
     pylab.xlim([0, np.max(n_subpix)+1])
     pylab.show()
@@ -107,4 +111,5 @@ if __name__ == '__main__':
     #method_subpix = '2d_gaussian'
     method_subpix = 'centroid'
     n_subpix = np.arange(1,8)
-    errdx, errdy = error_vs_nsubpix(nx, ny, dx, dy, method_subpix, n_subpix, part_size)
+    errdx, errdy = error_vs_nsubpix(
+        nx, ny, dx, dy, method_subpix, n_subpix, part_size)

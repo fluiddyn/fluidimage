@@ -1,13 +1,7 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Apr 21 15:32:26 2016
-
-@author: campagne8a
-"""
-
 
 from fluidimage.topologies.piv import TopologyPIV
 from fluidimage.data_objects.piv import HeavyPIVResults
+
 # from fluidimage.calibration_3d.
 from get_calib import calib_parameters_from_uvmat
 # from fluidimage.calibration_3d.
