@@ -34,11 +34,10 @@ def params_PCO(params, frames, letter=None):
         params.preproc.series.strcouple = 'i:i+23'
     elif frames == 2:
         if letter == 'a':
-            params.preproc.series.strcouple = 'i:i+2,0'
+            params.preproc.series.strcouple = 'i:i+10,0'
         if letter == 'b':
-            params.preproc.series.strcouple = 'i:i+2,1'
+            params.preproc.series.strcouple = 'i:i+10,1'
 
-    params.preproc.series.ind_stop = 10
     params.preproc.saving.postfix = 'fsback'
     params.preproc.saving.how = 'complete'
     params.preproc.saving.format = 'img'
@@ -73,6 +72,10 @@ def parse_args():
         '-p', '--pattern',
         help='glob expression of the level subdirectory (str).',
         type=str)
+    parser.add_argument(
+        '-s', '--seq',
+        help='launch topologies sequentially',
+        action='store_true')
     parser.add_argument(
         '-t', '--test',
         help='test mode. launches one work',
@@ -110,6 +113,6 @@ if __name__ == '__main__':
             param_list.fill_params(level)
 
     if not args.test:
-        param_list.launch_topologies(args.verbose)
+        param_list.launch_topologies(args.seq, args.verbose)
     else:
         raise NotImplementedError

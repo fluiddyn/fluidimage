@@ -40,8 +40,10 @@ class ParamListBase(list):
 
     def init_directory(self, ind_exp, camera):
         self.path = self.path_list[ind_exp]
-        if camera in self.camera_specific_params.keys():
-            raise ValueError('Unexpected camera name')
+        if camera not in self.camera_specific_params.keys():
+            raise ValueError('Unexpected camera name %s Expected %s' % (
+		camera,
+		self.camera_specific_params.keys()))
 
         self.camera = camera
         self.frames = self._detect_frames()
@@ -98,13 +100,13 @@ class ParamListBase(list):
             params_b = get_params(params, self.frames, 'b')
             self.extend([params_a, params_b])
 
-    def launch_topologies(self, verbose=0):
+    def launch_topologies(self, seq=False, verbose=0):
         for params in self:
             if verbose >= 1:
                 print(self._get_complete_path(params))
 
             topology = self.TopologyClass(params)
-            topology.compute(sequential=False)
+            topology.compute(sequential=seq)
 
 
 class ParamListPreproc(ParamListBase):
