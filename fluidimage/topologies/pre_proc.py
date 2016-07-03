@@ -13,7 +13,6 @@ Provides:
 """
 
 import os
-import logging
 
 from fluiddyn.util.serieofarrays import SeriesOfArrays
 from fluidimage.data_objects.piv import set_path_dir_result
@@ -25,8 +24,7 @@ from .waiting_queues.series import (
     WaitingQueueMakeSerie, WaitingQueueLoadImageSeries)
 
 from ..data_objects.pre_proc import get_name_preproc
-
-logger = logging.getLogger('fluidimage')
+from ..util.util import logger
 
 
 class TopologyPreproc(TopologyBase):
@@ -66,9 +64,7 @@ class TopologyPreproc(TopologyBase):
             ind_start=params.preproc.series.ind_start,
             ind_stop=params.preproc.series.ind_stop)
 
-        indserie_start = self.series.indslices_from_indserie(0)[0][0]
-        indserie_end = self.series.indslices_from_indserie(0)[0][1]
-        self.nb_items_per_serie = indserie_end - indserie_start
+        self.nb_items_per_serie = serie_arrays.get_nb_files()
 
         path_dir = params.preproc.series.path
         self.path_dir_result, self.how_saving = set_path_dir_result(

@@ -14,7 +14,7 @@ from signal import signal
 import re
 import sys
 from fluiddyn.util import terminal_colors as term
-from fluidimage import logger, log_memory_usage
+from fluidimage.util.util import logger, log_memory_usage
 
 from ..config import get_config
 from .waiting_queues.base import WaitingQueueThreading
@@ -178,7 +178,7 @@ class TopologyBase(object):
             nb_results = None
         if nb_results is not None and nb_results > 0:
             txt += (' ({} results, {:.2f} s/result).'.format(
-                nb_results, time_since_start/nb_results))
+                nb_results, time_since_start / nb_results))
         else:
             txt += '.'
 

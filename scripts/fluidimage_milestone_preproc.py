@@ -22,6 +22,7 @@ For help on how to launch the script, execute
 from __future__ import print_function
 
 import argparse
+from fluidcoriolis.milestone import path_exp
 from fluidimage import config_logging
 from fluidimage.util.paramlist import ParamListPreproc
 
@@ -97,7 +98,9 @@ if __name__ == '__main__':
                      'PCO_bottom': params_PCO,
                      'PCO_side': params_PCO}
 
-    param_list = ParamListPreproc(camera_specific_params=camera_params)
+    param_list = ParamListPreproc(camera_specific_params=camera_params,
+                                  path_list=path_exp)
+
     param_list.init_directory(args.exp, args.camera)
 
     if args.level is not None:

@@ -13,14 +13,9 @@
 
 import os
 import h5py
-import logging
 
-from fluidimage import imsave, imsave_h5
+from fluidimage.util.util import imsave, imsave_h5
 from .piv import ArrayCouple, LightPIVResults
-from .. import ParamContainer
-
-
-logger = logging.getLogger('fluidimage')
 
 
 def get_name_preproc(serie, name_files, ind_serie, nb_series, out_format):
@@ -116,7 +111,6 @@ class PreprocResults(LightPIVResults):
 
     def save(self, path=None):
         out_format = self.params.saving.format
-
         for k, v in self.data.items():
             path_file = os.path.join(path, k)
             if out_format == 'img':

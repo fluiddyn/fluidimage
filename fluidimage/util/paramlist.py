@@ -26,7 +26,6 @@ from __future__ import print_function
 import os
 from glob import glob
 from warnings import warn
-from fluidcoriolis.milestone import path_exp
 from fluidimage.topologies.pre_proc import TopologyPreproc
 
 
@@ -37,9 +36,10 @@ class ParamListBase(list):
 
         # Dictionary of functions which return parameters
         self.camera_specific_params = kwargs['camera_specific_params']
+        self.path_list = kwargs['path_list']
 
     def init_directory(self, ind_exp, camera):
-        self.path = path_exp[ind_exp]
+        self.path = self.path_list[ind_exp]
         if camera in self.camera_specific_params.keys():
             raise ValueError('Unexpected camera name')
 
