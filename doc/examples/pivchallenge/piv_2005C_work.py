@@ -24,7 +24,7 @@ params.fix.threshold_diff_neighbour = 3
 work = WorkPIV(params=params)
 
 series = SeriesOfArrays(path, 'i, 0:2')
-serie = series.get_serie_from_index(0)
+serie = series.get_serie_from_index(50)
 
 t0 = time()
 piv = work.calcul(serie)

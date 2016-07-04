@@ -1,7 +1,6 @@
 
 import os
 from copy import deepcopy
-import logging
 
 import multiprocessing
 import threading
@@ -67,10 +66,15 @@ class WaitingQueueBase(dict):
         o = super(WaitingQueueBase, self).pop(k)
         return k, o
 
+    def is_destination_full(self):
+        return (isinstance(self.destination, WaitingQueueBase) and
+                len(self.destination) >= self.topology.nb_items_lim)
+
 
 def exec_work_and_comm(work, o, comm):
     result = work(o)
     comm.put(result)
+
 
 class WaitingQueueMultiprocessing(WaitingQueueBase):
     do_use_cpu = True
@@ -83,18 +87,13 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
     def _Process(*args, **kwargs):
         return multiprocessing.Process(*args, **kwargs)
 
-    def is_destination_full(self):
-        cond_instance = isinstance(self.destination, WaitingQueueBase)
-        cond_nb_items = len(self.destination) >= self.topology.nb_items_lim
-        return (cond_instance and cond_nb_items)
-
     def check_and_act(self, sequential=None):
 
         if sequential:
             return WaitingQueueBase.check_and_act(self, sequential=sequential)
 
         if self.do_use_cpu and \
-           self.topology.nb_workers_cpu >= self.topology.nb_cores:
+           self.topology.nb_workers_cpu >= self.topology.nb_max_workers:
             return
 
         if self.is_destination_full():
@@ -106,21 +105,16 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
         o = self.pop(k)
         comm = self._Queue()
 
-        def f(comm):
-            result = self.work(o)
-            comm.put(result)
-
-#        p = self._Process(target=f, args=(comm,))
-
         p = self._Process(target=exec_work_and_comm, args=(self.work, o, comm))
-        
         p.start()
         p.do_use_cpu = self.do_use_cpu
 
         def fill_destination():
             if isinstance(p, multiprocessing.Process):
                 if p.exitcode:
-                    logger.info('Error in work')
+                    logger.info(
+                        'Error in work: key = {}; exitcode = {}'.format(
+                            k, p.exitcode))
                     return True
                 else:
                     try:
@@ -214,6 +208,8 @@ class WaitingQueueMakeCouple(WaitingQueueBase):
                     nb[name] = 1
 
     def check_and_act(self, sequential=None):
+        if self.is_destination_full():
+            return
 
         for k0 in self.keys():
             for k1 in self.keys():

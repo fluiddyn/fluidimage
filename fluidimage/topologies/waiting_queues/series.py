@@ -68,6 +68,9 @@ class WaitingQueueMakeSerie(WaitingQueueBase):
                     nb[name] = 1
 
     def check_and_act(self, sequential=None):
+        if self.is_destination_full():
+            return
+
         for names in copy(self.serie_set):
             if all([name in self for name in names]):
                 logger.info('launch work with ' + self.work_name + repr(names))

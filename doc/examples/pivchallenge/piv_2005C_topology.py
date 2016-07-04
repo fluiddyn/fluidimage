@@ -15,7 +15,8 @@ params = TopologyPIV.create_default_params()
 
 params.series.path = path
 params.series.strcouple = 'i, 0:2'
-# params.series.ind_stop = 10
+params.series.ind_start = 48
+params.series.ind_stop = 52
 
 params.piv0.shape_crop_im0 = 64
 params.piv0.grid.overlap = 0.5

@@ -77,15 +77,16 @@ if config is not None:
         pass
 
 
-nb_max_workers = nb_cores * overloading_coef
+nb_max_workers = int(round(nb_cores * overloading_coef))
 
 
 class TopologyBase(object):
 
     def __init__(self, queues):
         self.queues = queues
+        self.nb_max_workers = nb_max_workers
         self.nb_cores = nb_cores
-        self.nb_items_lim = max(nb_cores, 2)
+        self.nb_items_lim = max(nb_max_workers, 2)
 
         self._has_to_stop = False
 
@@ -115,7 +116,8 @@ class TopologyBase(object):
             # slow down this loop...
             sleep(0.05)
             if self.nb_workers_cpu >= nb_max_workers:
-                logger.debug('{} Saturated workers: {}, sleep {} s {}'.format(
+                logger.debug(('{}The workers are saturated: '
+                              '{}, sleep {} s {}').format(
                     term.WARNING, self.nb_workers_cpu, dt, term.ENDC))
                 sleep(dt)
 
