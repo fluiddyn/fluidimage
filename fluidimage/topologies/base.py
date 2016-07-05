@@ -24,7 +24,7 @@ config = get_config()
 dt = 0.5  # s
 
 nb_cores = cpu_count()
-overloading_coef = 2
+overloading_coef = 1.5
 
 if config is not None:
     try:
@@ -33,7 +33,6 @@ if config is not None:
         allow_hyperthreading = True
 
 try:  # should work on UNIX
-
     # found in http://stackoverflow.com/questions/1006289/how-to-find-out-the-number-of-cpus-using-python # noqa
     with open('/proc/self/status') as f:
         status = f.read()
@@ -45,21 +44,22 @@ try:  # should work on UNIX
         nb_cores = nb_cpus_allowed
         print('Cpus_allowed: {}'.format(nb_cpus_allowed))
 
-    if allow_hyperthreading is False:
-        with open('/proc/cpuinfo') as f:
-            cpuinfo = f.read()
+    with open('/proc/cpuinfo') as f:
+        cpuinfo = f.read()
 
-        nb_proc_tot = 0
-        siblings = None
-        for line in cpuinfo.split('\n'):
-            if line.startswith('processor'):
-                nb_proc_tot += 1
-            if line.startswith('siblings') and siblings is None:
-                siblings = int(line.split()[-1])
+    nb_proc_tot = 0
+    siblings = None
+    for line in cpuinfo.split('\n'):
+        if line.startswith('processor'):
+            nb_proc_tot += 1
+        if line.startswith('siblings') and siblings is None:
+            siblings = int(line.split()[-1])
 
-        if nb_proc_tot == siblings * 2:
+    if nb_proc_tot == siblings * 2:
+        overloading_coef = 1
+        if allow_hyperthreading is False:
             print('We do not use hyperthreading.')
-            nb_cores /= 2
+            nb_cores //= 2
 
 except IOError:
     pass
@@ -132,8 +132,8 @@ class TopologyBase(object):
                             if hasattr(worker, 'do_use_cpu') and \
                                worker.do_use_cpu:
                                 workers_cpu.append(worker)
-                    logger.debug('workers:' + repr(workers))
-                    logger.debug('workers_cpu:' + repr(workers_cpu))
+                    logger.debug('workers: ' + repr(workers))
+                    logger.debug('workers_cpu: ' + repr(workers_cpu))
 
             workers[:] = [w for w in workers
                           if not w.fill_destination()]

@@ -9,11 +9,14 @@
 
 from __future__ import print_function
 
+# import os
+# import sys
 from copy import copy
 
 from fluiddyn.util.paramcontainer import ParamContainer
 
 from .. import BaseWork
+# from ...data_objects.piv import get_name_piv
 
 from .fix import WorkFIX
 from .singlepass import FirstWorkPIV, WorkPIVFromDisplacement
@@ -103,6 +106,13 @@ class WorkPIV(BaseWork):
 
     def calcul(self, couple):
 
+        # if hasattr(couple, 'serie'):
+        #     serie = couple.serie
+        # else:
+        #     serie = couple
+        # name = get_name_piv(serie)[:-3]
+        # sys.stdout = open('log_' + name + '_' + str(os.getpid()), 'w')
+
         results = MultipassPIVResults()
 
         # just for simplicity
@@ -112,7 +122,6 @@ class WorkPIV(BaseWork):
             work_fix = self.works_fix[i]
             piv_result = work_piv.calcul(piv_result)
             piv_result = work_fix.calcul(piv_result)
-
             results.append(piv_result)
 
         work_piv.apply_interp(piv_result, last=True)

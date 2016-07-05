@@ -1,13 +1,15 @@
+from __future__ import print_function
 
 import os
 from copy import deepcopy
+from time import time
 
 import multiprocessing
 import threading
 import Queue
 
 from fluidimage import logger, log_memory_usage
-from fluiddyn.util import terminal_colors as term
+from fluiddyn.util import (terminal_colors as term, time_as_str)
 from ...data_objects.piv import ArrayCouple
 from ...works import load_image
 
@@ -73,7 +75,12 @@ class WaitingQueueBase(dict):
 
 def exec_work_and_comm(work, o, comm):
     result = work(o)
+    # print('Work done...')
+    # print('put in queue')
+    # sys.stdout.flush()
     comm.put(result)
+    # print('return')
+    # sys.stdout.flush()
 
 
 class WaitingQueueMultiprocessing(WaitingQueueBase):
@@ -99,7 +106,7 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
         if self.is_destination_full():
             return
 
-        logger.info('launch work ' + self.work_name)
+        logger.info(time_as_str(2) + ': launch work ' + self.work_name)
 
         k = self._keys.pop(0)
         o = self.pop(k)
@@ -107,20 +114,24 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
 
         p = self._Process(target=exec_work_and_comm, args=(self.work, o, comm))
         p.start()
+        t_start = time()
         p.do_use_cpu = self.do_use_cpu
 
         def fill_destination():
             if isinstance(p, multiprocessing.Process):
                 if p.exitcode:
                     logger.info(
-                        'Error in work: key = {}; exitcode = {}'.format(
-                            k, p.exitcode))
+                        'Error in work: '
+                        'work_name = {}; key = {}; exitcode = {}'.format(
+                            self.work_name, k, p.exitcode))
                     return True
                 else:
                     try:
                         result = comm.get_nowait()
                         is_done = True
                     except Queue.Empty:
+                        # print(k, 'Queue.Empty')
+                        # sys.stdout.flush()
                         is_done = False
             else:
                 is_done = not p.is_alive()
@@ -132,11 +143,14 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
                     p.terminate()
                 else:
                     result = comm.get()
+                logger.info(
+                    'work {} ({}) done in {:.2f} s'.format(
+                        self.work_name, k, time() - t_start))
                 self.fill_destination(k, result)
                 return True
 
         p.fill_destination = fill_destination
-        log_memory_usage('Memory usage on launching work: ' + self.work_name)
+        log_memory_usage('Memory usage on launching work ' + self.work_name)
         return [p]
 
 

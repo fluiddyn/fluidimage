@@ -79,7 +79,9 @@ class TopologyPIV(TopologyBase):
         self.results = {}
 
         def save_piv_object(o):
-            return o.save(path_dir_result)
+            ret = o.save(path_dir_result)
+            return ret
+
         self.wq_piv = WaitingQueueThreading(
             'delta', save_piv_object, self.results, topology=self)
         self.wq_couples = WaitingQueueMultiprocessing(

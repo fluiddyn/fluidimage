@@ -14,9 +14,8 @@ Provides:
 import logging
 import numpy as np
 
-from fluiddyn.util import terminal_colors as term
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
-from fluidimage import log_memory_usage
+from fluidimage import print_memory_usage
 from fluidimage.pre_proc.base import PreprocBase
 from fluidimage.data_objects.pre_proc import ArraySerie, PreprocResults
 
@@ -44,8 +43,7 @@ class WorkPreproc(PreprocBase):
         serie._clear_data()
         data = self._make_data_to_save(serie, name_files, images)
         result.data.update(data)
-        log_memory_usage('Memory usage after preprocessing:')
-
+        print_memory_usage('Memory usage after preprocessing:')
         return result
 
     def _make_data_to_save(self, serie, name_files, images_out):

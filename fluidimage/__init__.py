@@ -34,22 +34,20 @@ def imread(path):
     """
     array = _imread(path, flatten=True)
 
-    fname = os.path.basename(path)
-    logger.info('Load %s with intensity range (%d, %d) and type %s',
-                fname, array.min(), array.max(), array.dtype)
+    # fname = os.path.basename(path)
+    # logger.info('Load %s with intensity range (%d, %d) and type %s',
+    #             fname, array.min(), array.max(), array.dtype)
     return array
 
 
 def imsave(path, array, **kwargs):
     _imsave(path, array, **kwargs)
-    fname = os.path.basename(path)
-    logger.info('Save %s with intensity range (%d, %d) and type %s',
-                fname, array.min(), array.max(), array.dtype)
+    # fname = os.path.basename(path)
+    # logger.info('Save %s with intensity range (%d, %d) and type %s',
+    #             fname, array.min(), array.max(), array.dtype)
 
 
-def log_memory_usage(string='Memory usage', color='WARNING'):
-    """Log the memory usage when debug is on."""
-
+def _get_txt_memory_usage(string='Memory usage', color='WARNING'):
     mem = get_memory_usage()
     color_dict = {'HEADER': term.HEADER,
                   'OKBLUE': term.OKBLUE,
@@ -59,4 +57,14 @@ def log_memory_usage(string='Memory usage', color='WARNING'):
                   'ENDC': term.ENDC}
     begin = color_dict[color]
     end = color_dict['ENDC']
-    logger.debug(begin + (string+':').ljust(30) + '%d %s' + end, mem, 'Mb')
+    return begin + (string + ': ').ljust(30) + '{:.3f} Mb'.format(mem) + end
+
+
+def log_memory_usage(string='Memory usage', color='WARNING'):
+    """Log the memory usage when debug is on."""
+    logger.debug(_get_txt_memory_usage(string, color))
+
+
+def print_memory_usage(string='Memory usage', color='WARNING'):
+    """Print the memory usage."""
+    print(_get_txt_memory_usage(string, color))
