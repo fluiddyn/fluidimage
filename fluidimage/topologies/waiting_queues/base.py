@@ -6,7 +6,8 @@ import multiprocessing
 import threading
 import Queue
 
-from fluidimage.util.util import logger, log_memory_usage
+from fluidimage.util.util import (
+    logger, log_memory_usage, cstring, is_memory_full)
 from fluiddyn.util import terminal_colors as term
 from ...data_objects.piv import ArrayCouple
 from ...works import load_image
@@ -32,8 +33,17 @@ class WaitingQueueBase(dict):
         self._keys = []
 
     def __str__(self):
-        return (term.OKBLUE + 'WaitingQueue ' + repr(self.name) + term.ENDC +
-                ' with keys ' + repr(self._keys))
+        length = len(self._keys)
+        if length == 0:
+            keys = []
+        else:
+            index = range(min(length, 3))
+            keys = [self._keys[i] for i in index]
+            keys.extend(['...',  self._keys[-1]])
+
+        length = str(length)
+        return cstring('WaitingQueue', repr(self.name),
+                       'with keys', repr(keys), length, 'items')
 
     def __setitem__(self, key, value):
         super(WaitingQueueBase, self).__setitem__(key, value)
@@ -97,6 +107,9 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
            self.topology.nb_workers_cpu >= self.topology.nb_cores:
             return
 
+        if is_memory_full():
+            return
+
         if self.is_destination_full():
             return
 
@@ -120,7 +133,8 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
         def fill_destination():
             if isinstance(p, multiprocessing.Process):
                 if p.exitcode:
-                    logger.info('Error in work')
+                    logger.error(cstring(
+                        'Encountered in work: ', self.work_name, color='FAIL'))
                     return True
                 else:
                     try:
@@ -135,14 +149,14 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
                 return False
             else:
                 if isinstance(p, multiprocessing.Process):
-                    p.terminate()
+                    p.join(1)
                 else:
                     result = comm.get()
                 self.fill_destination(k, result)
                 return True
 
         p.fill_destination = fill_destination
-        log_memory_usage('Memory usage on launching work: ' + self.work_name)
+        log_memory_usage('Memory usage on launching work ' + self.work_name)
         return [p]
 
 
@@ -172,7 +186,7 @@ class WaitingQueueLoadFile(WaitingQueueThreading):
 class WaitingQueueLoadImage(WaitingQueueLoadFile):
     def __init__(self, *args, **kwargs):
         super(WaitingQueueLoadImage, self).__init__(
-            'image file', load_image, *args, **kwargs)
+            'load image', load_image, *args, **kwargs)
 
 
 class WaitingQueueMakeCouple(WaitingQueueBase):

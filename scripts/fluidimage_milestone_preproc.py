@@ -35,7 +35,7 @@ def params_PCO(params, frames, letter=None):
     elif frames == 2:
         if letter == 'a':
             params.preproc.series.strcouple = 'i:i+10,0'
-        if letter == 'b':
+        elif letter == 'b':
             params.preproc.series.strcouple = 'i:i+10,1'
 
     params.preproc.saving.postfix = 'fsback'

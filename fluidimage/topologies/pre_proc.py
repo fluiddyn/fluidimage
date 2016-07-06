@@ -39,7 +39,8 @@ class TopologyPreproc(TopologyBase):
         params.preproc.series._set_attribs({'strcouple': 'i:i+3',
                                             'ind_start': 0,
                                             'ind_stop': None,
-                                            'ind_step': 1})
+                                            'ind_step': 1,
+                                            'sequential': True})
 
         params.preproc._set_child('saving', attribs={'path': None,
                                                      'how': 'ask',
@@ -88,7 +89,8 @@ class TopologyPreproc(TopologyBase):
             'make serie', self.wq_serie, topology=self)
 
         self.wq0 = WaitingQueueLoadImageSeries(
-            destination=self.wq_images, path_dir=path_dir, topology=self)
+            destination=self.wq_images, path_dir=path_dir, topology=self,
+            sequential=params.preproc.series.sequential)
 
         queues = [self.wq0, self.wq_images, self.wq_serie, self.wq_preproc]
         super(TopologyPreproc, self).__init__(queues)

@@ -24,6 +24,8 @@ Provides:
 from __future__ import print_function
 
 import os
+import string
+from copy import deepcopy
 from glob import glob
 from warnings import warn
 from fluidimage.topologies.pre_proc import TopologyPreproc
@@ -42,8 +44,8 @@ class ParamListBase(list):
         self.path = self.path_list[ind_exp]
         if camera not in self.camera_specific_params.keys():
             raise ValueError('Unexpected camera name %s Expected %s' % (
-		camera,
-		self.camera_specific_params.keys()))
+                camera,
+                self.camera_specific_params.keys()))
 
         self.camera = camera
         self.frames = self._detect_frames()
@@ -95,10 +97,12 @@ class ParamListBase(list):
         if self.frames == 1:
             params = get_params(params, self.frames)
             self.append(params)
-        elif self.frames == 2:
-            params_a = get_params(params, self.frames, 'a')
-            params_b = get_params(params, self.frames, 'b')
-            self.extend([params_a, params_b])
+        elif self.frames > 1:
+            for i in range(self.frames):
+                letter = string.lowercase[i]
+                params_copy = deepcopy(params)
+                params_copy = get_params(params_copy, self.frames, letter)
+                self.append(params_copy)
 
     def launch_topologies(self, seq=False, verbose=0):
         for params in self:

@@ -14,7 +14,8 @@ from signal import signal
 import re
 import sys
 from fluiddyn.util import terminal_colors as term
-from fluidimage.util.util import logger, log_memory_usage
+from fluidimage.util.util import (
+    logger, log_memory_usage, is_memory_full, cstring)
 
 from ..config import get_config
 from .waiting_queues.base import WaitingQueueThreading
@@ -119,11 +120,24 @@ class TopologyBase(object):
                     term.WARNING, self.nb_workers_cpu, dt, term.ENDC))
                 sleep(dt)
 
+            if is_memory_full():
+                sleep(dt)
+
             for q in self.queues:
                 if not q.is_empty():
                     logger.debug(q)
                     logger.debug('check_and_act for work: ' + repr(q.work))
-                    new_workers = q.check_and_act(sequential=sequential)
+                    try:
+                        new_workers = q.check_and_act(sequential=sequential)
+                    except OSError as e:
+                        logger.exception(cstring(
+                            'Memory full: Trying to clear workers',
+                            color='FAIL'))
+                        log_memory_usage(color='FAIL', mode='error')
+                        self._clear_save_queue(
+                            workers, sequential, has_to_exit)
+                        continue
+
                     if new_workers is not None:
                         for worker in new_workers:
                             workers.append(worker)
@@ -140,27 +154,10 @@ class TopologyBase(object):
                               if w.is_alive()]
 
         if self._has_to_stop:
-            logger.info(term.FAIL + 'Will exist because of signal 12. ' +
-                        'Waiting for all workers to finish...' + term.ENDC)
-
-            q = self.queues[-1]
-
-            # if the last queue is a WaitingQueueThreading (saving),
-            # it is also emptied.
-            while (len(workers) > 0 or
-                   (not q.is_empty() and
-                    isinstance(q, WaitingQueueThreading))):
-
-                sleep(0.2)
-
-                if not q.is_empty() and isinstance(q, WaitingQueueThreading):
-                    new_workers = q.check_and_act(sequential=sequential)
-                    if new_workers is not None:
-                        for worker in new_workers:
-                            workers.append(worker)
-
-                workers[:] = [w for w in workers
-                              if not w.fill_destination()]
+            logger.info(cstring(
+                'Will exist because of signal 12.',
+                'Waiting for all workers to finish...', color='FAIL'))
+            self._clear_save_queue(workers, sequential, has_to_exit)
 
         self._print_at_exit(time() - t_start)
         log_memory_usage('Memory usage at the exit', 'OKGREEN')
@@ -168,6 +165,26 @@ class TopologyBase(object):
         if self._has_to_stop and has_to_exit:
             logger.info(term.FAIL + 'Exit with signal 99.' + term.ENDC)
             exit(99)
+
+    def _clear_save_queue(self, workers, sequential, has_to_exit):
+        q = self.queues[-1]
+
+        # if the last queue is a WaitingQueueThreading (saving),
+        # it is also emptied.
+        while (len(workers) > 0 or
+               (not q.is_empty() and
+                isinstance(q, WaitingQueueThreading))):
+
+            sleep(0.2)
+
+            if not q.is_empty() and isinstance(q, WaitingQueueThreading):
+                new_workers = q.check_and_act(sequential=sequential)
+                if new_workers is not None:
+                    for worker in new_workers:
+                        workers.append(worker)
+
+            workers[:] = [w for w in workers
+                          if not w.fill_destination()]
 
     def _print_at_exit(self, time_since_start):
 

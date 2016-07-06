@@ -54,18 +54,16 @@ def iterate_multiple_imgs(tool, *args, **kwargs):
 
     """
     img_array_in = _get_img_arg(*args, **kwargs)
-    ImgArrayLike = _get_array_like_type(img_array_in)
 
-    if isinstance(img_array_in, np.ndarray) and img_array_in.ndim == 2:
-        return tool(*args, **kwargs)  # Function call!
+    if isinstance(img_array_in, np.ndarray):
+        if img_array_in.ndim == 2:
+            return tool(*args, **kwargs)  # Function call!
 
-    img_array_out = []
-    for img in img_array_in:
+    for i, img in enumerate(img_array_in):
         args, kwargs = _replace_img_arg(img, *args, **kwargs)
+        img_array_in[i] = tool(*args, **kwargs)  # Function call!
 
-        img_out = tool(*args, **kwargs)  # Function call!
-        img_array_out.append(img_out)
-    return ImgArrayLike(img_array_out)
+    return img_array_in
 
 
 @decorator
