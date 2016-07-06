@@ -32,6 +32,7 @@ class WaitingQueueBase(dict):
         self.work_name = work_name
         self.topology = topology
         self._keys = []
+        self._nb_processes = 0
 
     def __str__(self):
         return (term.OKBLUE + 'WaitingQueue ' + repr(self.name) + term.ENDC +
@@ -50,7 +51,15 @@ class WaitingQueueBase(dict):
 
     def check_and_act(self, sequential=None):
         k, o = self.popitem()
+        logger.info()
+        log_memory_usage(
+            time_as_str(2) + ': launch work ' + self.work_name +
+            ', mem usage')
+        t_start = time()
         result = self.work(o)
+        logger.info(
+            'work {} ({}) done in {:.2f} s'.format(
+                self.work_name, k, time() - t_start))
         self.fill_destination(k, result)
 
     def fill_destination(self, k, result):
@@ -70,7 +79,8 @@ class WaitingQueueBase(dict):
 
     def is_destination_full(self):
         return (isinstance(self.destination, WaitingQueueBase) and
-                len(self.destination) >= self.topology.nb_items_lim)
+                len(self.destination) + self._nb_processes >=
+                self.topology.nb_items_lim)
 
 
 def exec_work_and_comm(work, o, comm):
@@ -106,7 +116,9 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
         if self.is_destination_full():
             return
 
-        logger.info(time_as_str(2) + ': launch work ' + self.work_name)
+        log_memory_usage(
+            time_as_str(2) + ': launch work ' + self.work_name +
+            ', mem usage')
 
         k = self._keys.pop(0)
         o = self.pop(k)
@@ -114,6 +126,7 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
 
         p = self._Process(target=exec_work_and_comm, args=(self.work, o, comm))
         p.start()
+        self._nb_processes += 1
         t_start = time()
         p.do_use_cpu = self.do_use_cpu
 
@@ -124,6 +137,7 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
                         'Error in work: '
                         'work_name = {}; key = {}; exitcode = {}'.format(
                             self.work_name, k, p.exitcode))
+                    self._nb_processes -= 1
                     return True
                 else:
                     try:
@@ -140,17 +154,17 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
                 return False
             else:
                 if isinstance(p, multiprocessing.Process):
-                    p.terminate()
+                    p.join(1)
                 else:
                     result = comm.get()
                 logger.info(
                     'work {} ({}) done in {:.2f} s'.format(
                         self.work_name, k, time() - t_start))
                 self.fill_destination(k, result)
+                self._nb_processes -= 1
                 return True
 
         p.fill_destination = fill_destination
-        log_memory_usage('Memory usage on launching work ' + self.work_name)
         return [p]
 
 

@@ -62,7 +62,7 @@ def _get_txt_memory_usage(string='Memory usage', color='WARNING'):
 
 def log_memory_usage(string='Memory usage', color='WARNING'):
     """Log the memory usage when debug is on."""
-    logger.debug(_get_txt_memory_usage(string, color))
+    logger.info(_get_txt_memory_usage(string, color))
 
 
 def print_memory_usage(string='Memory usage', color='WARNING'):
