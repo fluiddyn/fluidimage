@@ -25,7 +25,7 @@ config = get_config()
 dt = 0.5  # s
 
 nb_cores = cpu_count()
-overloading_coef = 2
+overloading_coef = 1.5
 
 if config is not None:
     try:
@@ -34,7 +34,6 @@ if config is not None:
         allow_hyperthreading = True
 
 try:  # should work on UNIX
-
     # found in http://stackoverflow.com/questions/1006289/how-to-find-out-the-number-of-cpus-using-python # noqa
     with open('/proc/self/status') as f:
         status = f.read()
@@ -46,21 +45,22 @@ try:  # should work on UNIX
         nb_cores = nb_cpus_allowed
         print('Cpus_allowed: {}'.format(nb_cpus_allowed))
 
-    if allow_hyperthreading is False:
-        with open('/proc/cpuinfo') as f:
-            cpuinfo = f.read()
+    with open('/proc/cpuinfo') as f:
+        cpuinfo = f.read()
 
-        nb_proc_tot = 0
-        siblings = None
-        for line in cpuinfo.split('\n'):
-            if line.startswith('processor'):
-                nb_proc_tot += 1
-            if line.startswith('siblings') and siblings is None:
-                siblings = int(line.split()[-1])
+    nb_proc_tot = 0
+    siblings = None
+    for line in cpuinfo.split('\n'):
+        if line.startswith('processor'):
+            nb_proc_tot += 1
+        if line.startswith('siblings') and siblings is None:
+            siblings = int(line.split()[-1])
 
-        if nb_proc_tot == siblings * 2:
+    if nb_proc_tot == siblings * 2:
+        overloading_coef = 1
+        if allow_hyperthreading is False:
             print('We do not use hyperthreading.')
-            nb_cores /= 2
+            nb_cores //= 2
 
 except IOError:
     pass
@@ -78,15 +78,16 @@ if config is not None:
         pass
 
 
-nb_max_workers = nb_cores * overloading_coef
+nb_max_workers = int(round(nb_cores * overloading_coef))
 
 
 class TopologyBase(object):
 
     def __init__(self, queues):
         self.queues = queues
+        self.nb_max_workers = nb_max_workers
         self.nb_cores = nb_cores
-        self.nb_items_lim = max(nb_cores, 2)
+        self.nb_items_lim = max(nb_max_workers, 2)
 
         self._has_to_stop = False
 
@@ -116,7 +117,8 @@ class TopologyBase(object):
             # slow down this loop...
             sleep(0.05)
             if self.nb_workers_cpu >= nb_max_workers:
-                logger.debug('{} Saturated workers: {}, sleep {} s {}'.format(
+                logger.debug(('{}The workers are saturated: '
+                              '{}, sleep {} s {}').format(
                     term.WARNING, self.nb_workers_cpu, dt, term.ENDC))
                 sleep(dt)
 
@@ -144,8 +146,8 @@ class TopologyBase(object):
                             if hasattr(worker, 'do_use_cpu') and \
                                worker.do_use_cpu:
                                 workers_cpu.append(worker)
-                    logger.debug('workers:' + repr(workers))
-                    logger.debug('workers_cpu:' + repr(workers_cpu))
+                    logger.debug('workers: ' + repr(workers))
+                    logger.debug('workers_cpu: ' + repr(workers_cpu))
 
             workers[:] = [w for w in workers
                           if not w.fill_destination()]

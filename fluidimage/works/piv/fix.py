@@ -73,7 +73,8 @@ class WorkFIX(BaseWork):
         if self.params.displacement_max:
             displacement_max2 = self.params.displacement_max**2
             delta2s = deltaxs**2 + deltays**2
-            inds = (delta2s > displacement_max2).nonzero()[0]
+            with np.errstate(invalid='ignore'):
+                inds = (delta2s > displacement_max2).nonzero()[0]
             put_to_nan(inds, 'delta2 < displacement_max2')
 
         # warning condition neighbour not implemented...
@@ -90,8 +91,9 @@ class WorkFIX(BaseWork):
             piv_results.dxs_smooth_clean = dxs
             piv_results.dys_smooth_clean = dys
 
-            inds = (abs(dxs - deltaxs) +
-                    abs(dys - deltays) > threshold).nonzero()[0]
+            with np.errstate(invalid='ignore'):
+                inds = (abs(dxs - deltaxs) +
+                        abs(dys - deltays) > threshold).nonzero()[0]
 
             # from fluiddyn.debug import ipydebug
             # import matplotlib.pylab as plb

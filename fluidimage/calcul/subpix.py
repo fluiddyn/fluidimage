@@ -81,7 +81,7 @@ class SubPix(object):
 
         if method not in self.methods:
             raise ValueError('method has to be in {}'.format(self.methods))
-            
+
         ny, nx = correl.shape
 
         if iy-nsubpix < 0 or iy+nsubpix+1 > ny or \
@@ -100,6 +100,10 @@ class SubPix(object):
             correl_map[correl_map <= 0.] = 1e-6
 
             coef = np.dot(self.Minv_subpix, np.log(correl_map))
+            if coef[0] > 0 or coef[1] > 0:
+                return self.compute_subpix(
+                    correl, ix, iy, method='centroid', nsubpix=nsubpix)
+
             sigmax = 1/np.sqrt(-2*coef[0])
             sigmay = 1/np.sqrt(-2*coef[1])
             deplx = coef[2]*sigmax**2
@@ -121,8 +125,6 @@ class SubPix(object):
 
         elif method == 'no_subpix':
             deplx = deply = 0.
-
-        # print('deplxy', deplx, deply, iy, ix)
 
         if abs(deplx) > 1 or abs(deply) > 1:
             raise PIVError(explanation='wrong subpix',

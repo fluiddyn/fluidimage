@@ -1,6 +1,8 @@
+from __future__ import print_function
 
 import os
 from copy import deepcopy
+from time import time
 
 import multiprocessing
 import threading
@@ -8,7 +10,7 @@ import Queue
 
 from fluidimage.util.util import (
     logger, log_memory_usage, cstring, is_memory_full)
-from fluiddyn.util import terminal_colors as term
+from fluiddyn.util import time_as_str
 from ...data_objects.piv import ArrayCouple
 from ...works import load_image
 
@@ -31,6 +33,7 @@ class WaitingQueueBase(dict):
         self.work_name = work_name
         self.topology = topology
         self._keys = []
+        self._nb_processes = 0
 
     def __str__(self):
         length = len(self._keys)
@@ -58,7 +61,14 @@ class WaitingQueueBase(dict):
 
     def check_and_act(self, sequential=None):
         k, o = self.popitem()
+        log_memory_usage(
+            time_as_str() + ': launch work ' + self.work_name +
+            ', mem usage')
+        t_start = time()
         result = self.work(o)
+        logger.info(
+            'work {} ({}) done in {:.2f} s'.format(
+                self.work_name, k, time() - t_start))
         self.fill_destination(k, result)
 
     def fill_destination(self, k, result):
@@ -75,6 +85,11 @@ class WaitingQueueBase(dict):
         k = self._keys.pop(0)
         o = super(WaitingQueueBase, self).pop(k)
         return k, o
+
+    def is_destination_full(self):
+        return (isinstance(self.destination, WaitingQueueBase) and
+                len(self.destination) + self._nb_processes >=
+                self.topology.nb_items_lim)
 
 
 def exec_work_and_comm(work, o, comm):
@@ -93,18 +108,13 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
     def _Process(*args, **kwargs):
         return multiprocessing.Process(*args, **kwargs)
 
-    def is_destination_full(self):
-        cond_instance = isinstance(self.destination, WaitingQueueBase)
-        cond_nb_items = len(self.destination) >= self.topology.nb_items_lim
-        return (cond_instance and cond_nb_items)
-
     def check_and_act(self, sequential=None):
 
         if sequential:
             return WaitingQueueBase.check_and_act(self, sequential=sequential)
 
         if self.do_use_cpu and \
-           self.topology.nb_workers_cpu >= self.topology.nb_cores:
+           self.topology.nb_workers_cpu >= self.topology.nb_max_workers:
             return
 
         if is_memory_full():
@@ -113,28 +123,29 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
         if self.is_destination_full():
             return
 
-        logger.info('launch work ' + self.work_name)
+        log_memory_usage(
+            time_as_str() + ': launch work ' + self.work_name +
+            ', mem usage')
 
         k = self._keys.pop(0)
         o = self.pop(k)
         comm = self._Queue()
 
-        def f(comm):
-            result = self.work(o)
-            comm.put(result)
-
-#        p = self._Process(target=f, args=(comm,))
-
         p = self._Process(target=exec_work_and_comm, args=(self.work, o, comm))
-
         p.start()
+        self._nb_processes += 1
+        t_start = time()
         p.do_use_cpu = self.do_use_cpu
 
         def fill_destination():
             if isinstance(p, multiprocessing.Process):
                 if p.exitcode:
                     logger.error(cstring(
-                        'Encountered in work: ', self.work_name, color='FAIL'))
+                        'Error in work: '
+                        'work_name = {}; key = {}; exitcode = {}'.format(
+                            self.work_name, k, p.exitcode),
+                        color='FAIL'))
+                    self._nb_processes -= 1
                     return True
                 else:
                     try:
@@ -152,11 +163,14 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
                     p.join(1)
                 else:
                     result = comm.get()
+                logger.info(
+                    'work {} ({}) done in {:.2f} s'.format(
+                        self.work_name, k, time() - t_start))
                 self.fill_destination(k, result)
+                self._nb_processes -= 1
                 return True
 
         p.fill_destination = fill_destination
-        log_memory_usage('Memory usage on launching work ' + self.work_name)
         return [p]
 
 
@@ -186,7 +200,7 @@ class WaitingQueueLoadFile(WaitingQueueThreading):
 class WaitingQueueLoadImage(WaitingQueueLoadFile):
     def __init__(self, *args, **kwargs):
         super(WaitingQueueLoadImage, self).__init__(
-            'load image', load_image, *args, **kwargs)
+            'image file', load_image, *args, **kwargs)
 
 
 class WaitingQueueMakeCouple(WaitingQueueBase):
@@ -228,6 +242,8 @@ class WaitingQueueMakeCouple(WaitingQueueBase):
                     nb[name] = 1
 
     def check_and_act(self, sequential=None):
+        if self.is_destination_full():
+            return
 
         for k0 in self.keys():
             for k1 in self.keys():

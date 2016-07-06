@@ -91,6 +91,9 @@ class WaitingQueueMakeSerie(WaitingQueueBase):
         return (cond_instance and cond_nb_items)
 
     def check_and_act(self, sequential=None):
+        if self.is_destination_full():
+            return
+
         for names in copy(self.serie_set):
             if self.is_destination_full():
                 break

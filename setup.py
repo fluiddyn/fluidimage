@@ -2,6 +2,7 @@
 import os
 import subprocess
 import sys
+from datetime import datetime
 
 from runpy import run_path
 
@@ -45,14 +46,29 @@ if not on_rtd:
         'scikit-image >= 0.12.3',
         'h5py', 'h5netcdf'])
 
+
+def modification_date(filename):
+    t = os.path.getmtime(filename)
+    return datetime.fromtimestamp(t)
+
+
+def make_pythran_extensions(modules):
+    develop = sys.argv[-1] == 'develop'
+    extensions = []
+    for mod in modules:
+        base_file = mod.replace('.', os.path.sep)
+        py_file = base_file + '.py'
+        # warning: does not work on Windows
+        bin_file = base_file + '.so'
+        if not develop or not os.path.exists(bin_file) or \
+           modification_date(bin_file) < modification_date(py_file):
+            extensions.append(PythranExtension(mod, [py_file]))
+    return extensions
+        
 if use_pythran:
-    ext_modules = [
-        PythranExtension(
-            'fluidimage.calcul.correl_pythran',
-            ['fluidimage/calcul/correl_pythran.py']),
-        PythranExtension(
-            'fluidimage.calcul.interpolate.tps_pythran',
-            ['fluidimage/calcul/interpolate/tps_pythran.py'])]
+    ext_modules = make_pythran_extensions(
+        ['fluidimage.calcul.correl_pythran',
+         'fluidimage.calcul.interpolate.tps_pythran'])
 else:
     ext_modules = []
 

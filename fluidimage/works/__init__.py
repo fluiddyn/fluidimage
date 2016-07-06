@@ -24,4 +24,5 @@ class BaseWork(object):
 
 
 def load_image(path):
-    return imread(path)
+    im = imread(path)
+    return im

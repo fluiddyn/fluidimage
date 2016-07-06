@@ -14,6 +14,7 @@ Provides:
 import numpy as np
 
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
+from fluidimage.util.util import print_memory_usage
 from fluidimage.pre_proc.base import PreprocBase
 from ..data_objects.pre_proc import ArraySerie, PreprocResults, get_ind_middle
 
@@ -37,6 +38,9 @@ class WorkPreproc(PreprocBase):
         serie._clear_data()
         dico = self._make_dict_to_save(serie, images)
         result.data.update(dico)
+        print_memory_usage(
+            'Memory usage after preprocessing {}/{} series'.format(
+                serie.ind_serie + 1, serie.nb_series))
         return result
 
     def _make_dict_to_save(self, array_serie, images):

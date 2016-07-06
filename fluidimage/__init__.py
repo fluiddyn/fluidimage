@@ -6,6 +6,12 @@ FluidImage
 
 from ._version import __version__
 
+import os
+from logging import getLogger as _getLogger
+from fluiddyn.io.image import (imread as _imread,
+                               imsave as _imsave,
+                               imsave_h5)
+
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles, SeriesOfArrays
 from fluiddyn.util.paramcontainer import ParamContainer
 from fluiddyn.util.util import create_object_from_file

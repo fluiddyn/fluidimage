@@ -51,10 +51,16 @@ def imsave(path, array, **kwargs):
                 fname, array.min(), array.max(), array.dtype)
 
 
+def _get_txt_memory_usage(string='Memory usage', color='WARNING'):
+    mem = get_memory_usage()
+    cstr = cstring((string + ':').ljust(30) + '{} Mb'.format(mem),
+                   color=color)
+    return cstr
+
+
 def log_memory_usage(string='Memory usage', color='WARNING', mode='debug'):
     """Log the memory usage."""
 
-    mem = get_memory_usage()
     if mode == 'debug':
         log = logger.debug
     elif mode == 'error':
@@ -62,8 +68,12 @@ def log_memory_usage(string='Memory usage', color='WARNING', mode='debug'):
     else:
         log = logger.info
 
-    log(cstring(
-        (string + ':').ljust(30) + '{} Mb'.format(mem), color=color))
+    log(_get_txt_memory_usage(string, color))
+
+
+def print_memory_usage(string='Memory usage', color='WARNING'):
+    """Print the memory usage."""
+    print(_get_txt_memory_usage(string, color))
 
 
 def cstring(*args, **kwargs):
