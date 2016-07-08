@@ -38,6 +38,8 @@ def params_PCO(params, frames, letter=None):
         elif letter == 'b':
             params.preproc.series.strcouple = 'i:i+10,1'
 
+    params.preproc.series.sequential_loading = True
+
     params.preproc.saving.postfix = 'fsback'
     params.preproc.saving.how = 'complete'
     params.preproc.saving.format = 'img'

@@ -13,7 +13,6 @@ from multiprocessing import cpu_count
 from signal import signal
 import re
 import sys
-from fluiddyn.util import terminal_colors as term
 from fluidimage.util.util import (
     logger, log_memory_usage, is_memory_full, cstring)
 
@@ -117,9 +116,10 @@ class TopologyBase(object):
             # slow down this loop...
             sleep(0.05)
             if self.nb_workers_cpu >= nb_max_workers:
-                logger.debug(('{}The workers are saturated: '
-                              '{}, sleep {} s {}').format(
-                    term.WARNING, self.nb_workers_cpu, dt, term.ENDC))
+                logger.debug(cstring((
+                    'The workers are saturated: '
+                    '{}, sleep {} s').format(self.nb_workers_cpu, dt),
+                    color='WARNING'))
                 sleep(dt)
 
             if is_memory_full():
@@ -131,7 +131,7 @@ class TopologyBase(object):
                     logger.debug('check_and_act for work: ' + repr(q.work))
                     try:
                         new_workers = q.check_and_act(sequential=sequential)
-                    except OSError as e:
+                    except OSError:
                         logger.exception(cstring(
                             'Memory full: Trying to clear workers',
                             color='FAIL'))
@@ -165,7 +165,7 @@ class TopologyBase(object):
         log_memory_usage('Memory usage at the exit', 'OKGREEN')
 
         if self._has_to_stop and has_to_exit:
-            logger.info(term.FAIL + 'Exit with signal 99.' + term.ENDC)
+            logger.info(cstring('Exit with signal 99.', color='FAIL'))
             exit(99)
 
     def _clear_save_queue(self, workers, sequential, has_to_exit):
