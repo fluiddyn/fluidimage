@@ -53,7 +53,7 @@ class TopologyPIV(TopologyBase):
         WorkPIV._complete_params_with_default(params)
         return params
 
-    def __init__(self, params=None):
+    def __init__(self, params=None, logging_level='info'):
 
         if params is None:
             params = self.__class__.create_default_params()
@@ -93,9 +93,9 @@ class TopologyPIV(TopologyBase):
             destination=self.wq_images,
             path_dir=path_dir, topology=self)
 
-        super(TopologyPIV, self).__init__([
-            self.wq0, self.wq_images, self.wq_couples, self.wq_piv
-        ])
+        super(TopologyPIV, self).__init__(
+            [self.wq0, self.wq_images, self.wq_couples, self.wq_piv],
+            path_output=path_dir_result, logging_level=logging_level)
 
         self.add_series(self.series)
 

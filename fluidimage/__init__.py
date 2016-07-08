@@ -23,8 +23,8 @@ from fluiddyn.util import (config_logging as _cl_fluiddyn,
 logger = _getLogger('fluidimage')
 
 
-def config_logging(level='info', name='fluidimage'):
-    _cl_fluiddyn(level=level, name=name)
+def config_logging(level='info', name='fluidimage', file=None):
+    _cl_fluiddyn(level=level, name=name, file=file)
 
 
 def imread(path):

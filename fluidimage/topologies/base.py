@@ -13,11 +13,14 @@ from multiprocessing import cpu_count
 from signal import signal
 import re
 import sys
-from fluiddyn.util import terminal_colors as term
+import os
+from fluiddyn.util import time_as_str, terminal_colors as term
+from fluiddyn.util.tee import MultiFile
 from fluidimage import logger, log_memory_usage
 
 from ..config import get_config
 from .waiting_queues.base import WaitingQueueThreading
+from .. import config_logging
 
 config = get_config()
 
@@ -82,7 +85,18 @@ nb_max_workers = int(round(nb_cores * overloading_coef))
 
 class TopologyBase(object):
 
-    def __init__(self, queues):
+    def __init__(self, queues, path_output=None, logging_level='info'):
+
+        if path_output is not None:
+            self.path_output = path_output
+            log = os.path.join(
+                path_output,
+                'log_' + time_as_str() + '_' + str(os.getpid()) + '.txt')
+            sys.stdout = MultiFile([sys.stdout, open(log, 'w')])
+
+        if logging_level is not None:
+            config_logging('info', file=sys.stdout)
+
         self.queues = queues
         self.nb_max_workers = nb_max_workers
         self.nb_cores = nb_cores
@@ -99,6 +113,15 @@ class TopologyBase(object):
             signal(12, handler_signals)
 
     def compute(self, sequential=None, has_to_exit=True):
+
+        if hasattr(self, 'path_output'):
+            logger.info('path results:\n' + self.path_output)
+            if hasattr(self, 'params'):
+                path_params = os.path.join(
+                    self.path_output,
+                    'params_' + time_as_str() + '_' +
+                    str(os.getpid()) + '.xml')
+                self.params._save_as_xml(path_params)
 
         t_start = time()
 
