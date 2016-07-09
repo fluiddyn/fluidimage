@@ -64,7 +64,7 @@ class WaitingQueueBase(dict):
         k, o = self.popitem()
         log_memory_usage(
             time_as_str(2) + ': launch work ' + self.work_name +
-            ', mem usage')
+            '. mem usage')
         t_start = time()
         result = self.work(o)
         logger.info(
@@ -131,7 +131,7 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
 
         log_memory_usage(
             time_as_str(2) + ': launch work ' + self.work_name +
-            ' ({}), mem usage'.format(k))
+            ' ({}). mem usage'.format(k))
 
         comm = self._Queue()
         p = self._Process(target=exec_work_and_comm, args=(self.work, o, comm))

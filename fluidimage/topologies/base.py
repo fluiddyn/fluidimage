@@ -93,7 +93,9 @@ class TopologyBase(object):
             log = os.path.join(
                 path_output,
                 'log_' + time_as_str() + '_' + str(os.getpid()) + '.txt')
-            sys.stdout = MultiFile([sys.stdout, open(log, 'w')])
+            f = open(log, 'w')
+            sys.stdout = MultiFile([sys.stdout, f])
+            sys.stderr = MultiFile([sys.stderr, f])
 
         if logging_level is not None:
             config_logging(logging_level, file=sys.stdout)
@@ -117,8 +119,7 @@ class TopologyBase(object):
 
         t_start = time()
 
-        print('Start compute.')
-        log_memory_usage('Memory usage at the beginning of compute', 'OKGREEN')
+        log_memory_usage(time_as_str(2) + ': start compute. mem usage')
 
         workers = []
         workers_cpu = []
@@ -177,7 +178,7 @@ class TopologyBase(object):
             self._clear_save_queue(workers, sequential, has_to_exit)
 
         self._print_at_exit(time() - t_start)
-        log_memory_usage('Memory usage at the exit', 'OKGREEN')
+        log_memory_usage(time_as_str(2) + ': end of `compute`. mem usage')
 
         if self._has_to_stop and has_to_exit:
             logger.info(cstring('Exit with signal 99.', color='FAIL'))
