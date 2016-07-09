@@ -47,24 +47,23 @@ def imsave(path, array, **kwargs):
     #             fname, array.min(), array.max(), array.dtype)
 
 
-def _get_txt_memory_usage(string='Memory usage', color='WARNING'):
+def _get_txt_memory_usage(string='Memory usage', color='OKGREEN'):
     mem = get_memory_usage()
     color_dict = {'HEADER': term.HEADER,
                   'OKBLUE': term.OKBLUE,
                   'OKGREEN': term.OKGREEN,
                   'WARNING': term.WARNING,
-                  'FAIL': term.FAIL,
-                  'ENDC': term.ENDC}
+                  'FAIL': term.FAIL}
     begin = color_dict[color]
-    end = color_dict['ENDC']
+    end = term.ENDC
     return begin + (string + ': ').ljust(30) + '{:.3f} Mb'.format(mem) + end
 
 
-def log_memory_usage(string='Memory usage', color='WARNING'):
-    """Log the memory usage when debug is on."""
+def log_memory_usage(string='Memory usage', color='OKGREEN'):
+    """Log the memory usage when info is on."""
     logger.info(_get_txt_memory_usage(string, color))
 
 
-def print_memory_usage(string='Memory usage', color='WARNING'):
+def print_memory_usage(string='Memory usage', color='OKGREEN'):
     """Print the memory usage."""
     print(_get_txt_memory_usage(string, color))
