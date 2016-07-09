@@ -106,10 +106,16 @@ class ParamListBase(list):
 
     def launch_topologies(self, seq=False, verbose=0):
         for params in self:
+            if verbose is None:
+                log = None
             if verbose >= 1:
                 print(self._get_complete_path(params))
+                if verbose == 1:
+                    log = 'info'
+                else:
+                    log = 'debug'
 
-            topology = self.TopologyClass(params)
+            topology = self.TopologyClass(params, logging_level=log)
             topology.compute(sequential=seq)
 
 

@@ -13,11 +13,15 @@ from multiprocessing import cpu_count
 from signal import signal
 import re
 import sys
+import os
+from fluiddyn.util import time_as_str
+from fluiddyn.util.tee import MultiFile
 from fluidimage.util.util import (
     logger, log_memory_usage, is_memory_full, cstring)
 
 from ..config import get_config
 from .waiting_queues.base import WaitingQueueThreading
+from .. import config_logging
 
 config = get_config()
 
@@ -82,7 +86,18 @@ nb_max_workers = int(round(nb_cores * overloading_coef))
 
 class TopologyBase(object):
 
-    def __init__(self, queues):
+    def __init__(self, queues, path_output=None, logging_level='info'):
+
+        if path_output is not None:
+            self.path_output = path_output
+            log = os.path.join(
+                path_output,
+                'log_' + time_as_str() + '_' + str(os.getpid()) + '.txt')
+            sys.stdout = MultiFile([sys.stdout, open(log, 'w')])
+
+        if logging_level is not None:
+            config_logging(logging_level, file=sys.stdout)
+
         self.queues = queues
         self.nb_max_workers = nb_max_workers
         self.nb_cores = nb_cores

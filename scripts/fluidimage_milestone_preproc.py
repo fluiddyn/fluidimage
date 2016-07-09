@@ -92,13 +92,6 @@ def parse_args():
 if __name__ == '__main__':
     args = parse_args()
 
-    if args.verbose == 2:
-        print('Logger in INFO mode')
-        config_logging('info')
-    elif args.verbose >= 3:
-        print('Logger in DEBUG mode')
-        config_logging('debug')
-
     camera_params = {'PCO_top': params_PCO,
                      'PCO_bottom': params_PCO,
                      'PCO_side': params_PCO}

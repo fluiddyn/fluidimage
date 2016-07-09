@@ -38,17 +38,17 @@ def imread(path):
     except IOError as e:
         raise_exception(e, path)
 
-    fname = os.path.basename(path)
-    logger.info('Load %s with intensity range (%d, %d) and type %s',
-                fname, array.min(), array.max(), array.dtype)
+    # fname = os.path.basename(path)
+    # logger.debug('Load %s with intensity range (%d, %d) and type %s',
+    #              fname, array.min(), array.max(), array.dtype)
     return array
 
 
 def imsave(path, array, **kwargs):
     _imsave(path, array, **kwargs)
-    fname = os.path.basename(path)
-    logger.info('Save %s with intensity range (%d, %d) and type %s',
-                fname, array.min(), array.max(), array.dtype)
+    # fname = os.path.basename(path)
+    # logger.info('Save %s with intensity range (%d, %d) and type %s',
+    #             fname, array.min(), array.max(), array.dtype)
 
 
 def _get_txt_memory_usage(string='Memory usage', color='WARNING'):

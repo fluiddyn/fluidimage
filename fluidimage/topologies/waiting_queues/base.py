@@ -3,6 +3,7 @@ from __future__ import print_function
 import os
 from copy import deepcopy
 from time import time
+import gc
 
 import multiprocessing
 import threading
@@ -62,7 +63,7 @@ class WaitingQueueBase(dict):
     def check_and_act(self, sequential=None):
         k, o = self.popitem()
         log_memory_usage(
-            time_as_str() + ': launch work ' + self.work_name +
+            time_as_str(2) + ': launch work ' + self.work_name +
             ', mem usage')
         t_start = time()
         result = self.work(o)
@@ -75,7 +76,9 @@ class WaitingQueueBase(dict):
         if self.destination is not None:
             self.destination[k] = result
 
-    def update(self, d, keys):
+    def update(self, d, keys=None):
+        if keys is None:
+            keys = list(d.keys())
         if not set(d.keys()) == set(keys):
             raise ValueError
         self._keys += keys
@@ -123,18 +126,18 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
         if self.is_destination_full():
             return
 
-        log_memory_usage(
-            time_as_str() + ': launch work ' + self.work_name +
-            ', mem usage')
-
         k = self._keys.pop(0)
         o = self.pop(k)
-        comm = self._Queue()
 
+        log_memory_usage(
+            time_as_str(2) + ': launch work ' + self.work_name +
+            ' ({}), mem usage'.format(k))
+
+        comm = self._Queue()
         p = self._Process(target=exec_work_and_comm, args=(self.work, o, comm))
+        t_start = time()
         p.start()
         self._nb_processes += 1
-        t_start = time()
         p.do_use_cpu = self.do_use_cpu
 
         def fill_destination():
@@ -161,6 +164,7 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
             else:
                 if isinstance(p, multiprocessing.Process):
                     p.join(1)
+                    gc.collect()
                 else:
                     result = comm.get()
                 logger.info(
