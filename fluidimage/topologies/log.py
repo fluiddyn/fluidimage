@@ -12,6 +12,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 plt.ion()
 
+colors = ['r', 'b', 'y', 'g']
+
 
 class LogTopology(object):
     """Parse and analyze logging files.
@@ -52,19 +54,46 @@ class LogTopology(object):
                         self.duration = t - time_start
                         self.mem_end = mem
                     elif ': launch work ' in line:
-                        work = words[4]
-                        key = words[5][1:-1]
+                        name = words[4]
+                        key = words[5][1:-2]
                         works.append({
-                            'work': work, 'key': key, 'date': date,
+                            'name': name, 'key': key, 'date': date,
                             'mem_start': mem, 'time': t - time_start})
 
                 if line.startswith('INFO: work '):
                     words = line.split()
-                    work = words[2]
+                    name = words[2]
                     key = words[3][1:-1]
                     duration = float(words[-2])
                     works_ended.append({
-                            'work': work, 'key': key, 'duration': duration})
+                            'name': name, 'key': key, 'duration': duration})
+
+                self.names_works = names_works = []
+                for work in works:
+                    if work['name'] not in names_works:
+                        names_works.append(work['name'])
+
+        self.durations = durations = {}
+        self.times = times = {}
+        self.keys = keys = {}
+        for name in self.names_works:
+            times[name] = []
+            keys[name] = []
+            for work in self.works:
+                if work['name'] == name:
+                    times[name].append(work['time'])
+                    keys[name].append(work['key'])
+
+            durations[name] = []
+            for key in keys[name]:
+                founded = False
+                for work in self.works_ended:
+                    if work['name'] == name and work['key'] == key:
+                        durations[name].append(work['duration'])
+                        founded = True
+                        break
+                if not founded:
+                    durations[name].append(0)
 
     def plot_memory(self):
 
@@ -83,4 +112,26 @@ class LogTopology(object):
         ax.plot(0, self.mem_start, 'x')
         if hasattr(self, 'duration'):
             ax.plot(self.duration, self.mem_end, 'x')
+        plt.show()
+
+    def plot_durations(self):
+
+        plt.figure()
+        ax = plt.gca()
+        ax.set_xlabel('time (s)')
+        ax.set_ylabel('duration (s)')
+
+        lines = []
+
+        for i, name in enumerate(self.names_works):
+            t = np.array(self.times[name])
+            d = self.durations[name]
+            l, = ax.plot(t, d, colors[i] + 'o')
+            d = np.mean(d)
+            ax.plot([t.min(), t.max()], [d, d], colors[i] + '-')
+            lines.append(l)
+
+        ax.legend(lines, self.names_works, loc='center left',
+                  fontsize='x-small')
+
         plt.show()

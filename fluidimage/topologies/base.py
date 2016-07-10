@@ -27,7 +27,8 @@ config = get_config()
 dt = 0.5  # s
 
 nb_cores = cpu_count()
-overloading_coef = 1.5
+overloading_coef = 1.
+nb_cores_overload = 2
 
 if config is not None:
     try:
@@ -80,7 +81,7 @@ if config is not None:
         pass
 
 
-nb_max_workers = int(round(nb_cores * overloading_coef))
+nb_max_workers = int(round(nb_cores * overloading_coef)) + nb_cores_overload
 
 
 class TopologyBase(object):
