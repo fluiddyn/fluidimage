@@ -97,7 +97,7 @@ class LogTopology(object):
                         founded = True
                         break
                 if not founded:
-                    durations[name].append(0)
+                    durations[name].append(np.nan)
 
     def plot_memory(self):
 
@@ -139,7 +139,7 @@ class LogTopology(object):
                 d = durations[it]
                 ax.plot([t, t+d], [d, d], colors[i])
 
-            d = np.mean(durations)
+            d = np.nanmean(durations)
             ax.plot([times.min(), times.max()], [d, d], colors[i] + '-',
                     linewidth=2)
 

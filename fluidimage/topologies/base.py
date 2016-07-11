@@ -111,6 +111,9 @@ class TopologyBase(object):
         if nb_max_workers is None:
             nb_max_workers = _nb_max_workers
 
+        if nb_max_workers < 1:
+            raise ValueError('nb_max_workers < 1')
+
         print('nb_max_workers = ', nb_max_workers)
 
         self.queues = queues
