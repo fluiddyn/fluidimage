@@ -6,6 +6,7 @@
 from __future__ import print_function
 
 from glob import glob
+import os
 import time
 
 import numpy as np
@@ -23,10 +24,13 @@ class LogTopology(object):
 
         if path is None:
             paths = glob('log_*.txt')
+            paths.sort()
             if len(paths) == 0:
                 raise ValueError(
                     'No log files found in the current directory.')
             path = paths[-1]
+
+        self.log_file = os.path.split(path)[-1]
 
         self._parse_log(path)
 
@@ -101,6 +105,7 @@ class LogTopology(object):
         ax = plt.gca()
         ax.set_xlabel('time (s)')
         ax.set_ylabel('memory (Mo)')
+        ax.set_title(self.log_file)
 
         memories = np.empty(len(self.works))
         times = np.empty(len(self.works))
@@ -120,16 +125,23 @@ class LogTopology(object):
         ax = plt.gca()
         ax.set_xlabel('time (s)')
         ax.set_ylabel('duration (s)')
+        ax.set_title(self.log_file)
 
         lines = []
 
         for i, name in enumerate(self.names_works):
-            t = np.array(self.times[name])
-            d = self.durations[name]
-            l, = ax.plot(t, d, colors[i] + 'o')
-            d = np.mean(d)
-            ax.plot([t.min(), t.max()], [d, d], colors[i] + '-')
+            times = np.array(self.times[name])
+            durations = self.durations[name]
+            l, = ax.plot(times, durations, colors[i] + 'o')
             lines.append(l)
+
+            for it, t in enumerate(times):
+                d = durations[it]
+                ax.plot([t, t+d], [d, d], colors[i])
+
+            d = np.mean(durations)
+            ax.plot([times.min(), times.max()], [d, d], colors[i] + '-',
+                    linewidth=2)
 
         ax.legend(lines, self.names_works, loc='center left',
                   fontsize='x-small')

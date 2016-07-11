@@ -82,11 +82,13 @@ if config is not None:
 
 
 nb_max_workers = int(round(nb_cores * overloading_coef)) + nb_cores_overload
+_nb_max_workers = nb_max_workers
 
 
 class TopologyBase(object):
 
-    def __init__(self, queues, path_output=None, logging_level='info'):
+    def __init__(self, queues, path_output=None, logging_level='info',
+                 nb_max_workers=None):
 
         if path_output is not None:
             self.path_output = path_output
@@ -99,6 +101,9 @@ class TopologyBase(object):
 
         if logging_level is not None:
             config_logging('info', file=sys.stdout)
+
+        if nb_max_workers is None:
+            nb_max_workers = _nb_max_workers
 
         self.queues = queues
         self.nb_max_workers = nb_max_workers
