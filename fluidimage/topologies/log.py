@@ -7,6 +7,7 @@ from __future__ import print_function
 
 from glob import glob
 import time
+import os
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -17,10 +18,11 @@ class LogTopology(object):
     """Parse and analyze logging files.
 
     """
-    def __init__(self, path=None):
+    def __init__(self, path=None, path_dir=''):
 
         if path is None:
-            paths = glob('log_*.txt')
+            pattern = os.path.join(path_dir, 'log_*.txt')
+            paths = glob(pattern)
             if len(paths) == 0:
                 raise ValueError(
                     'No log files found in the current directory.')
@@ -32,6 +34,7 @@ class LogTopology(object):
         self.works = works = []
         self.works_ended = works_ended = []
         with open(path, 'r') as f:
+            print('Parsing log file: ', path)
             for line in f:
                 if line.startswith('INFO: ') and '. mem usage: ' in line:
                     words = line.split()
@@ -64,7 +67,7 @@ class LogTopology(object):
                     key = words[3][1:-1]
                     duration = float(words[-2])
                     works_ended.append({
-                            'work': work, 'key': key, 'duration': duration})
+                        'work': work, 'key': key, 'duration': duration})
 
     def plot_memory(self):
 

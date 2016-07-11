@@ -5,7 +5,6 @@ Miscellaneous utilities
 """
 from __future__ import print_function
 
-import os
 import sys
 import six
 import psutil
@@ -51,14 +50,14 @@ def imsave(path, array, **kwargs):
     #             fname, array.min(), array.max(), array.dtype)
 
 
-def _get_txt_memory_usage(string='Memory usage', color='WARNING'):
+def _get_txt_memory_usage(string='Memory usage', color='OKGREEN'):
     mem = get_memory_usage()
     cstr = cstring((string + ':').ljust(30) + '{} Mb'.format(mem),
                    color=color)
     return cstr
 
 
-def log_memory_usage(string='Memory usage', color='WARNING', mode='debug'):
+def log_memory_usage(string='Memory usage', color='OKGREEN', mode='info'):
     """Log the memory usage."""
 
     if mode == 'debug':
@@ -71,7 +70,7 @@ def log_memory_usage(string='Memory usage', color='WARNING', mode='debug'):
     log(_get_txt_memory_usage(string, color))
 
 
-def print_memory_usage(string='Memory usage', color='WARNING'):
+def print_memory_usage(string='Memory usage', color='OKGREEN'):
     """Print the memory usage."""
     print(_get_txt_memory_usage(string, color))
 
