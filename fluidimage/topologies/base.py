@@ -14,6 +14,8 @@ from signal import signal
 import re
 import sys
 import os
+import gc
+
 from fluiddyn.util import time_as_str
 from fluiddyn.util.tee import MultiFile
 from fluidimage.util.util import (
@@ -26,9 +28,11 @@ from .. import config_logging
 config = get_config()
 
 dt = 0.5  # s
+dt_small = 0.05
 
 nb_cores = cpu_count()
-overloading_coef = 1.5
+overloading_coef = 1.
+nb_cores_overload = 2
 
 if config is not None:
     try:
@@ -81,12 +85,14 @@ if config is not None:
         pass
 
 
-nb_max_workers = int(round(nb_cores * overloading_coef))
+_nb_max_workers = nb_max_workers = \
+    int(round(nb_cores * overloading_coef)) + nb_cores_overload
 
 
 class TopologyBase(object):
 
-    def __init__(self, queues, path_output=None, logging_level='info'):
+    def __init__(self, queues, path_output=None, logging_level='info',
+                 nb_max_workers=None):
 
         if path_output is not None:
             self.path_output = path_output
@@ -99,6 +105,9 @@ class TopologyBase(object):
 
         if logging_level is not None:
             config_logging(logging_level, file=sys.stdout)
+
+        if nb_max_workers is None:
+            nb_max_workers = _nb_max_workers
 
         self.queues = queues
         self.nb_max_workers = nb_max_workers
@@ -117,6 +126,15 @@ class TopologyBase(object):
 
     def compute(self, sequential=None, has_to_exit=True):
 
+        if hasattr(self, 'path_output'):
+            logger.info('path results:\n' + self.path_output)
+            if hasattr(self, 'params'):
+                path_params = os.path.join(
+                    self.path_output,
+                    'params_' + time_as_str() + '_' +
+                    str(os.getpid()) + '.xml')
+                self.params._save_as_xml(path_params)
+
         t_start = time()
 
         log_memory_usage(time_as_str(2) + ': start compute. mem usage')
@@ -130,15 +148,12 @@ class TopologyBase(object):
             self.nb_workers = len(workers)
 
             # slow down this loop...
-            sleep(0.05)
+            sleep(dt_small)
             if self.nb_workers_cpu >= nb_max_workers:
                 logger.debug(cstring((
                     'The workers are saturated: '
                     '{}, sleep {} s').format(self.nb_workers_cpu, dt),
                     color='WARNING'))
-                sleep(dt)
-
-            if is_memory_full():
                 sleep(dt)
 
             for q in self.queues:
@@ -165,8 +180,24 @@ class TopologyBase(object):
                     logger.debug('workers: ' + repr(workers))
                     logger.debug('workers_cpu: ' + repr(workers_cpu))
 
-            workers[:] = [w for w in workers
-                          if not w.fill_destination()]
+            t_tmp = time()
+
+            workers_tmp = workers
+            for worker in workers:
+                if worker.fill_destination():
+                    workers_tmp.remove(worker)
+                    break
+            workers = workers_tmp
+            # workers[:] = [w for w in workers
+            #               if not w.fill_destination()]
+            t_tmp = time() - t_tmp
+            if t_tmp > 0.1:
+                logger.debug(
+                    'update list of workers with fill_destination done '
+                    'in {:.3f} s'.format(t_tmp))
+
+            if len(workers) != self.nb_workers:
+                gc.collect()
 
             workers_cpu[:] = [w for w in workers_cpu
                               if w.is_alive()]
