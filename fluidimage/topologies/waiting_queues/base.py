@@ -3,7 +3,6 @@ from __future__ import print_function
 import os
 from copy import deepcopy
 from time import time
-import gc
 
 import multiprocessing
 import threading
@@ -142,22 +141,19 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
                             self.work_name, k, p.exitcode))
                     self._nb_processes -= 1
                     return True
-                else:
-                    try:
-                        result = comm.get_nowait()
-                        is_done = True
-                    except Queue.Empty:
-                        is_done = False
+
+                try:
+                    result = comm.get_nowait()
+                    is_done = True
+                except Queue.Empty:
+                    return False
             else:
                 is_done = not p.is_alive()
 
             if not is_done:
                 return False
             else:
-                if isinstance(p, multiprocessing.Process):
-                    p.join(1)
-                    gc.collect()
-                else:
+                if not isinstance(p, multiprocessing.Process):
                     result = comm.get()
                 logger.info(
                     'work {} ({}) done in {:.2f} s'.format(

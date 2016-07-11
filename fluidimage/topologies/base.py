@@ -14,6 +14,8 @@ from signal import signal
 import re
 import sys
 import os
+import gc
+
 from fluiddyn.util import time_as_str, terminal_colors as term
 from fluiddyn.util.tee import MultiFile
 from fluidimage import logger, log_memory_usage
@@ -25,6 +27,7 @@ from .. import config_logging
 config = get_config()
 
 dt = 0.5  # s
+dt_small = 0.05
 
 nb_cores = cpu_count()
 overloading_coef = 1.
@@ -81,8 +84,8 @@ if config is not None:
         pass
 
 
-nb_max_workers = int(round(nb_cores * overloading_coef)) + nb_cores_overload
-_nb_max_workers = nb_max_workers
+_nb_max_workers = nb_max_workers = \
+    int(round(nb_cores * overloading_coef)) + nb_cores_overload
 
 
 class TopologyBase(object):
@@ -100,7 +103,7 @@ class TopologyBase(object):
             sys.stderr = MultiFile([sys.stderr, f])
 
         if logging_level is not None:
-            config_logging('info', file=sys.stdout)
+            config_logging(logging_level, file=sys.stdout)
 
         if nb_max_workers is None:
             nb_max_workers = _nb_max_workers
@@ -144,7 +147,7 @@ class TopologyBase(object):
             self.nb_workers = len(workers)
 
             # slow down this loop...
-            sleep(0.05)
+            sleep(dt_small)
             if self.nb_workers_cpu >= nb_max_workers:
                 logger.debug(('{}The workers are saturated: '
                               '{}, sleep {} s {}').format(
@@ -165,12 +168,27 @@ class TopologyBase(object):
                     logger.debug('workers: ' + repr(workers))
                     logger.debug('workers_cpu: ' + repr(workers_cpu))
 
-            workers[:] = [w for w in workers
-                          if not w.fill_destination()]
+            t_tmp = time()
+
+            workers_tmp = workers
+            for worker in workers:
+                if worker.fill_destination():
+                    workers_tmp.remove(worker)
+                    break
+            workers = workers_tmp
+            # workers[:] = [w for w in workers
+            #               if not w.fill_destination()]
+            t_tmp = time() - t_tmp
+            if t_tmp > 0.1:
+                logger.debug(
+                    'update list of workers with fill_destination done '
+                    'in {:.3f} s'.format(t_tmp))
+
+            if len(workers) != self.nb_workers:
+                gc.collect()
 
             workers_cpu[:] = [w for w in workers_cpu
                               if w.is_alive()]
-
         if self._has_to_stop:
             logger.info(term.FAIL + 'Will exist because of signal 12. ' +
                         'Waiting for all workers to finish...' + term.ENDC)
