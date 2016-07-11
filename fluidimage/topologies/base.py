@@ -15,6 +15,7 @@ import re
 import sys
 import os
 import gc
+from copy import copy
 
 from fluiddyn.util import time_as_str, terminal_colors as term
 from fluiddyn.util.tee import MultiFile
@@ -27,10 +28,10 @@ from .. import config_logging
 config = get_config()
 
 dt = 0.5  # s
-dt_small = 0.05
+dt_small = 0.1
 
 nb_cores = cpu_count()
-overloading_coef = 1.
+overloading_coef = 1.2
 nb_cores_overload = 2
 
 if config is not None:
@@ -49,7 +50,7 @@ try:  # should work on UNIX
 
     if nb_cpus_allowed > 0:
         nb_cores = nb_cpus_allowed
-        print('Cpus_allowed: {}'.format(nb_cpus_allowed))
+        print('nb_cpus_allowed = {}'.format(nb_cpus_allowed))
 
     with open('/proc/cpuinfo') as f:
         cpuinfo = f.read()
@@ -94,6 +95,8 @@ class TopologyBase(object):
                  nb_max_workers=None):
 
         if path_output is not None:
+            if not os.path.exists(path_output):
+                os.makedirs(path_output)
             self.path_output = path_output
             log = os.path.join(
                 path_output,
@@ -107,6 +110,8 @@ class TopologyBase(object):
 
         if nb_max_workers is None:
             nb_max_workers = _nb_max_workers
+
+        print('nb_max_workers = ', nb_max_workers)
 
         self.queues = queues
         self.nb_max_workers = nb_max_workers
@@ -170,17 +175,23 @@ class TopologyBase(object):
 
             t_tmp = time()
 
-            workers_tmp = workers
+            workers_tmp = copy(workers)
+            skip_cpu = False
             for worker in workers:
+                do_use_cpu = (hasattr(worker, 'do_use_cpu') and
+                              worker.do_use_cpu)
+                if skip_cpu and do_use_cpu:
+                    continue
                 if worker.fill_destination():
                     workers_tmp.remove(worker)
-                    break
+                    if do_use_cpu:
+                        skip_cpu = True
             workers = workers_tmp
             # workers[:] = [w for w in workers
             #               if not w.fill_destination()]
             t_tmp = time() - t_tmp
-            if t_tmp > 0.1:
-                logger.debug(
+            if t_tmp > 0.2:
+                logger.info(
                     'update list of workers with fill_destination done '
                     'in {:.3f} s'.format(t_tmp))
 

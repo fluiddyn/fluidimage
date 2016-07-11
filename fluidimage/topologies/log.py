@@ -70,7 +70,7 @@ class LogTopology(object):
                     key = words[3][1:-1]
                     duration = float(words[-2])
                     works_ended.append({
-                            'name': name, 'key': key, 'duration': duration})
+                        'name': name, 'key': key, 'duration': duration})
 
                 self.names_works = names_works = []
                 for work in works:

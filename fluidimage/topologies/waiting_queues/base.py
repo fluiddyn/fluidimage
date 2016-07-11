@@ -106,7 +106,7 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
     def _Process(*args, **kwargs):
         return multiprocessing.Process(*args, **kwargs)
 
-    def check_and_act(self, sequential=None):
+    def check_and_act(self, sequential=False):
 
         if sequential:
             return WaitingQueueBase.check_and_act(self, sequential=sequential)
