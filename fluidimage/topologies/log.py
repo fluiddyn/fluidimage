@@ -11,7 +11,10 @@ import time
 
 import numpy as np
 import matplotlib.pyplot as plt
+
+
 plt.ion()
+colors = ['r', 'b', 'y', 'g']
 
 
 class LogTopology(object):
@@ -29,6 +32,7 @@ class LogTopology(object):
                     'No log files found in the current directory.')
             path = paths[-1]
 
+        self.log_file = os.path.basename(path)
         self._parse_log(path)
 
     def _parse_log(self, path):
@@ -68,7 +72,7 @@ class LogTopology(object):
                     key = words[3][1:-1]
                     duration = float(words[-2])
                     works_ended.append({
-                            'name': name, 'key': key, 'duration': duration})
+                        'name': name, 'key': key, 'duration': duration})
 
                 self.names_works = names_works = []
                 for work in works:

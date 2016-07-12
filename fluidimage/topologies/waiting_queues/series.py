@@ -7,7 +7,6 @@ from .base import (
     WaitingQueueLoadImage, WaitingQueueBase, WaitingQueueMultiprocessing)
 
 from ...data_objects.pre_proc import ArraySerie
-from ...works import load_image
 
 
 class WaitingQueueLoadImageSeries(WaitingQueueLoadImage):
@@ -15,8 +14,6 @@ class WaitingQueueLoadImageSeries(WaitingQueueLoadImage):
     def __init__(self, *args, **kwargs):
         self.sequential = kwargs.pop('sequential')
         super(WaitingQueueLoadImageSeries, self).__init__(*args, **kwargs)
-
-        self.work_name = __name__ + '.load_image'
 
     def is_destination_full(self):
         cond_instance = isinstance(self.destination, WaitingQueueBase)

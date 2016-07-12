@@ -7,7 +7,6 @@ FluidImage
 from ._version import __version__
 
 import os
-from logging import getLogger as _getLogger
 from fluiddyn.io.image import (imread as _imread,
                                imsave as _imsave,
                                imsave_h5)

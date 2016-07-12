@@ -201,6 +201,7 @@ class WaitingQueueLoadImage(WaitingQueueLoadFile):
     def __init__(self, *args, **kwargs):
         super(WaitingQueueLoadImage, self).__init__(
             'image file', load_image, *args, **kwargs)
+        self.work_name = __name__ + '.load_image'
 
 
 class WaitingQueueMakeCouple(WaitingQueueBase):
