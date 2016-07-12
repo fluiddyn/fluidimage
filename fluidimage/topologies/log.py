@@ -147,3 +147,53 @@ class LogTopology(object):
                   fontsize='x-small')
 
         plt.show()
+
+    def plot_nb_workers(self, str_names=None):
+        if str_names is not None:
+            names = [name for name in self.names_works if str_names in name]
+        else:
+            names = self.names_works
+
+        nb_workers = {}
+        times = {}
+        for name in names:
+            times_start = list(self.times[name])
+            times_stop = list(np.array(times_start) +
+                              np.array(self.durations[name]))
+
+            deltas = np.array([1 for t in times_start] +
+                              [-1 for t in times_stop])
+            times_unsorted = np.array(times_start + times_stop)
+
+            argsort = np.argsort(times_unsorted)
+
+            ts = times_unsorted[argsort]
+            nbws = np.cumsum(deltas[argsort])
+
+            ts2 = []
+            nbws2 = []
+            for i, t in enumerate(ts[:-1]):
+                nbw = nbws[i]
+                ts2.append(t)
+                ts2.append(ts[i+1])
+                nbws2.append(nbw)
+                nbws2.append(nbw)
+
+            times[name] = ts2
+            nb_workers[name] = nbws2
+
+        plt.figure()
+        ax = plt.gca()
+        ax.set_xlabel('time (s)')
+        ax.set_ylabel('number of workers')
+        ax.set_title(self.log_file)
+
+        lines = []
+
+        for i, name in enumerate(self.names_works):
+            l, = ax.plot(times[name], nb_workers[name], colors[i] + '-')
+            lines.append(l)
+
+        ax.legend(lines, names, loc='center left', fontsize='x-small')
+
+        plt.show()
