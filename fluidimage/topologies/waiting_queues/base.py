@@ -106,17 +106,35 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
     def _Process(*args, **kwargs):
         return multiprocessing.Process(*args, **kwargs)
 
+    def enough_workers(self):
+        return self.topology.nb_workers_cpu >= self.topology.nb_max_workers
+
     def check_and_act(self, sequential=False):
 
         if sequential:
             return WaitingQueueBase.check_and_act(self, sequential=sequential)
 
-        if self.do_use_cpu and \
-           self.topology.nb_workers_cpu >= self.topology.nb_max_workers:
-            return
+        # if self.do_use_cpu and \
+        #    self.topology.nb_workers_cpu >= self.topology.nb_max_workers:
+        #     return
 
-        if self.is_destination_full():
-            return
+        # if self.is_destination_full():
+        #     return
+
+        # return [self._launch_worker()]
+
+        workers = []
+        i_launch = 0
+        while (i_launch < self.topology.nb_max_launch and
+               not self.is_empty() and
+               not self.is_destination_full() and
+               not self.enough_workers()):
+            workers.append(self._launch_worker())
+            i_launch += 1
+
+        return workers
+
+    def _launch_worker(self):
 
         k = self._keys.pop(0)
         o = self.pop(k)
@@ -130,6 +148,10 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
         t_start = time()
         p.start()
         self._nb_processes += 1
+        if self.do_use_cpu:
+            self.topology.nb_workers_cpu += 1
+        else:
+            self.topology.nb_workers_io += 1
         p.do_use_cpu = self.do_use_cpu
 
         def fill_destination():
@@ -140,6 +162,7 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
                         'work_name = {}; key = {}; exitcode = {}'.format(
                             self.work_name, k, p.exitcode))
                     self._nb_processes -= 1
+                    self.topology.nb_workers_cpu -= 1
                     return True
 
                 try:
@@ -155,6 +178,9 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
             else:
                 if not isinstance(p, multiprocessing.Process):
                     result = comm.get()
+                    self.topology.nb_workers_io -= 1
+                else:
+                    self.topology.nb_workers_cpu -= 1
                 logger.info(
                     'work {} ({}) done in {:.2f} s'.format(
                         self.work_name, k, time() - t_start))
@@ -163,7 +189,7 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
                 return True
 
         p.fill_destination = fill_destination
-        return [p]
+        return p
 
 
 class WaitingQueueThreading(WaitingQueueMultiprocessing):
@@ -176,6 +202,9 @@ class WaitingQueueThreading(WaitingQueueMultiprocessing):
     @staticmethod
     def _Process(*args, **kwargs):
         return threading.Thread(*args, **kwargs)
+
+    def enough_workers(self):
+        return self.topology.nb_workers_io >= self.topology.nb_max_workers_io
 
 
 class WaitingQueueLoadFile(WaitingQueueThreading):

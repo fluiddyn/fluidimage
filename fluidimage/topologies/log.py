@@ -31,14 +31,29 @@ class LogTopology(object):
             path = paths[-1]
 
         self.log_file = os.path.split(path)[-1]
+        self._title = self.log_file
 
         self._parse_log(path)
 
     def _parse_log(self, path):
         self.works = works = []
         self.works_ended = works_ended = []
+        nb_cpus = None
+        nb_max_workers = None
         with open(path, 'r') as f:
             for line in f:
+
+                if nb_cpus is None and \
+                   line.startswith('nb_cpus_allowed = '):
+                    self.nb_cpus_allowed = nb_cpus = int(line.split()[2])
+                    self._title += ', nb_cpus_allowed = {}'.format(nb_cpus)
+
+                if nb_max_workers is None and \
+                   line.startswith('nb_max_workers = '):
+                    self.nb_max_workers = nb_max_workers = int(line.split()[2])
+                    self._title += ', nb_max_workers = {}'.format(
+                        nb_max_workers)
+
                 if line.startswith('INFO: ') and '. mem usage: ' in line:
                     words = line.split()
                     date = words[1][5:-1]
@@ -105,7 +120,7 @@ class LogTopology(object):
         ax = plt.gca()
         ax.set_xlabel('time (s)')
         ax.set_ylabel('memory (Mo)')
-        ax.set_title(self.log_file)
+        ax.set_title(self._title, fontdict={'fontsize': 12})
 
         memories = np.empty(len(self.works))
         times = np.empty(len(self.works))
@@ -125,7 +140,7 @@ class LogTopology(object):
         ax = plt.gca()
         ax.set_xlabel('time (s)')
         ax.set_ylabel('duration (s)')
-        ax.set_title(self.log_file)
+        ax.set_title(self._title, fontdict={'fontsize': 12})
 
         lines = []
 
@@ -186,7 +201,7 @@ class LogTopology(object):
         ax = plt.gca()
         ax.set_xlabel('time (s)')
         ax.set_ylabel('number of workers')
-        ax.set_title(self.log_file)
+        ax.set_title(self._title, fontdict={'fontsize': 12})
 
         lines = []
 

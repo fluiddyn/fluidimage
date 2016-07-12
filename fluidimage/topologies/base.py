@@ -27,11 +27,11 @@ from .. import config_logging
 
 config = get_config()
 
-dt = 0.5  # s
-dt_small = 0.1
+dt = 0.2  # s
+dt_small = 0.01
 
 nb_cores = cpu_count()
-overloading_coef = 1.2
+
 nb_cores_overload = 2
 
 if config is not None:
@@ -64,7 +64,6 @@ try:  # should work on UNIX
             siblings = int(line.split()[-1])
 
     if nb_proc_tot == siblings * 2:
-        overloading_coef = 1
         if allow_hyperthreading is False:
             print('We do not use hyperthreading.')
             nb_cores //= 2
@@ -72,21 +71,23 @@ try:  # should work on UNIX
 except IOError:
     pass
 
-
+nb_max_workers = None
 if config is not None:
     try:
-        nb_cores = eval(config['topology']['nb_cores'])
+        nb_max_workers = eval(config['topology']['nb_max_workers'])
     except KeyError:
         pass
 
-    try:
-        overloading_coef = eval(config['topology']['overloading_coef'])
-    except KeyError:
-        pass
+# default nb_max_workers
+if nb_max_workers is None:
+    if nb_cores < 16:
+        nb_max_workers = nb_cores + nb_cores_overload
+    elif 16 < nb_cores <= 20:
+        nb_max_workers = nb_cores
+    else:
+        nb_max_workers = nb_cores - 1
 
-
-_nb_max_workers = nb_max_workers = \
-    int(round(nb_cores * overloading_coef)) + nb_cores_overload
+_nb_max_workers = nb_max_workers
 
 
 class TopologyBase(object):
@@ -111,6 +112,9 @@ class TopologyBase(object):
         if nb_max_workers is None:
             nb_max_workers = _nb_max_workers
 
+        self.nb_max_workers_io = max(nb_max_workers // 3, 2)
+        self.nb_max_launch = max(self.nb_max_workers_io // 2, 1)
+
         if nb_max_workers < 1:
             raise ValueError('nb_max_workers < 1')
 
@@ -119,7 +123,7 @@ class TopologyBase(object):
         self.queues = queues
         self.nb_max_workers = nb_max_workers
         self.nb_cores = nb_cores
-        self.nb_items_lim = max(nb_max_workers, 2)
+        self.nb_items_lim = max(nb_max_workers+4, 2)
 
         self._has_to_stop = False
 
@@ -146,19 +150,20 @@ class TopologyBase(object):
 
         log_memory_usage(time_as_str(2) + ': start compute. mem usage')
 
+        self.nb_workers_cpu = 0
+        self.nb_workers_io = 0
         workers = []
-        workers_cpu = []
         while (not self._has_to_stop and
                (any([not q.is_empty() for q in self.queues]) or
                 len(workers) > 0)):
-            self.nb_workers_cpu = len(workers_cpu)
+
             self.nb_workers = len(workers)
 
             # slow down this loop...
             sleep(dt_small)
             if self.nb_workers_cpu >= nb_max_workers:
-                logger.debug(('{}The workers are saturated: '
-                              '{}, sleep {} s {}').format(
+                logger.info(('{}The workers are saturated: '
+                             '{}, sleep {} s {}').format(
                     term.WARNING, self.nb_workers_cpu, dt, term.ENDC))
                 sleep(dt)
 
@@ -170,11 +175,7 @@ class TopologyBase(object):
                     if new_workers is not None:
                         for worker in new_workers:
                             workers.append(worker)
-                            if hasattr(worker, 'do_use_cpu') and \
-                               worker.do_use_cpu:
-                                workers_cpu.append(worker)
                     logger.debug('workers: ' + repr(workers))
-                    logger.debug('workers_cpu: ' + repr(workers_cpu))
 
             t_tmp = time()
 
@@ -201,8 +202,6 @@ class TopologyBase(object):
             if len(workers) != self.nb_workers:
                 gc.collect()
 
-            workers_cpu[:] = [w for w in workers_cpu
-                              if w.is_alive()]
         if self._has_to_stop:
             logger.info(term.FAIL + 'Will exist because of signal 12. ' +
                         'Waiting for all workers to finish...' + term.ENDC)
