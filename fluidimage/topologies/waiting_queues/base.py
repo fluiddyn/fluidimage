@@ -87,12 +87,7 @@ class WaitingQueueBase(dict):
 
 def exec_work_and_comm(work, o, comm):
     result = work(o)
-    # print('Work done...')
-    # print('put in queue')
-    # sys.stdout.flush()
     comm.put(result)
-    # print('return')
-    # sys.stdout.flush()
 
 
 class WaitingQueueMultiprocessing(WaitingQueueBase):
@@ -113,15 +108,6 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
 
         if sequential:
             return WaitingQueueBase.check_and_act(self, sequential=sequential)
-
-        # if self.do_use_cpu and \
-        #    self.topology.nb_workers_cpu >= self.topology.nb_max_workers:
-        #     return
-
-        # if self.is_destination_full():
-        #     return
-
-        # return [self._launch_worker()]
 
         workers = []
         i_launch = 0
@@ -158,7 +144,7 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
             if isinstance(p, multiprocessing.Process):
                 if p.exitcode:
                     logger.info(
-                        'Error in work: '
+                        'Error in work (process): '
                         'work_name = {}; key = {}; exitcode = {}'.format(
                             self.work_name, k, p.exitcode))
                     self._nb_processes -= 1
@@ -171,6 +157,13 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
                 except Queue.Empty:
                     return False
             else:
+                if p.exitcode:
+                    logger.info(
+                        'Error in work (thread): '
+                        'work_name = {}; key = {}; exitcode = {}'.format(
+                            self.work_name, k, p.exitcode))
+                    raise p.exception
+
                 is_done = not p.is_alive()
 
             if not is_done:
@@ -192,6 +185,21 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
         return p
 
 
+class ThreadHandlingExceptions(threading.Thread):
+
+    def __init__(self, *args, **kwargs):
+        self.exitcode = None
+        super(ThreadHandlingExceptions, self).__init__(*args, **kwargs)
+        self.daemon = True
+
+    def run(self):
+        try:
+            super(ThreadHandlingExceptions, self).run()
+        except Exception as e:
+            self.exitcode = 1
+            self.exception = e
+
+
 class WaitingQueueThreading(WaitingQueueMultiprocessing):
     do_use_cpu = False
 
@@ -201,7 +209,7 @@ class WaitingQueueThreading(WaitingQueueMultiprocessing):
 
     @staticmethod
     def _Process(*args, **kwargs):
-        return threading.Thread(*args, **kwargs)
+        return ThreadHandlingExceptions(*args, **kwargs)
 
     def enough_workers(self):
         return self.topology.nb_workers_io >= self.topology.nb_max_workers_io

@@ -15,7 +15,9 @@ import re
 import sys
 import os
 import gc
-from copy import copy
+# from copy import copy
+import threading
+
 
 from fluiddyn.util import time_as_str, terminal_colors as term
 from fluiddyn.util.tee import MultiFile
@@ -29,10 +31,9 @@ config = get_config()
 
 dt = 0.2  # s
 dt_small = 0.01
+dt_update = 0.2
 
 nb_cores = cpu_count()
-
-nb_cores_overload = 2
 
 if config is not None:
     try:
@@ -50,7 +51,6 @@ try:  # should work on UNIX
 
     if nb_cpus_allowed > 0:
         nb_cores = nb_cpus_allowed
-        print('nb_cpus_allowed = {}'.format(nb_cpus_allowed))
 
     with open('/proc/cpuinfo') as f:
         cpuinfo = f.read()
@@ -79,6 +79,7 @@ if config is not None:
         pass
 
 # default nb_max_workers
+nb_cores_overload = 2
 if nb_max_workers is None:
     if nb_cores < 16:
         nb_max_workers = nb_cores + nb_cores_overload
@@ -118,6 +119,7 @@ class TopologyBase(object):
         if nb_max_workers < 1:
             raise ValueError('nb_max_workers < 1')
 
+        print('nb_cpus_allowed = {}'.format(nb_cores))
         print('nb_max_workers = ', nb_max_workers)
 
         self.queues = queues
@@ -153,6 +155,36 @@ class TopologyBase(object):
         self.nb_workers_cpu = 0
         self.nb_workers_io = 0
         workers = []
+
+        class UpdateThread(threading.Thread):
+
+            def __init__(self):
+                self.has_to_stop = False
+                super(UpdateThread, self).__init__()
+                self.exitcode = None
+
+            def run(self):
+                try:
+                    while not self.has_to_stop:
+                        t_tmp = time()
+                        for worker in workers:
+                            if worker.fill_destination():
+                                workers.remove(worker)
+                        t_tmp = time() - t_tmp
+                        if t_tmp > 0.2:
+                            logger.info(
+                                'update list of workers with fill_destination '
+                                'done in {:.3f} s'.format(t_tmp))
+                        sleep(dt_update)
+                except Exception as e:
+                    print('Exception in UpdateThread')
+                    self.exitcode = 1
+                    self.exception = e
+
+        self.thread_update = UpdateThread()
+        self.thread_update.daemon = True
+        self.thread_update.start()
+
         while (not self._has_to_stop and
                (any([not q.is_empty() for q in self.queues]) or
                 len(workers) > 0)):
@@ -177,30 +209,14 @@ class TopologyBase(object):
                             workers.append(worker)
                     logger.debug('workers: ' + repr(workers))
 
-            t_tmp = time()
-
-            workers_tmp = copy(workers)
-            skip_cpu = False
-            for worker in workers:
-                do_use_cpu = (hasattr(worker, 'do_use_cpu') and
-                              worker.do_use_cpu)
-                if skip_cpu and do_use_cpu:
-                    continue
-                if worker.fill_destination():
-                    workers_tmp.remove(worker)
-                    if do_use_cpu:
-                        skip_cpu = True
-            workers = workers_tmp
-            # workers[:] = [w for w in workers
-            #               if not w.fill_destination()]
-            t_tmp = time() - t_tmp
-            if t_tmp > 0.2:
-                logger.info(
-                    'update list of workers with fill_destination done '
-                    'in {:.3f} s'.format(t_tmp))
+            if self.thread_update.exitcode:
+                raise Exception(self.thread_update.exception)
 
             if len(workers) != self.nb_workers:
                 gc.collect()
+
+        self.thread_update.has_to_stop = True
+        self.thread_update.join()
 
         if self._has_to_stop:
             logger.info(term.FAIL + 'Will exist because of signal 12. ' +
