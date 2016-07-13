@@ -52,3 +52,6 @@ if(prompt == '' or prompt == 'y' or prompt == 'Y'):
         plot(1)
     else:
         plot(int(nimages))
+
+
+preproc.display()
