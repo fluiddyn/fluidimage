@@ -55,15 +55,27 @@ class LogTopology(object):
                         nb_max_workers)
 
                 if line.startswith('INFO: ') and '. mem usage: ' in line:
+                    line = line[11:]
                     words = line.split()
-                    date = words[1][5:-1]
-                    t = time.mktime(
-                        time.strptime(date[:-3], '%Y-%m-%d_%H-%M-%S')) + \
-                        float(date[-3:])
+
                     try:
                         mem = float(words[-2])
                     except ValueError:
                         pass
+
+                    if '. Launch work ' in line:
+                        name = words[4]
+                        key = words[5][1:-2]
+                        t = float(words[0])
+                        works.append({
+                            'name': name, 'key': key,
+                            'mem_start': mem, 'time': t})
+                    else:
+                        date = words[0][:-1]
+                        t = time.mktime(
+                            time.strptime(date[:-3], '%Y-%m-%d_%H-%M-%S')) + \
+                            float(date[-3:])
+
                     if 'start compute. mem usage:' in line:
                         self.date_start = date
                         self.mem_start = mem
@@ -72,12 +84,6 @@ class LogTopology(object):
                         self.date_end = date
                         self.duration = t - time_start
                         self.mem_end = mem
-                    elif ': launch work ' in line:
-                        name = words[4]
-                        key = words[5][1:-2]
-                        works.append({
-                            'name': name, 'key': key, 'date': date,
-                            'mem_start': mem, 'time': t - time_start})
 
                 if line.startswith('INFO: work '):
                     words = line.split()

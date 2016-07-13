@@ -17,7 +17,7 @@ import os
 import gc
 # from copy import copy
 import threading
-
+from multiprocessing import Process
 
 from fluiddyn.util import time_as_str, terminal_colors as term
 from fluiddyn.util.tee import MultiFile
@@ -29,9 +29,9 @@ from .. import config_logging
 
 config = get_config()
 
-dt = 0.2  # s
-dt_small = 0.01
-dt_update = 0.2
+dt = 0.25  # s
+dt_small = 0.02
+dt_update = 0.1
 
 nb_cores = cpu_count()
 
@@ -79,14 +79,13 @@ if config is not None:
         pass
 
 # default nb_max_workers
-nb_cores_overload = 2
+# Difficult: trade off between overloading and limitation due to input output.
+# The user can do much better for a specific case.
 if nb_max_workers is None:
     if nb_cores < 16:
-        nb_max_workers = nb_cores + nb_cores_overload
-    elif 16 < nb_cores <= 20:
-        nb_max_workers = nb_cores
+        nb_max_workers = nb_cores + 2
     else:
-        nb_max_workers = nb_cores - 1
+        nb_max_workers = nb_cores
 
 _nb_max_workers = nb_max_workers
 
@@ -113,19 +112,20 @@ class TopologyBase(object):
         if nb_max_workers is None:
             nb_max_workers = _nb_max_workers
 
-        self.nb_max_workers_io = max(nb_max_workers // 3, 2)
-        self.nb_max_launch = max(self.nb_max_workers_io // 2, 1)
+        self.nb_max_workers_io = max(int(nb_max_workers * 0.8), 2)
+        self.nb_max_launch = max(int(self.nb_max_workers_io), 1)
 
         if nb_max_workers < 1:
             raise ValueError('nb_max_workers < 1')
 
         print('nb_cpus_allowed = {}'.format(nb_cores))
         print('nb_max_workers = ', nb_max_workers)
+        print('nb_max_workers_io = ', self.nb_max_workers_io)
 
         self.queues = queues
         self.nb_max_workers = nb_max_workers
         self.nb_cores = nb_cores
-        self.nb_items_lim = max(nb_max_workers+4, 2)
+        self.nb_items_lim = max(2*nb_max_workers, 2)
 
         self._has_to_stop = False
 
@@ -148,7 +148,7 @@ class TopologyBase(object):
                     str(os.getpid()) + '.xml')
                 self.params._save_as_xml(path_params)
 
-        t_start = time()
+        self.t_start = time()
 
         log_memory_usage(time_as_str(2) + ': start compute. mem usage')
 
@@ -156,11 +156,12 @@ class TopologyBase(object):
         self.nb_workers_io = 0
         workers = []
 
-        class UpdateThread(threading.Thread):
+        class CheckWorksThread(threading.Thread):
+            cls_to_be_updated = threading.Thread
 
             def __init__(self):
                 self.has_to_stop = False
-                super(UpdateThread, self).__init__()
+                super(CheckWorksThread, self).__init__()
                 self.exitcode = None
 
             def run(self):
@@ -168,7 +169,8 @@ class TopologyBase(object):
                     while not self.has_to_stop:
                         t_tmp = time()
                         for worker in workers:
-                            if worker.fill_destination():
+                            if isinstance(worker, self.cls_to_be_updated) and \
+                               worker.fill_destination():
                                 workers.remove(worker)
                         t_tmp = time() - t_tmp
                         if t_tmp > 0.2:
@@ -181,9 +183,14 @@ class TopologyBase(object):
                     self.exitcode = 1
                     self.exception = e
 
-        self.thread_update = UpdateThread()
-        self.thread_update.daemon = True
-        self.thread_update.start()
+        class CheckWorksProcess(CheckWorksThread):
+            cls_to_be_updated = Process
+
+        self.thread_check_works_t = CheckWorksThread()
+        self.thread_check_works_t.start()
+
+        self.thread_check_works_p = CheckWorksProcess()
+        self.thread_check_works_p.start()
 
         while (not self._has_to_stop and
                (any([not q.is_empty() for q in self.queues]) or
@@ -194,29 +201,34 @@ class TopologyBase(object):
             # slow down this loop...
             sleep(dt_small)
             if self.nb_workers_cpu >= nb_max_workers:
-                logger.info(('{}The workers are saturated: '
-                             '{}, sleep {} s {}').format(
+                logger.debug(('{}The workers are saturated: '
+                              '{}, sleep {} s {}').format(
                     term.WARNING, self.nb_workers_cpu, dt, term.ENDC))
                 sleep(dt)
 
             for q in self.queues:
                 if not q.is_empty():
                     logger.debug(q)
-                    logger.debug('check_and_act for work: ' + repr(q.work))
+                    logger.debug('check_and_act for work: ' + q.work_name)
                     new_workers = q.check_and_act(sequential=sequential)
                     if new_workers is not None:
                         for worker in new_workers:
                             workers.append(worker)
                     logger.debug('workers: ' + repr(workers))
 
-            if self.thread_update.exitcode:
-                raise Exception(self.thread_update.exception)
+            if self.thread_check_works_t.exitcode:
+                raise Exception(self.thread_check_works_t.exception)
+
+            if self.thread_check_works_p.exitcode:
+                raise Exception(self.thread_check_works_p.exception)
 
             if len(workers) != self.nb_workers:
                 gc.collect()
 
-        self.thread_update.has_to_stop = True
-        self.thread_update.join()
+        self.thread_check_works_t.has_to_stop = True
+        self.thread_check_works_p.has_to_stop = True
+        self.thread_check_works_t.join()
+        self.thread_check_works_p.join()
 
         if self._has_to_stop:
             logger.info(term.FAIL + 'Will exist because of signal 12. ' +
@@ -241,7 +253,7 @@ class TopologyBase(object):
                 workers[:] = [w for w in workers
                               if not w.fill_destination()]
 
-        self._print_at_exit(time() - t_start)
+        self._print_at_exit(time() - self.t_start)
         log_memory_usage(time_as_str(2) + ': end of `compute`. mem usage')
 
         if self._has_to_stop and has_to_exit:
