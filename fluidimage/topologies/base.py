@@ -9,17 +9,19 @@
 from __future__ import print_function
 
 from time import sleep, time
-from multiprocessing import cpu_count
+from multiprocessing import cpu_count, Process
 from signal import signal
 import re
 import sys
 import os
 import gc
+# from copy import copy
+import threading
 
 from fluiddyn.util import time_as_str
 from fluiddyn.util.tee import MultiFile
-from fluidimage.util.util import (
-    logger, log_memory_usage, is_memory_full, cstring)
+from fluidimage import logger, log_memory_usage
+from fluidimage.util.util import is_memory_full, cstring
 
 from ..config import get_config
 from .waiting_queues.base import WaitingQueueThreading
@@ -27,12 +29,11 @@ from .. import config_logging
 
 config = get_config()
 
-dt = 0.5  # s
-dt_small = 0.05
+dt = 0.25  # s
+dt_small = 0.02
+dt_update = 0.1
 
 nb_cores = cpu_count()
-overloading_coef = 1.
-nb_cores_overload = 2
 
 if config is not None:
     try:
@@ -50,7 +51,6 @@ try:  # should work on UNIX
 
     if nb_cpus_allowed > 0:
         nb_cores = nb_cpus_allowed
-        print('Cpus_allowed: {}'.format(nb_cpus_allowed))
 
     with open('/proc/cpuinfo') as f:
         cpuinfo = f.read()
@@ -64,7 +64,6 @@ try:  # should work on UNIX
             siblings = int(line.split()[-1])
 
     if nb_proc_tot == siblings * 2:
-        overloading_coef = 1
         if allow_hyperthreading is False:
             print('We do not use hyperthreading.')
             nb_cores //= 2
@@ -72,21 +71,23 @@ try:  # should work on UNIX
 except IOError:
     pass
 
-
+nb_max_workers = None
 if config is not None:
     try:
-        nb_cores = eval(config['topology']['nb_cores'])
+        nb_max_workers = eval(config['topology']['nb_max_workers'])
     except KeyError:
         pass
 
-    try:
-        overloading_coef = eval(config['topology']['overloading_coef'])
-    except KeyError:
-        pass
+# default nb_max_workers
+# Difficult: trade off between overloading and limitation due to input output.
+# The user can do much better for a specific case.
+if nb_max_workers is None:
+    if nb_cores < 16:
+        nb_max_workers = nb_cores + 2
+    else:
+        nb_max_workers = nb_cores
 
-
-_nb_max_workers = nb_max_workers = \
-    int(round(nb_cores * overloading_coef)) + nb_cores_overload
+_nb_max_workers = nb_max_workers
 
 
 class TopologyBase(object):
@@ -95,6 +96,8 @@ class TopologyBase(object):
                  nb_max_workers=None):
 
         if path_output is not None:
+            if not os.path.exists(path_output):
+                os.makedirs(path_output)
             self.path_output = path_output
             log = os.path.join(
                 path_output,
@@ -109,10 +112,20 @@ class TopologyBase(object):
         if nb_max_workers is None:
             nb_max_workers = _nb_max_workers
 
+        self.nb_max_workers_io = max(int(nb_max_workers * 0.8), 2)
+        self.nb_max_launch = max(int(self.nb_max_workers_io), 1)
+
+        if nb_max_workers < 1:
+            raise ValueError('nb_max_workers < 1')
+
+        print('nb_cpus_allowed = {}'.format(nb_cores))
+        print('nb_max_workers = ', nb_max_workers)
+        print('nb_max_workers_io = ', self.nb_max_workers_io)
+
         self.queues = queues
         self.nb_max_workers = nb_max_workers
         self.nb_cores = nb_cores
-        self.nb_items_lim = max(nb_max_workers, 2)
+        self.nb_items_lim = max(2*nb_max_workers, 2)
 
         self._has_to_stop = False
 
@@ -135,16 +148,54 @@ class TopologyBase(object):
                     str(os.getpid()) + '.xml')
                 self.params._save_as_xml(path_params)
 
-        t_start = time()
+        self.t_start = time()
 
         log_memory_usage(time_as_str(2) + ': start compute. mem usage')
 
+        self.nb_workers_cpu = 0
+        self.nb_workers_io = 0
         workers = []
-        workers_cpu = []
+
+        class CheckWorksThread(threading.Thread):
+            cls_to_be_updated = threading.Thread
+
+            def __init__(self):
+                self.has_to_stop = False
+                super(CheckWorksThread, self).__init__()
+                self.exitcode = None
+
+            def run(self):
+                try:
+                    while not self.has_to_stop:
+                        t_tmp = time()
+                        for worker in workers:
+                            if isinstance(worker, self.cls_to_be_updated) and \
+                               worker.fill_destination():
+                                workers.remove(worker)
+                        t_tmp = time() - t_tmp
+                        if t_tmp > 0.2:
+                            logger.info(
+                                'update list of workers with fill_destination '
+                                'done in {:.3f} s'.format(t_tmp))
+                        sleep(dt_update)
+                except Exception as e:
+                    print('Exception in UpdateThread')
+                    self.exitcode = 1
+                    self.exception = e
+
+        class CheckWorksProcess(CheckWorksThread):
+            cls_to_be_updated = Process
+
+        self.thread_check_works_t = CheckWorksThread()
+        self.thread_check_works_t.start()
+
+        self.thread_check_works_p = CheckWorksProcess()
+        self.thread_check_works_p.start()
+
         while (not self._has_to_stop and
                (any([not q.is_empty() for q in self.queues]) or
                 len(workers) > 0)):
-            self.nb_workers_cpu = len(workers_cpu)
+
             self.nb_workers = len(workers)
 
             # slow down this loop...
@@ -174,33 +225,21 @@ class TopologyBase(object):
                     if new_workers is not None:
                         for worker in new_workers:
                             workers.append(worker)
-                            if hasattr(worker, 'do_use_cpu') and \
-                               worker.do_use_cpu:
-                                workers_cpu.append(worker)
                     logger.debug('workers: ' + repr(workers))
-                    logger.debug('workers_cpu: ' + repr(workers_cpu))
 
-            t_tmp = time()
+            if self.thread_check_works_t.exitcode:
+                raise Exception(self.thread_check_works_t.exception)
 
-            workers_tmp = workers
-            for worker in workers:
-                if worker.fill_destination():
-                    workers_tmp.remove(worker)
-                    break
-            workers = workers_tmp
-            # workers[:] = [w for w in workers
-            #               if not w.fill_destination()]
-            t_tmp = time() - t_tmp
-            if t_tmp > 0.1:
-                logger.debug(
-                    'update list of workers with fill_destination done '
-                    'in {:.3f} s'.format(t_tmp))
+            if self.thread_check_works_p.exitcode:
+                raise Exception(self.thread_check_works_p.exception)
 
             if len(workers) != self.nb_workers:
                 gc.collect()
 
-            workers_cpu[:] = [w for w in workers_cpu
-                              if w.is_alive()]
+        self.thread_check_works_t.has_to_stop = True
+        self.thread_check_works_p.has_to_stop = True
+        self.thread_check_works_t.join()
+        self.thread_check_works_p.join()
 
         if self._has_to_stop:
             logger.info(cstring(
@@ -208,7 +247,7 @@ class TopologyBase(object):
                 'Waiting for all workers to finish...', color='FAIL'))
             self._clear_save_queue(workers, sequential, has_to_exit)
 
-        self._print_at_exit(time() - t_start)
+        self._print_at_exit(time() - self.t_start)
         log_memory_usage(time_as_str(2) + ': end of `compute`. mem usage')
 
         if self._has_to_stop and has_to_exit:

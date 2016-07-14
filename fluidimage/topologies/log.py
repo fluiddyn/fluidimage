@@ -13,6 +13,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 plt.ion()
 
+colors = ['r', 'b', 'y', 'g']
+
 
 class LogTopology(object):
     """Parse and analyze logging files.
@@ -29,24 +31,53 @@ class LogTopology(object):
                     'No log files found in the current directory.')
             path = paths[-1]
 
+        self.log_file = os.path.split(path)[-1]
+        self._title = self.log_file
+
         self._parse_log(path)
 
     def _parse_log(self, path):
         self.works = works = []
         self.works_ended = works_ended = []
+        nb_cpus = None
+        nb_max_workers = None
         with open(path, 'r') as f:
             print('Parsing log file: ', path)
             for line in f:
+
+                if nb_cpus is None and \
+                   line.startswith('nb_cpus_allowed = '):
+                    self.nb_cpus_allowed = nb_cpus = int(line.split()[2])
+                    self._title += ', nb_cpus_allowed = {}'.format(nb_cpus)
+
+                if nb_max_workers is None and \
+                   line.startswith('nb_max_workers = '):
+                    self.nb_max_workers = nb_max_workers = int(line.split()[2])
+                    self._title += ', nb_max_workers = {}'.format(
+                        nb_max_workers)
+
                 if line.startswith('INFO: ') and '. mem usage: ' in line:
+                    line = line[11:]
                     words = line.split()
-                    date = words[1][5:-1]
-                    t = time.mktime(
-                        time.strptime(date[:-3], '%Y-%m-%d_%H-%M-%S')) + \
-                        float(date[-3:])
+
                     try:
                         mem = float(words[-2])
                     except ValueError:
                         pass
+
+                    if '. Launch work ' in line:
+                        name = words[4]
+                        key = words[5][1:-2]
+                        t = float(words[0])
+                        works.append({
+                            'name': name, 'key': key,
+                            'mem_start': mem, 'time': t})
+                    else:
+                        date = words[0][:-1]
+                        t = time.mktime(
+                            time.strptime(date[:-3], '%Y-%m-%d_%H-%M-%S')) + \
+                            float(date[-3:])
+
                     if 'start compute. mem usage:' in line:
                         self.date_start = date
                         self.mem_start = mem
@@ -55,12 +86,6 @@ class LogTopology(object):
                         self.date_end = date
                         self.duration = t - time_start
                         self.mem_end = mem
-                    elif ': launch work ' in line:
-                        name = words[4]
-                        key = words[5][1:-2]
-                        works.append({
-                            'name': name, 'key': key, 'date': date,
-                            'mem_start': mem, 'time': t - time_start})
 
                 if line.startswith('INFO: work '):
                     words = line.split()
@@ -68,7 +93,7 @@ class LogTopology(object):
                     key = words[3][1:-1]
                     duration = float(words[-2])
                     works_ended.append({
-                            'name': name, 'key': key, 'duration': duration})
+                        'name': name, 'key': key, 'duration': duration})
 
                 self.names_works = names_works = []
                 for work in works:
@@ -95,7 +120,7 @@ class LogTopology(object):
                         founded = True
                         break
                 if not founded:
-                    durations[name].append(0)
+                    durations[name].append(np.nan)
 
     def plot_memory(self):
 
@@ -103,7 +128,7 @@ class LogTopology(object):
         ax = plt.gca()
         ax.set_xlabel('time (s)')
         ax.set_ylabel('memory (Mo)')
-        ax.set_title(self.log_file)
+        ax.set_title(self._title, fontdict={'fontsize': 12})
 
         memories = np.empty(len(self.works))
         times = np.empty(len(self.works))
@@ -123,7 +148,7 @@ class LogTopology(object):
         ax = plt.gca()
         ax.set_xlabel('time (s)')
         ax.set_ylabel('duration (s)')
-        ax.set_title(self.log_file)
+        ax.set_title(self._title, fontdict={'fontsize': 12})
 
         lines = []
 
@@ -137,11 +162,61 @@ class LogTopology(object):
                 d = durations[it]
                 ax.plot([t, t+d], [d, d], colors[i])
 
-            d = np.mean(durations)
+            d = np.nanmean(durations)
             ax.plot([times.min(), times.max()], [d, d], colors[i] + '-',
                     linewidth=2)
 
         ax.legend(lines, self.names_works, loc='center left',
                   fontsize='x-small')
+
+        plt.show()
+
+    def plot_nb_workers(self, str_names=None):
+        if str_names is not None:
+            names = [name for name in self.names_works if str_names in name]
+        else:
+            names = self.names_works
+
+        nb_workers = {}
+        times = {}
+        for name in names:
+            times_start = list(self.times[name])
+            times_stop = list(np.array(times_start) +
+                              np.array(self.durations[name]))
+
+            deltas = np.array([1 for t in times_start] +
+                              [-1 for t in times_stop])
+            times_unsorted = np.array(times_start + times_stop)
+
+            argsort = np.argsort(times_unsorted)
+
+            ts = times_unsorted[argsort]
+            nbws = np.cumsum(deltas[argsort])
+
+            ts2 = []
+            nbws2 = []
+            for i, t in enumerate(ts[:-1]):
+                nbw = nbws[i]
+                ts2.append(t)
+                ts2.append(ts[i+1])
+                nbws2.append(nbw)
+                nbws2.append(nbw)
+
+            times[name] = ts2
+            nb_workers[name] = nbws2
+
+        plt.figure()
+        ax = plt.gca()
+        ax.set_xlabel('time (s)')
+        ax.set_ylabel('number of workers')
+        ax.set_title(self._title, fontdict={'fontsize': 12})
+
+        lines = []
+
+        for i, name in enumerate(self.names_works):
+            l, = ax.plot(times[name], nb_workers[name], colors[i] + '-')
+            lines.append(l)
+
+        ax.legend(lines, names, loc='center left', fontsize='x-small')
 
         plt.show()
