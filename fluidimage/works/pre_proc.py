@@ -59,3 +59,13 @@ class WorkPreproc(PreprocBase):
             s = slice(ind_middle_start, ind_middle_end)
 
         return dict(zip(name_files[s], images[s]))
+
+    def display(self, ind_start=0, nb_images=2, show_interp=False, results=None):
+        name_files = self.serie_arrays.get_name_files()[ind_start:ind_start + nb_images]
+
+        if results is None:
+            results_series = SerieOfArraysFromFiles(self.params.saving.path)
+            results = {name: results_series.get_array_from_name(name)
+                       for name in name_files[ind_start:ind_start + nb_images]}
+
+        return super(WorkPreproc, self).display(ind_start, nb_images, show_interp, results)

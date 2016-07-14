@@ -16,6 +16,7 @@ from .toolbox import PreprocTools
 from .. import ParamContainer, SerieOfArraysFromFiles
 from fluidimage.data_objects.display import DisplayPreProc
 
+
 class PreprocBase(object):
     """Preprocess series of images with various tools. """
 
@@ -31,7 +32,7 @@ class PreprocBase(object):
         return params
 
     def __init__(self, params=None):
-        """Set path for results and loads images as SeriesOfArraysFromFiles."""
+        """Set path for results and loads images as SerieOfArraysFromFiles."""
         if params is None:
             params = self.__class__.create_default_params()
 
@@ -55,18 +56,16 @@ class PreprocBase(object):
             name = name_files[i]
             self.results[name] = self.tools(img)
 
-    def display(self, ind=None, show_interp=False):
-	nimages = 2
-	if not ind:	
-	    name_files = self.serie_arrays.get_name_files()[:nimages]
-	else:
-	    name_files = self.serie_arrays.get_name_files()[ind:ind+nimages]
+    def display(self, ind_start=0, nb_images=2, show_interp=False, results=None):
+        name_files = self.serie_arrays.get_name_files()[ind_start:ind_start + nb_images]
 
-    	before = {}
-	for fname in name_files:
-        	before[fname] = self.serie_arrays.get_array_from_name(fname)
+        before = {}
+        for fname in name_files:
+            before[fname] = self.serie_arrays.get_array_from_name(fname)
 
-	result = self.results
+        if results is None:
+            results = self.results
 
         return DisplayPreProc(
-            before[name_files[0]], before[name_files[1]], result[name_files[0]], result[name_files[1]], show_interp=show_interp)
+            before[name_files[0]], before[name_files[1]],
+            results[name_files[0]], results[name_files[1]], show_interp=show_interp)

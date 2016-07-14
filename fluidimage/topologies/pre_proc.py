@@ -72,7 +72,9 @@ class TopologyPreproc(TopologyBase):
             path_dir, params.preproc.saving.path,
             params.preproc.saving.postfix, params.preproc.saving.how)
 
+        self.params.saving.path = self.path_dir_result
         self.results = self.preproc_work.results
+        self.display = self.preproc_work.display
 
         def save_preproc_results_object(o):
             return o.save(path=self.path_dir_result)
