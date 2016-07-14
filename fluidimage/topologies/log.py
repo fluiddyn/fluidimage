@@ -11,8 +11,9 @@ import time
 
 import numpy as np
 import matplotlib.pyplot as plt
-plt.ion()
 
+
+plt.ion()
 colors = ['r', 'b', 'y', 'g']
 
 
@@ -31,7 +32,7 @@ class LogTopology(object):
                     'No log files found in the current directory.')
             path = paths[-1]
 
-        self.log_file = os.path.split(path)[-1]
+        self.log_file = os.path.basename(path)
         self._title = self.log_file
 
         self._parse_log(path)

@@ -52,7 +52,7 @@ def imsave(path, array, **kwargs):
 
 def _get_txt_memory_usage(string='Memory usage', color='OKGREEN'):
     mem = get_memory_usage()
-    cstr = cstring((string + ':').ljust(30) + '{} Mb'.format(mem),
+    cstr = cstring((string + ': ').ljust(30) + '{} Mb'.format(mem),
                    color=color)
     return cstr
 

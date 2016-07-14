@@ -53,7 +53,7 @@ class TopologyPreproc(TopologyBase):
 
         return params
 
-    def __init__(self, params=None, logging_level='info'):
+    def __init__(self, params=None, logging_level='info', nb_max_workers=None):
         if params is None:
             params = self.__class__.create_default_params()
 
@@ -94,15 +94,10 @@ class TopologyPreproc(TopologyBase):
 
         super(TopologyPreproc, self).__init__(
             [self.wq0, self.wq_images, self.wq_serie, self.wq_preproc],
-            path_output=self.path_dir_result, logging_level=logging_level)
+            path_output=self.path_dir_result, logging_level=logging_level,
+            nb_max_workers=nb_max_workers)
 
         self.add_series(self.series)
-
-        path_params_xml = os.path.join(self.path_dir_result, 'params.xml')
-        if os.path.isfile(path_params_xml):
-            os.remove(path_params_xml)
-
-        params._save_as_xml(path_params_xml)
 
     def add_series(self, series):
 
