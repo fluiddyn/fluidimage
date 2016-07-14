@@ -7,7 +7,6 @@
 
 """
 import os
-import logging
 
 from .. import ParamContainer, SerieOfArraysFromFiles, SeriesOfArrays
 
@@ -19,8 +18,7 @@ from .waiting_queues.base import (
 
 from ..works.piv import WorkPIV
 from ..data_objects.piv import get_name_piv, set_path_dir_result
-
-logger = logging.getLogger('fluidimage')
+from ..util.util import logger
 
 
 class TopologyPIV(TopologyBase):
@@ -118,7 +116,7 @@ class TopologyPIV(TopologyBase):
                     if name not in names:
                         names.append(name)
 
-                index_series.append(i*series.ind_step + series.ind_start)
+                index_series.append(i * series.ind_step + series.ind_start)
 
             if len(index_series) == 0:
                 print('Warning: topology in mode "complete" and '
@@ -158,7 +156,7 @@ class TopologyPIV(TopologyBase):
             nb_results = None
         if nb_results is not None and nb_results > 0:
             txt += (' ({} piv fields, {:.2f} s/field).'.format(
-                nb_results, time_since_start/nb_results))
+                nb_results, time_since_start / nb_results))
         else:
             txt += '.'
 

@@ -24,17 +24,18 @@ class LogTopology(object):
     """Parse and analyze logging files.
 
     """
-    def __init__(self, path=None):
+    def __init__(self, path=None, path_dir=''):
 
         if path is None:
-            paths = glob('log_*.txt')
+            pattern = os.path.join(path_dir, 'log_*.txt')
+            paths = glob(pattern)
             paths.sort()
             if len(paths) == 0:
                 raise ValueError(
                     'No log files found in the current directory.')
             path = paths[-1]
 
-        self.log_file = os.path.split(path)[-1]
+        self.log_file = os.path.basename(path)
         self._title = self.log_file
 
         self._parse_log(path)
@@ -45,6 +46,7 @@ class LogTopology(object):
         nb_cpus = None
         nb_max_workers = None
         with open(path, 'r') as f:
+            print('Parsing log file: ', path)
             for line in f:
 
                 if nb_cpus is None and \

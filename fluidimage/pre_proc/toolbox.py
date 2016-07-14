@@ -12,12 +12,11 @@ Provides:
 """
 
 import inspect
-import numpy as np
 import scipy.ndimage as nd
 
 from skimage import exposure, filters, morphology
 from .io import iterate_multiple_imgs, multiple_imgs_as_ndarray
-from .. import logger
+from ..util.util import logger
 
 
 available_tools = ['sliding_median', 'sliding_minima', 'sliding_percentile',
