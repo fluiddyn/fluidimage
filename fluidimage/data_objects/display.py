@@ -2,12 +2,17 @@ from __future__ import print_function
 
 import numpy as np
 import matplotlib.pyplot as plt
-plt.ion()
+
+from fluiddyn.util import run_from_ipython
+
+if run_from_ipython():
+    plt.ion()
 
 
 class DisplayPIV(object):
 
-    def __init__(self, im0, im1, im0p, im1p, show_interp=False):
+    def __init__(self, im0, im1, piv_results=None, show_interp=False,
+                 scale=0.2, show_error=True):
 
         self.piv_results = piv_results
 
@@ -28,11 +33,11 @@ class DisplayPIV(object):
 
         self.fig = fig
         self.ax1 = ax1
-        
+
         self.image0 = ax1.imshow(
             im0, interpolation='nearest', cmap=plt.cm.gray, origin='upper',
             extent=[0, im0.shape[1], im0.shape[0], 0])
-        
+
         self.image1 = ax1.imshow(
             im1, interpolation='nearest', cmap=plt.cm.gray, origin='upper',
             extent=[0, im0.shape[1], im0.shape[0], 0])
@@ -40,7 +45,7 @@ class DisplayPIV(object):
 
         l, = ax1.plot(0, 0, 'oy')
         l.set_visible(False)
-        
+
         ax1.set_title('im 0 (alt+s to switch)')
 
         t = fig.text(0.1, 0.05, '')
@@ -50,7 +55,7 @@ class DisplayPIV(object):
 
         ax1.set_xlim(0, im0.shape[1])
         ax1.set_ylim(im0.shape[0], 0)
-        
+
         ax1.set_xlabel('pixels')
         ax1.set_ylabel('pixels')
 
@@ -203,16 +208,16 @@ class DisplayPreProc(object):
         fig = plt.figure()
         fig.event_handler = self
 
-	ax1 = plt.subplot(121)
+        ax1 = plt.subplot(121)
         ax2 = plt.subplot(122)
         self.fig = fig
         self.ax1 = ax1
         self.ax2 = ax2
-        
+
         self.image0 = ax1.imshow(
             im0, interpolation='nearest', cmap=plt.cm.gray, origin='upper',
             extent=[0, im0.shape[1], im0.shape[0], 0])
-        
+
         self.image1 = ax1.imshow(
             im1, interpolation='nearest', cmap=plt.cm.gray, origin='upper',
             extent=[0, im0.shape[1], im0.shape[0], 0])
@@ -221,7 +226,7 @@ class DisplayPreProc(object):
         self.image0p = ax2.imshow(
             im0p, interpolation='nearest', cmap=plt.cm.gray, origin='upper',
             extent=[0, im0p.shape[1], im0p.shape[0], 0])
-        
+
         self.image1p = ax2.imshow(
             im1p, interpolation='nearest', cmap=plt.cm.gray, origin='upper',
             extent=[0, im0p.shape[1], im0p.shape[0], 0])
@@ -229,40 +234,40 @@ class DisplayPreProc(object):
 
         l, = ax1.plot(0, 0, 'oy')
         l.set_visible(False)
-        
+
         ax1.set_title('im 0 (alt+s to switch)')
 
-        t = fig.text(0.1, 0.05, '')
+        # t = fig.text(0.1, 0.05, '')
 
         ax1.set_xlim(0, im0.shape[1])
         ax1.set_ylim(im0.shape[0], 0)
         ax1.set_xlabel('pixels')
         ax1.set_ylabel('pixels')
 
-        #self.t1 = t
-        #self.l1 = l
+        # self.t1 = t
+        # self.l1 = l
 
         ax1.set_xlim(0, im0.shape[1])
         ax1.set_ylim(im0.shape[0], 0)
-        
+
         ax1.set_xlabel('pixels')
         ax1.set_ylabel('pixels')
 
-	l, = ax2.plot(0, 0, 'oy')
+        l, = ax2.plot(0, 0, 'oy')
         l.set_visible(False)
-        
+
         ax2.set_title('im 0p (alt+s to switch)')
 
-        t = fig.text(0.1, 0.05, '')
+        # t = fig.text(0.1, 0.05, '')
 
         ax2.set_xlim(0, im0p.shape[1])
         ax2.set_ylim(im0p.shape[0], 0)
         ax2.set_xlabel('pixels')
         ax2.set_ylabel('pixels')
 
-        #self.t2 = t
-        #self.l2 = l
-        
+        # self.t2 = t
+        # self.l2 = l
+
         self.ind = 0
         fig.canvas.mpl_connect('key_press_event', self.onclick)
         print('press alt+h for help')
@@ -272,7 +277,6 @@ class DisplayPreProc(object):
     def onclick(self, event):
         if event.key == 'alt+s':
             self.switch()
-
 
     def switch(self):
         self.image0.set_visible(not self.image0.get_visible())

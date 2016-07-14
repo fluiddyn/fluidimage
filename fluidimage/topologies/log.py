@@ -11,7 +11,11 @@ import time
 
 import numpy as np
 import matplotlib.pyplot as plt
-plt.ion()
+
+from fluiddyn.util import run_from_ipython
+
+if run_from_ipython():
+    plt.ion()
 
 colors = ['r', 'b', 'y', 'g']
 

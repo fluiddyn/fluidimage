@@ -1,0 +1,3 @@
+/fsnet/project/meige/2016/16FLUIDIMAGE/samples/pivchallenge
+/storage2/pivchallenge
+~/pivchallenge
