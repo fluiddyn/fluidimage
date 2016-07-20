@@ -8,7 +8,7 @@ from __future__ import print_function
 import sys
 import six
 import psutil
-from string import join
+
 from logging import getLogger
 from fluiddyn.util.util import get_memory_usage
 from fluiddyn.io.image import (imread as _imread,
@@ -83,7 +83,7 @@ def cstring(*args, **kwargs):
     else:
         color = 'OKBLUE'
 
-    cstr = join(args)
+    cstr = ' '.join(args)
     return color_dict[color] + cstr + color_dict['ENDC']
 
 

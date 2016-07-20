@@ -1,3 +1,17 @@
+"""Waiting queues for series
+============================
+
+.. autoclass:: WaitingQueueLoadImageSeries
+   :members:
+   :private-members:
+
+.. autoclass:: WaitingQueueMakeSerie
+   :members:
+   :private-members:
+
+"""
+
+
 from __future__ import print_function
 import os
 from copy import deepcopy, copy
@@ -10,6 +24,7 @@ from ...data_objects.pre_proc import ArraySerie
 
 
 class WaitingQueueLoadImageSeries(WaitingQueueLoadImage):
+    """Waiting queue for loading series of images."""
 
     def __init__(self, *args, **kwargs):
         self.sequential = kwargs.pop('sequential')
@@ -37,8 +52,9 @@ class WaitingQueueMakeSerie(WaitingQueueBase):
     """
     The difference from `WaitingQueueMakeCouple` is that
     the following attributes are replaced:
-    .. `self.couples` --> `self.serie_set`
-    .. `self.nb_couples_to_create` --> `self.nb_serie_to_create`
+
+    - `self.couples` --> `self.serie_set`
+    - `self.nb_couples_to_create` --> `self.nb_serie_to_create`
 
     Allowing the dictionary to contain a serie of images,
     and not just a couple (2 images).

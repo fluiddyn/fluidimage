@@ -56,6 +56,8 @@ functions.
    fluidimage.works
    fluidimage.calcul
    fluidimage.topologies
+   fluidimage.pre_proc
+   fluidimage.post_proc
    fluidimage.gui
 
 More

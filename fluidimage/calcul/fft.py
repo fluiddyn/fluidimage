@@ -29,7 +29,11 @@ that.
 from __future__ import division, print_function
 
 import numpy as np
-import pyfftw
+
+try:
+    import pyfftw
+except ImportError:
+    pass
 
 try:
     from reikna.cluda import any_api, cuda_api, ocl_api

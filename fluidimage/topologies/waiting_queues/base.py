@@ -1,3 +1,37 @@
+"""Waiting queues classes
+=========================
+
+.. autoclass:: WaitingQueueBase
+   :members:
+   :private-members:
+
+.. autoclass:: WaitingQueueMultiprocessing
+   :members:
+   :private-members:
+
+.. autoclass:: ThreadWork
+   :members:
+   :private-members:
+
+.. autoclass:: WaitingQueueThreading
+   :members:
+   :private-members:
+
+.. autoclass:: WaitingQueueLoadFile
+   :members:
+   :private-members:
+
+.. autoclass:: WaitingQueueLoadImage
+   :members:
+   :private-members:
+
+.. autoclass:: WaitingQueueMakeCouple
+   :members:
+   :private-members:
+
+"""
+
+
 from __future__ import print_function
 
 import os
@@ -6,7 +40,11 @@ from time import time
 
 import multiprocessing
 import threading
-import Queue
+try:
+    import queue
+except ImportError:
+    # python 2
+    import Queue as queue
 
 from fluidimage import logger, log_memory_usage
 from fluidimage.util.util import cstring, is_memory_full
@@ -177,7 +215,7 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
                 try:
                     result = comm.get_nowait()
                     is_done = True
-                except Queue.Empty:
+                except queue.Empty:
                     return False
             else:
                 if p.exitcode:
@@ -229,7 +267,7 @@ class WaitingQueueThreading(WaitingQueueMultiprocessing):
 
     @staticmethod
     def _Queue(*args, **kwargs):
-        return Queue.Queue(*args, **kwargs)
+        return queue.Queue(*args, **kwargs)
 
     @staticmethod
     def _Process(*args, **kwargs):

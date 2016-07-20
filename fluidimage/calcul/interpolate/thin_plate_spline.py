@@ -30,7 +30,7 @@ from __future__ import print_function
 
 import numpy as np
 
-import tps_pythran
+from . import tps_pythran
 
 
 def compute_tps_coeff_subdom(centers, U, smoothing_coef, subdom_size,

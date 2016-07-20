@@ -13,6 +13,6 @@ Provides:
    :toctree:
 
    base
-   filters
+   toolbox
 
 """

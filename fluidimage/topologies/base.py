@@ -10,7 +10,7 @@ from __future__ import print_function
 
 from time import sleep, time
 from multiprocessing import cpu_count, Process
-from signal import signal
+import signal
 import re
 import sys
 import os
@@ -91,7 +91,7 @@ _nb_max_workers = nb_max_workers
 
 
 class TopologyBase(object):
-
+    """Base class for topologies of treatment."""
     def __init__(self, queues, path_output=None, logging_level='info',
                  nb_max_workers=None):
 
@@ -135,10 +135,10 @@ class TopologyBase(object):
                     signal_number))
                 self._has_to_stop = True
 
-            signal(12, handler_signals)
+            signal.signal(12, handler_signals)
 
     def compute(self, sequential=None, has_to_exit=True):
-
+        """Compute (run all works to be done)."""
         if hasattr(self, 'path_output'):
             logger.info('path results:\n' + self.path_output)
             if hasattr(self, 'params'):
@@ -255,6 +255,7 @@ class TopologyBase(object):
             exit(99)
 
     def _clear_save_queue(self, workers, sequential, has_to_exit):
+        """Clear the last queue (which is often saving) before stopping."""
         q = self.queues[-1]
 
         # if the last queue is a WaitingQueueThreading (saving),
@@ -275,7 +276,7 @@ class TopologyBase(object):
                           if not w.fill_destination()]
 
     def _print_at_exit(self, time_since_start):
-
+        """Print information before exit."""
         txt = 'Stop compute after t = {:.2f} s'.format(time_since_start)
         try:
             nb_results = len(self.results)
