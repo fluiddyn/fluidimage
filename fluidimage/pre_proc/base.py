@@ -55,7 +55,7 @@ class PreprocBase(object):
             name = name_files[i]
             self.results[name] = self.tools(img)
 
-    def display(self, ind=None, show_interp=False):
+    def display(self, ind=None, show_interp=False, hist=False):
 	nimages = 2
 	if not ind:	
 	    name_files = self.serie_arrays.get_name_files()[:nimages]
@@ -69,4 +69,4 @@ class PreprocBase(object):
 	result = self.results
 
         return DisplayPreProc(
-            before[name_files[0]], before[name_files[1]], result[name_files[0]], result[name_files[1]], show_interp=show_interp)
+            before[name_files[0]], before[name_files[1]], result[name_files[0]], result[name_files[1]], show_interp=show_interp, hist = hist)

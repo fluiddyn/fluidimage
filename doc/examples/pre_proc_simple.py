@@ -20,7 +20,6 @@ params.preproc.tools.global_threshold.maxima = 255.
 preproc = PreprocBase(params)
 preproc()
 
-
 #def plot(nimages=None):
 #    after = preproc.results
 #    before = {}
@@ -54,4 +53,4 @@ preproc()
 #        plot(int(nimages))
 
 
-preproc.display()
+preproc.display(2, hist=True)

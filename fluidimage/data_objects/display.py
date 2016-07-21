@@ -203,13 +203,14 @@ class DisplayPIV(object):
 class DisplayPreProc(object):
 
     def __init__(self, im0, im1, im0p, im1p, show_interp=False,
-                 scale=0.2, show_error=True):
+                 scale=0.2, show_error=True, hist=False):
 
         fig = plt.figure()
         fig.event_handler = self
 
         ax1 = plt.subplot(121)
         ax2 = plt.subplot(122)
+                
         self.fig = fig
         self.ax1 = ax1
         self.ax2 = ax2
@@ -217,7 +218,7 @@ class DisplayPreProc(object):
         self.image0 = ax1.imshow(
             im0, interpolation='nearest', cmap=plt.cm.gray, origin='upper',
             extent=[0, im0.shape[1], im0.shape[0], 0])
-
+        
         self.image1 = ax1.imshow(
             im1, interpolation='nearest', cmap=plt.cm.gray, origin='upper',
             extent=[0, im0.shape[1], im0.shape[0], 0])
@@ -232,20 +233,35 @@ class DisplayPreProc(object):
             extent=[0, im0p.shape[1], im0p.shape[0], 0])
         self.image1p.set_visible(False)
 
+        if hist:
+            fig2 = plt.figure()
+            ax3 = plt.subplot(121)
+            ax4 = plt.subplot(122)
+            hist0 = np.histogram(np.reshape(im0, (1,np.product(im0.shape))).transpose(),
+                                      bins='fd')
+            hist1 = np.histogram(np.reshape(im1, (1,np.product(im1.shape))).transpose(),
+                                      bins='fd')
+            hist0p = np.histogram(np.reshape(im0p, (1,np.product(im0p.shape))).transpose(),
+                                       bins='fd')
+            hist1p = np.histogram(np.reshape(im1p, (1,np.product(im1p.shape))).transpose(),
+                                       bins='fd')
+            incr = 1
+            ax3.plot(hist0[1][0:-1:incr],  hist0[0][0::incr],'k+')
+            ax3.plot(hist0p[1][0:-1:incr], hist0p[0][0::incr], 'r+')
+            ax4.plot(hist1[1][0:-1:incr],  hist1[0][0::incr],'k+')
+            ax4.plot(hist1p[1][0:-1:incr], hist1p[0][0::incr],'r+')
+            plt.show()
+            
         l, = ax1.plot(0, 0, 'oy')
         l.set_visible(False)
 
         ax1.set_title('im 0 (alt+s to switch)')
-
-        # t = fig.text(0.1, 0.05, '')
 
         ax1.set_xlim(0, im0.shape[1])
         ax1.set_ylim(im0.shape[0], 0)
         ax1.set_xlabel('pixels')
         ax1.set_ylabel('pixels')
 
-        # self.t1 = t
-        # self.l1 = l
 
         ax1.set_xlim(0, im0.shape[1])
         ax1.set_ylim(im0.shape[0], 0)
@@ -258,15 +274,11 @@ class DisplayPreProc(object):
 
         ax2.set_title('im 0p (alt+s to switch)')
 
-        # t = fig.text(0.1, 0.05, '')
-
         ax2.set_xlim(0, im0p.shape[1])
         ax2.set_ylim(im0p.shape[0], 0)
         ax2.set_xlabel('pixels')
         ax2.set_ylabel('pixels')
 
-        # self.t2 = t
-        # self.l2 = l
 
         self.ind = 0
         fig.canvas.mpl_connect('key_press_event', self.onclick)
@@ -292,5 +304,4 @@ class DisplayPreProc(object):
 
         self.ax2.set_title('im {}p (alt+s to switch)'.format(
             int(self.image1p.get_visible())))
-
         self.fig.canvas.draw()
