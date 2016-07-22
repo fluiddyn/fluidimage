@@ -23,6 +23,8 @@ from .waiting_queues.base import (
     WaitingQueueMultiprocessing, WaitingQueueThreading)
 from .waiting_queues.series import (
     WaitingQueueMakeSerie, WaitingQueueLoadImageSeries)
+from fluidimage.data_objects.display import DisplayPreProc
+from fluiddyn.io.image import imread
 
 
 logger = logging.getLogger('fluidimage')
@@ -140,3 +142,16 @@ class TopologyPreproc(TopologyBase):
         k, o = self.wq0.popitem()
         im = self.wq0.work(o)
         self.wq0.fill_destination(k, im)
+        
+    def compare(self, indices=[0, 1], suffix='.pre', hist=False):
+        pathbase = self.params.series.path + '/'
+
+        im0 = imread(pathbase + self.series.get_name_all_files()[indices[0]])
+        im1 = imread(pathbase + self.series.get_name_all_files()[indices[1]])
+        im0p = imread(pathbase[:-1] + suffix + '/' +
+                      self.series.get_name_all_files()[indices[0]])
+        im1p = imread(pathbase[:-1] + suffix + '/' +
+                      self.series.get_name_all_files()[indices[1]])
+        return DisplayPreProc(
+            im0, im1, im0p, im1p, hist = hist)
+

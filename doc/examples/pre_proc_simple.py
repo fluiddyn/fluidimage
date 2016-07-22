@@ -5,17 +5,17 @@ from fluidimage.pre_proc.base import PreprocBase
 
 params = PreprocBase.create_default_params()
 
-params.preproc.series.path = '../../image_samples/Karman/Images'
-
+#params.preproc.series.path = '../../image_samples/Jet/Images'
+params.preproc.series.path = '~/useful/project/16MILESTONE/Data/Exp84_2016-07-20_N0_L6.0_V0.02_Trot60_piv3d/PCO_top/test'
 print('Available preprocessing tools: ', params.preproc.tools.available_tools)
 
 params.preproc.tools.sequence = ['sliding_median', 'global_threshold']
 params.preproc.tools.sliding_median.enable = True
-params.preproc.tools.sliding_median.window_size = 10
+params.preproc.tools.sliding_median.window_size = 25
 
-params.preproc.tools.global_threshold.enable = True
-params.preproc.tools.global_threshold.minima = 0.
-params.preproc.tools.global_threshold.maxima = 255.
+#params.preproc.tools.global_threshold.enable = False
+#params.preproc.tools.global_threshold.minima = 0.
+#params.preproc.tools.global_threshold.maxima = 255.
 
 preproc = PreprocBase(params)
 preproc()
@@ -53,4 +53,4 @@ preproc()
 #        plot(int(nimages))
 
 
-preproc.display(2, hist=True)
+preproc.display(1, hist=False)

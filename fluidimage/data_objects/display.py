@@ -203,7 +203,7 @@ class DisplayPIV(object):
 class DisplayPreProc(object):
 
     def __init__(self, im0, im1, im0p, im1p, show_interp=False,
-                 scale=0.2, show_error=True, hist=False):
+                 scale=0.2, pourcent_histo=99, show_error=True, hist=False):
 
         fig = plt.figure()
         fig.event_handler = self
@@ -214,6 +214,19 @@ class DisplayPreProc(object):
         self.fig = fig
         self.ax1 = ax1
         self.ax2 = ax2
+
+        p0 = np.percentile(np.reshape(im0, (1,np.product(im0.shape))).transpose(),
+                             pourcent_histo)
+        p1 = np.percentile(np.reshape(im1, (1,np.product(im1.shape))).transpose(),
+                             pourcent_histo)
+        p0p = np.percentile(np.reshape(im0p, (1,np.product(im0p.shape))).transpose(),
+                               pourcent_histo)
+        p1p = np.percentile(np.reshape(im1p, (1,np.product(im1p.shape))).transpose(),
+                               pourcent_histo)
+        im0[im0>p0] = p0
+        im1[im1>p1] = p1
+        im0p[im0p>p0p] = p0p
+        im1p[im1p>p1p] = p1p
 
         self.image0 = ax1.imshow(
             im0, interpolation='nearest', cmap=plt.cm.gray, origin='upper',
@@ -232,7 +245,8 @@ class DisplayPreProc(object):
             im1p, interpolation='nearest', cmap=plt.cm.gray, origin='upper',
             extent=[0, im0p.shape[1], im0p.shape[0], 0])
         self.image1p.set_visible(False)
-
+        
+        print(p0, p1)
         if hist:
             fig2 = plt.figure()
             ax3 = plt.subplot(121)
@@ -250,6 +264,11 @@ class DisplayPreProc(object):
             ax3.plot(hist0p[1][0:-1:incr], hist0p[0][0::incr], 'r+')
             ax4.plot(hist1[1][0:-1:incr],  hist1[0][0::incr],'k+')
             ax4.plot(hist1p[1][0:-1:incr], hist1p[0][0::incr],'r+')
+
+            ax3.set_xlim(-10, max([p0, p0p]))
+            ax4.set_xlim(-10, max([p1, p1p]))
+            ax3.set_ylim(0, max(hist0[0]))
+            ax4.set_ylim(0, max(hist1[0]))            
             plt.show()
             
         l, = ax1.plot(0, 0, 'oy')
