@@ -28,7 +28,7 @@ preproc()
 #        before[fname] = preproc.serie_arrays.get_array_from_name(fname)
 #
 #    if nimages is None:
-#        nimages = len(name_files)
+#        nimages = len(name_file)s
 #
 #    fig, axes = plt.subplots(ncols=nimages, nrows=2)
 #    fig.tight_layout(h_pad=0.001, w_pad=0.001)

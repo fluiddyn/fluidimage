@@ -202,8 +202,8 @@ class DisplayPIV(object):
 
 class DisplayPreProc(object):
 
-    def __init__(self, im0, im1, im0p, im1p, show_interp=False,
-                 scale=0.2, pourcent_histo=99, show_error=True, hist=False):
+    def __init__(self, im0, im1, im0p, im1p,
+                pourcent_histo=99, hist=False):
 
         fig = plt.figure()
         fig.event_handler = self
@@ -246,7 +246,6 @@ class DisplayPreProc(object):
             extent=[0, im0p.shape[1], im0p.shape[0], 0])
         self.image1p.set_visible(False)
         
-        print(p0, p1)
         if hist:
             fig2 = plt.figure()
             ax3 = plt.subplot(121)
@@ -269,7 +268,7 @@ class DisplayPreProc(object):
             ax4.set_xlim(-10, max([p1, p1p]))
             ax3.set_ylim(0, max(hist0[0]))
             ax4.set_ylim(0, max(hist1[0]))            
-            plt.show()
+            fig2.show()
             
         l, = ax1.plot(0, 0, 'oy')
         l.set_visible(False)
