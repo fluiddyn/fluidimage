@@ -12,7 +12,7 @@ if run_from_ipython():
 class DisplayPIV(object):
 
     def __init__(self, im0, im1, piv_results=None, show_interp=False,
-                 scale=0.2, show_error=True):
+                 scale=0.2, show_error=True, pourcent_histo=99):
 
         self.piv_results = piv_results
 
@@ -34,6 +34,16 @@ class DisplayPIV(object):
         self.fig = fig
         self.ax1 = ax1
 
+        p0 = np.percentile(np.reshape(im0, (1,np.product(im0.shape))).transpose(),
+                           pourcent_histo)
+        p1 = np.percentile(np.reshape(im1, (1,np.product(im1.shape))).transpose(),
+                           pourcent_histo)
+
+        im0[im0>p0] = p0
+        im1[im1>p1] = p1
+
+
+        
         self.image0 = ax1.imshow(
             im0, interpolation='nearest', cmap=plt.cm.gray, origin='upper',
             extent=[0, im0.shape[1], im0.shape[0], 0])
