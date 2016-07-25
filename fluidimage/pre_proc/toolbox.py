@@ -283,8 +283,9 @@ def rescale_intensity_tanh(img=None, threshold = None):
     ----------
     img : array_like
         Single image as numpy array or multiple images as array-like object
-    minima, maxima : float
-        Sets the range to which current intensities have to be rescaled.
+    threshold: 
+        Value of intensity with which img is normalized
+        img_out = max(img) * tanh( img / threshold)
 
     '''
     if not threshold:
