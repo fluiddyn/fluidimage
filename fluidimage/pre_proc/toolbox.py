@@ -25,7 +25,7 @@ available_tools = ['sliding_median', 'sliding_minima', 'sliding_percentile',
                    'global_threshold', 'rescale_intensity',
                    'equalize_hist_global', 'equalize_hist_local',
                    'equalize_hist_adapt',
-                   'gamma_correction', 'sharpen']
+                   'gamma_correction', 'sharpen', 'rescale_intensity_tanh']
 
 __all__ = available_tools + ['PreprocTools']
 
@@ -273,6 +273,26 @@ def rescale_intensity(img=None, minima=0., maxima=65535.):
     img_out = exposure.rescale_intensity(img, out_range=out_range)
     return img_out
 
+@iterate_multiple_imgs
+def rescale_intensity_tanh(img=None, threshold = None):
+    '''
+    Rescale image intensities, between the specified minima and maxima,
+    by using a multiplicative factor.
+
+    Parameters
+    ----------
+    img : array_like
+        Single image as numpy array or multiple images as array-like object
+    minima, maxima : float
+        Sets the range to which current intensities have to be rescaled.
+
+    '''
+    if not threshold:
+        threshold = 2 * np.sqrt(np.mean(img**2))
+        
+    img_out =np.tanh(img/threshold) 
+    img_out = np.floor( np.max(img) / np.max(img_out) * img_out )
+    return img_out
 
 @iterate_multiple_imgs
 def equalize_hist_global(img=None, nbins=256):
