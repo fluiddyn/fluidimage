@@ -107,10 +107,9 @@ class DisplayPIV(object):
         if hist:
             fig2 = plt.figure()
             ax3 = plt.gca()
-            deltaxs2, deltays2 = deltaxs, deltays
-            ind = np.isnan(deltaxs2) + np.isnan(deltays2) +np.isinf(deltaxs2) +np.isinf(deltays2)
-            deltaxs2[ind] = 0
-            deltays2[ind] = 0
+            ind = np.isnan(deltaxs) + np.isnan(deltays) + np.isinf(deltaxs) + np.isinf(deltays)
+            deltaxs2 = deltaxs[~ind]
+            deltays2 = deltays[~ind]
             #histx = np.histogram(deltaxs2, bins='fd')
             #histy = np.histogram(deltays2, bins='fd')
             #incr = 1
