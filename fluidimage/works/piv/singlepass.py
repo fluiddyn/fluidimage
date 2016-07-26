@@ -123,7 +123,7 @@ class BaseWorkPIV(BaseWork):
                 str(correlation_classes.keys()))
 
         self.correl = correl_cls(im0_shape=niw0, im1_shape=niw1,
-                                 method_subpix=self.params.piv0.method_subpix)
+                                 method_subpix=self.params.piv0.method_subpix, nsubpix=self.params.piv0.nsubpix)
 
     def _prepare_with_image(self, im0):
         """Initialize the object with an image.
@@ -350,7 +350,8 @@ class FirstWorkPIV(BaseWorkPIV):
             'delta_max': None,
             'delta_mean': None,
             'method_correl': 'fftw',
-            'method_subpix': '2d_gaussian'})
+            'method_subpix': '2d_gaussian',
+            'nsubpix': 1})
 
         params.piv0._set_child('grid', attribs={
             'overlap': 0.5,

@@ -24,7 +24,7 @@ class SubPix(object):
     """
     methods = ['2d_gaussian', 'centroid', 'no_subpix']
 
-    def __init__(self, method='centroid', nsubpix=1):
+    def __init__(self, method='centroid', nsubpix=None):
         self.prepare_subpix(method, nsubpix)
 
     def prepare_subpix(self, method, nsubpix):
