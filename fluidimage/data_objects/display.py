@@ -12,7 +12,7 @@ if run_from_ipython():
 class DisplayPIV(object):
 
     def __init__(self, im0, im1, piv_results=None, show_interp=False,
-                 scale=0.2, show_error=True, pourcent_histo=99):
+                 scale=0.2, show_error=True, pourcent_histo=99, hist=False):
 
         self.piv_results = piv_results
 
@@ -42,8 +42,6 @@ class DisplayPIV(object):
         im0[im0>p0] = p0
         im1[im1>p1] = p1
 
-
-        
         self.image0 = ax1.imshow(
             im0, interpolation='nearest', cmap=plt.cm.gray, origin='upper',
             extent=[0, im0.shape[1], im0.shape[0], 0])
@@ -106,6 +104,24 @@ class DisplayPIV(object):
                     dxs_wrong, -dys_wrong,
                     picker=20, color='r', scale_units='xy', scale=scale)
 
+        if hist:
+            fig2 = plt.figure()
+            ax3 = plt.gca()
+            deltaxs2, deltays2 = deltaxs, deltays
+            ind = np.isnan(deltaxs2) + np.isnan(deltays2) +np.isinf(deltaxs2) +np.isinf(deltays2)
+            deltaxs2[ind] = 0
+            deltays2[ind] = 0
+            #histx = np.histogram(deltaxs2, bins='fd')
+            #histy = np.histogram(deltays2, bins='fd')
+            #incr = 1
+            #ax3.plot(histx[1][0:-1:incr], histx[0][0::incr],'b+')
+            #ax3.plot(histy[1][0:-1:incr], histy[0][0::incr],'r+')
+            ax3.hist(deltaxs2,'fd')
+            ax3.hist(deltays2,'fd')
+
+            fig2.show()
+
+                
         self.ind = 0
         fig.canvas.mpl_connect('pick_event', self.onpick)
         fig.canvas.mpl_connect('key_press_event', self.onclick)
