@@ -11,6 +11,8 @@ weights = np.ones([3, 3])
 
 def _smooth(a, for_norm):
     norm = convolve(for_norm, weights, mode='nearest')
+    ind = np.where(norm==0)
+    norm[ind] = 1.
     return convolve(a, weights, mode='nearest') / norm
 
 
