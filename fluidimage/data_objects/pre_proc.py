@@ -22,7 +22,6 @@ from .. import ParamContainer
 
 logger = logging.getLogger('fluidimage')
 
-
 class ArraySerie(ArrayCouple):
     def __init__(
             self, names=None, arrays=None, serie=None,

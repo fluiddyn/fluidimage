@@ -75,7 +75,7 @@ class TopologyPreproc(TopologyBase):
         path_dir_result, self.how_saving = set_path_dir_result(
             path_dir, params.preproc.saving.path,
             params.preproc.saving.postfix, params.preproc.saving.how)
-
+        self.path_dir_result = path_dir_result
         self.results = self.preproc_work.results
 
         def save_preproc_results_object(o):
@@ -116,6 +116,10 @@ class TopologyPreproc(TopologyBase):
             index_series = []
             for i, serie in enumerate(series):
                 names_serie = serie.get_name_files()
+                name_im = serie.get_name_files()[serie.get_nb_files()//2+1] 
+                if os.path.exists(os.path.join(
+                        self.path_dir_result, name_im)):
+                    continue
                 for name in names_serie:
                     if name not in names:
                         names.append(name)
@@ -143,7 +147,9 @@ class TopologyPreproc(TopologyBase):
         im = self.wq0.work(o)
         self.wq0.fill_destination(k, im)
         
-    def compare(self, indices=[0, 1], suffix='.pre', hist=False):
+    def compare(self, indices=[0, 1], suffix=None, hist=False):
+        if not suffix:
+            suffix = '.' + self.params.saving.postfix
         pathbase = self.params.series.path + '/'
 
         im0 = imread(pathbase + self.series.get_name_all_files()[indices[0]])
