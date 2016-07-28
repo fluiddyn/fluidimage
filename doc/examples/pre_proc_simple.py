@@ -1,5 +1,8 @@
+
 from __future__ import print_function
+
 import matplotlib.pyplot as plt
+
 from fluidimage.pre_proc.base import PreprocBase
 
 

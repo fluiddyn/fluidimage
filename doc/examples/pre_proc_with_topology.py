@@ -1,10 +1,7 @@
 from __future__ import print_function
 
-from fluidimage import config_logging
 from fluidimage.topologies.pre_proc import TopologyPreproc
 
-
-config_logging('info')
 
 params = TopologyPreproc.create_default_params()
 
@@ -12,7 +9,8 @@ params.preproc.series.path = '../../image_samples/Jet/Images'
 params.preproc.series.strcouple = 'i+60:i+62, 0'
 
 print('Available preprocessing tools: ', params.preproc.tools.available_tools)
-params.preproc.tools.sequence = ['temporal_median', 'sliding_median', 'global_threshold']
+params.preproc.tools.sequence = [
+    'temporal_median', 'sliding_median', 'global_threshold']
 print('Enabled preprocessing tools: ', params.preproc.tools.sequence)
 
 params.preproc.tools.sliding_median.enable = True

@@ -16,7 +16,7 @@ from __future__ import print_function
 import os
 from copy import deepcopy, copy
 
-from fluidimage.util.util import logger
+from ...util.util import logger
 from .base import (
     WaitingQueueLoadImage, WaitingQueueBase, WaitingQueueMultiprocessing)
 

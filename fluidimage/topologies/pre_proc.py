@@ -15,18 +15,22 @@ Provides:
 import os
 
 from fluiddyn.util.serieofarrays import SeriesOfArrays
-from fluidimage.data_objects.piv import set_path_dir_result
-from fluidimage.works.pre_proc import WorkPreproc
+from fluiddyn.io.image import imread
+
+from ..works.pre_proc import WorkPreproc
+
+from ..data_objects.piv import set_path_dir_result
+from ..data_objects.display import DisplayPreProc
+from ..data_objects.pre_proc import get_name_preproc
+
+from ..util.util import logger
+
 from .base import TopologyBase
+
 from .waiting_queues.base import (
     WaitingQueueMultiprocessing, WaitingQueueThreading)
 from .waiting_queues.series import (
     WaitingQueueMakeSerie, WaitingQueueLoadImageSeries)
-from fluidimage.data_objects.display import DisplayPreProc
-from fluiddyn.io.image import imread
-
-from ..data_objects.pre_proc import get_name_preproc
-from ..util.util import logger
 
 
 class TopologyPreproc(TopologyBase):
@@ -106,7 +110,8 @@ class TopologyPreproc(TopologyBase):
     def add_series(self, series):
 
         if len(series) == 0:
-            print('Warning:Encountered empty series. No images to preprocess.')
+            logger.warning(
+                'encountered empty series. No images to preprocess.')
             return
 
         if self.how_saving == 'complete':
@@ -128,8 +133,8 @@ class TopologyPreproc(TopologyBase):
                 index_series.append(i + series.ind_start)
 
             if len(index_series) == 0:
-                print('Warning: topology in mode "complete" and ',
-                      'work already done.')
+                logger.warning('topology in mode "complete" and '
+                               'work already done.')
                 return
 
             series.set_index_series(index_series)
@@ -160,5 +165,4 @@ class TopologyPreproc(TopologyBase):
         im1p = imread(pathbase[:-1] + suffix + '/' +
                       self.series.get_name_all_files()[indices[1]])
         return DisplayPreProc(
-            im0, im1, im0p, im1p, hist = hist)
-
+            im0, im1, im0p, im1p, hist=hist)

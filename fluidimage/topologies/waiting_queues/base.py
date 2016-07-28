@@ -46,11 +46,9 @@ except ImportError:
     # python 2
     import Queue as queue
 
-from fluidimage import logger, log_memory_usage
-from fluidimage.util.util import cstring, is_memory_full
-from fluiddyn.util import time_as_str
 from ...data_objects.piv import ArrayCouple
 from ...works import load_image
+from ...util.util import logger, log_memory_usage, cstring
 
 
 class WaitingQueueBase(dict):

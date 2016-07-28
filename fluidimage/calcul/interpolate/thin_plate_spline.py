@@ -241,6 +241,7 @@ if hasattr(tps_pythran, '__pythran__'):
             newcenters.astype(np.float64),
             centers.astype(np.float64))
 else:
+    print('Warning: function compute_tps_matrix_numpy not pythranized.')
     compute_tps_matrix = compute_tps_matrix_numpy
 
 

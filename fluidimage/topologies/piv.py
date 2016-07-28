@@ -101,7 +101,7 @@ class TopologyPIV(TopologyBase):
     def add_series(self, series):
 
         if len(series) == 0:
-            print('Warning: add 0 couple. No PIV to compute.')
+            logger.warning('add 0 couple. No PIV to compute.')
             return
 
         if self.how_saving == 'complete':
@@ -119,8 +119,8 @@ class TopologyPIV(TopologyBase):
                 index_series.append(i * series.ind_step + series.ind_start)
 
             if len(index_series) == 0:
-                print('Warning: topology in mode "complete" and '
-                      'work already done.')
+                logger.warning(
+                    'topology in mode "complete" and work already done.')
                 return
 
             series.set_index_series(index_series)

@@ -26,7 +26,7 @@ class TestPreproc(unittest.TestCase):
         params.preproc.saving.postfix = 'preproc_test'
 
         with stdout_redirected():
-            topology = TopologyPreproc(params, logging_level=None)
+            topology = TopologyPreproc(params, logging_level=False)
             topology.compute()
 
 if __name__ == '__main__':

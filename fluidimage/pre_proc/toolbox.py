@@ -12,6 +12,8 @@ Provides:
 """
 
 import inspect
+
+import numpy as np
 import scipy.ndimage as nd
 try:
     import skimage
@@ -280,8 +282,9 @@ def rescale_intensity(img=None, minima=0., maxima=65535.):
     img_out = exposure.rescale_intensity(img, out_range=out_range)
     return img_out
 
+
 @iterate_multiple_imgs
-def rescale_intensity_tanh(img=None, threshold = None):
+def rescale_intensity_tanh(img=None, threshold=None):
     '''
     Rescale image intensities, between the specified minima and maxima,
     by using a multiplicative factor.
@@ -290,17 +293,18 @@ def rescale_intensity_tanh(img=None, threshold = None):
     ----------
     img : array_like
         Single image as numpy array or multiple images as array-like object
-    threshold: 
+    threshold:
         Value of intensity with which img is normalized
         img_out = max(img) * tanh( img / threshold)
 
     '''
     if not threshold:
         threshold = 2 * np.sqrt(np.mean(img**2))
-        
-    img_out =np.tanh(img/threshold) 
-    img_out = np.floor( np.max(img) / np.max(img_out) * img_out )
+
+    img_out = np.tanh(img/threshold)
+    img_out = np.floor(np.max(img) / np.max(img_out) * img_out)
     return img_out
+
 
 @iterate_multiple_imgs
 def equalize_hist_global(img=None, nbins=256):

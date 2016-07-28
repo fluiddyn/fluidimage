@@ -14,7 +14,6 @@ class TestPIV(unittest.TestCase):
     def test_piv(self):
         params = TopologyPIV.create_default_params()
 
-
         params.series.path = os.path.join(
             here, '..', '..', 'image_samples', 'Karman', 'Images')
         params.series.ind_start = 1
@@ -33,7 +32,7 @@ class TestPIV(unittest.TestCase):
         params.saving.postfix = 'piv_test'
 
         with stdout_redirected():
-            topology = TopologyPIV(params)
+            topology = TopologyPIV(params, logging_level=False)
             topology.compute()
 
 if __name__ == '__main__':

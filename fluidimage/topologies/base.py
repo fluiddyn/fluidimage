@@ -20,8 +20,7 @@ import threading
 
 from fluiddyn.util import time_as_str
 from fluiddyn.util.tee import MultiFile
-from fluidimage import logger, log_memory_usage
-from fluidimage.util.util import is_memory_full, cstring
+from ..util.util import cstring, logger, log_memory_usage
 
 from ..config import get_config
 from .waiting_queues.base import WaitingQueueThreading
@@ -106,7 +105,7 @@ class TopologyBase(object):
             sys.stdout = MultiFile([sys.stdout, f])
             sys.stderr = MultiFile([sys.stderr, f])
 
-        if logging_level is not None:
+        if logging_level:
             config_logging(logging_level, file=sys.stdout)
 
         if nb_max_workers is None:
@@ -287,6 +286,9 @@ class TopologyBase(object):
                 nb_results, time_since_start / nb_results))
         else:
             txt += '.'
+
+        if hasattr(self, 'path_dir_result'):
+            txt += '\npath results:\n' + self.path_dir_result
 
         print(txt)
 

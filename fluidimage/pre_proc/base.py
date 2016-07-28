@@ -57,19 +57,20 @@ class PreprocBase(object):
             self.results[name] = self.tools(img)
 
     def display(self, ind=None, hist=False):
-	nimages = 2
-	if not ind:	
-	    name_files = self.serie_arrays.get_name_files()[:nimages]
-	else:
-	    name_files = self.serie_arrays.get_name_files()[ind:ind+nimages]
+        nimages = 2
+        if not ind:
+            name_files = self.serie_arrays.get_name_files()[:nimages]
+        else:
+            name_files = self.serie_arrays.get_name_files()[ind:ind+nimages]
 
-    	before = {}
-	for fname in name_files:
-        	before[fname] = self.serie_arrays.get_array_from_name(fname)
+        before = {}
+        for fname in name_files:
+            before[fname] = self.serie_arrays.get_array_from_name(fname)
 
-        if results is None:
-            results = self.results
+        results = self.results
 
+        # problem bug: show_interp ?
         return DisplayPreProc(
             before[name_files[0]], before[name_files[1]],
-            results[name_files[0]], results[name_files[1]], show_interp=show_interp)
+            results[name_files[0]], results[name_files[1]],
+            show_interp=show_interp)
