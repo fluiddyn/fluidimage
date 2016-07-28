@@ -1,3 +1,37 @@
+"""Waiting queues classes
+=========================
+
+.. autoclass:: WaitingQueueBase
+   :members:
+   :private-members:
+
+.. autoclass:: WaitingQueueMultiprocessing
+   :members:
+   :private-members:
+
+.. autoclass:: ThreadWork
+   :members:
+   :private-members:
+
+.. autoclass:: WaitingQueueThreading
+   :members:
+   :private-members:
+
+.. autoclass:: WaitingQueueLoadFile
+   :members:
+   :private-members:
+
+.. autoclass:: WaitingQueueLoadImage
+   :members:
+   :private-members:
+
+.. autoclass:: WaitingQueueMakeCouple
+   :members:
+   :private-members:
+
+"""
+
+
 from __future__ import print_function
 
 import os
@@ -6,10 +40,15 @@ from time import time
 
 import multiprocessing
 import threading
-import Queue
+try:
+    import queue
+except ImportError:
+    # python 2
+    import Queue as queue
 
 from fluidimage import logger, log_memory_usage
-from fluiddyn.util import (terminal_colors as term, time_as_str)
+from fluidimage.util.util import cstring, is_memory_full
+from fluiddyn.util import time_as_str
 from ...data_objects.piv import ArrayCouple
 from ...works import load_image
 
@@ -35,8 +74,17 @@ class WaitingQueueBase(dict):
         self._nb_workers = 0
 
     def __str__(self):
-        return (term.OKBLUE + 'WaitingQueue ' + repr(self.name) + term.ENDC +
-                ' with keys ' + repr(self._keys))
+        length = len(self._keys)
+        if length == 0:
+            keys = []
+        else:
+            index = range(min(length, 3))
+            keys = [self._keys[i] for i in index]
+            keys.extend(['...',  self._keys[-1]])
+
+        length = str(length)
+        return cstring('WaitingQueue', repr(self.name),
+                       'with keys', repr(keys), length, 'items')
 
     def __setitem__(self, key, value):
         if key in self._keys:
@@ -155,10 +203,11 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
         def fill_destination():
             if isinstance(p, multiprocessing.Process):
                 if p.exitcode:
-                    logger.info(
+                    logger.error(cstring(
                         'Error in work (process): '
                         'work_name = {}; key = {}; exitcode = {}'.format(
-                            self.work_name, k, p.exitcode))
+                            self.work_name, k, p.exitcode),
+                        color='FAIL'))
                     self._nb_workers -= 1
                     self.topology.nb_workers_cpu -= 1
                     return True
@@ -166,7 +215,7 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
                 try:
                     result = comm.get_nowait()
                     is_done = True
-                except Queue.Empty:
+                except queue.Empty:
                     return False
             else:
                 if p.exitcode:
@@ -218,7 +267,7 @@ class WaitingQueueThreading(WaitingQueueMultiprocessing):
 
     @staticmethod
     def _Queue(*args, **kwargs):
-        return Queue.Queue(*args, **kwargs)
+        return queue.Queue(*args, **kwargs)
 
     @staticmethod
     def _Process(*args, **kwargs):
@@ -246,6 +295,7 @@ class WaitingQueueLoadImage(WaitingQueueLoadFile):
     def __init__(self, *args, **kwargs):
         super(WaitingQueueLoadImage, self).__init__(
             'image file', load_image, *args, **kwargs)
+        self.work_name = __name__ + '.load_image'
 
 
 class WaitingQueueMakeCouple(WaitingQueueBase):

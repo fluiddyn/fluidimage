@@ -13,7 +13,6 @@ Provides:
 """
 
 import os
-import logging
 
 from fluiddyn.util.serieofarrays import SeriesOfArrays
 from fluidimage.data_objects.piv import set_path_dir_result
@@ -26,8 +25,8 @@ from .waiting_queues.series import (
 from fluidimage.data_objects.display import DisplayPreProc
 from fluiddyn.io.image import imread
 
-
-logger = logging.getLogger('fluidimage')
+from ..data_objects.pre_proc import get_name_preproc
+from ..util.util import logger
 
 
 class TopologyPreproc(TopologyBase):
@@ -42,7 +41,8 @@ class TopologyPreproc(TopologyBase):
         params.preproc.series._set_attribs({'strcouple': 'i:i+3',
                                             'ind_start': 0,
                                             'ind_stop': None,
-                                            'ind_step': 1})
+                                            'ind_step': 1,
+                                            'sequential_loading': True})
 
         params.preproc._set_child('saving', attribs={'path': None,
                                                      'how': 'ask',
@@ -55,7 +55,7 @@ class TopologyPreproc(TopologyBase):
 
         return params
 
-    def __init__(self, params=None):
+    def __init__(self, params=None, logging_level='info', nb_max_workers=None):
         if params is None:
             params = self.__class__.create_default_params()
 
@@ -67,19 +67,19 @@ class TopologyPreproc(TopologyBase):
             ind_start=params.preproc.series.ind_start,
             ind_stop=params.preproc.series.ind_stop)
 
-        indserie_start = self.series.indslices_from_indserie(0)[0][0]
-        indserie_end = self.series.indslices_from_indserie(0)[0][1]
-        self.nb_items_per_serie = indserie_end - indserie_start
+        self.nb_items_per_serie = serie_arrays.get_nb_files()
 
         path_dir = params.preproc.series.path
-        path_dir_result, self.how_saving = set_path_dir_result(
+        self.path_dir_result, self.how_saving = set_path_dir_result(
             path_dir, params.preproc.saving.path,
             params.preproc.saving.postfix, params.preproc.saving.how)
-        self.path_dir_result = path_dir_result
+
+        self.params.saving.path = self.path_dir_result
         self.results = self.preproc_work.results
+        self.display = self.preproc_work.display
 
         def save_preproc_results_object(o):
-            return o.save(path=path_dir_result)
+            return o.save(path=self.path_dir_result)
 
         self.wq_preproc = WaitingQueueThreading(
             'save results', save_preproc_results_object,
@@ -93,17 +93,15 @@ class TopologyPreproc(TopologyBase):
             'make serie', self.wq_serie, topology=self)
 
         self.wq0 = WaitingQueueLoadImageSeries(
-            destination=self.wq_images, path_dir=path_dir, topology=self)
+            destination=self.wq_images, path_dir=path_dir, topology=self,
+            sequential=params.preproc.series.sequential_loading)
 
-        queues = [self.wq0, self.wq_images, self.wq_serie, self.wq_preproc]
-        super(TopologyPreproc, self).__init__(queues)
+        super(TopologyPreproc, self).__init__(
+            [self.wq0, self.wq_images, self.wq_serie, self.wq_preproc],
+            path_output=self.path_dir_result, logging_level=logging_level,
+            nb_max_workers=nb_max_workers)
+
         self.add_series(self.series)
-
-        path_params_xml = os.path.join(path_dir_result, 'params.xml')
-        if os.path.isfile(path_params_xml):
-            os.remove(path_params_xml)
-
-        params._save_as_xml(path_params_xml)
 
     def add_series(self, series):
 
@@ -116,10 +114,13 @@ class TopologyPreproc(TopologyBase):
             index_series = []
             for i, serie in enumerate(series):
                 names_serie = serie.get_name_files()
-                name_im = serie.get_name_files()[serie.get_nb_files()//2+1] 
+                name_preproc = get_name_preproc(
+                    serie, names_serie, i, series.nb_series,
+                    self.params.saving.format)
                 if os.path.exists(os.path.join(
-                        self.path_dir_result, name_im)):
+                        self.path_dir_result, name_preproc)):
                     continue
+
                 for name in names_serie:
                     if name not in names:
                         names.append(name)
@@ -138,7 +139,7 @@ class TopologyPreproc(TopologyBase):
         else:
             names = series.get_name_all_files()
 
-        print('Add {} PIV fields to compute.'.format(len(series)))
+        print('Add {} image series to compute.'.format(len(series)))
 
         self.wq0.add_name_files(names)
         self.wq_images.add_series(series)
@@ -146,7 +147,7 @@ class TopologyPreproc(TopologyBase):
         k, o = self.wq0.popitem()
         im = self.wq0.work(o)
         self.wq0.fill_destination(k, im)
-        
+
     def compare(self, indices=[0, 1], suffix=None, hist=False):
         if not suffix:
             suffix = '.' + self.params.saving.postfix

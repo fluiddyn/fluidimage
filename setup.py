@@ -14,10 +14,10 @@ try:
 except ImportError:
     use_pythran = False
 
-# I have not yet manage to use Pythran on Windows...    
+# I have not yet manage to use Pythran on Windows...
 if sys.platform == 'win32':
     use_pythran = False
-    
+
 # Get the long description from the relevant file
 with open('README.rst') as f:
     long_description = f.read()
@@ -36,14 +36,14 @@ else:
     with open('fluidimage/_hg_rev.py', 'w') as f:
         f.write('hg_rev = "{}"\n'.format(hg_rev))
 
-install_requires = ['fluiddyn >= 0.0.12a4']
+install_requires = ['fluiddyn >= 0.0.13b0']
 
 on_rtd = os.environ.get('READTHEDOCS')
 if not on_rtd:
     install_requires.extend([
         'scipy >= 0.14.1', 'numpy >= 1.8',
         'matplotlib >= 1.4.2',
-        'scikit-image >= 0.12.3',
+        # 'scikit-image >= 0.12.3',
         'h5py', 'h5netcdf'])
 
 
@@ -64,7 +64,7 @@ def make_pythran_extensions(modules):
            modification_date(bin_file) < modification_date(py_file):
             extensions.append(PythranExtension(mod, [py_file]))
     return extensions
-        
+
 if use_pythran:
     ext_modules = make_pythran_extensions(
         ['fluidimage.calcul.correl_pythran',

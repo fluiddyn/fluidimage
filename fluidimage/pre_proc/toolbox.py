@@ -12,12 +12,19 @@ Provides:
 """
 
 import inspect
-import numpy as np
 import scipy.ndimage as nd
+try:
+    import skimage
+    from skimage import exposure, filters, morphology
+    if skimage.__version__ < '0.12.3':
+        print('Warning: to use fluidimage.preproc, '
+              'first upgrade scikit-image to a version >= 0.12.3.')
+except ImportError:
+    print('Warning: ImportError, to use fluidimage.preproc, '
+          'first install scikit-image >= 0.12.3.')
 
-from skimage import exposure, filters, morphology
 from .io import iterate_multiple_imgs, multiple_imgs_as_ndarray
-from .. import logger
+from ..util.util import logger
 
 
 available_tools = ['sliding_median', 'sliding_minima', 'sliding_percentile',

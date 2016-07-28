@@ -1,17 +1,34 @@
+"""Waiting queues for series
+============================
 
+.. autoclass:: WaitingQueueLoadImageSeries
+   :members:
+   :private-members:
+
+.. autoclass:: WaitingQueueMakeSerie
+   :members:
+   :private-members:
+
+"""
+
+
+from __future__ import print_function
+import os
 from copy import deepcopy, copy
 
-from fluidimage import logger
-from .base import WaitingQueueLoadFile, WaitingQueueBase
+from fluidimage.util.util import logger
+from .base import (
+    WaitingQueueLoadImage, WaitingQueueBase, WaitingQueueMultiprocessing)
+
 from ...data_objects.pre_proc import ArraySerie
-from ...works import load_image
 
 
-class WaitingQueueLoadImageSeries(WaitingQueueLoadFile):
+class WaitingQueueLoadImageSeries(WaitingQueueLoadImage):
+    """Waiting queue for loading series of images."""
 
     def __init__(self, *args, **kwargs):
-        super(WaitingQueueLoadImageSeries, self).__init__(
-            'load image series', load_image, *args, **kwargs)
+        self.sequential = kwargs.pop('sequential')
+        super(WaitingQueueLoadImageSeries, self).__init__(*args, **kwargs)
 
     def is_destination_full(self):
         cond_instance = isinstance(self.destination, WaitingQueueBase)
@@ -21,13 +38,23 @@ class WaitingQueueLoadImageSeries(WaitingQueueLoadFile):
         cond_nb_items = len(self.destination) >= buffer_limit
         return (cond_instance and cond_nb_items)
 
+    def add_name_files(self, names):
+        self.update({name: os.path.join(self.path_dir, name)
+                     for name in names}, names)
+
+    def check_and_act(self, *args, **kwargs):
+        kwargs['sequential'] = self.sequential
+        super(WaitingQueueLoadImageSeries, self).check_and_act(
+            *args, **kwargs)
+
 
 class WaitingQueueMakeSerie(WaitingQueueBase):
     """
     The difference from `WaitingQueueMakeCouple` is that
     the following attributes are replaced:
-    .. `self.couples` --> `self.serie_set`
-    .. `self.nb_couples_to_create` --> `self.nb_serie_to_create`
+
+    - `self.couples` --> `self.serie_set`
+    - `self.nb_couples_to_create` --> `self.nb_serie_to_create`
 
     Allowing the dictionary to contain a serie of images,
     and not just a couple (2 images).
@@ -67,16 +94,29 @@ class WaitingQueueMakeSerie(WaitingQueueBase):
                 else:
                     nb[name] = 1
 
+    def is_destination_full(self):
+        cond_instance = isinstance(
+            self.destination, WaitingQueueMultiprocessing)
+
+        cond_nb_items = (
+            len(self.destination) >= self.topology.nb_items_lim)
+
+        return (cond_instance and cond_nb_items)
+
     def check_and_act(self, sequential=None):
         if self.is_destination_full():
             return
 
         for names in copy(self.serie_set):
+            if self.is_destination_full():
+                break
+
             if all([name in self for name in names]):
-                logger.info('launch work with ' + self.work_name + repr(names))
                 k0 = names[0]
                 k1 = names[-1]
                 newk = k0 + '-' + k1
+                logger.info('launch work %s with %s',
+                            self.work_name, newk)
 
                 self.serie_set.remove(names)
                 serie = self.series.pop(names)

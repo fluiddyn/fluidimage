@@ -16,6 +16,7 @@ from .toolbox import PreprocTools
 from .. import ParamContainer, SerieOfArraysFromFiles
 from fluidimage.data_objects.display import DisplayPreProc
 
+
 class PreprocBase(object):
     """Preprocess series of images with various tools. """
 
@@ -66,6 +67,9 @@ class PreprocBase(object):
 	for fname in name_files:
         	before[fname] = self.serie_arrays.get_array_from_name(fname)
 
-	result = self.results
+        if results is None:
+            results = self.results
+
         return DisplayPreProc(
-            before[name_files[0]], before[name_files[1]], result[name_files[0]], result[name_files[1]], hist = hist)
+            before[name_files[0]], before[name_files[1]],
+            results[name_files[0]], results[name_files[1]], show_interp=show_interp)

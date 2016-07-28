@@ -6,3 +6,4 @@ Examples
 
    examples/piv_with_topology
    examples/piv_cluster
+   examples/pivchallenge/README.rst
