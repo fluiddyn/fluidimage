@@ -69,7 +69,8 @@ class TopologyPreproc(TopologyBase):
         self.series = SeriesOfArrays(
             serie_arrays, params.preproc.series.strcouple,
             ind_start=params.preproc.series.ind_start,
-            ind_stop=params.preproc.series.ind_stop)
+            ind_stop=params.preproc.series.ind_stop,
+            ind_step=params.preproc.series.ind_step)
 
         self.nb_items_per_serie = serie_arrays.get_nb_files()
 

@@ -286,8 +286,8 @@ def rescale_intensity(img=None, minima=0., maxima=65535.):
 @iterate_multiple_imgs
 def rescale_intensity_tanh(img=None, threshold=None):
     '''
-    Rescale image intensities, between the specified minima and maxima,
-    by using a multiplicative factor.
+    Rescale image intensities, using a tanh fit. The maximum intensity of the
+    output is set by the threshold parameter.
 
     Parameters
     ----------
@@ -301,7 +301,7 @@ def rescale_intensity_tanh(img=None, threshold=None):
     if not threshold:
         threshold = 2 * np.sqrt(np.mean(img**2))
 
-    img_out = np.tanh(img/threshold)
+    img_out = np.tanh(img / threshold)
     img_out = np.floor(np.max(img) / np.max(img_out) * img_out)
     return img_out
 
