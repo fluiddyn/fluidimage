@@ -205,7 +205,8 @@ class HeavyPIVResults(DataObject):
     def get_images(self):
         return self.couple.get_arrays()
 
-    def display(self, show_interp=False, scale=0.2, show_error=True, pourcent_histo=99, hist=False):
+    def display(self, show_interp=False, scale=0.2, show_error=True,
+                pourcent_histo=99, hist=False):
         im0, im1 = self.couple.get_arrays()
         return DisplayPIV(
             im0, im1, self, show_interp=show_interp, scale=scale,

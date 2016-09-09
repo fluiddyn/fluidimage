@@ -15,7 +15,7 @@ params.piv0.grid.overlap = 0.5
 # params.piv0.method_correl = 'theano'
 
 params.multipass.number = 2
-params.multipass.use_tps = False
+params.multipass.use_tps = 'last'
 params.multipass.coeff_zoom = [2]
 
 piv = WorkPIV(params=params)

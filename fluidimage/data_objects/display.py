@@ -107,7 +107,8 @@ class DisplayPIV(object):
         if hist:
             fig2 = plt.figure()
             ax3 = plt.gca()
-            ind = np.isnan(deltaxs) + np.isnan(deltays) + np.isinf(deltaxs) + np.isinf(deltays)
+            ind = np.isnan(deltaxs) + np.isnan(deltays) + np.isinf(deltaxs) + \
+                  np.isinf(deltays)
             deltaxs2 = deltaxs[~ind]
             deltays2 = deltays[~ind]
             #histx = np.histogram(deltaxs2, bins='fd')
@@ -115,9 +116,11 @@ class DisplayPIV(object):
             #incr = 1
             #ax3.plot(histx[1][0:-1:incr], histx[0][0::incr],'b+')
             #ax3.plot(histy[1][0:-1:incr], histy[0][0::incr],'r+')
-            ax3.hist(deltaxs2,'fd')
-            ax3.hist(deltays2,'fd')
+            ax3.hist(deltaxs2, 'fd', color='b')
+            ax3.hist(deltays2, 'fd', color='r')
 
+            ax3.set_xlabel('displacement x (blue) and y (red) (pixels)')
+            ax3.set_ylabel('histogram')
             fig2.show()
 
                 

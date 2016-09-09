@@ -162,6 +162,7 @@ class TopologyBase(object):
                 self.has_to_stop = False
                 super(CheckWorksThread, self).__init__()
                 self.exitcode = None
+                self.daemon = True
 
             def run(self):
                 try:
