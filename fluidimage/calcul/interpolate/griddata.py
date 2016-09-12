@@ -5,10 +5,9 @@ import numpy as np
 
 from matplotlib import mlab
 from scipy import interpolate
-
+from fluiddyn.debug import ipydebug
 
 def griddata(centers, values, new_positions, using='matplotlib'):
-
     xnew = new_positions[1]
     ynew = new_positions[0]
     grid_y, grid_x = np.meshgrid(ynew, xnew)

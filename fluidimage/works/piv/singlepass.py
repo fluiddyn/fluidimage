@@ -47,6 +47,10 @@ from ...calcul.interpolate.thin_plate_spline_subdom import \
 from ...calcul.interpolate.griddata import griddata
 
 
+class InterpError(ValueError):
+    pass
+
+
 class BaseWorkPIV(BaseWork):
     """Base class for PIV.
 
@@ -123,7 +127,8 @@ class BaseWorkPIV(BaseWork):
                 str(correlation_classes.keys()))
 
         self.correl = correl_cls(im0_shape=niw0, im1_shape=niw1,
-                                 method_subpix=self.params.piv0.method_subpix, nsubpix=self.params.piv0.nsubpix)
+                                 method_subpix=self.params.piv0.method_subpix,
+                                 nsubpix=self.params.piv0.nsubpix)
 
     def _prepare_with_image(self, im0):
         """Initialize the object with an image.
@@ -251,7 +256,7 @@ class BaseWorkPIV(BaseWork):
 
             if np.isnan(deltax) or np.isnan(deltay):
                 errors[ivec] = 'Problem compute_displacement_from_correl.'
-                    
+
             deltaxs[ivec] = deltax
             deltays[ivec] = deltay
             correls_max[ivec] = correl_max
@@ -292,6 +297,9 @@ class BaseWorkPIV(BaseWork):
         selection = ~(np.isnan(piv_results.deltaxs) |
                       np.isnan(piv_results.deltays))
 
+        if not any(selection):
+            raise InterpError('Only nan.')
+
         xs = piv_results.xs[selection]
         ys = piv_results.ys[selection]
         centers = np.vstack([ys, xs])
@@ -308,22 +316,27 @@ class BaseWorkPIV(BaseWork):
             tps = ThinPlateSplineSubdom(
                 centers, subdom_size, smoothing_coef,
                 threshold=1, pourc_buffer_area=0.5)
+            try:
+                deltaxs_smooth, deltaxs_tps = tps.compute_tps_coeff_subdom(deltaxs)
+                deltays_smooth, deltays_tps = tps.compute_tps_coeff_subdom(deltays)
+            except np.linalg.LinAlgError:
+                deltaxs_approx = griddata(centers, deltaxs,
+                                          (self.iyvecs, self.ixvecs))
+                deltays_approx = griddata(centers, deltays,
+                                          (self.iyvecs, self.ixvecs))  
+            else:
+                piv_results.deltaxs_smooth = deltaxs_smooth
+                piv_results.deltaxs_tps = deltaxs_tps
+                piv_results.deltays_smooth = deltays_smooth
+                piv_results.deltays_tps = deltays_tps
 
-            deltaxs_smooth, deltaxs_tps = tps.compute_tps_coeff_subdom(deltaxs)
-            deltays_smooth, deltays_tps = tps.compute_tps_coeff_subdom(deltays)
+                new_positions = np.vstack([
+                    self.iyvecs_grid, self.ixvecs_grid])
 
-            piv_results.deltaxs_smooth = deltaxs_smooth
-            piv_results.deltaxs_tps = deltaxs_tps
-            piv_results.deltays_smooth = deltays_smooth
-            piv_results.deltays_tps = deltays_tps
+                tps.init_with_new_positions(new_positions)
 
-            new_positions = np.vstack([
-                self.iyvecs_grid, self.ixvecs_grid])
-
-            tps.init_with_new_positions(new_positions)
-
-            deltaxs_approx = tps.compute_eval(deltaxs_tps)
-            deltays_approx = tps.compute_eval(deltays_tps)
+                deltaxs_approx = tps.compute_eval(deltaxs_tps)
+                deltays_approx = tps.compute_eval(deltays_tps)
         else:
             deltaxs_approx = griddata(centers, deltaxs,
                                       (self.iyvecs, self.ixvecs))

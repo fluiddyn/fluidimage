@@ -205,7 +205,7 @@ class CorrelScipySignal(CorrelBase):
 
     def __call__(self, im0, im1):
         """Compute the correlation from images."""
-        norm = np.sum(im1**2)
+        norm = np.sqrt(np.sum(im1**2) * np.sum(im0**2))
         if self.mode == 'valid':
             correl = correlate2d(im0, im1, mode='valid')
         elif self.mode == 'same':
@@ -325,7 +325,7 @@ class CorrelTheano(CorrelBase):
 
     def __call__(self, im0, im1):
         """Compute the correlation from images."""
-        norm = np.sum(im1**2)
+        norm = np.sqrt(np.sum(im1**2) * np.sum(im0**2))
         im1 = np.rot90(im1, 2)
         im1 = im1.reshape(1, 1, self.ny1, self.nx1)
         if self.mode == 'valid':
@@ -391,7 +391,7 @@ class CorrelFFTNumpy(CorrelBase):
 
     def __call__(self, im0, im1):
         """Compute the correlation from images."""
-        norm = np.sum(im1**2)
+        norm = np.sqrt(np.sum(im1**2) * np.sum(im0**2))
         corr = ifft2(fft2(im0).conj() * fft2(im1)).real
         return np.fft.fftshift(corr[::-1, ::-1]), norm
 
@@ -418,7 +418,7 @@ class CorrelFFTW(CorrelBase):
 
     def __call__(self, im0, im1):
         """Compute the correlation from images."""
-        norm = np.sum(im1**2) * im0.size
+        norm = np.sqrt(np.sum(im1**2) * np.sum(im0**2)) * im0.size
         op = self.op
         corr = op.ifft(op.fft(im0).conj() * op.fft(im1))
         return np.fft.fftshift(corr[::-1, ::-1]), norm
@@ -446,7 +446,7 @@ class CorrelCuFFT(CorrelBase):
 
     def __call__(self, im0, im1):
         """Compute the correlation from images."""
-        norm = np.sum(im1**2) * im0.size
+        norm = np.sqrt(np.sum(im1**2) * np.sum(im0**2)) * im0.size
         op = self.op
         corr = op.ifft(op.fft(im0).conj() * op.fft(im1)).real * im0.size**2
         return np.fft.fftshift(corr[::-1, ::-1]), norm
@@ -474,7 +474,7 @@ class CorrelSKCuFFT(CorrelBase):
 
     def __call__(self, im0, im1):
         """Compute the correlation from images."""
-        norm = np.sum(im1**2) * im0.size
+        norm = np.sqrt(np.sum(im1**2) * np.sum(im0**2)) * im0.size
         op = self.op
         corr = op.ifft(op.fft(im0).conj() * op.fft(im1))
         return np.fft.fftshift(corr[::-1, ::-1]), norm

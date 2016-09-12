@@ -25,39 +25,40 @@ def smooth_clean(xs, ys, deltaxs, deltays, iyvecs, ixvecs, threshold):
     for_norm = np.ones(shape)
 
     selection = ~(np.isnan(deltaxs) | np.isnan(deltays))
-    centers = np.vstack([xs[selection], ys[selection]])
-    dxs_select = deltaxs[selection]
-    dys_select = deltays[selection]
+    if selection.any():
+        centers = np.vstack([xs[selection], ys[selection]])
+        dxs_select = deltaxs[selection]
+        dys_select = deltays[selection]
+        dxs = griddata(centers, dxs_select, (ixvecs, iyvecs)).reshape([ny, nx])
+        dys = griddata(centers, dys_select, (ixvecs, iyvecs)).reshape([ny, nx])
 
-    dxs = griddata(centers, dxs_select, (ixvecs, iyvecs)).reshape([ny, nx])
-    dys = griddata(centers, dys_select, (ixvecs, iyvecs)).reshape([ny, nx])
+        dxs2 = _smooth(dxs, for_norm)
+        dys2 = _smooth(dys, for_norm)
+        
+        inds = (abs(dxs2 - dxs) + abs(dys2 - dys) > threshold).nonzero()
+        
+        dxs[inds] = 0
+        dys[inds] = 0
+        for_norm[inds] = 0
+        
+        dxs_smooth = _smooth(dxs, for_norm)
+        dys_smooth = _smooth(dys, for_norm)
+        
+        # come back to the unstructured grid
+        fxs = interp2d(ixvecs, iyvecs, dxs_smooth, kind='linear')
+        fys = interp2d(ixvecs, iyvecs, dys_smooth, kind='linear')
+        
+        out_dxs = np.empty_like(deltaxs)
+        out_dys = np.empty_like(deltays)
 
-    dxs2 = _smooth(dxs, for_norm)
-    dys2 = _smooth(dys, for_norm)
+        for i, (x, y) in enumerate(zip(xs, ys)):
+            out_dxs[i] = fxs(x, y)[0]
+            out_dys[i] = fys(x, y)[0]
 
-    inds = (abs(dxs2 - dxs) + abs(dys2 - dys) > threshold).nonzero()
-
-    dxs[inds] = 0
-    dys[inds] = 0
-    for_norm[inds] = 0
-
-    dxs_smooth = _smooth(dxs, for_norm)
-    dys_smooth = _smooth(dys, for_norm)
-
-    # come back to the unstructured grid
-    fxs = interp2d(ixvecs, iyvecs, dxs_smooth, kind='linear')
-    fys = interp2d(ixvecs, iyvecs, dys_smooth, kind='linear')
-
-    out_dxs = np.empty_like(deltaxs)
-    out_dys = np.empty_like(deltays)
-
-    for i, (x, y) in enumerate(zip(xs, ys)):
-        out_dxs[i] = fxs(x, y)[0]
-        out_dys[i] = fys(x, y)[0]
-
-    # from fluiddyn.debug import ipydebug
-    # import matplotlib.pylab as plb
-    # plb.ion()
-    # ipydebug()
-
+        # from fluiddyn.debug import ipydebug
+        # import matplotlib.pylab as plb
+        # plb.ion()
+        # ipydebug()
+    else:
+        out_dxs, out_dys = deltaxs, deltays
     return out_dxs, out_dys

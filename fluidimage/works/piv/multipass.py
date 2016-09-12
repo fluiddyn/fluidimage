@@ -19,7 +19,7 @@ from .. import BaseWork
 # from ...data_objects.piv import get_name_piv
 
 from .fix import WorkFIX
-from .singlepass import FirstWorkPIV, WorkPIVFromDisplacement
+from .singlepass import FirstWorkPIV, WorkPIVFromDisplacement, InterpError
 
 from ...data_objects.piv import MultipassPIVResults
 
@@ -124,7 +124,10 @@ class WorkPIV(BaseWork):
             piv_result = work_fix.calcul(piv_result)
             results.append(piv_result)
 
-        work_piv.apply_interp(piv_result, last=True)
+        try:
+            work_piv.apply_interp(piv_result, last=True)
+        except InterpError:
+            pass
 
         return results
 
