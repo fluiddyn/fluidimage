@@ -342,7 +342,6 @@ class MultipassPIVResults(DataObject):
 
         if hasattr(self, 'file_name'):
             return self.file_name
-
         r = self.passes[0]
         return r._get_name()
 
@@ -483,12 +482,17 @@ class MultipassPIVResults(DataObject):
             deltays = piv.deltays_approx
             ixvec = piv.ixvecs_approx
             iyvec = piv.ixvecs_approx
-        
+            
+        if hasattr(self, 'file_name'):
+            file_name = self.file_name
+        else:
+            file_name = None
         return LightPIVResults(
             deltaxs, deltays,
             ixvec, iyvec,
             couple=piv.couple,
-            params=piv.params)
+            params=piv.params,
+            file_name=file_name)
     
 
 class LightPIVResults(DataObject):
@@ -497,10 +501,11 @@ class LightPIVResults(DataObject):
                  ixvecs_grid=None, iyvecs_grid=None,
                  correls_max=None, correls=None,
                  couple=None, params=None,
-                 str_path=None, hdf5_object=None):
+                 str_path=None, hdf5_object=None, file_name=None):
 
         self._keys_to_be_saved = ['xs', 'ys', 'deltaxs', 'deltays']
-
+        if file_name is not None:
+            self.file_name = file_name
         if hdf5_object is not None:
             if couple is not None:
                 self.couple = couple
@@ -523,7 +528,9 @@ class LightPIVResults(DataObject):
         self.ys = iyvecs_grid
 
     def _get_name(self):
-
+        if hasattr(self, 'file_name'):
+            return self.file_name[:-3] + '_light.h5'
+        
         serie = self.couple.serie
 
         str_ind0 = serie._compute_strindices_from_indices(
@@ -537,7 +544,6 @@ class LightPIVResults(DataObject):
         return name
 
     def save(self, path=None, out_format='uvmat'):
-
         name = self._get_name()
 
         if path is not None:

@@ -48,16 +48,24 @@ class ParamCalibration(ParamContainer):
 
             nb_slice = np.asarray(calib_uvmat['nb_slice'])
             zslice_coord = np.zeros([nb_slice, 3])
-
-            for i in range(nb_slice):
-                zslice_coord[i][:] = get_number_from_string(
-                    calib_uvmat['slice_coord_{}'.format(i+1)])
-
-            if calib_uvmat['slice_angle_1'] is not None:
-                slice_angle = np.zeros([nb_slice, 3])
+            
+            if calib_uvmat.nb_slice==1:
+                zslice_coord[:] = get_number_from_string(
+                    calib_uvmat['slice_coord'])
+                if calib_uvmat['slice_angle'] is not None:
+                    slice_angle = np.zeros([nb_slice, 3])
+                    slice_angle[:] = get_number_from_string(
+                        calib_uvmat['slice_angle'])
+            else:
                 for i in range(nb_slice):
-                    slice_angle[i][:] = get_number_from_string(
-                        calib_uvmat['slice_angle_{}'.format(i+1)])
+                    zslice_coord[i][:] = get_number_from_string(
+                        calib_uvmat['slice_coord_{}'.format(i+1)])
+
+                if calib_uvmat['slice_angle_1'] is not None:
+                    slice_angle = np.zeros([nb_slice, 3])
+                    for i in range(nb_slice):
+                        slice_angle[i][:] = get_number_from_string(
+                            calib_uvmat['slice_angle_{}'.format(i+1)])
 
             self._set_child('slices', attribs={
                 'nb_slice': nb_slice,
@@ -75,9 +83,10 @@ class ParamCalibration(ParamContainer):
 
 class Calibration(object):
     def __init__(self, path_file):
+        self.path_file=path_file;
         self.params = ParamCalibration(path_file=path_file)
 
-    def pix2phys_UV(self, X, Y, dx, dy, index_level=0):
+    def pix2phys_UV(self, X, Y, dx, dy, index_level, angle=True):
         """Apply Tsai Calibration to the field
 
         Notes
@@ -89,23 +98,22 @@ class Calibration(object):
 
         """
 
-        Xphys, Yphys, Zphys = self.pix2phys(X, Y, index_level)
-
-        dxb, dyb, dzb = self.pix2phys(X + dx/2.0, Y + dy/2.0, index_level)
-        dxa, dya, dza = self.pix2phys(X - dx/2.0, Y - dy/2.0, index_level)
+        Xphys, Yphys, Zphys = self.pix2phys(X, Y, index_level=index_level, angle=True)
+        dxb, dyb, dzb = self.pix2phys(X + dx/2.0, Y + dy/2.0, index_level, angle=True)
+        dxa, dya, dza = self.pix2phys(X - dx/2.0, Y - dy/2.0, index_level, angle=True)
         dxphys = dxb - dxa
         dyphys = dyb - dya
         dzphys = dzb - dza
         return Xphys, Yphys, Zphys, dxphys, dyphys, dzphys
 
-    def pix2phys(self, X, Y, index_level=0):
-        params = self.params
-
+    def pix2phys(self, X, Y, index_level, angle=True):
+        params = ParamCalibration(path_file=self.path_file)
+        Y = 2160-Y        
         # determine position of Z0
         testangle = 0
         if hasattr(params.slices, 'slice_angle') and \
            np.any(params.slices.slice_angle[index_level] !=
-                  np.asarray([0, 0, 0])):
+                  np.asarray([0, 0, 0])) and angle:
             testangle = 1
             om = np.linalg.norm(params.slices.slice_angle[index_level])
             axis_rot = params.slices.slice_angle[index_level] / om
@@ -135,13 +143,27 @@ class Calibration(object):
         if hasattr(params, 'T') is False:
             params.T = np.asarray([0, 0, 1])
         if hasattr(params, 'C') is False:
-            params.C = np.asarray([0, 0, 1])
+            params.C = np.asarray([0, 0])
         if hasattr(params, 'kc') is False:
             params.kc = 0
 
         if hasattr(params, 'R'):
             R = params.R
+            #R[0]= params.R[4]
+            #R[1]= params.R[3]
+            #R[2]= params.R[5]
+            #R[4]= params.R[0]
+            #R[5]= params.R[2]
+            #R[6]= params.R[7]
+            #R[7]= params.R[6]
 
+            #R[1]= params.R[3]
+            #R[3]= params.R[1]
+            #R[2]= params.R[6]
+            #R[6]= params.R[2]
+            #R[5]= params.R[5]
+            #R[7]= params.R[7]
+            
             if testangle:
                 a = -norm_plane[0]/norm_plane[2]
                 b = -norm_plane[1]/norm_plane[2]
@@ -149,12 +171,12 @@ class Calibration(object):
                     a /= params.refraction_index
                     b /= params.refraction_index
 
-                R[0] = R[0]+a*R[2]
-                R[1] = R[1]+b*R[2]
-                R[3] = R[3]+a*R[5]
-                R[4] = R[4]+b*R[5]
-                R[6] = R[6]+a*R[8]
-                R[7] = R[7]+b*R[8]
+                    R[0] += a*R[2]
+                    R[1] += b*R[2]
+                    R[3] += a*R[5]
+                    R[4] += b*R[5]
+                    R[6] += a*R[8]
+                    R[7] += b*R[8]
 
             Tx = params.T[0]
             Ty = params.T[1]
@@ -174,17 +196,13 @@ class Calibration(object):
             A21 = -R[6]*Ty+R[3]*Tz+Z21*Z0virt
             A22 = -R[0]*Tz+R[6]*Tx+Z22*Z0virt
 
-            #     X0=Params.fx_fy(1)*(R(5)*Tx-R(2)*Ty+Zx0*Z0virt)
-            #     Y0=Params.fx_fy(2)*(-R(4)*Tx+R(1)*Ty+Zy0*Z0virt)
+
             X0 = (R[4]*Tx-R[1]*Ty+Zx0*Z0virt)
             Y0 = (-R[3]*Tx+R[0]*Ty+Zy0*Z0virt)
-            # px to camera:
-            #     Xd=dpx*(X-Params.Cx_Cy(1)) % sensor coordinates
-            #     Yd=(Y-Params.Cx_Cy(2))
+
             Xd = (X-params.C[0])/params.f[0]  # sensor coordinates
             Yd = (Y-params.C[1])/params.f[1]
             dist_fact = 1 + params.kc*(Xd*Xd+Yd*Yd)
-            # /(f*f) %distortion factor
             Xu = Xd/dist_fact  # undistorted sensor coordinates
             Yu = Yd/dist_fact
             denom = Dx*Xu+Dy*Yu+D0
