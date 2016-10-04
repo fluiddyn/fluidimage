@@ -84,12 +84,12 @@ class ParamListBase(list):
         levels = [os.path.basename(subdir) for subdir in glob(pattern)]
         return levels
 
-    def fill_params(self, level):
+    def fill_params(self, level, **kwargs):
         '''
         Initialize parameters for a particular experiment, camera and level.
 
         '''
-        params = self.TopologyClass.create_default_params()
+        params = self.TopologyClass.create_default_params(**kwargs)
         params = self._set_complete_path(params, level)
 
         get_params = self.camera_specific_params[self.camera]

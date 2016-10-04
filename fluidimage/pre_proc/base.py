@@ -21,18 +21,25 @@ class PreprocBase(object):
     """Preprocess series of images with various tools. """
 
     @classmethod
-    def create_default_params(cls):
-        """Class method returning the default parameters."""
+    def create_default_params(cls, backend='python'):
+        """Class method returning the default parameters.
+
+        Parameters
+        ----------
+        backend: {'python', 'opencv'}
+            Specifies which backend to use.
+        """
         params = ParamContainer(tag='params')
         params._set_child('preproc')
         params.preproc._set_child('series', attribs={'path': ''})
+        params.preproc._set_child('tools', attribs={'backend': backend})
 
         PreprocTools._complete_class_with_tools(params)
 
         return params
 
     def __init__(self, params=None):
-        """Set path for results and loads images as SeriesOfArraysFromFiles."""
+        """Set path for results and loads images as SerieOfArraysFromFiles."""
         if params is None:
             params = self.__class__.create_default_params()
 
