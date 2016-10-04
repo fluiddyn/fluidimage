@@ -2,6 +2,7 @@
 import os
 import subprocess
 import sys
+from glob import glob
 from datetime import datetime
 
 from runpy import run_path
@@ -13,6 +14,8 @@ try:
     use_pythran = True
 except ImportError:
     use_pythran = False
+
+here = os.path.abspath(os.path.dirname(__file__))
 
 # I have not yet manage to use Pythran on Windows...
 if sys.platform == 'win32':
@@ -72,6 +75,8 @@ if use_pythran:
 else:
     ext_modules = []
 
+scripts = glob(os.path.join(here, 'scripts/fluidimage*'))
+scripts = [script for script in scripts if not script.endswith('~')]
 
 setup(
     name='fluidimage',
@@ -108,5 +113,6 @@ setup(
         'Programming Language :: C'],
     packages=find_packages(exclude=[
         'doc', 'include', 'scripts']),
+    scripts=scripts,
     install_requires=install_requires,
     ext_modules=ext_modules)
