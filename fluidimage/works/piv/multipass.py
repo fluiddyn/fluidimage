@@ -49,7 +49,27 @@ class WorkPIV(BaseWork):
         params.multipass._set_doc(
             """Multipass PIV parameters:
 
-`coeff_zoom` can be an integer or a iterable of size `number - 1`.
+number : int (default 1)
+    Number of PIV passes.
+
+coeff_zoom : integer or iterable of size `number - 1`.
+
+    Coefficient defining the size of the interrogation windows for the passes 1
+            to `number - 1` (always defined comparing the passes `i-1`).
+
+use_tps : bool or 'last'
+
+    If it is True, the interpolation is done using the Thin Plate Spline method
+    (computationnally heavy but sometimes interesting). If it is 'last', the
+    TPS method is used only for the last pass.
+
+subdom_size : int
+
+    Number of vectors in the subdomains used for the TPS method.
+
+smoothing_coef : float
+
+    Coefficient used for the TPS method.
 """)
 
     def __init__(self, params=None):
