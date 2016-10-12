@@ -29,6 +29,7 @@ from copy import deepcopy
 from glob import glob
 from warnings import warn
 from fluidimage.topologies.pre_proc import TopologyPreproc
+from fluidimage.topologies.piv import TopologyPIV
 
 
 class ParamListBase(list):
@@ -131,3 +132,17 @@ class ParamListPreproc(ParamListBase):
 
     def _get_complete_path(self, params):
         return params.preproc.series.path
+
+
+class ParamListPIV(ParamListBase):
+    def __init__(self, *args, **kwargs):
+        super(ParamListPreproc, self).__init__(*args, **kwargs)
+        self.TopologyClass = TopologyPIV
+
+    def _set_complete_path(self, params, level):
+        params.series.path = os.path.join(
+            self.path, self.camera, level)
+        return params
+
+    def _get_complete_path(self, params):
+        return params.series.path

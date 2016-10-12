@@ -87,8 +87,7 @@ class PGWrapper(object):
              buttons)
 
         """
-        # vb = pg.ViewBox()
-        imv = pg.ImageView()  # view=vb)
+        imv = pg.ImageView()
         win = self._win(title)
         self._add_gfx_item(win, imv)
 
@@ -103,9 +102,10 @@ class PGWrapper(object):
             data = imread(path).transpose()
             imv.setImage(data)
 
-        # self._add_crosshair(win, imv, vb)
+        vb = imv.imageItem.getViewBox()
+        self._add_crosshair(imv, vb)
 
-    def _add_crosshair(self, win, plt, vb):
+    def _add_crosshair(self, plt, vb):
         p1 = plt
         data1 = plt.image
         vLine = pg.InfiniteLine(angle=90, movable=False)
@@ -114,25 +114,23 @@ class PGWrapper(object):
         p1.addItem(hLine, ignoreBounds=True)
 
         label = pg.LabelItem(justify='right')
-        win.addItem(label)
+        p1.addItem(label)
 
         def mouseMoved(evt):
             pos = evt[0]  # using signal proxy turns original arguments into a tuple
-            if p1.sceneBoundingRect().contains(pos):
-                mousePoint = vb.mapSceneToView(pos)
-                index = np.array([mousePoint.x(), mousePoint.y()], dtype=int)
-                if (np.all(np.greater_equal(index, [0, 0])) and
-                        np.all(np.lesser_equal(index, data1.shape))):
-                    label.setText(
-                        ("<span style='font-size: 12pt'>x=%0.1f,   "
-                         "<span style='color: red'>y=%0.1f</span>,   "
-                         "<span style='color: green'>I=%0.1f</span>") %
-                        (mousePoint.x(), mousePoint.y(), data1[index[0], index[1]]))
+            mousePoint = vb.mapSceneToView(pos)
+            index = np.array([mousePoint.x(), mousePoint.y()], dtype=int)
+            if (np.all(np.greater_equal(index, [0, 0])) and
+                    np.all(np.less_equal(index, data1.shape))):
+                label.setText(
+                    ("<span style='font-size: 10pt'>x=%0.1f,   "
+                     "<span>y=%0.1f</span>,   "
+                     "<span style='color: green'>I=%0.1f</span>") %
+                    (mousePoint.x(), mousePoint.y(), data1[index[0], index[1]]))
+            vLine.setPos(mousePoint.x())
+            hLine.setPos(mousePoint.y())
 
-                vLine.setPos(mousePoint.x())
-                hLine.setPos(mousePoint.y())
-
-        self.proxy = pg.SignalProxy(p1.scene().sigMouseMoved, rateLimit=60, slot=mouseMoved)
+        self.proxy = pg.SignalProxy(p1.scene.sigMouseMoved, rateLimit=60, slot=mouseMoved)
 
     def show(self):
         self.win.show()
