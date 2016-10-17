@@ -73,7 +73,7 @@ class PGWrapper(object):
         logger.debug('Function _win: ' + repr(win))
         return win
 
-    def view(self, path, title=None):
+    def view(self, path, title=None, hide_crosshair=True):
         """
         ImageView, a high-level widget for displaying and analyzing 2D and 3D
         data. ImageView provides:
@@ -103,34 +103,47 @@ class PGWrapper(object):
             imv.setImage(data)
 
         vb = imv.imageItem.getViewBox()
-        self._add_crosshair(imv, vb)
+        self._add_crosshair(win, imv, vb, hide_lines=hide_crosshair)
 
-    def _add_crosshair(self, plt, vb):
-        p1 = plt
-        data1 = plt.image
-        vLine = pg.InfiniteLine(angle=90, movable=False)
-        hLine = pg.InfiniteLine(angle=0, movable=False)
-        p1.addItem(vLine, ignoreBounds=True)
-        p1.addItem(hLine, ignoreBounds=True)
+    def _add_crosshair(self, win, p1, vb, hide_lines=True):
+        if not hide_lines:
+            vLine = pg.InfiniteLine(angle=90, movable=False)
+            hLine = pg.InfiniteLine(angle=0, movable=False)
+            p1.addItem(vLine, ignoreBounds=True)
+            p1.addItem(hLine, ignoreBounds=True)
 
-        label = pg.LabelItem(justify='right')
+        label = pg.TextItem('(x,y)=intensity', anchor=(0., 0.))
         p1.addItem(label)
+        label.hide()
 
         def mouseMoved(evt):
+            data1 = p1.getImageItem().image  # should be updated using sigTimeChanged
             pos = evt[0]  # using signal proxy turns original arguments into a tuple
             mousePoint = vb.mapSceneToView(pos)
-            index = np.array([mousePoint.x(), mousePoint.y()], dtype=int)
+            x = mousePoint.x()
+            y = mousePoint.y()
+            index = np.array([x, y], dtype=int)
+            index_max = data1.shape
             if (np.all(np.greater_equal(index, [0, 0])) and
-                    np.all(np.less_equal(index, data1.shape))):
-                label.setText(
-                    ("<span style='font-size: 10pt'>x=%0.1f,   "
-                     "<span>y=%0.1f</span>,   "
-                     "<span style='color: green'>I=%0.1f</span>") %
-                    (mousePoint.x(), mousePoint.y(), data1[index[0], index[1]]))
-            vLine.setPos(mousePoint.x())
-            hLine.setPos(mousePoint.y())
+                    np.all(np.less_equal(index, index_max))):
+                text = (("<span style='font-size: 10pt; color: cyan'>(%0.1f, %0.1f)=</span>"
+                         "<span style='color: red'>%0.1f</span>") %
+                        (mousePoint.x(), mousePoint.y(), data1[index[0], index[1]]))
+                label.setHtml(text)
+                label.setPos(x, y)
+                label.show()
+                if not hide_lines:
+                    vLine.setPos(x)
+                    hLine.setPos(y)
+            else:
+                label.hide()
 
-        self.proxy = pg.SignalProxy(p1.scene.sigMouseMoved, rateLimit=60, slot=mouseMoved)
+        try:
+            signal = p1.scene.sigMouseMoved
+        except AttributeError:
+            signal = p1.scene().sigMouseMoved
+
+        self.proxy = pg.SignalProxy(signal, rateLimit=48, slot=mouseMoved)
 
     def show(self):
         self.win.show()
