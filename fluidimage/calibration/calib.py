@@ -49,7 +49,7 @@ class ParamCalibration(ParamContainer):
             nb_slice = np.asarray(calib_uvmat['nb_slice'])
             zslice_coord = np.zeros([nb_slice, 3])
             
-            if calib_uvmat.nb_slice==1:
+            if calib_uvmat.nb_slice == 1:
                 zslice_coord[:] = get_number_from_string(
                     calib_uvmat['slice_coord'])
                 if calib_uvmat['slice_angle'] is not None:
