@@ -91,6 +91,9 @@ class DisplayPIV(object):
                 xs = piv_results.xs
                 ys = piv_results.ys
 
+            if im0 is None:
+                deltays *= -1
+
             self.q = ax1.quiver(
                 xs, ys,
                 deltaxs, -deltays,
@@ -105,6 +108,10 @@ class DisplayPIV(object):
                     [piv_results.deltaxs_wrong[i] for i in inds_error])
                 dys_wrong = np.array(
                     [piv_results.deltays_wrong[i] for i in inds_error])
+
+                if im0 is None:
+                    dys_wrong *= -1
+
                 self.q_wrong = ax1.quiver(
                     xs_wrong, ys_wrong,
                     dxs_wrong, -dys_wrong,
