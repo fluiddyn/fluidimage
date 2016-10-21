@@ -100,6 +100,9 @@ class PIV2d(object):
             vz = self.vz / other.vz
         return type(self)(self.x, self.y, self.z, vx, vy, vz)
 
+    def __truediv__(self, other):
+        return self.__div__(other)
+
     def display(self, scale=1, background=None):
         fig = plt.figure()
         ax = plt.gca()
