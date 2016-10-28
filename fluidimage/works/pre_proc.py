@@ -61,8 +61,8 @@ class WorkPreproc(PreprocBase):
         return dict(zip(name_files[s], images[s]))
 
     def display(self, ind=0, hist=False):
-        nimages = 2
-        name_files = self.serie_arrays.get_name_files()[ind:ind + nimages]
+        nb_images = 2
+        name_files = self.serie_arrays.get_name_files()[ind:ind + nb_images]
 
         results_series = SerieOfArraysFromFiles(self.params.saving.path)
         results = {name: results_series.get_array_from_name(name)

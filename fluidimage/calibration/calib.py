@@ -49,7 +49,7 @@ class ParamCalibration(ParamContainer):
             nb_slice = np.asarray(calib_uvmat['nb_slice'])
             zslice_coord = np.zeros([nb_slice, 3])
             
-            if calib_uvmat.nb_slice==1:
+            if calib_uvmat.nb_slice == 1:
                 zslice_coord[:] = get_number_from_string(
                     calib_uvmat['slice_coord'])
                 if calib_uvmat['slice_angle'] is not None:
@@ -86,7 +86,7 @@ class Calibration(object):
         self.path_file=path_file;
         self.params = ParamCalibration(path_file=path_file)
 
-    def pix2phys_UV(self, X, Y, dx, dy, index_level, angle=True):
+    def pix2phys_UV(self, X, Y, dx, dy, index_level, nbypix, angle=True):
         """Apply Tsai Calibration to the field
 
         Notes
@@ -98,17 +98,17 @@ class Calibration(object):
 
         """
 
-        Xphys, Yphys, Zphys = self.pix2phys(X, Y, index_level=index_level, angle=True)
-        dxb, dyb, dzb = self.pix2phys(X + dx/2.0, Y + dy/2.0, index_level, angle=True)
-        dxa, dya, dza = self.pix2phys(X - dx/2.0, Y - dy/2.0, index_level, angle=True)
+        Xphys, Yphys, Zphys = self.pix2phys(X, Y, index_level=index_level, nbypix=nbypix, angle=True)
+        dxb, dyb, dzb = self.pix2phys(X + dx/2.0, Y + dy/2.0, index_level, nbypix=nbypix, angle=True)
+        dxa, dya, dza = self.pix2phys(X - dx/2.0, Y - dy/2.0, index_level, nbypix=nbypix, angle=True)
         dxphys = dxb - dxa
         dyphys = dyb - dya
         dzphys = dzb - dza
         return Xphys, Yphys, Zphys, dxphys, dyphys, dzphys
 
-    def pix2phys(self, X, Y, index_level, angle=True):
+    def pix2phys(self, X, Y, index_level, nbypix, angle=True):
         params = ParamCalibration(path_file=self.path_file)
-        Y = 2160-Y        
+        Y = nbypix-Y # difference of convention with calibration done with uvmat!       
         # determine position of Z0
         testangle = 0
         if hasattr(params.slices, 'slice_angle') and \

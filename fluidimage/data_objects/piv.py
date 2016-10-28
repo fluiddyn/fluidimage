@@ -153,6 +153,13 @@ class ArrayCouple(DataObject):
         group.attrs['names'] = self.names
         group.attrs['paths'] = self.paths
 
+        if not hasattr(self, 'arrays'):
+            im0 = imread(self.paths[0])
+        else:
+            im0 = self.arrays[0]
+
+        group.create_dataset('shape_images', data=im0.shape)
+
     def _load(self, path=None, hdf5_object=None):
 
         if path is not None:
@@ -160,6 +167,10 @@ class ArrayCouple(DataObject):
 
         self.names = tuple(hdf5_object.attrs['names'])
         self.paths = tuple(hdf5_object.attrs['paths'])
+        try:
+            self.shape_images = hdf5_object['shape_images'].value
+        except KeyError:
+            pass
 
 
 class HeavyPIVResults(DataObject):
@@ -207,7 +218,10 @@ class HeavyPIVResults(DataObject):
 
     def display(self, show_interp=False, scale=0.2, show_error=True,
                 pourcent_histo=99, hist=False):
-        im0, im1 = self.couple.get_arrays()
+        try:
+            im0, im1 = self.couple.get_arrays()
+        except IOError:
+            im0, im1 = None, None
         return DisplayPIV(
             im0, im1, self, show_interp=show_interp, scale=scale,
             show_error=show_error, pourcent_histo=pourcent_histo, hist=hist)
@@ -324,7 +338,8 @@ class MultipassPIVResults(DataObject):
         if str_path is not None:
             self._load(str_path)
 
-    def display(self, i=-1, show_interp=False, scale=0.2, show_error=True, pourcent_histo=99, hist=False):
+    def display(self, i=-1, show_interp=False, scale=0.2, show_error=True,
+                pourcent_histo=99, hist=False):
         r = self.passes[i]
         return r.display(show_interp=show_interp, scale=scale,
                          show_error=show_error,
@@ -482,7 +497,7 @@ class MultipassPIVResults(DataObject):
             deltays = piv.deltays_approx
             ixvec = piv.ixvecs_approx
             iyvec = piv.ixvecs_approx
-            
+
         if hasattr(self, 'file_name'):
             file_name = self.file_name
         else:
@@ -493,7 +508,7 @@ class MultipassPIVResults(DataObject):
             couple=piv.couple,
             params=piv.params,
             file_name=file_name)
-    
+
 
 class LightPIVResults(DataObject):
 
@@ -530,7 +545,7 @@ class LightPIVResults(DataObject):
     def _get_name(self):
         if hasattr(self, 'file_name'):
             return self.file_name[:-3] + '_light.h5'
-        
+
         serie = self.couple.serie
 
         str_ind0 = serie._compute_strindices_from_indices(

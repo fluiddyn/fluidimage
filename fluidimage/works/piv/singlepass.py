@@ -317,13 +317,15 @@ class BaseWorkPIV(BaseWork):
                 centers, subdom_size, smoothing_coef,
                 threshold=1, pourc_buffer_area=0.5)
             try:
-                deltaxs_smooth, deltaxs_tps = tps.compute_tps_coeff_subdom(deltaxs)
-                deltays_smooth, deltays_tps = tps.compute_tps_coeff_subdom(deltays)
+                deltaxs_smooth, deltaxs_tps = \
+                    tps.compute_tps_coeff_subdom(deltaxs)
+                deltays_smooth, deltays_tps = \
+                    tps.compute_tps_coeff_subdom(deltays)
             except np.linalg.LinAlgError:
                 deltaxs_approx = griddata(centers, deltaxs,
                                           (self.iyvecs, self.ixvecs))
                 deltays_approx = griddata(centers, deltays,
-                                          (self.iyvecs, self.ixvecs))  
+                                          (self.iyvecs, self.ixvecs))
             else:
                 piv_results.deltaxs_smooth = deltaxs_smooth
                 piv_results.deltaxs_tps = deltaxs_tps
@@ -366,9 +368,41 @@ class FirstWorkPIV(BaseWorkPIV):
             'method_subpix': '2d_gaussian',
             'nsubpix': 1})
 
+        params.piv0._set_doc("""
+Parameters describing one PIV step.
+
+shape_crop_im0 : int (48)
+    Shape of the cropped images 0 from which are computed the correlation.
+shape_crop_im1 : int or None
+    Shape of the cropped images 0 (has to be None for correl based on fft).
+delta_max : None
+    Displacement maximum.
+delta_mean : None
+    Displacement averaged over space.
+
+method_correl : str, {'fftw', ...}
+
+method_subpix : str, {'2d_gaussian', ...}
+
+nsubpix : 1
+    Integer used in the subpix finder. It is related to the typical size of the
+    particles. It has to be increased in case of peak locking (plot the
+    histograms of the displacements).
+""")
+
         params.piv0._set_child('grid', attribs={
             'overlap': 0.5,
             'from': 'overlap'})
+
+        params.piv0.grid._set_doc("""
+Parameters describing the grid.
+
+overlap : float (0.5)
+    Number smaller than 1 defining the overlap between interrogation windows.
+
+from : str {'overlap'}
+    Keyword for the method from which is computed the grid.
+""")
 
         params._set_child('mask', attribs={})
 
