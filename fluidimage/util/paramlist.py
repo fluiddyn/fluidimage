@@ -55,7 +55,7 @@ class ParamListBase(list):
         '''Detects if it is single (series) or double (burst) frame expt.'''
 
         if 'PCO' in self.camera:
-            pattern = os.path.join(self.path, '*scan_piv*')
+            pattern = os.path.join(self.path, '*frame*piv*')
             scan_piv_file = glob(pattern)[0]
             if 'single_frame' in scan_piv_file:
                 return 1

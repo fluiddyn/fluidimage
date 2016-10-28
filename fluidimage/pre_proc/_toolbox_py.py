@@ -29,7 +29,7 @@ from .io import iterate_multiple_imgs, multiple_imgs_as_ndarray
 
 __all__ = ['sliding_median', 'sliding_minima', 'sliding_percentile',
            'temporal_median', 'temporal_minima', 'temporal_percentile',
-           'global_threshold', 'rescale_intensity',
+           'global_threshold', 'adaptive_threshold', 'rescale_intensity',
            'equalize_hist_global', 'equalize_hist_local',
            'equalize_hist_adapt',
            'gamma_correction', 'sharpen', 'rescale_intensity_tanh']
@@ -261,6 +261,26 @@ def global_threshold(img=None, minima=0., maxima=65535.):
 
 
 @iterate_multiple_imgs
+def adaptive_threshold(img, window_size=5, offset=0):
+    '''
+    Adaptive threshold transforms a grayscale image to a binary image.
+    Useful in identifying particles.
+
+    Parameters
+    ----------
+    img : array_like
+        Single image as numpy array or multiple images as array-like object
+    window_size : scalar
+        Sets the size of the pixel neighbourhood to calculate threshold.
+    offset : scalar
+        Constant to be subtracted from the mean.
+
+    '''
+    img_out = filters.threshold_adaptive(img, window_size, offset=offset)
+    return img_out
+
+
+@iterate_multiple_imgs
 def rescale_intensity(img=None, minima=0., maxima=65535.):
     '''
     Rescale image intensities, between the specified minima and maxima,
@@ -295,7 +315,7 @@ def rescale_intensity_tanh(img=None, threshold=None):
 
     '''
     if not threshold:
-        threshold = 2 * np.sqrt(np.mean(img**2))
+        threshold = 2 * np.sqrt(np.mean(img ** 2))
 
     img_out = np.tanh(img / threshold)
     img_out = np.floor(np.max(img) / np.max(img_out) * img_out)
