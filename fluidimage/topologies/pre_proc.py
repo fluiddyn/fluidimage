@@ -42,20 +42,82 @@ class TopologyPreproc(TopologyBase):
     @classmethod
     def create_default_params(cls):
         params = WorkPreproc.create_default_params()
-        params.preproc.series._set_attribs({'strcouple': 'i:i+3',
+        params.preproc.series._set_attribs({'strcouple': 'i:i+1',
                                             'ind_start': 0,
                                             'ind_stop': None,
                                             'ind_step': 1,
                                             'sequential_loading': True})
 
+        params.preproc.series._set_doc("""
+Parameters describing image loading prior to preprocessing.
+
+strcouple : str
+    Determines the subset from the whole series of images that should be loaded
+    and preprocessed together. Particularly useful when temporal filtering requires
+    multiple images.
+
+    For example, for a series of images with just one index,
+
+        >>> strcouple = 'i:i+1'   # load one image at a time
+        >>> strcouple = 'i-2:i+3'  # loads 5 images at a time
+
+    Similarly for two indices,
+
+        >>> strcouple = 'i:i+1,0'   # load one image at a time, with second index fixed
+        >>> strcouple = 'i-2:i+3,0'  # loads 5 images at a time, with second index fixed
+
+    ..todo::
+
+        rename this parameter to strsubset / strslice
+
+ind_start : int
+    Start index for the whole series of images being loaded.
+    For more details: see `class SeriesOfArrays`.
+
+ind_stop : int
+    Stop index for the whole series of images being loaded.
+    For more details: see `class SeriesOfArrays`.
+
+ind_step : int
+    Step index for the whole series of images being loaded.
+    For more details: see `class SeriesOfArrays`.
+
+sequential_loading : bool
+    When set as `true` the image loading waiting queue `WaitingQueueLoadImageSeries`
+    is processed sequentially. i.e. only one subset of the whole series is loaded at a time.
+
+""")
+
         params.preproc._set_child('saving', attribs={'path': None,
+                                                     'strcouple': None,
                                                      'how': 'ask',
                                                      'format': 'img',
                                                      'postfix': 'pre'})
 
-        params.preproc.saving._set_doc(
-            "`how` can be 'ask', 'new_dir', 'complete' or 'recompute'.\n" +
-            "`format` can be 'img' or 'hdf5'")
+        params.preproc.saving._set_doc("""
+Parameters describing image saving after preprocessing.
+
+path : str or None
+    Path to which preprocessed images are saved.
+
+strcouple : str or None
+    Determines the sub-subset of images must be saved from subset of images that were
+    loaded and preprocessed. When set as None, saves the middle image from every subset.
+
+    ..todo::
+
+        rename this parameter to strsubset / strslice
+
+how : str {'ask', 'new_dir', 'complete', 'recompute'}
+    How preprocessed images must be saved if it already exists or not.
+
+format : str {'img', 'hdf5'}
+    Format in which preprocessed image data must be saved.
+
+postfix : str
+    A suffix added to the new directory where preprocessed images are saved.
+
+""")
 
         return params
 
