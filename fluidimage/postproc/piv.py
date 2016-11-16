@@ -11,7 +11,7 @@ from copy import deepcopy
 
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.ndimage.filters import median_filter
+from scipy.ndimage.filters import median_filter, gaussian_filter
 
 
 class PIV2d(object):
@@ -142,7 +142,9 @@ class PIV2d(object):
         plt.show()
 
     def median_filter(self, size, niter=1, valid=True):
-
+        if np.isscalar(size):
+            size = [size, size]
+            
         def _medianf(f):
             for i in range(niter):
                 f = median_filter(f, size)
@@ -159,8 +161,38 @@ class PIV2d(object):
             mf = int(np.floor(max(size)/2))
             ny, nx = self.vx.shape
             ret = ret.extract(mf, ny-mf, mf, nx-mf)
-        return ret
 
+        ret.history = np.hstack([ret.history,
+                                 'median_filter_size={}_niter={}_valid ={}'.format(
+                                     size, niter, valid)])
+        return ret
+    
+    def gaussian_filter(self, sigma, niter=1, truncate=3, valid=True):
+        if np.isscalar(sigma):
+            sigma = [sigma, sigma]
+            
+        def _gaussianf(f):
+            for i in range(niter):
+                f = gaussian_filter(f, sigma, truncate=truncate)
+            return f
+
+        ret = deepcopy(self)
+        ret.vx = _gaussianf(self.vx)
+        ret.vy = _gaussianf(self.vy)
+
+        if hasattr(self, 'vz'):
+            ret.vz = _gaussianf(self.vz)
+
+        if valid:
+            mf = int(np.floor((2*int(truncate*max(sigma) + 0.5) + 1)/2))
+            ny, nx = self.vx.shape
+            ret = ret.extract(mf, ny-mf, mf, nx-mf)
+            
+        ret.history = np.hstack([ret.history,
+                                 'gaussian_filter_sigma={}_niter={}_valid ={}'.format(
+                                     sigma, niter, valid)])
+        return ret
+    
     def extract(self, start0, stop0, start1, stop1):
         def _extract2d(f):
             return f[start0:stop0, start1:stop1]
@@ -257,6 +289,12 @@ class ArrayPIV(object):
             result.append(v.median_filter(size, niter=niter, valid=valid))
         return result
 
+    def gaussian_filter(self, sigma, niter=1, truncate=3, valid=True):
+        result = type(self)()
+        for v in self:
+            result.append(v.gaussian_filter(sigma, niter=niter, truncate=truncate, valid=valid))
+        return result
+    
     def extract(self, start0, stop0, start1, stop1):
         result = type(self)()
         for v in self:

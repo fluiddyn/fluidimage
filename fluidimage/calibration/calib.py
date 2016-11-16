@@ -52,20 +52,24 @@ class ParamCalibration(ParamContainer):
             if calib_uvmat.nb_slice == 1:
                 zslice_coord[:] = get_number_from_string(
                     calib_uvmat['slice_coord'])
-                if calib_uvmat['slice_angle'] is not None:
+                if hasattr(calib_uvmat, 'slice_angle') and calib_uvmat['slice_angle'] is not None:
                     slice_angle = np.zeros([nb_slice, 3])
                     slice_angle[:] = get_number_from_string(
                         calib_uvmat['slice_angle'])
+                else:
+                    slice_angle = [0, 0, 0]
             else:
                 for i in range(nb_slice):
                     zslice_coord[i][:] = get_number_from_string(
                         calib_uvmat['slice_coord_{}'.format(i+1)])
 
-                if calib_uvmat['slice_angle_1'] is not None:
+                if hasattr(calib_uvmat, 'slice_angle_1') and calib_uvmat['slice_angle_1'] is not None:
                     slice_angle = np.zeros([nb_slice, 3])
                     for i in range(nb_slice):
                         slice_angle[i][:] = get_number_from_string(
                             calib_uvmat['slice_angle_{}'.format(i+1)])
+                else:
+                    slice_angle = [0, 0, 0]
 
             self._set_child('slices', attribs={
                 'nb_slice': nb_slice,
