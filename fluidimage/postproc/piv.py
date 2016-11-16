@@ -201,7 +201,7 @@ class PIV2d(object):
         ret.y = ret.y[start0:stop0]
         ret.vx = _extract2d(ret.vx)
         ret.vy = _extract2d(ret.vy)
-        if hasattr(self, 'vz'):
+        if hasattr(self, 'vz') and np.size(self.vz)>1:
             ret.vz = _extract2d(ret.vz)
         return ret
 
