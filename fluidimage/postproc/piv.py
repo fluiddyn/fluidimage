@@ -41,7 +41,7 @@ class PIV2d(object):
         self.namez = namez
 
         self.name = 'Fluidimage_field'
-        self.history = 'fluidimage'
+        self.history = ['fluidimage']
         self.setname = '??'
         self.ysign = 'ysign'
 
@@ -144,7 +144,7 @@ class PIV2d(object):
     def median_filter(self, size, niter=1, valid=True):
         if np.isscalar(size):
             size = [size, size]
-            
+
         def _medianf(f):
             for i in range(niter):
                 f = median_filter(f, size)
@@ -162,15 +162,16 @@ class PIV2d(object):
             ny, nx = self.vx.shape
             ret = ret.extract(mf, ny-mf, mf, nx-mf)
 
-        ret.history = np.hstack([ret.history,
-                                 'median_filter_size={}_niter={}_valid ={}'.format(
-                                     size, niter, valid)])
+        ret.history.append(
+            'median_filter_size={}_niter={}_valid ={}'.format(
+                size, niter, valid))
+
         return ret
-    
+
     def gaussian_filter(self, sigma, niter=1, truncate=3, valid=True):
         if np.isscalar(sigma):
             sigma = [sigma, sigma]
-            
+
         def _gaussianf(f):
             for i in range(niter):
                 f = gaussian_filter(f, sigma, truncate=truncate)
@@ -187,12 +188,13 @@ class PIV2d(object):
             mf = int(np.floor((2*int(truncate*max(sigma) + 0.5) + 1)/2))
             ny, nx = self.vx.shape
             ret = ret.extract(mf, ny-mf, mf, nx-mf)
-            
-        ret.history = np.hstack([ret.history,
-                                 'gaussian_filter_sigma={}_niter={}_valid ={}'.format(
-                                     sigma, niter, valid)])
+
+        ret.history.append(
+            'gaussian_filter_sigma={}_niter={}_valid ={}'.format(
+                sigma, niter, valid))
+
         return ret
-    
+
     def extract(self, start0, stop0, start1, stop1):
         def _extract2d(f):
             return f[start0:stop0, start1:stop1]
@@ -201,20 +203,41 @@ class PIV2d(object):
         ret.y = ret.y[start0:stop0]
         ret.vx = _extract2d(ret.vx)
         ret.vy = _extract2d(ret.vy)
-        if hasattr(self, 'vz') and np.size(self.vz)>1:
+        if hasattr(self, 'vz') and np.size(self.vz) > 1:
             ret.vz = _extract2d(ret.vz)
+
+        ret.history.append(
+            'extract(start0={}, stop0={}, start1={}, stop1{}'.format(
+                start0, stop0, start1, stop1))
+
         return ret
 
-    def truncate(self, cut=0, phys=False):
+    def truncate(self, cut=1, phys=False):
         if phys:
             raise NotImplementedError
         ny, nx = self.vx.shape
         return self.extract(cut, ny-cut, cut, nx-cut)
 
+    def extract_square(self, cut=0):
+        n1 = self.x.size
+        n0 = self.y.size
+        n = min(n0, n1) - 2*cut
+
+        if n1 > n0:
+            start0 = cut
+            stop0 = n
+            start1 = (n1 - n)//2
+            stop1 = start1 + n
+        else:
+            start1 = cut
+            stop1 = n
+            start0 = (n0 - n)//2
+            stop0 = start1 + n
+
+        return self.extract(start0, stop0, start1, stop1)
+
     def compute_norm(self):
         return np.sqrt(self.vx**2 + self.vy**2)
-
-function_names = ['median_filter', 'extract']
 
 
 class ArrayPIV(object):
@@ -292,17 +315,24 @@ class ArrayPIV(object):
     def gaussian_filter(self, sigma, niter=1, truncate=3, valid=True):
         result = type(self)()
         for v in self:
-            result.append(v.gaussian_filter(sigma, niter=niter, truncate=truncate, valid=valid))
+            result.append(v.gaussian_filter(
+                sigma, niter=niter, truncate=truncate, valid=valid))
         return result
-    
+
     def extract(self, start0, stop0, start1, stop1):
         result = type(self)()
         for v in self:
             result.append(v.extract(start0, stop0, start1, stop1))
         return result
 
-    def truncate(self, cut=0, phys=False):
+    def truncate(self, cut=1, phys=False):
         result = type(self)()
         for v in self:
             result.append(v.truncate(cut=cut, phys=phys))
+        return result
+
+    def extract_square(self, cut=0):
+        result = type(self)()
+        for v in self:
+            result.append(v.extract_square(cut=cut))
         return result
