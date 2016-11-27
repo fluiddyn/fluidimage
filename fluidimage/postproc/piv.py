@@ -163,7 +163,7 @@ class PIV2d(object):
             ret = ret.extract(mf, ny-mf, mf, nx-mf)
 
         ret.history.append(
-            'median_filter_size={}_niter={}_valid ={}'.format(
+            'median_filter(size={}, niter={}, valid ={})'.format(
                 size, niter, valid))
 
         return ret
@@ -190,7 +190,7 @@ class PIV2d(object):
             ret = ret.extract(mf, ny-mf, mf, nx-mf)
 
         ret.history.append(
-            'gaussian_filter_sigma={}_niter={}_valid ={}'.format(
+            'gaussian_filter(sigma={}, niter={}, valid={})'.format(
                 sigma, niter, valid))
 
         return ret
@@ -207,7 +207,7 @@ class PIV2d(object):
             ret.vz = _extract2d(ret.vz)
 
         ret.history.append(
-            'extract(start0={}, stop0={}, start1={}, stop1{}'.format(
+            'extract(start0={}, stop0={}, start1={}, stop1={})'.format(
                 start0, stop0, start1, stop1))
 
         return ret
@@ -225,12 +225,12 @@ class PIV2d(object):
 
         if n1 > n0:
             start0 = cut
-            stop0 = n
+            stop0 = cut + n
             start1 = (n1 - n)//2
             stop1 = start1 + n
         else:
             start1 = cut
-            stop1 = n
+            stop1 = cut + n
             start0 = (n0 - n)//2
             stop0 = start1 + n
 
