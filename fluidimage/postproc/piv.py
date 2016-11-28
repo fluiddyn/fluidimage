@@ -217,8 +217,8 @@ class PIV2d(object):
             ret.vz = _extract2d(ret.vz)
 
         ret.history.append(
-            'extract(start0={}, stop0={}, start1={}, stop1={}, space={})'.format(
-                start0, stop0, start1, stop1, space))
+            'extract(start0={}, stop0={}, start1={}, stop1={}, phys={})'.format(
+                start0, stop0, start1, stop1, phys))
 
         return ret
 
