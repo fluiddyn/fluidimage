@@ -195,10 +195,20 @@ class PIV2d(object):
 
         return ret
 
-    def extract(self, start0, stop0, start1, stop1):
+    def extract(self, start0, stop0, start1, stop1, phys=False):
+        ret = deepcopy(self)
+
+        if phys:
+            indy = ((ret.y >= start0) & (ret.y <= stop0))
+            indx = ((ret.x >= start1) & (ret.x <= stop1))
+            start0 = np.argwhere(ret.y == ret.y[indy].min())[0][0]
+            stop0 = np.argwhere(ret.y == ret.y[indy].max())[0][0]+1
+            start1 = np.argwhere(ret.x == ret.x[indx].min())[0][0]
+            stop1 = np.argwhere(ret.x == ret.x[indx].max())[0][0]+1
+
         def _extract2d(f):
             return f[start0:stop0, start1:stop1]
-        ret = deepcopy(self)
+
         ret.x = ret.x[start1:stop1]
         ret.y = ret.y[start0:stop0]
         ret.vx = _extract2d(ret.vx)
@@ -207,8 +217,8 @@ class PIV2d(object):
             ret.vz = _extract2d(ret.vz)
 
         ret.history.append(
-            'extract(start0={}, stop0={}, start1={}, stop1={})'.format(
-                start0, stop0, start1, stop1))
+            'extract(start0={}, stop0={}, start1={}, stop1={}, space={})'.format(
+                start0, stop0, start1, stop1, space))
 
         return ret
 
@@ -319,10 +329,10 @@ class ArrayPIV(object):
                 sigma, niter=niter, truncate=truncate, valid=valid))
         return result
 
-    def extract(self, start0, stop0, start1, stop1):
+    def extract(self, start0, stop0, start1, stop1, phys=False):
         result = type(self)()
         for v in self:
-            result.append(v.extract(start0, stop0, start1, stop1))
+            result.append(v.extract(start0, stop0, start1, stop1, phys=phys))
         return result
 
     def truncate(self, cut=1, phys=False):
