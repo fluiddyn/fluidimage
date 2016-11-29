@@ -239,6 +239,11 @@ class BaseWorkPIV(BaseWork):
 
             # print(im0crop.shape, im1crop.shape)
             correl, coef_norm = self.correl(im0crop, im1crop)
+            if self.index_pass == 0 and \
+               self.params.piv0.coef_correl_no_displ is not None:
+                correl[self.correl.inds0] *= \
+                    self.params.piv0.coef_correl_no_displ
+
             correls[ivec] = correl
             try:
                 deltax, deltay, correl_max = \
@@ -309,19 +314,22 @@ class BaseWorkPIV(BaseWork):
 
         if self.params.multipass.use_tps is True or \
            self.params.multipass.use_tps == 'last' and last:
+            print('use tps.')
             # compute TPS coef
             smoothing_coef = self.params.multipass.smoothing_coef
             subdom_size = self.params.multipass.subdom_size
+            threshold = self.params.multipass.threshold_tps
 
             tps = ThinPlateSplineSubdom(
                 centers, subdom_size, smoothing_coef,
-                threshold=1, pourc_buffer_area=0.5)
+                threshold=threshold, pourc_buffer_area=0.5)
             try:
                 deltaxs_smooth, deltaxs_tps = \
                     tps.compute_tps_coeff_subdom(deltaxs)
                 deltays_smooth, deltays_tps = \
                     tps.compute_tps_coeff_subdom(deltays)
             except np.linalg.LinAlgError:
+                print('compute delta_approx with griddata (in tps)')
                 deltaxs_approx = griddata(centers, deltaxs,
                                           (self.iyvecs, self.ixvecs))
                 deltays_approx = griddata(centers, deltays,
@@ -366,7 +374,8 @@ class FirstWorkPIV(BaseWorkPIV):
             'delta_mean': None,
             'method_correl': 'fftw',
             'method_subpix': '2d_gaussian',
-            'nsubpix': 1})
+            'nsubpix': 1,
+            'coef_correl_no_displ': None})
 
         params.piv0._set_doc("""
 Parameters describing one PIV step.

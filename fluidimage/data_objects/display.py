@@ -12,19 +12,20 @@ if run_from_ipython():
 class DisplayPIV(object):
 
     def __init__(self, im0, im1, piv_results=None, show_interp=False,
-                 scale=0.2, show_error=True, pourcent_histo=99, hist=False):
+                 scale=0.2, show_error=True, pourcent_histo=99, hist=False,
+                 show_correl=True):
 
         self.piv_results = piv_results
 
-        if hasattr(piv_results, 'correls'):
-            self.has_correls = True
+        if show_correl and hasattr(piv_results, 'correls'):
+            self.show_correl = True
         else:
-            self.has_correls = False
+            self.show_correl = False
 
         fig = plt.figure()
         fig.event_handler = self
 
-        if self.has_correls:
+        if self.show_correl:
             ax1 = plt.subplot(121)
             ax2 = plt.subplot(122)
             self.ax2 = ax2
@@ -47,11 +48,13 @@ class DisplayPIV(object):
 
             self.image0 = ax1.imshow(
                 im0, interpolation='nearest', cmap=plt.cm.gray, origin='upper',
-                extent=[0, im0.shape[1], im0.shape[0], 0])
+                extent=[0, im0.shape[1], im0.shape[0], 0],
+                vmin=0, vmax=0.99*im0.max())
 
             self.image1 = ax1.imshow(
                 im1, interpolation='nearest', cmap=plt.cm.gray, origin='upper',
-                extent=[0, im0.shape[1], im0.shape[0], 0])
+                extent=[0, im0.shape[1], im0.shape[0], 0],
+                vmin=0, vmax=0.99*im1.max())
             self.image1.set_visible(False)
         else:
             self.image0 = None
@@ -213,18 +216,18 @@ class DisplayPIV(object):
 
         self.t.set_text(text)
 
-        if self.has_correls:
+        if self.show_correl:
             ax2 = self.ax2
             ax2.cla()
             alphac = self.piv_results.correls[ind_all]
             alphac_max = alphac.max()
             correl = correl_max/alphac_max * alphac
 
-            ax2.imshow(correl, origin='lower', interpolation='none',
-                       vmin=0, vmax=1)
-            # ax2.pcolormesh(correl, vmin=0, vmax=1, shading='flat')
+            ax2.imshow(correl, origin='lower', interpolation='none', vmin=0)
 
-            ax2.plot(q.U[ind], q.V[ind], 'o')
+            i0, i1 = np.unravel_index(correl.argmax(), correl.shape)
+            ax2.plot(i1, i0, 'xr')
+
             ax2.axis('scaled')
             ax2.set_xlim(-0.5, correl.shape[1]-0.5)
             ax2.set_ylim(-0.5, correl.shape[0]-0.5)

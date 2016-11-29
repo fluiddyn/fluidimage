@@ -44,7 +44,8 @@ class WorkPIV(BaseWork):
                      'coeff_zoom': 2,
                      'use_tps': 'last',
                      'subdom_size': 200,
-                     'smoothing_coef': 0.5})
+                     'smoothing_coef': 0.5,
+                     'threshold_tps': 1.})
 
         params.multipass._set_doc(
             """Multipass PIV parameters:
@@ -69,7 +70,14 @@ subdom_size : int
 
 smoothing_coef : float
 
-    Coefficient used for the TPS method.
+    Coefficient used for the TPS method. The result is smoother for larger
+    smoothing_coef.
+
+threshold_tps :  float
+
+    Allowed difference of displacement (in pixels) between smoothed and input
+    field for TPS filter.
+
 """)
 
     def __init__(self, params=None):

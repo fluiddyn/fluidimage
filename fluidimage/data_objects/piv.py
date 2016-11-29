@@ -217,14 +217,15 @@ class HeavyPIVResults(DataObject):
         return self.couple.get_arrays()
 
     def display(self, show_interp=False, scale=0.2, show_error=True,
-                pourcent_histo=99, hist=False):
+                pourcent_histo=99, hist=False, show_correl=True):
         try:
             im0, im1 = self.couple.get_arrays()
         except IOError:
             im0, im1 = None, None
         return DisplayPIV(
             im0, im1, self, show_interp=show_interp, scale=scale,
-            show_error=show_error, pourcent_histo=pourcent_histo, hist=hist)
+            show_error=show_error, pourcent_histo=pourcent_histo, hist=hist,
+            show_correl=show_correl)
 
     def _get_name(self):
         serie = self.couple.serie
@@ -339,11 +340,12 @@ class MultipassPIVResults(DataObject):
             self._load(str_path)
 
     def display(self, i=-1, show_interp=False, scale=0.2, show_error=True,
-                pourcent_histo=99, hist=False):
+                pourcent_histo=99, hist=False, show_correl=True):
         r = self.passes[i]
         return r.display(show_interp=show_interp, scale=scale,
                          show_error=show_error,
-                         pourcent_histo=pourcent_histo, hist=hist)
+                         pourcent_histo=pourcent_histo, hist=hist,
+                         show_correl=show_correl)
 
     def __getitem__(self, key):
         return self.passes[key]

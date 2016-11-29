@@ -20,7 +20,7 @@ obtained as ``dot(U_tps, EMDX)`` and ``dot(U_tps, EMDY)``, where
 
 """
 
-from __future__ import division
+from __future__ import division, print_function
 
 from logging import debug
 

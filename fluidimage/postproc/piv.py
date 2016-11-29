@@ -218,10 +218,13 @@ class PIV2d(object):
         ny, nx = self.vx.shape
         return self.extract(cut, ny-cut, cut, nx-cut)
 
-    def extract_square(self, cut=0):
+    def extract_square(self, cut=0, force_even=True):
         n1 = self.x.size
         n0 = self.y.size
         n = min(n0, n1) - 2*cut
+
+        if force_even and n % 2 == 1:
+            n -= 1
 
         if n1 > n0:
             start0 = cut
