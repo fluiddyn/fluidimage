@@ -109,4 +109,5 @@ setup(
     packages=find_packages(exclude=[
         'doc', 'include', 'scripts']),
     install_requires=install_requires,
+    scripts=['bin/fluidimviewer'],
     ext_modules=ext_modules)
