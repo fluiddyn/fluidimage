@@ -179,8 +179,11 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
 
     def _launch_worker(self):
 
-        k = self._keys.pop(0)
-        o = self.pop(k)
+        # k = self._keys.pop(0)
+        # o = self.pop(k)
+
+        k = self._keys[0]
+        o = self[k]
 
         log_memory_usage(
             '{:.2f} s. '.format(time() - self.topology.t_start) +
@@ -191,6 +194,12 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
         p = self._Process(target=exec_work_and_comm, args=(self.work, o, comm))
         t_start = time()
         p.start()
+        p.comm = comm
+
+        # we do this after p.start() because an error can be raised here
+        assert k == self._keys.pop(0)
+        assert o == self.pop(k)
+
         self._nb_workers += 1
         if self.do_use_cpu:
             self.topology.nb_workers_cpu += 1
@@ -201,8 +210,8 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
         def fill_destination():
             if isinstance(p, multiprocessing.Process):
                 if p.exitcode:
-                    logger.error(cstring(
-                        'Error in work (process): '
+                    logger.exception(cstring(
+                        'Error in work (thread): '
                         'work_name = {}; key = {}; exitcode = {}'.format(
                             self.work_name, k, p.exitcode),
                         color='FAIL'))
@@ -214,13 +223,23 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
                     result = comm.get_nowait()
                     is_done = True
                 except queue.Empty:
+                    # strange bug
+                    if not p.is_alive():
+                        logger.exception(cstring(
+                            'not p.is_alive() but nothing in the communication'
+                            ' queue. Result (' + k + ') has been lost :-(',
+                            color='FAIL'))
+                        self.topology.nb_workers_cpu -= 1
+                        self._nb_workers -= 1
+                        return True
                     return False
             else:
                 if p.exitcode:
-                    logger.info(
+                    logger.exception(cstring(
                         'Error in work (thread): '
                         'work_name = {}; key = {}; exitcode = {}'.format(
-                            self.work_name, k, p.exitcode))
+                            self.work_name, k, p.exitcode),
+                        color='FAIL'))
                     raise p.exception
 
                 is_done = not p.is_alive()

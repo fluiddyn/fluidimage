@@ -102,10 +102,13 @@ class TopologyBase(object):
                 path_output,
                 'log_' + time_as_str() + '_' + str(os.getpid()) + '.txt')
             f = open(log, 'w')
-            sys.stdout = MultiFile([sys.stdout, f])
-            sys.stderr = MultiFile([sys.stderr, f])
+            sys.stdout = MultiFile([sys.__stdout__, f])
+            sys.stderr = MultiFile([sys.__stderr__, f])
 
-        if logging_level:
+        if logging_level is not None:
+            for handler in logger.handlers:
+                logger.removeHandler(handler)
+
             config_logging(logging_level, file=sys.stdout)
 
         if nb_max_workers is None:
@@ -141,10 +144,19 @@ class TopologyBase(object):
         if hasattr(self, 'path_output'):
             logger.info('path results:\n' + self.path_output)
             if hasattr(self, 'params'):
-                path_params = os.path.join(
+                tmp_path_params = os.path.join(
                     self.path_output,
                     'params_' + time_as_str() + '_' +
-                    str(os.getpid()) + '.xml')
+                    str(os.getpid()))
+
+                if not os.path.exists(tmp_path_params + '.xml'):
+                    path_params = tmp_path_params + '.xml'
+                else:
+                    i = 1
+                    while os.path.exists(
+                            tmp_path_params + '_' + str(i) + '.xml'):
+                        i += 1
+                    path_params = tmp_path_params + '_' + str(i) + '.xml'
                 self.params._save_as_xml(path_params)
 
         self.t_start = time()
@@ -215,11 +227,16 @@ class TopologyBase(object):
                         new_workers = q.check_and_act(sequential=sequential)
                     except OSError:
                         logger.exception(cstring(
-                            'Memory full: Trying to clear workers',
+                            'Memory full: to free some memory, no more '
+                            'computing job will be launched while the last '
+                            '(saving) waiting queue is not empty.',
                             color='FAIL'))
                         log_memory_usage(color='FAIL', mode='error')
-                        self._clear_save_queue(
-                            workers, sequential, has_to_exit)
+                        self._clear_save_queue(workers, sequential)
+                        logger.info(cstring(
+                            'The last waiting queue has been emptied.',
+                            color='FAIL'))
+                        log_memory_usage(color='FAIL', mode='info')
                         continue
 
                     if new_workers is not None:
@@ -236,16 +253,16 @@ class TopologyBase(object):
             if len(workers) != self.nb_workers:
                 gc.collect()
 
-        self.thread_check_works_t.has_to_stop = True
-        self.thread_check_works_p.has_to_stop = True
-        self.thread_check_works_t.join()
-        self.thread_check_works_p.join()
-
         if self._has_to_stop:
             logger.info(cstring(
                 'Will exist because of signal 12.',
                 'Waiting for all workers to finish...', color='FAIL'))
-            self._clear_save_queue(workers, sequential, has_to_exit)
+            self._clear_save_queue(workers, sequential)
+
+        self.thread_check_works_t.has_to_stop = True
+        self.thread_check_works_p.has_to_stop = True
+        self.thread_check_works_t.join()
+        self.thread_check_works_p.join()
 
         self._print_at_exit(time() - self.t_start)
         log_memory_usage(time_as_str(2) + ': end of `compute`. mem usage')
@@ -254,17 +271,28 @@ class TopologyBase(object):
             logger.info(cstring('Exit with signal 99.', color='FAIL'))
             exit(99)
 
-    def _clear_save_queue(self, workers, sequential, has_to_exit):
+    def _clear_save_queue(self, workers, sequential):
         """Clear the last queue (which is often saving) before stopping."""
         q = self.queues[-1]
 
+        idebug = 0
         # if the last queue is a WaitingQueueThreading (saving),
         # it is also emptied.
         while (len(workers) > 0 or
                (not q.is_empty() and
                 isinstance(q, WaitingQueueThreading))):
 
-            sleep(0.2)
+            sleep(0.5)
+
+            print(len(workers), not q.is_empty())
+
+            if len(workers) == 1 and q.is_empty():
+                idebug += 1
+                p = workers[0]
+                print(p, p.exitcode)
+                if idebug == 20:
+                    from fluiddyn.debug import ipydebug
+                    ipydebug()
 
             if not q.is_empty() and isinstance(q, WaitingQueueThreading):
                 new_workers = q.check_and_act(sequential=sequential)
@@ -272,8 +300,8 @@ class TopologyBase(object):
                     for worker in new_workers:
                         workers.append(worker)
 
-            workers[:] = [w for w in workers
-                          if not w.fill_destination()]
+            # workers[:] = [w for w in workers
+            #               if not w.fill_destination()]
 
     def _print_at_exit(self, time_since_start):
         """Print information before exit."""

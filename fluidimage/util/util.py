@@ -12,8 +12,7 @@ import psutil
 from logging import getLogger
 from fluiddyn.util.util import get_memory_usage
 from fluiddyn.io.image import (imread as _imread,
-                               imsave as _imsave,
-                               imsave_h5)
+                               imsave as _imsave, imsave_h5)
 
 from fluiddyn.util import terminal_colors as term
 
@@ -52,7 +51,7 @@ def imsave(path, array, **kwargs):
 
 def _get_txt_memory_usage(string='Memory usage', color='OKGREEN'):
     mem = get_memory_usage()
-    cstr = cstring((string + ': ').ljust(30) + '{} Mb'.format(mem),
+    cstr = cstring((string + ': ').ljust(30) + '{:.3f} Mb'.format(mem),
                    color=color)
     return cstr
 
