@@ -23,22 +23,6 @@ name_buttons = ['-n', '-1', '+1', '+n']
 x_buttons = [x0 + i * (size_button + sep_button)
              for i in range(len(name_buttons))]
 
-print(x_buttons)
-
-
-def _create_button(fig, rect, text, func):
-    ax = fig.add_axes(rect)
-    button = Button(ax, text)
-    button.on_clicked(func)
-    return button
-
-
-def _create_text(fig, rect, name, func, initial):
-    ax = fig.add_axes(rect)
-    textbox = TextBox(ax, name, initial=initial)
-    textbox.on_submit(func)
-    return textbox
-
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -74,26 +58,31 @@ class ImageViewer(object):
             self.path_files.sort()
             ifile = self.path_files.index(path_file)
 
+        path_dir = os.path.split(self.path_files[0])[0]
+        print('Will use {} files in the dir {}'.format(
+            len(self.path_files), path_dir))
+
+        self._buttons = {}
+        self._textboxes = {}
+
         # print(self.path_files)
 
         fig = self.fig = plt.figure()
-        self.ax = fig.add_axes([0.06, 0.2, 0.7, 0.75])
+        self.ax = fig.add_axes([0.07, 0.15, 0.7, 0.78])
 
         self.maps = {}
         self.cmap = plt.cm.jet
 
         self.ifile = ifile
         self._last_was_increase = False
-        im = imread(self.path_files[ifile])
 
+        im = imread(self.path_files[ifile])
         self.clim = [0, 0.99*im.max()]
 
-        self.mappable = self.ax.imshow(
-            im, interpolation='nearest', cmap=self.cmap, origin='upper',
-            extent=[0, im.shape[1], im.shape[0], 0],
-            vmin=self.clim[0], vmax=self.clim[1])
+        self.loadim(ifile, im)
+        name_file = self.get_namefile()
+        self.ax.set_title(name_file)
 
-        self.maps[ifile] = self.mappable
         self._image_changing = False
 
         function_buttons = [self._do_nothing] * len(name_buttons)
@@ -101,30 +90,37 @@ class ImageViewer(object):
         function_buttons[1] = self._decrease_ifile
         function_buttons[2] = self._increase_ifile
         function_buttons[3] = self._increase_ifile_n
-        self._buttons = []
-        y = size_button
+
+        y = size_button/3.
         for i, x in enumerate(x_buttons):
             name = name_buttons[i]
             func = function_buttons[i]
-            self._buttons.append(
-                _create_button(
-                    fig, [x, y, size_button, size_button], name, func))
+            self._create_button(
+                fig, [x, y, size_button, size_button], name, func)
 
         self._n = 1
 
-        self.textbox = _create_text(
+        self._create_text(
             fig, [0.1, y, 2*size_button, size_button],
             'n = ', self._submit_n, '1')
 
-        self.textboxmax = _create_text(
-            fig, [0.85, 0.92, 2*size_button, size_button],
-            'n = ', self._change_cmax, '{:.4f}'.format(self.clim[1]))
+        self._create_text(
+            fig, [0.87, 0.92, 1.5*size_button, size_button],
+            'cmax = ', self._change_cmax, '{:.3f}'.format(self.clim[1]))
 
-        self.textboxmin = _create_text(
-            fig, [0.85, 0.1, 2*size_button, size_button],
-            'n = ', self._change_cmin, '{:.4f}'.format(self.clim[0]))
+        self._create_text(
+            fig, [0.87, 0.1, 1.5*size_button, size_button],
+            'cmin = ', self._change_cmin, '{:.3f}'.format(self.clim[0]))
 
-        cax = fig.add_axes([0.82, 0.2, 0.07, 0.7])
+        self._create_button(
+            fig, [0.65, 0.945, 1.2*size_button, 0.045], 'reload',
+            self.reloadim)
+
+        self._create_button(
+            fig, [0.85, y, size_button, size_button], 'auto',
+            self.set_autoclim)
+
+        cax = fig.add_axes([0.83, 0.2, 0.07, 0.7])
         self.cbar = fig.colorbar(self.mappable, cax=cax)
 
         fig.canvas.mpl_connect('key_press_event', self.onclick)
@@ -132,12 +128,32 @@ class ImageViewer(object):
 
         plt.show()
 
+    def set_autoclim(self, event):
+        im = imread(self.path_files[self.ifile])
+        self.clim = [im.min(), 0.99*im.max()]
+        self._update_clim()
+
+    def reloadim(self, event):
+        self.loadim(self.ifile)
+
+    def loadim(self, ifile, im=None):
+        if im is None:
+            im = imread(self.path_files[ifile])
+        self.mappable = self.ax.imshow(
+            im, interpolation='nearest', cmap=self.cmap, origin='upper',
+            extent=[0, im.shape[1], im.shape[0], 0],
+            vmin=self.clim[0], vmax=self.clim[1])
+        self.maps[i] = self.mappable
+
+    def get_namefile(self):
+        return os.path.split(self.path_files[self.ifile])[-1]
+
     def change_im(self):
         if self._image_changing:
             return
         self._image_changing = True
         ifile = self.ifile
-        name_file = os.path.split(self.path_files[ifile])[-1]
+        name_file = self.get_namefile()
         print('changing to file ' + name_file, end='...')
         map_old = self.mappable
 
@@ -145,18 +161,27 @@ class ImageViewer(object):
             self.mappable = self.maps[ifile]
             self.mappable.set_visible(True)
         else:
-            im = imread(self.path_files[ifile])
-            self.mappable = self.ax.imshow(
-                im, interpolation='nearest', cmap=self.cmap, origin='upper',
-                extent=[0, im.shape[1], im.shape[0], 0],
-                vmin=self.clim[0], vmax=self.clim[1])
-            self.maps[i] = self.mappable
+            self.loadim(ifile)
 
         map_old.set_visible(False)
         self.ax.set_title(name_file)
         self.fig.canvas.draw()
         print('\rchanged to file ' + name_file + ' ' * 20)
         self._image_changing = False
+
+    def _create_button(self, fig, rect, text, func):
+        ax = fig.add_axes(rect)
+        button = Button(ax, text)
+        button.on_clicked(func)
+        self._buttons[text] = button
+        return button
+
+    def _create_text(self, fig, rect, name, func, initial):
+        ax = fig.add_axes(rect)
+        textbox = TextBox(ax, name, initial=initial)
+        textbox.on_submit(func)
+        self._textboxes[name] = textbox
+        return textbox
 
     def _switch(self):
         if self._last_was_increase:
@@ -202,11 +227,14 @@ class ImageViewer(object):
         self.mappable.set_clim(self.clim)
         self.fig.canvas.draw()
 
+        txt_cmax = self._textboxes['cmax = ']
+        txt_cmin = self._textboxes['cmin = ']
+        txt_cmin.set_val('{:.3f}'.format(self.clim[0]))
+        txt_cmax.set_val('{:.3f}'.format(self.clim[1]))
+
     def onclick(self, event):
         if event.key == 'alt+h':
-            print('\nclick on a vector to show information\n'
-                  'alt+s\t\t\t switch between images\n'
-                  'alt+left or alt+right\t change vector.')
+            print('\nalt+s\t\t\t switch between images\n')
 
         if event.inaxes != self.ax:
             return
