@@ -245,10 +245,10 @@ class TopologyBase(object):
                     logger.debug('workers: ' + repr(workers))
 
             if self.thread_check_works_t.exitcode:
-                raise Exception(self.thread_check_works_t.exception)
+                raise self.thread_check_works_t.exception
 
             if self.thread_check_works_p.exitcode:
-                raise Exception(self.thread_check_works_p.exception)
+                raise self.thread_check_works_p.exception
 
             if len(workers) != self.nb_workers:
                 gc.collect()
@@ -284,15 +284,13 @@ class TopologyBase(object):
 
             sleep(0.5)
 
-            print(len(workers), not q.is_empty())
-
             if len(workers) == 1 and q.is_empty():
                 idebug += 1
                 p = workers[0]
-                print(p, p.exitcode)
-                if idebug == 20:
-                    from fluiddyn.debug import ipydebug
-                    ipydebug()
+                if idebug == 100:
+                    print('Issue:', p, p.exitcode)
+                    # from fluiddyn.debug import ipydebug
+                    # ipydebug()
 
             if not q.is_empty() and isinstance(q, WaitingQueueThreading):
                 new_workers = q.check_and_act(sequential=sequential)

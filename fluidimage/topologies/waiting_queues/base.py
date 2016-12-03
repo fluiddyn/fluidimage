@@ -218,7 +218,6 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
                     self._nb_workers -= 1
                     self.topology.nb_workers_cpu -= 1
                     return True
-
                 try:
                     result = comm.get_nowait()
                     is_done = True

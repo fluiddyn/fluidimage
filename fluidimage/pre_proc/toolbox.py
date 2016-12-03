@@ -14,7 +14,7 @@ Provides:
 import inspect
 
 import numpy as np
-import scipy.ndimage as nd
+import scipy.ndimage as ndi
 try:
     import skimage
     from skimage import exposure, filters, morphology
@@ -40,7 +40,7 @@ __all__ = available_tools + ['PreprocTools']
 
 
 def imstats(img, hist_bins=256):
-    histogram = nd.measurements.histogram(bins=hist_bins)
+    histogram = ndi.measurements.histogram(bins=hist_bins)
     return histogram
 
 
@@ -61,7 +61,7 @@ def sliding_median(img=None, weight=1., window_size=30,
         Single image as numpy array or multiple images as array-like object
     weight : scalar
         Fraction of median to be subtracted from each pixel.
-        Value of `weight` should be in the interval (0.0,1.0).
+        Value of `weight` should be in the interval (0.0, 1.0).
     window_size : scalar or tuple
         Sets the size of the sliding window.
         Specifying `window_size=3` is equivalent to `window_size=(3,3)`.
@@ -69,9 +69,9 @@ def sliding_median(img=None, weight=1., window_size=30,
         Mode of handling array borders.
 
     '''
-    img_out = img - weight * nd.median_filter(img,
-                                              size=window_size,
-                                              mode=boundary_condition)
+    img_out = img - weight * ndi.median_filter(img,
+                                               size=window_size,
+                                               mode=boundary_condition)
     return img_out
 
 
@@ -91,17 +91,17 @@ def sliding_percentile(img=None, percentile=10., weight=1., window_size=30,
         to a `sliding_median` filter.
     weight : scalar
         Fraction of median to be subtracted from each pixel.
-        Value of `weight` should be in the interval (0.0,1.0).
+        Value of `weight` should be in the interval (0.0, 1.0).
     window_shape : tuple of integers
         Specifies the shape of the window as follows (dt, dy, dx)
     boundary_condition : {'reflect', 'constant', 'nearest', 'mirror', 'wrap'}
         Mode of handling array borders.
 
     '''
-    img_out = img - weight * nd.percentile_filter(img,
-                                                  percentile,
-                                                  size=window_size,
-                                                  mode=boundary_condition)
+    img_out = img - weight * ndi.percentile_filter(img,
+                                                   percentile,
+                                                   size=window_size,
+                                                   mode=boundary_condition)
     return img_out
 
 
@@ -126,9 +126,9 @@ def sliding_minima(img=None, weight=1., window_size=30,
         Mode of handling array borders.
 
     '''
-    img_out = img - weight * nd.minimum_filter(img,
-                                               size=window_size,
-                                               mode=boundary_condition)
+    img_out = img - weight * ndi.minimum_filter(img,
+                                                size=window_size,
+                                                mode=boundary_condition)
     return img_out
 
 
@@ -136,10 +136,30 @@ def sliding_minima(img=None, weight=1., window_size=30,
 #   SPATIO-TEMPORAL FILTERS
 # ----------------------------------------------------
 
+def _calcul_windowshape(arr_shape, window_shape):
+    nb_imgs = arr_shape[0]
+    if len(arr_shape) <= 2 or nb_imgs <= 1:
+        raise ValueError(
+            'Need more than one image to apply temporal filtering '
+            '(use sliding filter?).')
+
+    if window_shape is None:
+        window_shape = (nb_imgs, 1, 1)
+    elif isinstance(window_shape, int):
+        window_shape = (window_shape, 1, 1)
+    elif not isinstance(window_shape, (tuple, list)):
+        raise ValueError('window_shape must be a tuple or a list.')
+    elif len(window_shape) == 2:
+        window_shape = (nb_imgs,) + window_shape
+    elif window_shape[0] <= 1:
+        raise ValueError(
+            'Cannot perform temporal filtering, try spatial filtering.')
+    return window_shape
+
 @multiple_imgs_as_ndarray
 def temporal_median(img=None, weight=1., window_shape=None):
     '''
-    Subtracts the median calculated in time, for each pixel.
+    Subtracts the median calculated in time and space, for each pixel.
     Median filter works well for sparse images.
 
     Parameters
@@ -150,25 +170,13 @@ def temporal_median(img=None, weight=1., window_shape=None):
         Fraction of median to be subtracted from each pixel.
         Value of `weight` should be in the interval (0.0,1.0).
     window_shape : tuple of integers
-        Specifies the shape of the window as follows (dt, dy, dx)
+        Specifies the shape of the window as follows (nt, ny, nx) or (ny, nx).
 
     '''
-    time_axis = 0
-    nb_imgs = img.shape[time_axis]
-    if img.ndim <= 2 or nb_imgs <= 1:
-        raise ValueError(
-            'Need more than one image to apply temporal filtering.')
+    window_shape = _calcul_windowshape(img.shape, window_shape)
 
-    if window_shape is None:
-        window_shape = (nb_imgs, 1, 1)
-    elif not isinstance(window_shape, tuple):
-        raise ValueError('window_shape must be a tuple.')
-    elif window_shape[0] <= 1:
-        raise ValueError(
-            'Cannot perform temporal filtering, try spatial filtering.')
-
-    img_out = img - weight * nd.median_filter(img,
-                                              size=window_shape)
+    img_out = img - weight * ndi.median_filter(
+        img, size=window_shape)
     return img_out
 
 
@@ -190,33 +198,19 @@ def temporal_percentile(img=None, percentile=10., weight=1.,
         Fraction of median to be subtracted from each pixel.
         Value of `weight` should be in the interval (0.0,1.0).
     window_shape : tuple of integers
-        Specifies the shape of the window as follows (dt, dy, dx)
+        Specifies the shape of the window as follows (nt, ny, nx) or (ny, nx).
 
     '''
-    time_axis = 0
-    nb_imgs = img.shape[time_axis]
-    if img.ndim <= 2 or nb_imgs <= 1:
-        raise ValueError(
-            'Need more than one image to apply temporal filtering.')
+    window_shape = _calcul_windowshape(img.shape, window_shape)
 
-    if window_shape is None:
-        window_shape = (nb_imgs, 1, 1)
-    elif not isinstance(window_shape, tuple):
-        raise ValueError('window_shape must be a tuple.')
-    elif window_shape[0] <= 1:
-        raise ValueError(
-            'Cannot perform temporal filtering, try spatial filtering.')
-
-    img_out = img - weight * nd.percentile_filter(img,
-                                                  percentile,
-                                                  size=window_shape)
+    img_out = img - weight * ndi.percentile_filter(
+        img, percentile, size=window_shape)
     return img_out
 
 
 @multiple_imgs_as_ndarray
-def temporal_minima(img=None, weight=1.):
-    '''
-    Subtracts the minima calculated in time,for each pixel.
+def temporal_minima(img=None, weight=1., window_shape=None):
+    '''Subtracts the minima calculated in time and space, for each pixel.
 
     Parameters
     ----------
@@ -225,18 +219,12 @@ def temporal_minima(img=None, weight=1.):
     weight : scalar
         Fraction of minima to be subtracted from each pixel.
         Value of `weight` should be in the interval (0.0,1.0).
+    window_shape : tuple of integers
+        Specifies the shape of the window as follows (nt, ny, nx) or (ny, nx).
 
     '''
-    time_axis = 0
-    nb_imgs = img.shape[time_axis]
-    if img.ndim < 3 or nb_imgs <= 1:
-        raise ValueError(
-            'Need more than one image to apply temporal filtering.')
-
-    window_size = img.shape[time_axis]
-    img_out = img - weight * nd.minimum_filter1d(img,
-                                                 size=window_size,
-                                                 axis=time_axis)
+    window_shape = _calcul_windowshape(img.shape, window_shape)
+    img_out = img - weight * ndi.minimum_filter(img, size=window_shape)
     return img_out
 
 
@@ -265,7 +253,7 @@ def global_threshold(img=None, minima=0., maxima=65535.):
 
 
 @iterate_multiple_imgs
-def rescale_intensity(img=None, minima=0., maxima=65535.):
+def rescale_intensity(img=None, minima=0, maxima=4096):
     '''
     Rescale image intensities, between the specified minima and maxima,
     by using a multiplicative factor.
@@ -434,8 +422,8 @@ def sharpen(img=None, sigma1=3., sigma2=1., alpha=30.):
         Factor by which the image will be sharpened
 
     '''
-    blurred = nd.gaussian_filter(img, sigma1)
-    filter_blurred = nd.gaussian_filter(blurred, sigma2)
+    blurred = ndi.gaussian_filter(img, sigma1)
+    filter_blurred = ndi.gaussian_filter(blurred, sigma2)
 
     img_out = blurred + alpha * (blurred - filter_blurred)
     return img_out
