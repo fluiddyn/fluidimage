@@ -126,7 +126,7 @@ class SubPix(object):
         elif method == 'no_subpix':
             deplx = deply = 0.
 
-        if abs(deplx) > 1 or abs(deply) > 1:
+        if abs(deplx) > nsubpix or abs(deply) > nsubpix:
             raise PIVError(explanation='wrong subpix',
                            result_compute_subpix=(iy, ix))
 

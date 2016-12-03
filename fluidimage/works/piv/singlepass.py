@@ -169,6 +169,7 @@ class BaseWorkPIV(BaseWork):
 
         deltaxs, deltays, xs, ys, correls_max, correls, errors = \
             self._loop_vectors(im0, im1)
+
         result = HeavyPIVResults(
             deltaxs, deltays, xs, ys, errors,
             correls_max=correls_max, correls=correls,
@@ -255,8 +256,8 @@ class BaseWorkPIV(BaseWork):
                     deltax, deltay, correl_max = \
                         e.results_compute_displacement_from_correl
                 except AttributeError:
-                    deltaxs = np.nan
-                    deltays = np.nan
+                    deltax = np.nan
+                    deltay = np.nan
                     correl_max = np.nan
 
             if np.isnan(deltax) or np.isnan(deltay):
@@ -314,7 +315,7 @@ class BaseWorkPIV(BaseWork):
 
         if self.params.multipass.use_tps is True or \
            self.params.multipass.use_tps == 'last' and last:
-            print('use tps.')
+            print('TPS interpolation.')
             # compute TPS coef
             smoothing_coef = self.params.multipass.smoothing_coef
             subdom_size = self.params.multipass.subdom_size

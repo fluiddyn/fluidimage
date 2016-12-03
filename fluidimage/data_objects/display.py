@@ -100,7 +100,7 @@ class DisplayPIV(object):
             self.q = ax1.quiver(
                 xs, ys,
                 deltaxs, -deltays,
-                picker=20, color='y', scale_units='xy', scale=scale)
+                picker=20, color='g', scale_units='xy', scale=scale)
 
             self.inds_error = inds_error = piv_results.deltays_wrong.keys()
 

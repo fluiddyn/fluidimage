@@ -71,7 +71,10 @@ class ImageViewer(object):
         self.ax = fig.add_axes([0.07, 0.15, 0.7, 0.78])
 
         self.maps = {}
-        self.cmap = plt.cm.jet
+        try:
+            self.cmap = plt.cm.viridis
+        except AttributeError:
+            self.cmap = plt.cm.jet
 
         self.ifile = ifile
         self._last_was_increase = False

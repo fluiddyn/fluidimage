@@ -48,6 +48,8 @@ class WorkFIX(BaseWork):
         deltays = piv_results.deltays
 
         for ierr in piv_results.errors.keys():
+            deltaxs_wrong[ierr] = deltaxs[ierr]
+            deltays_wrong[ierr] = deltays[ierr]
             deltaxs[ierr] = np.nan
             deltays[ierr] = np.nan
 
