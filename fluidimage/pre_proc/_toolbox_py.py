@@ -261,7 +261,7 @@ def global_threshold(img=None, minima=0., maxima=65535.):
 
 
 @iterate_multiple_imgs
-def adaptive_threshold(img, window_size=5, offset=0):
+def adaptive_threshold(img=None, window_size=5, offset=0):
     '''
     Adaptive threshold transforms a grayscale image to a binary image.
     Useful in identifying particles.
