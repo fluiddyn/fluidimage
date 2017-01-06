@@ -19,6 +19,7 @@
 
 """
 
+from builtins import str
 
 import os
 import h5py
@@ -150,8 +151,8 @@ class ArrayCouple(DataObject):
 
         hdf5_parent.create_group('couple')
         group = hdf5_parent['couple']
-        group.attrs['names'] = self.names
-        group.attrs['paths'] = self.paths
+        group.attrs['names'] = str(self.names).encode()
+        group.attrs['paths'] = str(self.paths).encode()
 
         if not hasattr(self, 'arrays'):
             im0 = imread(self.paths[0])

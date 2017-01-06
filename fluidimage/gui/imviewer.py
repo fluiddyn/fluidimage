@@ -6,12 +6,15 @@ import os
 from glob import glob
 
 import matplotlib.pyplot as plt
-from matplotlib.image import imread
 from matplotlib.widgets import TextBox, Button
 
+from fluiddyn.io.image import imread
+
+extensions = ['png', 'tif', 'tiff' 'jpg', 'jpeg']
+extensions = ['.' + ext for ext in extensions]
 
 def check_image(path):
-    return path[-3:] in ['png']
+    return any(map(path.endswith, extensions))
 
 
 size_button = 0.06
@@ -59,8 +62,9 @@ class ImageViewer(object):
             ifile = self.path_files.index(path_file)
 
         path_dir = os.path.split(self.path_files[0])[0]
+        self.nb_images = len(self.path_files)
         print('Will use {} files in the dir {}'.format(
-            len(self.path_files), path_dir))
+            self.nb_images, path_dir))
 
         self._buttons = {}
         self._textboxes = {}
@@ -152,6 +156,7 @@ class ImageViewer(object):
         return os.path.split(self.path_files[self.ifile])[-1]
 
     def change_im(self):
+        self.ifile = self.ifile % self.nb_images
         if self._image_changing:
             return
         self._image_changing = True

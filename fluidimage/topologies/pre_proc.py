@@ -42,7 +42,7 @@ class TopologyPreproc(TopologyBase):
     @classmethod
     def create_default_params(cls):
         params = WorkPreproc.create_default_params()
-        params.preproc.series._set_attribs({'strcouple': 'i:i+3',
+        params.preproc.series._set_attribs({'strcouple': 'i:i+2',
                                             'ind_start': 0,
                                             'ind_stop': None,
                                             'ind_step': 1,
@@ -65,7 +65,7 @@ class TopologyPreproc(TopologyBase):
 
         self.params = params.preproc
         self.preproc_work = WorkPreproc(params)
-        serie_arrays = self.preproc_work.serie_arrays
+        serie_arrays = self.preproc_work.serie_arrays        
         self.series = SeriesOfArrays(
             serie_arrays, params.preproc.series.strcouple,
             ind_start=params.preproc.series.ind_start,
@@ -74,7 +74,10 @@ class TopologyPreproc(TopologyBase):
 
         self.nb_items_per_serie = serie_arrays.get_nb_files()
 
-        path_dir = params.preproc.series.path
+        if os.path.isdir(params.preproc.series.path):
+            path_dir = params.preproc.series.path
+        else:
+            path_dir = os.path.dirname(params.preproc.series.path)
         self.path_dir_result, self.how_saving = set_path_dir_result(
             path_dir, params.preproc.saving.path,
             params.preproc.saving.postfix, params.preproc.saving.how)
@@ -145,7 +148,7 @@ class TopologyPreproc(TopologyBase):
         else:
             names = series.get_name_all_files()
 
-        print('Add {} image series to compute.'.format(len(series)))
+        print('Add {} image serie(s) to compute.'.format(len(series)))
 
         self.wq0.add_name_files(names)
         self.wq_images.add_series(series)

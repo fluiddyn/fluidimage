@@ -3,8 +3,6 @@
 A toolbox of filters which operate on a single image (numpy array).
 cf. http://www.scipy-lectures.org/advanced/image_processing/
 
-.. currentmodule:: fluidimage.pre_proc.toolbox
-
 Provides:
 
    :members:
@@ -284,11 +282,12 @@ def rescale_intensity_tanh(img=None, threshold=None):
     threshold:
         Value of intensity with which img is normalized
         img_out = max(img) * tanh( img / threshold)
+        If threshold is None: threshold = 2 * np.sqrt(np.mean(img**2))
 
     '''
-    if not threshold:
+    if threshold is None:
         threshold = 2 * np.sqrt(np.mean(img**2))
-
+        
     img_out = np.tanh(img / threshold)
     img_out = np.floor(np.max(img) / np.max(img_out) * img_out)
     return img_out

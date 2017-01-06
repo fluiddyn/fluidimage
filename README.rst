@@ -11,11 +11,10 @@ FluidImage
    :target: http://fluidimage.readthedocs.org
    :alt: Documentation status
 
-FluidImage is a Python framework for scientific treatments of large
-series of images.  Today, this package is in a very early stage of
-development and the only treatment available is Particle Image
-Velocimetry (PIV), i.e. computation of velocity fields by correlations
-of images.
+FluidImage is a Python framework for scientific treatments of large series of
+images.  Today, this package is in an early stage of development and the only
+treatments available are preprocessing of images and Particle Image Velocimetry
+(PIV), i.e. computation of velocity fields by correlations of images.
 
 What do we want?
 ----------------
