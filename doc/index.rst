@@ -57,7 +57,7 @@ functions.
    fluidimage.calcul
    fluidimage.topologies
    fluidimage.pre_proc
-   fluidimage.post_proc
+   fluidimage.postproc
    fluidimage.gui
 
 More
@@ -70,6 +70,7 @@ More
    FluidImage in PyPI  <https://pypi.python.org/pypi/fluidimage/>
    to_do
    changes
+   authors
    for_dev
 
 
