@@ -11,38 +11,24 @@ FluidImage
    :target: http://fluidimage.readthedocs.org
    :alt: Documentation status
 
-FluidImage is a Python framework for scientific treatments of large series of
-images.  Today, this package is in an early stage of development and the only
-treatments available are preprocessing of images and Particle Image Velocimetry
-(PIV), i.e. computation of velocity fields by correlations of images.
+FluidImage is a libre Python framework for scientific treatments of large
+series of images.  Today, this package is in an early stage of development and
+the only treatments available are preprocessing of images and Particle Image
+Velocimetry (PIV), i.e. computation of velocity fields by correlations of
+images.
 
-What do we want?
-----------------
+We want to make FluidImage easy (useful documentation, easy installation,
+usable with scripts and GUI in Qt), reliable (with good unittests) and very
+efficient, in particular when the number of images to treat becomes large. Thus
+we want FluidImage to be able to run efficiently and easily on a personal
+computer and on a big cluster. The efficiency is achieved by using
 
-There is still work to do, but we want:
-
-- easy installation
-
-- cross-platform
-
-- no need for Matlab
-
-- better written nearly all in Python (Cython or Pythran ok)
-
-- well tested
-
-- well documented
-  
-- efficient
-
-  * able to use GPU
-  
-  * parallel, asynchronous, distributed
-
-  * running on cluster
-
-- today, only a very minimal GUI (Qt)
-
-  * display images (zoom, colorbar, colormaps, info on a pixel)
-
-  * display vectors (and information on a selected vector)
+- an asynchronous framework (and in the long term we want to be able to plug
+  FluidImage to distributed computational systems like `Storm
+  <http://storm.apache.org/>`_),
+- the available cores of the central processing units (CPU) and the available
+  graphics processing units (GPU),
+- good profiling and efficient and specialized algorithms,
+- cutting-edge tools for fast computations with Python (in particular `Pythran
+  <https://pythonhosted.org/pythran/>`_ and `Theano
+  <http://deeplearning.net/software/theano>`_).
