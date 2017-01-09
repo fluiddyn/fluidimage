@@ -276,7 +276,7 @@ class TopologyBase(object):
     def _reset_std_as_default(self):
         sys.stdout = sys.__stdout__
         sys.stderr = sys.__stderr__
-        
+
     def _clear_save_queue(self, workers, sequential):
         """Clear the last queue (which is often saving) before stopping."""
         q = self.queues[-1]

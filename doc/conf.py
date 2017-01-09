@@ -17,11 +17,13 @@ import os
 # to be able to build the doc without h5py with Read the docs
 on_rtd = os.environ.get('READTHEDOCS')
 if on_rtd:
+    print('Mock modules to build the documentation on READTHEDOCS.')
     # this package comes from fluiddyn
     from fluidrtd import mock_modules
     mock_modules([
         'h5py', 'h5netcdf', 'scipy', 'scipy.ndimage', 'scipy.signal',
-        'pyfftw', 'theano'])
+        'scipy.interpolate', 'pyfftw', 'theano', 'reikna.cluda', 'reikna.fft',
+        'reikna.transformations'])
 
 import fluidimage
 
