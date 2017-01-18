@@ -43,11 +43,16 @@ except ImportError:
     pass
 
 try:
-    import pycuda.autoinit
-    import pycuda.gpuarray as gpuarray
-    import skcuda.fft as skfft
+    import pycuda._driver
 except ImportError:
     pass
+else:
+    try:
+        import pycuda.autoinit
+        import pycuda.gpuarray as gpuarray
+        import skcuda.fft as skfft
+    except (ImportError, pycuda._driver.RuntimeError):
+        pass
 
 # if 'OMP_NUM_THREADS' in os.environ:
 #     nthreads = int(os.environ['OMP_NUM_THREADS'])
