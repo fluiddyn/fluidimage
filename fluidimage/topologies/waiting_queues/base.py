@@ -66,6 +66,14 @@ class WaitingQueueBase(dict):
             elif hasattr(work, 'func_name'):
                 work_name = work.__module__ + '.' + work.func_name
 
+            else:
+                try:
+                    cls = work.__class__
+                    work_name = (cls.__module__ + '.' + cls.__name__ + '.' +
+                                 work.__name__)  
+                except AttributeError:
+                    work_name = work.__module__ + '.' + work.__name__
+
         self.work_name = work_name
         self.topology = topology
         self._keys = []
@@ -356,8 +364,8 @@ class WaitingQueueMakeCouple(WaitingQueueBase):
         if self.is_destination_full():
             return
 
-        for k0 in self.keys():
-            for k1 in self.keys():
+        for k0 in list(self.keys()):
+            for k1 in list(self.keys()):
                 if (k1, k0) in self.couples:
                     k0, k1 = k1, k0
 

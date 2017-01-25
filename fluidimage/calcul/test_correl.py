@@ -187,7 +187,7 @@ class TestCorrel2(unittest.TestCase):
             cls.displacements, nb_particles, shape_im0=(ny0, nx0),
             shape_im1=(ny1, nx1), epsilon=0.)
 
-	cls.im1 = cls.im1.astype('float32')
+        cls.im1 = cls.im1.astype('float32')
 
 for k, cls in classes2.items():
     def test2(self, cls=cls, k=k):

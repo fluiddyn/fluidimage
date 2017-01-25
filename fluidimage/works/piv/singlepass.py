@@ -111,8 +111,8 @@ class BaseWorkPIV(BaseWork):
         niw0 = self.n_interrogation_window0 = n_interrogation_window0
         niw1 = self.n_interrogation_window1 = n_interrogation_window1
 
-        self.niw0o2 = (niw0[0]//2, niw0[1]//2)
-        self.niw1o2 = (niw1[0]//2, niw1[1]//2)
+        self.niw0o2 = (int(niw0[0]//2), int(niw0[1]//2))
+        self.niw1o2 = (int(niw1[0]//2), int(niw1[1]//2))
 
         self._init_correl()
 
@@ -437,11 +437,14 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
         self.shape_crop_im0 = shape_crop_im0
         self.shape_crop_im1 = shape_crop_im1
 
+        shape_crop_im0 = tuple(int(n) for n in shape_crop_im0)
+        shape_crop_im1 = tuple(int(n) for n in shape_crop_im1)
+
         niw0 = self.n_interrogation_window0 = shape_crop_im0
         niw1 = self.n_interrogation_window1 = shape_crop_im1
 
-        self.niw0o2 = (niw0[0]//2, niw0[1]//2)
-        self.niw1o2 = (niw1[0]//2, niw1[1]//2)
+        self.niw0o2 = (int(niw0[0]//2), int(niw0[1]//2))
+        self.niw1o2 = (int(niw1[0]//2), int(niw1[1]//2))
 
         self.overlap = params.piv0.grid.overlap
 

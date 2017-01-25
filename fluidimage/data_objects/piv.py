@@ -276,11 +276,25 @@ class HeavyPIVResults(DataObject):
         for name_dict in self._dict_to_be_saved:
             try:
                 d = self.__dict__[name_dict]
-                g = g_piv.create_group(name_dict)
-                g.create_dataset('keys', data=d.keys())
-                g.create_dataset('values', data=d.values())
             except KeyError:
                 pass
+            else:
+                g = g_piv.create_group(name_dict)
+                keys = list(d.keys())
+                values = list(d.values())
+                try:
+                    for i, k in enumerate(keys):
+                        keys[i] = k.encode()
+                except AttributeError:
+                    pass
+                try:
+                    for i, k in enumerate(values):
+                        values[i] = k.encode()
+                except AttributeError:
+                    pass
+
+                g.create_dataset('keys', data=keys)
+                g.create_dataset('values', data=values)
 
         if 'deltaxs_tps' in self.__dict__:
             g = g_piv.create_group('deltaxs_tps')

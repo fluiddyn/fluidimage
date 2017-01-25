@@ -175,8 +175,8 @@ class FFTW2DReal2Complex(object):
         self.shapeX = shapeX
         self.shapeK = shapeK
 
-        self.arrayX = pyfftw.n_byte_align_empty(shapeX, 16, self.type_real)
-        self.arrayK = pyfftw.n_byte_align_empty(shapeK, 16, self.type_complex)
+        self.arrayX = pyfftw.empty_aligned(shapeX, self.type_real)
+        self.arrayK = pyfftw.empty_aligned(shapeK, self.type_complex)
 
         self.fftplan = pyfftw.FFTW(input_array=self.arrayX,
                                    output_array=self.arrayK,

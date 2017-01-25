@@ -38,7 +38,7 @@ __all__ = available_tools + ['PreprocTools']
 
 
 def imstats(img, hist_bins=256):
-    histogram = ndi.measurements.histogram(bins=hist_bins)
+    histogram = ndi.measurements.histogram(img, bins=hist_bins)
     return histogram
 
 
@@ -452,7 +452,7 @@ class PreprocTools(object):
 
             # TODO: Replace with inspect.getfullargspec (Python >= 3).
             func_args = inspect.getcallargs(func)
-            for arg in func_args.keys():
+            for arg in list(func_args.keys()):
                 if arg in ['img']:
                     # Remove arguments which are not parameters
                     del(func_args[arg])
@@ -464,10 +464,15 @@ class PreprocTools(object):
             params._set_child(tool, attribs=func_args)
 
             # Adds docstring to the parameter
-            if func.func_doc is not None:
+            try:
+                func_doc = func.func_doc
+            except AttributeError:
+                func_doc = func.__doc__
+
+            if func_doc is not None:
                 enable_doc = 'enable : bool\n' + \
                              '        Set as `True` to enable the tool'
-                params.__dict__[tool]._set_doc(func.func_doc + enable_doc)
+                params.__dict__[tool]._set_doc(func_doc + enable_doc)
 
     def __init__(self, params):
         self.params = params.preproc.tools
@@ -492,7 +497,7 @@ class PreprocTools(object):
             if tool_params.enable:
                 logger.debug('Apply ' + tool)
                 kwargs = tool_params._make_dict()
-                for k in kwargs.keys():
+                for k in list(kwargs.keys()):
                     if k in ['_attribs', '_tag', '_tag_children', 'enable']:
                         kwargs.pop(k)
 

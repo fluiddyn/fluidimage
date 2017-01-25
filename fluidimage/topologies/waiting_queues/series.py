@@ -84,7 +84,7 @@ class WaitingQueueMakeSerie(WaitingQueueBase):
         serie_set = [serie.get_name_files() for serie in series]
         self.serie_set.update(serie_set)
         self.nb_series = len(serie_set)
-        self.ind_series = range(self.nb_series)
+        self.ind_series = list(range(self.nb_series))
         nb = self.nb_serie_to_create
 
         for names in serie_set:
