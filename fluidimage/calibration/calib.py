@@ -275,3 +275,192 @@ class Calibration(object):
             Y = params.f[1]*(Yphys+params.T[1])
 
         return X, Y
+
+    def get_coeff(Calib, X, Y, x, y, z):
+        # compute A~ coefficients 
+        R = self.R
+        T_z = self.T[2]
+        T = R[6] * x + R[7]*y+R[8] * z + T_z;
+
+        A[:, :, 0, 0] = (R[0] - R[6] * X) / T
+        A[:, :, 0, 1] = (R[1] - R[7] * X) / T
+        A[:, :, 0, 2] = (R[2] - R[8] * X) / T
+        A[:, :, 1, 0] = (R[3] - R[6] * Y) / T
+        A[:, :, 1, 1] = (R[4] - R[7] * Y) / T
+        A[:, :, 1, 2] = (R[5] - R[8] * Y) / T
+        return A
+
+    def ud2u(Xd, Yd, Ud, Vd):
+        #convert image coordinates to view angles, after removal of  quadratic distorsion
+        # input in pixel, output in radians
+        X1d = Xd-Ud/2;
+        X2d = Xd+Ud/2;
+        Y1d = Yd-Vd/2;
+        Y2d = Yd+Vd/2;
+
+        X1 = (X1d - self.C[0]) /  self.f[0] * \
+             (1 + self.kc * self.f[0]**(-2)  * (X1d - self.C[0])**2 + \
+              self.kc * self.f[1]**(-2) * (Y1d - self.C[1])**2 )**(-1)
+        X1 = (X2d - self.C[0]) /  self.f[0] * \
+             (1 + self.kc * self.f[0]**(-2)  * (X2d - self.C[0])**2 + \
+              self.kc * self.f[1]**(-2) * (Y2d - self.C[1])**2 )**(-1)
+        X1 = (Y1d - self.C[1]) /  self.f[1] * \
+             (1 + self.kc * self.f[0]**(-2)  * (X1d - self.C[0])**2 + \
+              self.kc * self.f[1]**(-2) * (Y1d - self.C[1])**2 )**(-1)
+        X1 = (Y2d - self.C[1]) /  self.f[1] * \
+             (1 + self.kc * self.f[0]**(-2)  * (X2d - self.C[0])**2 + \
+              self.kc * self.f[1]**(-2) * (Y2d - self.C[1])**2 )**(-1)
+
+        U=X2-X1
+        V=Y2-Y1
+        X=X1+U/2
+        Y=Y1+V/2
+        return U, V, X, Y
+
+
+class StereoReconstruction(Calibration):
+    def __init__(self, path_file1, path_file2):
+        self.field1 = Calibration(path_file1)
+        self.field2 = Calibration(path_file2)
+
+    def shift2z(xmid, ymid, u, v):
+        z=0;
+        error=0;
+        
+        # first image
+        R = self.field1.R
+        T = self.field1.T
+        x_a = xmid - u/2
+        y_a = ymid - v/2 
+        z_a = R[6] * x_a + R[7] * y_a + T[0,2]
+        Xa = (R[0] * x_a + R[1] * y_a + T[0, 0]) / z_a
+        Ya = (R[3] * x_a + R[4] * y_a + T[0,1]) / z_a
+
+        A_1_1=R[0] - R[6] * Xa;
+        A_1_2=R[1] - R[7] * Xa;
+        A_1_3=R[2] - R[8] * Xa;
+        A_2_1=R[3] - R[6] * Ya;
+        A_2_2=R[4] - R[7] * Ya;
+        A_2_3=R[5] - R[8] * Ya;
+        Det = A_1_1 * A_2_2 - A_1_2 * A_2_1;
+        Dxa = (A_1_2 * A_2_3 - A_2_2 * A_1_3) / Det;
+        Dya = (A_2_1 * A_1_3 - A_1_1 * A_2_3) / Det;
+
+        #second image
+        #loading shift angle
+
+        R = self.field2.R
+        T = self.field2.T
+        x_b = xmid - u/2
+        y_b = ymid - v/2 
+        z_b = R[6] * x_b + R[7] * y_b + T[0,2]
+        Xb = (R[0] * x_b + R[1] * y_b + T[0, 0]) / z_b
+        Yb = (R[3] * x_b + R[4] * y_b + T[0,1]) / z_b
+
+        B_1_1=R[0] - R[6] * Xb
+        B_1_2=R[1] - R[7] * Xb
+        B_1_3=R[2] - R[8] * Xb
+        B_2_1=R[3] - R[6] * Yb
+        B_2_2=R[4] - R[7] * Yb
+        B_2_3=R[5] - R[8] * Yb
+        Det = B_1_1 * B_2_2 - B_1_2 * B_2_1
+        Dxb = (B_1_2 * B_2_3 - B_2_2 * B_1_3) / Det
+        Dyb = (B_2_1 * B_1_3 - B_1_1 * B_2_3) / Det
+
+        # result
+        Den = (Dxb - Dxa) * (Dxb - Dxa) + (Dyb - Dya) * (Dyb - Dya);
+        error=abs(((Dyb - Dya) *(-u) - (Dxb - Dxa) * (-v))) / Den;
+        z=((Dxb - Dxa) * (-u) + (Dyb - Dya) * (-v)) /Den;
+
+        xnew[0,:] = Dxa * z + x_a;
+        xnew[1,:] = Dxb * z + x_b;
+        ynew[0,:] = Dya * z + y_a;
+        ynew[1,:] = Dyb * z + y_b;
+        Xphy=mean(xnew,0);
+        Yphy=mean(ynew,0); 
+        
+        return z, Xphy, Yphy, error
+
+    def stereo_reconstruction(X1, Y1, U1, V1, Xa, Ya, X2, Y2, U2, V2, Xb, Yb):
+        # initialisatiion des matrices
+        xI=ObjectData.RangeX(1):ObjectData.DX:ObjectData.RangeX(2);
+        yI=ObjectData.RangeY(1):ObjectData.DY:ObjectData.RangeY(2);
+        XI, YI = np.meshgrid(xI, yI);
+        ZI = ??
+        
+        U=zeros(size(XI,1),size(XI,2));
+        V=zeros(size(XI,1),size(XI,2));
+        W=zeros(size(XI,1),size(XI,2));
+        
+        Ua = np.griddata(X1, Y1, U1, Xa, Ya)
+        Va = np.griddata(X1,Y1,V1,Xa,Ya);
+        Ua, Va, Xa, Ya = self.field1.Ud2U(Xa,Ya,Ua,Va)
+        A = self.field1.get_coeff(Xa,Ya,XI,YI,ZI)
+    
+        Ub=griddata(X2,Y2,U2,Xb,Yb);
+        Vb=griddata(X2,Y2,V2,Xb,Yb);
+        Ub, Vb, Xb, Yb = self.field2.Ud2U(Xb, Yb, Ub, Vb)
+        B = self.field2.get_coeff(Xb, Yb, XI, YI, ZI)
+    
+        S = ones(size(XI,0), size(XI,1), 3);
+        D = np.ones(size(XI,0), size(XI,1), 3, 3);
+    
+        S[:, :, 0] = A[:, :, 0, 0] * Ua + A[: ,: ,1 ,0] * Va + B[:, :, 0, 0] *\
+                     Ub + B[:, :, 1, 0] * Vb
+        S[:, :, 1] = A[:, :, 0, 1] * Ua + A[:, : ,1, 1] * Va + B[:, :, 0, 1] * \
+                     Ub + B[:, :, 1, 1] * Vb
+        S[:, :, 2] = A[:, :, 0, 2] * Ua + A[:, :, 1, 2] * Va + B[:, :, 0, 2] * \
+                     Ub + B[:, :, 1, 2] * Vb
+        D[:, :, 0, 0] = A[:, :, 0, 0] * A[:, :, 0, 0] + A[:, :, 1, 0] * \
+                        A[:, :, 1, 0] + B[:, :, 0, 0] * B[:, :, 0, 0] + \
+                        B[:, :, 1, 0] * B[:, :, 1, 0]
+        D[:, :, 0, 1] = A[:, :, 0, 0] * A[:, :, 0, 1] + A[:, :, 1, 0] * \
+                        A[:, :, 1, 1] + B[:, :, 0, 0] * B[:, :, 0, 1] + \
+                        B[:, :, 1, 0] * B[:, :, 1, 1]
+        D[:, :, 0, 2] = A[:, :, 0, 0] * A[:, :, 0, 2] + A[:, :, 1, 0] * \
+                        A[:, :, 1, 2] + B[:, :, 0, 0] * B[:, :, 0, 2] +\
+                        B[:, :, 1, 0] * B[:, :, 1, 2]
+        D[:, :, 1, 0] = A[:, :, 0, 1] *A[:, :, 0, 0] + A[:, :, 1, 1] *\
+                        A[:, : ,1 ,0] + B[:, :, 0, 1] * B[:, :, 0, 0] +\
+                        B[:, :, 1, 1] * B[:, :, 1, 0]
+        D[:, :, 1, 1] = A[:, :, 0, 1] * A[:, :, 0, 1] + A[:, :, 1, 1] *\
+                        A[:, :, 1, 1] + B[:, :, 0, 1] * B[: ,: ,0 ,1] +\
+                        B[:, :, 1, 1] * B[:, :, 1, 1]
+        
+        D[:, :, 1, 2] = A[:, :, 0, 1] *A[:, :, 0, 2] + A[:, :, 1, 1] *\
+                        A[:, :, 1, 2] + B[:, :, 0, 1] * B[:, :, 0, 2] + \
+                        B[:, :, 1, 1] * B[:, :, 1, 2]
+        D[:, :, 2, 0] = A[:, :, 0, 2] * A[:, :, 0, 0] + A[:, :, 1, 2]* \
+                        A[:, :, 1, 0] + B[:, :, 0, 2] * B[:, :, 0, 0] + \
+                        B[:, :, 1, 2] * B[:, :, 1, 0]
+        D[:, :, 2, 1] = A[:, :, 0, 2] * A[:, :, 0, 1] + A[:, :, 1, 2] * \
+                        A[:, :, 1, 1] + B[:, :, 0, 2] * B[:, :, 0, 1] + \
+                        B[:, :, 1, 2] * B[:, :, 1, 1]
+        D[:, :, 2, 2] = A[:, :, 0, 2]  * A[:, :, 0, 2] + A[:, :, 1, 2] * \
+                        A[:, :, 0, 2] + B[:, :, 0, 2] * B[:, :, 0, 2] +\
+                        B[:, :, 1, 2] * B[:, :, 1, 2]
+        
+        for indj in range(np.size(XI)[0]):
+            for indi in range(np.size(XI)[1]):
+                dxyz, resid,rank, s = np.linalg.lstsq(
+                    np.squeeze(D[indj, indi, :, :])*1000,
+                    np.squeeze(S[indj, indi, :])*1000)
+                U(indj,indi)=dxyz[0]
+                V(indj,indi)=dxyz[1]
+                W(indj,indi)=dxyz[2]
+
+        Error = zeros(np.size(XI)[0], np.size(XI)[1],4);
+        Error[:, :, 0] = A[:, :, 0, 0] * U + A[:, :, 0, 1] * \
+                         V + A[:, :, 0, 2] * W - Ua
+        Error[:, :, 1] = A[:, :, 1, 0] * U + A[: ,: ,1 ,1] *\
+                         V + A[:, :, 1, 2] * W - Va
+        Error[:, :, 2] = B[:, :, 0, 0] * U + B[:, :, 0, 1] *\
+                         V + B[:, :, 0, 2] * W - Ub
+        Error[:, :, 3] = B[:, :, 1, 0] * U + B[:, :, 1, 1] *\
+                         V + B[:, :, 1, 2] * W - Vb
+
+        Error=0.5*sqrt(sum(Error**2, 3))
+        return xI, yI, U, V, W, ZI, error
+
+
+

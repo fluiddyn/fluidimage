@@ -182,7 +182,8 @@ class PIV2d(object):
         ret.vy = _gaussianf(self.vy)
 
         if hasattr(self, 'vz'):
-            ret.vz = _gaussianf(self.vz)
+            #ret.vz = _gaussianf(self.vz)
+            pass
 
         if valid:
             mf = int(np.floor((2*int(truncate*max(sigma) + 0.5) + 1)/2))
