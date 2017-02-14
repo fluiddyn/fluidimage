@@ -2,13 +2,20 @@
 import re
 
 import numpy as np
+import glob
+import os
+import pylab
+from mpl_toolkits.mplot3d import Axes3D
+from scipy.interpolate import griddata
+from scipy.interpolate import CloughTocher2DInterpolator, LinearNDInterpolator, RegularGridInterpolator
 
 from fluiddyn.util.paramcontainer import ParamContainer, tidy_container
-
 
 def get_number_from_string(string):
     return map(float, re.findall(r"[-+]?\d*\.\d+|\d+", string))
 
+class Interpolent():
+    pass
 
 class ParamCalibration(ParamContainer):
 
@@ -383,10 +390,10 @@ class StereoReconstruction(Calibration):
 
     def stereo_reconstruction(X1, Y1, U1, V1, Xa, Ya, X2, Y2, U2, V2, Xb, Yb):
         # initialisatiion des matrices
-        xI=ObjectData.RangeX(1):ObjectData.DX:ObjectData.RangeX(2);
-        yI=ObjectData.RangeY(1):ObjectData.DY:ObjectData.RangeY(2);
-        XI, YI = np.meshgrid(xI, yI);
-        ZI = ??
+        # xI=ObjectData.RangeX(1):ObjectData.DX:ObjectData.RangeX(2);
+        # yI=ObjectData.RangeY(1):ObjectData.DY:ObjectData.RangeY(2);
+        # XI, YI = np.meshgrid(xI, yI);
+        # ZI = ??
         
         U=zeros(size(XI,1),size(XI,2));
         V=zeros(size(XI,1),size(XI,2));
@@ -445,9 +452,9 @@ class StereoReconstruction(Calibration):
                 dxyz, resid,rank, s = np.linalg.lstsq(
                     np.squeeze(D[indj, indi, :, :])*1000,
                     np.squeeze(S[indj, indi, :])*1000)
-                U(indj,indi)=dxyz[0]
-                V(indj,indi)=dxyz[1]
-                W(indj,indi)=dxyz[2]
+                # U(indj,indi)=dxyz[0]
+                # V(indj,indi)=dxyz[1]
+                # W(indj,indi)=dxyz[2]
 
         Error = zeros(np.size(XI)[0], np.size(XI)[1],4);
         Error[:, :, 0] = A[:, :, 0, 0] * U + A[:, :, 0, 1] * \
@@ -462,5 +469,216 @@ class StereoReconstruction(Calibration):
         Error=0.5*sqrt(sum(Error**2, 3))
         return xI, yI, U, V, W, ZI, error
 
+
+class CalibDirect():
+    def __init__(self, pathimg, nb_pixely):
+        pass
+    
+    def compute_interpolents(self, interpolator = CloughTocher2DInterpolator):
+
+        imgs = glob.glob(os.path.join(pathimg, 'img*.xml'))
+        interp = Interpolent()
+        interp.cam2X = []
+        interp.cam2Y = []
+        interp.real2x = []
+        interp.real2y = []
+        interp.Z = []
+    
+        for i, img in enumerate(imgs):
+            imgpts = ParamContainer(path_file=img)
+            tidy_container(imgpts)
+            imgpts = imgpts.geometry_calib.source_calib.__dict__
+            pts = ([x for x in imgpts.keys() if 'point_' in x or 'Point' in x])
+        
+            # coord in real space
+            X = np.array([get_number_from_string(imgpts[tmp])[0] for tmp in pts])/100.
+            Y = np.array([get_number_from_string(imgpts[tmp])[1] for tmp in pts])/100.
+            interp.Z.append(get_number_from_string(imgpts[pts[0]])[2]/100.)
+            # coord in image
+            x = np.array([get_number_from_string(imgpts[tmp])[3] for tmp in pts])
+            y = nb_pixely - \
+                np.array([get_number_from_string(imgpts[tmp])[4] for tmp in pts])
+            cam = np.vstack([x,y]).transpose()
+            real = np.vstack([X,Y]).transpose()
+
+            interp.cam2X.append(interpolator(cam, X))
+            interp.cam2Y.append(interpolator(cam, Y))
+            interp.real2x.append(interpolator(real, x))
+            interp.real2y.append(interpolator(real, y))
+        self.interp_levels = interp
+
+    def compute_interppixel2line(self, nbpix_x, nbpix_y, nbline_x, nbline_y):
+        x = np.unique(np.floor(np.linspace(0, nbpix_x, nbline_x)))
+        y = np.unique(np.floor(np.linspace(0, nbpix_y, nbline_y)))
+
+        X, Y = np.meshgrid(x, y)
+        V = np.zeros((X.shape[0], X.shape[1], 6))
+
+        Xtrue = []
+        Ytrue = []
+        Vtrue = []
+        Xfalse = []
+        Yfalse = []
+        indi = []
+        indj = []
+
+        
+        for i in range(X.shape[0]):
+            for j in range(X.shape[1]):
+                tmp = self.pixel2line(X[i,j], Y[i,j])
+                if np.isnan(tmp[0]):
+                    Xfalse.append(X[i,j])
+                    Yfalse.append(Y[i,j])
+                    indi.append(i)
+                    indj.append(j)
+                else:
+                    V[i, j, :] = tmp
+                    Xtrue.append(X[i,j])
+                    Ytrue.append(Y[i,j])
+                    Vtrue.append(tmp)
+                    
+        # for j in range(6):
+        #     indfalse = np.where(isnan(V[:, :, j]))
+        #     indtrue = np.where(isnan(V[:, :, j]) == False)
+        #     V[indfalse[0], indfalse[1], j]  = griddata((X[indfalse], Y[indfalse]),
+        #                     V[indtrue[0], indtrue[1], j],
+        #                     (X[indtrue], Y[indtrue]))
+            
+        Vtrue = np.array(Vtrue)
+        for j in range(6):
+            V[indi, indj, j] = griddata((Xtrue, Ytrue),
+                                                  Vtrue[:, j],
+                                                  (Xfalse, Yfalse))
+
+        interp = []
+        for i in range(6):
+            interp.append(RegularGridInterpolator((x, y), V[:, :, i]))
+
+        self.interp_lines = interp                                   
+
+    def pixel2line(self, indx, indy):
+        interp = self.interp_levels
+        X = []
+        Y = []
+        Z = interp.Z
+        for i in range(len(Z)):
+            X.append(float(interp.cam2X[i]((indx, indy))))
+            Y.append(float(interp.cam2Y[i]((indx, indy))))
+        X = np.array(X)
+        Y = np.array(Y)
+        XYZ = np.vstack([X, Y, Z]).transpose()
+        XYZ0 = np.nanmean(XYZ, 0)
+        XYZ -= XYZ0
+    
+        ind = np.isnan(X+Y) == False
+        XYZ = XYZ[ind, :]
+        if XYZ.shape[0] > 1:
+            u, s, v = np.linalg.svd(XYZ, full_matrices=True, compute_uv=1)
+            direction=np.cross(v[:,-1],v[:,-2])
+            return np.hstack([XYZ0, direction])
+        else:
+            return np.hstack([np.nan]*6)
+
+    def check(self):
+        imgs = glob.glob(os.path.join(pathimg, 'img*.xml'))
+        interp = Interpolent()
+        interp.cam2X = []
+        interp.cam2Y = []
+        interp.real2x = []
+        interp.real2y = []
+        interp.Z = []
+        fig = pylab.figure()
+        ax = Axes3D(fig)
+        for i, img in enumerate(imgs):
+            imgpts = ParamContainer(path_file=img)
+            tidy_container(imgpts)
+            imgpts = imgpts.geometry_calib.source_calib.__dict__
+            pts = ([x for x in imgpts.keys() if 'point_' in x or 'Point' in x])
+        
+            # coord in real space
+            X = np.array([get_number_from_string(imgpts[tmp])[0] for tmp in pts])/100.
+            Y = np.array([get_number_from_string(imgpts[tmp])[1] for tmp in pts])/100.
+            Z = np.array([get_number_from_string(imgpts[tmp])[2] for tmp in pts])/100.
+            #ax.scatter(X,Y,Z, marker='+')
+
+        x = range(500, 800, 10)
+        y = range(500, 800, 10)
+        x, y =  np.meshgrid(x,y)
+        x = x.flatten()
+        y = y.flatten()
+        for i in range(len(x)):
+            X0 = self.interp_lines[0]((x[i], y[i]))
+            Y0 = self.interp_lines[1]((x[i], y[i]))
+            Z0 = self.interp_lines[2]((x[i], y[i]))
+            dx = self.interp_lines[3]((x[i], y[i]))
+            dy = self.interp_lines[4]((x[i], y[i]))
+            dz = self.interp_lines[5]((x[i], y[i]))
+            X = (np.arange(10)-5)/20. * dx + X0
+            Y = (np.arange(10)-5)/20. * dy + Y0
+            Z = (np.arange(10)-5)/20. * dz + Z0
+            ax.plot(X,Y,Z)
+        pylab.show()
+
+    def check_interp_lines_coeffs(self):
+        x = range(500, 800, 10)
+        y = range(500, 800, 10)
+        x, y =  np.meshgrid(x,y)
+        X0 = np.zeros(x.shape)
+        Y0 = np.zeros(x.shape)
+        Z0 = np.zeros(x.shape)
+        dx = np.zeros(x.shape)
+        dy = np.zeros(x.shape)
+        dz = np.zeros(x.shape)
+ 
+        for i in range(x.shape[0]):
+            for j in range(x.shape[1]):
+                X0[i, j] = self.interp_lines[0]((x[i, j], y[i, j]))
+                Y0[i, j] = self.interp_lines[1]((x[i, j], y[i, j]))
+                Z0[i, j] = self.interp_lines[2]((x[i, j], y[i, j]))
+                dx[i, j] = self.interp_lines[3]((x[i, j], y[i, j]))
+                dy[i, j] = self.interp_lines[4]((x[i, j], y[i, j]))
+                dz[i, j] = self.interp_lines[5]((x[i, j], y[i, j]))
+         
+        fig = pylab.figure()
+        pylab.pcolor(x, y, X0)
+        pylab.colorbar()
+        fig.show()
+        fig = pylab.figure()
+        pylab.pcolor(x, y, Y0)
+        pylab.colorbar()
+        fig.show()
+        fig = pylab.figure()
+        pylab.pcolor(x, y, Z0)
+        pylab.colorbar()
+        fig.show()
+        fig = pylab.figure()
+        pylab.pcolor(x, y, dx)
+        pylab.colorbar()
+        fig.show()
+        fig = pylab.figure()
+        pylab.pcolor(x, y, dy)
+        pylab.colorbar()
+        fig.show()
+        fig = pylab.figure()
+        pylab.pcolor(x, y, dz)
+        pylab.colorbar()
+        fig.show()
+        fig = pylab.figure()
+        pylab.pcolor(x, y, np.sqrt(dx**2 + dy**2 + dz**2))
+        pylab.colorbar()
+        fig.show()
+
+if __name__ == "__main__":
+    def clf():
+        pylab.close('all')
+    pathimg = '/.fsdyn_people/campagne8a/project/16BICOUCHE/Antoine/0_Ref_mika/Dalsa1'
+    nb_pixely = 1024
+    calib = CalibDirect(pathimg, nb_pixely)
+    calib.compute_interpolents()
+    nbpix_x, nbpix_y, nbline_x, nbline_y= 1024, 1024, 512, 512
+    test = calib.compute_interppixel2line(nbpix_x, nbpix_y, nbline_x, nbline_y)
+    calib.check_interp_lines_coeffs()
+
+    
 
 
