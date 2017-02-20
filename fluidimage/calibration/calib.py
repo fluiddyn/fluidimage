@@ -18,6 +18,34 @@ def get_number_from_string2(string):
     s = string.split()
     return [float(s) for s in string.split()]
 
+def get_plane_equation(z0, alpha, beta):
+    # Works only when 0 or 1 angle ~= 0
+    # alpha is angle in radian around x axis
+    # beta is angle in radian around y axis
+    # plane is defined with ax + by + cz + d = 0
+    assert not (alpha != 0 and beta != 0),"Works only when 0 or 1 angle != 0"
+    a = sin(beta)
+    b = -sin(alpha) * cos(beta)
+    c = cos(alpha) * cos(beta)
+    d = -c * z0
+    return a, b, c, d
+
+def get_base_from_normal_vector(nx, ny, nz):
+        # matrix of base change from a given plane to the fixed plane
+        # n has to be approximately vertical: i.e. nz approx. 1
+        
+        ez = np.array([nx, ny, nz])
+        ez = ez / np.linalg.norm(ez)
+        
+        ex1, ex2 = 1, 0
+        ex3 = -(ex1 * nx + ex2 * ny)/ nz
+        ex = np.array([ex1, ex2, ex3])
+        ex = ex / np.linalg.norm(ex)
+
+        ey = np.cross(ez, ex)
+        A = np.vstack([ex, ey, ez]).transpose()
+        return A, np.linalg.inv(A)
+    
 class Interpolent():
     pass
 
@@ -475,8 +503,10 @@ class StereoReconstruction(Calibration):
 
 
 class CalibDirect():
-    def __init__(self, pathimg, nb_pixely, pth_file=None):
+    def __init__(self, pathimg=None, nb_pixelx=None, nb_pixely=None,
+                 pth_file=None):
         self.pathimg = pathimg
+        self.nb_pixelx = nb_pixelx
         self.nb_pixely = nb_pixely
         if pth_file:
             self.load(pth_file)
@@ -484,7 +514,9 @@ class CalibDirect():
             pass
     
     def compute_interpolents(self, interpolator=LinearNDInterpolator):
-
+        # compute interpolents (self.interp_levels) from camera coordinates to
+        # real coordinates for each plane z=?
+         
         imgs = glob.glob(os.path.join(self.pathimg, 'img*.xml'))
         interp = Interpolent()
         interp.cam2X = []
@@ -521,10 +553,14 @@ class CalibDirect():
             interp.real2y.append(interpolator((X, Y), y))
         self.interp_levels = interp
 
-    def compute_interppixel2line(self, nbpix_x, nbpix_y, nbline_x, nbline_y,
+    def compute_interppixel2line(self, nbline_x, nbline_y,
                                  test=False):
-        xtmp = np.unique(np.floor(np.linspace(0, nbpix_x, nbline_x)))
-        ytmp = np.unique(np.floor(np.linspace(0, nbpix_y, nbline_y)))
+        # compute interpolents for parameters for each optical path
+        # (number of optical path is given by nbline_x, nbline_y)
+        # optical paths are defined with a point x0, y0, z0 and a vector dx, dy, dz
+        
+        xtmp = np.unique(np.floor(np.linspace(0, self.nb_pixelx, nbline_x)))
+        ytmp = np.unique(np.floor(np.linspace(0, self.nb_pixely, nbline_y)))
 
         x, y = np.meshgrid(xtmp, ytmp)
         V = np.zeros((x.shape[0], x.shape[1], 6))
@@ -583,6 +619,9 @@ class CalibDirect():
         self.interp_lines = interp                                   
 
     def pixel2line(self, indx, indy):
+        # compute parameters of the optical path for a pixel
+        # optical path is defined with a point x0, y0, z0 and a vector dx, dy, dz
+        
         interp = self.interp_levels
         X = []
         Y = []
@@ -611,6 +650,8 @@ class CalibDirect():
         self.interp_lines = np.load(pth_file)
 
     def intersect_with_plane(self, indx, indy, a, b, c, d):
+        # find intersection with the line associated to the pixel  indx, indy
+        # and a plane defined by ax + by + cz + d =0
         x0 = self.interp_lines[0]((indx, indy))
         y0 = self.interp_lines[1]((indx, indy))
         z0 = self.interp_lines[2]((indx, indy))
@@ -618,7 +659,26 @@ class CalibDirect():
         dy = self.interp_lines[4]((indx, indy))
         dz = self.interp_lines[5]((indx, indy))
         t = -(a * x0 + b * y0 + c * z0 + d) / (a * dx  + b * dy + c * dz)
-        return x0 + t * dx, y0 + t * dy, z0 + t * dz
+        return np.array([x0 + t * dx, y0 + t * dy, z0 + t * dz])
+    
+    def apply_calib(self, indx, indy, dx, dy, a, b, c, d):
+            # gives the projection of the real displacement projected on each
+            # camera plane and then projected on the laser plane
+            dX = self.intersect_with_plane(
+                indx+dx/2, indy+dy/2, a, b, c, d) - self.intersect_with_plane(
+                    indx-dx/2, indy-dy/2, a, b, c, d)
+            return dX
+
+    def get_base_camera_plane(self):
+        # matrix of base change from camera plane to fixed plane 
+        indx = range(self.nb_pixelx/2-20, self.nb_pixelx/2+20)
+        indy = range(self.nb_pixely/2-20, self.nb_pixely/2+20)
+        indx, indy = np.meshgrid(indx, indy)
+        dx = np.nanmean(self.interp_lines[3]((indx, indy)))
+        dy = np.nanmean(self.interp_lines[4]((indx, indy)))
+        dz = np.nanmean(self.interp_lines[5]((indx, indy)))
+        A = get_base_from_normal_vector(dx, dy, dz)
+        return A
 
     def check_interp_levels(self):
         interp = self.interp_levels
@@ -730,17 +790,59 @@ class CalibDirect():
         pylab.colorbar()
         fig.show()
 
+class DirectStereoReconstruction():
+    def __init__(self, pth_file0, nb_pixelx0, nb_pixely0, pth_file1, nb_pixelx1,
+                 nb_pixely1):
+        self.calib0 = CalibDirect(pth_file=pth_file0, nb_pixelx=nb_pixelx0,
+                                  nb_pixely=nb_pixely0)
+        self.calib1 = CalibDirect(pth_file=pth_file1, nb_pixelx=nb_pixelx1,
+                                  nb_pixely=nb_pixely1)
+        # matrices from camera planes to fixed plane and inverse
+        self.A0, self.B0 = self.calib0.get_base_camera_plane()
+        self.A1, self.B1 = self.calib1.get_base_camera_plane()
+        
+    def apply_calib(self, indx0, indy0, dx0, dy0, indx1, indy1, dx1, dy1,
+                    a, b, c, d):
+        X0 =  self.calib0.intersect_with_plane(
+            indx0, indy0, a, b, c, d)
+        dX0 = self.calib0.apply_calib(indx0, indy0, dx0, dy0,
+                                                a, b, c, d)
+        dX1 =  self.calib1.intersect_with_plane(
+            indx1, indy1, a, b, c, d)
+        X1 = self.calib1.apply_calib(indx1, indy1, dx1, dy1,
+                                                   a, b, c, d)
+
+        d0cam = np.dot(self.B0, dX0)
+        d1cam = np.dot(self.B1, dX1)
+            
+        dX = d0cam + d1cam
+        return dX
+        
+
 if __name__ == "__main__":
     def clf():
         pylab.close('all')
-    pathimg = '/.fsdyn_people/campagne8a/project/16BICOUCHE/Antoine/0_Ref_mika/Dalsa1'
-    nb_pixely = 1024
-    calib = CalibDirect(pathimg, nb_pixely)
-    calib.compute_interpolents()
-    nbpix_x, nbpix_y, nbline_x, nbline_y = 1024, 1024, 128, 128
-    calib.compute_interppixel2line(nbpix_x, nbpix_y, nbline_x, nbline_y,
-                                          test=True)
-    # calib.save('test.npy')
+    # pathimg = '/.fsdyn_people/campagne8a/project/16BICOUCHE/Antoine/0_Ref_mika/Dalsa1'
+    # nb_pixely, nb_pixelx = 1024, 1024
+    # calib = CalibDirect(pathimg, nb_pixelx, nb_pixely)
+    # calib.compute_interpolents()
+    # nbpix_x, nbpix_y, nbline_x, nbline_y = 1024, 1024, 64, 64
+    # calib.compute_interppixel2line(nbline_x, nbline_y,
+    #                                       test=False)
+    # calib.save('calib1.npy')
+
+    # pathimg = '/.fsdyn_people/campagne8a/project/16BICOUCHE/Antoine/0_Ref_mika/Dalsa2'
+    nb_pixely, nb_pixelx = 1024, 1024
+    # calib = CalibDirect(pathimg, nb_pixelx, nb_pixely)
+    # calib.compute_interpolents()
+    # nbpix_x, nbpix_y, nbline_x, nbline_y = 1024, 1024, 64, 64
+    # calib.compute_interppixel2line(nbline_x, nbline_y,
+    #                                       test=False)
+    # calib.save('calib2.npy')
+
+
+    stereo = DirectStereoReconstruction('calib1.npy', nb_pixelx, nb_pixely, 'calib2.npy', nb_pixelx, nb_pixely)
+    
     # calib.check_interp_lines_coeffs()
     # calib.check_interp_lines()
     # calib.check_interp_levels()
