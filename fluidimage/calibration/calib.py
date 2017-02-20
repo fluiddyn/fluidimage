@@ -499,7 +499,7 @@ class StereoReconstruction(Calibration):
                          V + B[:, :, 1, 2] * W - Vb
 
         Error=0.5*sqrt(sum(Error**2, 3))
-        return xI, yI, U, V, W, ZI, error
+        return xI, yI, U, V, W, ZI, Error
 
 
 class CalibDirect():
@@ -512,11 +512,11 @@ class CalibDirect():
             self.load(pth_file)
         else:
             pass
-    
+
     def compute_interpolents(self, interpolator=LinearNDInterpolator):
         # compute interpolents (self.interp_levels) from camera coordinates to
         # real coordinates for each plane z=?
-         
+
         imgs = glob.glob(os.path.join(self.pathimg, 'img*.xml'))
         interp = Interpolent()
         interp.cam2X = []
@@ -544,8 +544,7 @@ class CalibDirect():
             y = self.nb_pixely - \
                 np.array(
                     [get_number_from_string2(imgpts[tmp])[4] for tmp in pts])
-            # cam = np.vstack([x, y]).transpose()
-            # real = np.vstack([X, Y]).transpose()
+            # difference of convention with calibration done with uvmat for Y!
 
             interp.cam2X.append(interpolator((x, y), X))
             interp.cam2Y.append(interpolator((x, y), Y))
@@ -558,7 +557,7 @@ class CalibDirect():
         # compute interpolents for parameters for each optical path
         # (number of optical path is given by nbline_x, nbline_y)
         # optical paths are defined with a point x0, y0, z0 and a vector dx, dy, dz
-        
+
         xtmp = np.unique(np.floor(np.linspace(0, self.nb_pixelx, nbline_x)))
         ytmp = np.unique(np.floor(np.linspace(0, self.nb_pixely, nbline_y)))
 
@@ -573,28 +572,27 @@ class CalibDirect():
         indi = []
         indj = []
 
-        
         for i in range(x.shape[0]):
             for j in range(x.shape[1]):
-                tmp = self.pixel2line(x[i,j], y[i,j])
+                tmp = self.pixel2line(x[i, j], y[i, j])
                 if np.isnan(tmp[0]):
-                    xfalse.append(x[i,j])
-                    yfalse.append(y[i,j])
+                    xfalse.append(x[i, j])
+                    yfalse.append(y[i, j])
                     indi.append(i)
                     indj.append(j)
                 else:
                     V[i, j, :] = tmp
-                    xtrue.append(x[i,j])
-                    ytrue.append(y[i,j])
+                    xtrue.append(x[i, j])
+                    ytrue.append(y[i, j])
                     Vtrue.append(tmp)
-                    
+
         # for j in range(6):
         #     indfalse = np.where(isnan(V[:, :, j]))
         #     indtrue = np.where(isnan(V[:, :, j]) == False)
         #     V[indfalse[0], indfalse[1], j]  = griddata((X[indfalse], Y[indfalse]),
         #                     V[indtrue[0], indtrue[1], j],
         #                     (X[indtrue], Y[indtrue]))
-            
+
         if test:
             for j in range(6):
                 fig = pylab.figure()
@@ -602,26 +600,26 @@ class CalibDirect():
                 pylab.colorbar()
                 fig.show()
             fig = pylab.figure()
-            pylab.pcolor(x, y, np.sqrt(V[:, :, 3]**2+V[:, :, 4]**2+V[:, :, 5]**2))
+            pylab.pcolor(x, y, np.sqrt(
+                V[:, :, 3]**2+V[:, :, 4]**2+V[:, :, 5]**2))
             pylab.colorbar()
             fig.show()
 
         Vtrue = np.array(Vtrue)
         for j in range(6):
-            V[indi, indj, j] = griddata((xtrue, ytrue),
-                                                  Vtrue[:, j],
-                                                  (xfalse, yfalse))
+            V[indi, indj, j] = griddata(
+                (xtrue, ytrue), Vtrue[:, j], (xfalse, yfalse))
 
         interp = []
         for i in range(6):
             interp.append(RegularGridInterpolator((xtmp, ytmp), V[:, :, i]))
-            
-        self.interp_lines = interp                                   
+
+        self.interp_lines = interp
 
     def pixel2line(self, indx, indy):
         # compute parameters of the optical path for a pixel
         # optical path is defined with a point x0, y0, z0 and a vector dx, dy, dz
-        
+
         interp = self.interp_levels
         X = []
         Y = []
@@ -638,7 +636,7 @@ class CalibDirect():
         XYZ = XYZ[ind, :]
         if XYZ.shape[0] > 1:
             u, s, v = np.linalg.svd(XYZ, full_matrices=True, compute_uv=1)
-            direction = np.cross(v[:,-1],v[:,-2])
+            direction = np.cross(v[:, -1], v[:, -2])
             return np.hstack([XYZ0, direction])
         else:
             return np.hstack([np.nan]*6)
@@ -658,9 +656,9 @@ class CalibDirect():
         dx = self.interp_lines[3]((indx, indy))
         dy = self.interp_lines[4]((indx, indy))
         dz = self.interp_lines[5]((indx, indy))
-        t = -(a * x0 + b * y0 + c * z0 + d) / (a * dx  + b * dy + c * dz)
+        t = -(a * x0 + b * y0 + c * z0 + d) / (a * dx + b * dy + c * dz)
         return np.array([x0 + t * dx, y0 + t * dy, z0 + t * dz])
-    
+
     def apply_calib(self, indx, indy, dx, dy, a, b, c, d):
             # gives the projection of the real displacement projected on each
             # camera plane and then projected on the laser plane
@@ -790,9 +788,11 @@ class CalibDirect():
         pylab.colorbar()
         fig.show()
 
+
 class DirectStereoReconstruction():
-    def __init__(self, pth_file0, nb_pixelx0, nb_pixely0, pth_file1, nb_pixelx1,
-                 nb_pixely1):
+
+    def __init__(self, pth_file0, nb_pixelx0, nb_pixely0, pth_file1,
+                 nb_pixelx1, nb_pixely1):
         self.calib0 = CalibDirect(pth_file=pth_file0, nb_pixelx=nb_pixelx0,
                                   nb_pixely=nb_pixely0)
         self.calib1 = CalibDirect(pth_file=pth_file1, nb_pixelx=nb_pixelx1,
@@ -800,24 +800,24 @@ class DirectStereoReconstruction():
         # matrices from camera planes to fixed plane and inverse
         self.A0, self.B0 = self.calib0.get_base_camera_plane()
         self.A1, self.B1 = self.calib1.get_base_camera_plane()
-        
+
     def apply_calib(self, indx0, indy0, dx0, dy0, indx1, indy1, dx1, dy1,
                     a, b, c, d):
-        X0 =  self.calib0.intersect_with_plane(
-            indx0, indy0, a, b, c, d)
-        dX0 = self.calib0.apply_calib(indx0, indy0, dx0, dy0,
-                                                a, b, c, d)
-        dX1 =  self.calib1.intersect_with_plane(
-            indx1, indy1, a, b, c, d)
-        X1 = self.calib1.apply_calib(indx1, indy1, dx1, dy1,
-                                                   a, b, c, d)
+        X0 = self.calib0.intersect_with_plane(indx0, indy0, a, b, c, d)
+        dX0 = self.calib0.apply_calib(indx0, indy0, dx0, dy0, a, b, c, d)
+        X1 = self.calib1.intersect_with_plane(indx1, indy1, a, b, c, d)
+        dX1 = self.calib1.apply_calib(indx1, indy1, dx1, dy1, a, b, c, d)
 
         d0cam = np.dot(self.B0, dX0)
         d1cam = np.dot(self.B1, dX1)
-            
+
+        return X0, X1, d0cam, d1cam
+
+    def reconstruction(self, X0, X1, d0cam, d1cam):
+        # ajouter boucle sur toutes positions + trouver grille en commun puis
+        # reconstruction
         dX = d0cam + d1cam
-        return dX
-        
+
 
 if __name__ == "__main__":
     def clf():
