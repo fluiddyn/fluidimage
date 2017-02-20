@@ -7,12 +7,16 @@ import os
 import pylab
 from mpl_toolkits.mplot3d import Axes3D
 from scipy.interpolate import griddata
-from scipy.interpolate import CloughTocher2DInterpolator, LinearNDInterpolator, RegularGridInterpolator
+from scipy.interpolate import CloughTocher2DInterpolator, LinearNDInterpolator,RegularGridInterpolator
 
 from fluiddyn.util.paramcontainer import ParamContainer, tidy_container
 
 def get_number_from_string(string):
     return map(float, re.findall(r"[-+]?\d*\.\d+|\d+", string))
+
+def get_number_from_string2(string):
+    s = string.split()
+    return [float(s) for s in string.split()]
 
 class Interpolent():
     pass
@@ -471,70 +475,81 @@ class StereoReconstruction(Calibration):
 
 
 class CalibDirect():
-    def __init__(self, pathimg, nb_pixely):
-        pass
+    def __init__(self, pathimg, nb_pixely, pth_file=None):
+        self.pathimg = pathimg
+        self.nb_pixely = nb_pixely
+        if pth_file:
+            self.load(pth_file)
+        else:
+            pass
     
-    def compute_interpolents(self, interpolator = CloughTocher2DInterpolator):
+    def compute_interpolents(self, interpolator=LinearNDInterpolator):
 
-        imgs = glob.glob(os.path.join(pathimg, 'img*.xml'))
+        imgs = glob.glob(os.path.join(self.pathimg, 'img*.xml'))
         interp = Interpolent()
         interp.cam2X = []
         interp.cam2Y = []
         interp.real2x = []
         interp.real2y = []
         interp.Z = []
-    
+
         for i, img in enumerate(imgs):
             imgpts = ParamContainer(path_file=img)
             tidy_container(imgpts)
             imgpts = imgpts.geometry_calib.source_calib.__dict__
             pts = ([x for x in imgpts.keys() if 'point_' in x or 'Point' in x])
-        
-            # coord in real space
-            X = np.array([get_number_from_string(imgpts[tmp])[0] for tmp in pts])/100.
-            Y = np.array([get_number_from_string(imgpts[tmp])[1] for tmp in pts])/100.
-            interp.Z.append(get_number_from_string(imgpts[pts[0]])[2]/100.)
-            # coord in image
-            x = np.array([get_number_from_string(imgpts[tmp])[3] for tmp in pts])
-            y = nb_pixely - \
-                np.array([get_number_from_string(imgpts[tmp])[4] for tmp in pts])
-            cam = np.vstack([x,y]).transpose()
-            real = np.vstack([X,Y]).transpose()
 
-            interp.cam2X.append(interpolator(cam, X))
-            interp.cam2Y.append(interpolator(cam, Y))
-            interp.real2x.append(interpolator(real, x))
-            interp.real2y.append(interpolator(real, y))
+            # coord in real space
+            X = np.array(
+                [get_number_from_string2(imgpts[tmp])[0] for tmp in pts])/100.
+            Y = np.array(
+                [get_number_from_string2(imgpts[tmp])[1] for tmp in pts])/100.
+            interp.Z.append(
+                get_number_from_string2(imgpts[pts[0]])[2]/100.)
+            # coord in image
+            x = np.array(
+                [get_number_from_string2(imgpts[tmp])[3] for tmp in pts])
+            y = self.nb_pixely - \
+                np.array(
+                    [get_number_from_string2(imgpts[tmp])[4] for tmp in pts])
+            # cam = np.vstack([x, y]).transpose()
+            # real = np.vstack([X, Y]).transpose()
+
+            interp.cam2X.append(interpolator((x, y), X))
+            interp.cam2Y.append(interpolator((x, y), Y))
+            interp.real2x.append(interpolator((X, Y), x))
+            interp.real2y.append(interpolator((X, Y), y))
         self.interp_levels = interp
 
-    def compute_interppixel2line(self, nbpix_x, nbpix_y, nbline_x, nbline_y):
-        x = np.unique(np.floor(np.linspace(0, nbpix_x, nbline_x)))
-        y = np.unique(np.floor(np.linspace(0, nbpix_y, nbline_y)))
+    def compute_interppixel2line(self, nbpix_x, nbpix_y, nbline_x, nbline_y,
+                                 test=False):
+        xtmp = np.unique(np.floor(np.linspace(0, nbpix_x, nbline_x)))
+        ytmp = np.unique(np.floor(np.linspace(0, nbpix_y, nbline_y)))
 
-        X, Y = np.meshgrid(x, y)
-        V = np.zeros((X.shape[0], X.shape[1], 6))
+        x, y = np.meshgrid(xtmp, ytmp)
+        V = np.zeros((x.shape[0], x.shape[1], 6))
 
-        Xtrue = []
-        Ytrue = []
+        xtrue = []
+        ytrue = []
         Vtrue = []
-        Xfalse = []
-        Yfalse = []
+        xfalse = []
+        yfalse = []
         indi = []
         indj = []
 
         
-        for i in range(X.shape[0]):
-            for j in range(X.shape[1]):
-                tmp = self.pixel2line(X[i,j], Y[i,j])
+        for i in range(x.shape[0]):
+            for j in range(x.shape[1]):
+                tmp = self.pixel2line(x[i,j], y[i,j])
                 if np.isnan(tmp[0]):
-                    Xfalse.append(X[i,j])
-                    Yfalse.append(Y[i,j])
+                    xfalse.append(x[i,j])
+                    yfalse.append(y[i,j])
                     indi.append(i)
                     indj.append(j)
                 else:
                     V[i, j, :] = tmp
-                    Xtrue.append(X[i,j])
-                    Ytrue.append(Y[i,j])
+                    xtrue.append(x[i,j])
+                    ytrue.append(y[i,j])
                     Vtrue.append(tmp)
                     
         # for j in range(6):
@@ -544,16 +559,27 @@ class CalibDirect():
         #                     V[indtrue[0], indtrue[1], j],
         #                     (X[indtrue], Y[indtrue]))
             
+        if test:
+            for j in range(6):
+                fig = pylab.figure()
+                pylab.pcolor(x, y, V[:, :, j])
+                pylab.colorbar()
+                fig.show()
+            fig = pylab.figure()
+            pylab.pcolor(x, y, np.sqrt(V[:, :, 3]**2+V[:, :, 4]**2+V[:, :, 5]**2))
+            pylab.colorbar()
+            fig.show()
+
         Vtrue = np.array(Vtrue)
         for j in range(6):
-            V[indi, indj, j] = griddata((Xtrue, Ytrue),
+            V[indi, indj, j] = griddata((xtrue, ytrue),
                                                   Vtrue[:, j],
-                                                  (Xfalse, Yfalse))
+                                                  (xfalse, yfalse))
 
         interp = []
         for i in range(6):
-            interp.append(RegularGridInterpolator((x, y), V[:, :, i]))
-
+            interp.append(RegularGridInterpolator((xtmp, ytmp), V[:, :, i]))
+            
         self.interp_lines = interp                                   
 
     def pixel2line(self, indx, indy):
@@ -562,25 +588,49 @@ class CalibDirect():
         Y = []
         Z = interp.Z
         for i in range(len(Z)):
-            X.append(float(interp.cam2X[i]((indx, indy))))
-            Y.append(float(interp.cam2Y[i]((indx, indy))))
+            X.append((interp.cam2X[i]((indx, indy))))
+            Y.append((interp.cam2Y[i]((indx, indy))))
         X = np.array(X)
         Y = np.array(Y)
         XYZ = np.vstack([X, Y, Z]).transpose()
         XYZ0 = np.nanmean(XYZ, 0)
         XYZ -= XYZ0
-    
         ind = np.isnan(X+Y) == False
         XYZ = XYZ[ind, :]
         if XYZ.shape[0] > 1:
             u, s, v = np.linalg.svd(XYZ, full_matrices=True, compute_uv=1)
-            direction=np.cross(v[:,-1],v[:,-2])
+            direction = np.cross(v[:,-1],v[:,-2])
             return np.hstack([XYZ0, direction])
         else:
             return np.hstack([np.nan]*6)
 
-    def check(self):
-        imgs = glob.glob(os.path.join(pathimg, 'img*.xml'))
+    def save(self, pth_file):
+        np.save(pth_file, self.interp_lines)
+
+    def load(self, pth_file):
+        self.interp_lines = np.load(pth_file)
+
+
+    def check_interp_levels(self):
+        interp = self.interp_levels
+        indx = range(500, 800, 10)
+        indy = range(500, 800, 10)
+        indx, indy = np.meshgrid(indx, indy)
+        Z = interp.Z
+        for i in range(len(Z)):
+            X = interp.cam2X[i]((indx, indy))
+            Y = interp.cam2Y[i]((indx, indy))
+            fig = pylab.figure()
+            pylab.pcolor(indx, indy, X)
+            pylab.colorbar()
+            fig.show()
+            fig = pylab.figure()
+            pylab.pcolor(indx, indy, Y)
+            pylab.colorbar()
+            fig.show()
+
+    def check_interp_lines(self):
+        imgs = glob.glob(os.path.join(self.pathimg, 'img*.xml'))
         interp = Interpolent()
         interp.cam2X = []
         interp.cam2Y = []
@@ -594,16 +644,19 @@ class CalibDirect():
             tidy_container(imgpts)
             imgpts = imgpts.geometry_calib.source_calib.__dict__
             pts = ([x for x in imgpts.keys() if 'point_' in x or 'Point' in x])
-        
+
             # coord in real space
-            X = np.array([get_number_from_string(imgpts[tmp])[0] for tmp in pts])/100.
-            Y = np.array([get_number_from_string(imgpts[tmp])[1] for tmp in pts])/100.
-            Z = np.array([get_number_from_string(imgpts[tmp])[2] for tmp in pts])/100.
-            #ax.scatter(X,Y,Z, marker='+')
+            X = np.array([get_number_from_string2(
+                imgpts[tmp])[0] for tmp in pts])/100.
+            Y = np.array([get_number_from_string2(
+                imgpts[tmp])[1] for tmp in pts])/100.
+            Z = np.array([get_number_from_string2(
+                imgpts[tmp])[2] for tmp in pts])/100.
+            # ax.scatter(X,Y,Z, marker='+')
 
         x = range(500, 800, 10)
         y = range(500, 800, 10)
-        x, y =  np.meshgrid(x,y)
+        x, y = np.meshgrid(x, y)
         x = x.flatten()
         y = y.flatten()
         for i in range(len(x)):
@@ -616,20 +669,20 @@ class CalibDirect():
             X = (np.arange(10)-5)/20. * dx + X0
             Y = (np.arange(10)-5)/20. * dy + Y0
             Z = (np.arange(10)-5)/20. * dz + Z0
-            ax.plot(X,Y,Z)
+            ax.plot(X, Y, Z)
         pylab.show()
 
     def check_interp_lines_coeffs(self):
         x = range(500, 800, 10)
         y = range(500, 800, 10)
-        x, y =  np.meshgrid(x,y)
+        x, y = np.meshgrid(x, y)
         X0 = np.zeros(x.shape)
         Y0 = np.zeros(x.shape)
         Z0 = np.zeros(x.shape)
         dx = np.zeros(x.shape)
         dy = np.zeros(x.shape)
         dz = np.zeros(x.shape)
- 
+
         for i in range(x.shape[0]):
             for j in range(x.shape[1]):
                 X0[i, j] = self.interp_lines[0]((x[i, j], y[i, j]))
@@ -638,7 +691,7 @@ class CalibDirect():
                 dx[i, j] = self.interp_lines[3]((x[i, j], y[i, j]))
                 dy[i, j] = self.interp_lines[4]((x[i, j], y[i, j]))
                 dz[i, j] = self.interp_lines[5]((x[i, j], y[i, j]))
-         
+
         fig = pylab.figure()
         pylab.pcolor(x, y, X0)
         pylab.colorbar()
@@ -675,9 +728,13 @@ if __name__ == "__main__":
     nb_pixely = 1024
     calib = CalibDirect(pathimg, nb_pixely)
     calib.compute_interpolents()
-    nbpix_x, nbpix_y, nbline_x, nbline_y= 1024, 1024, 512, 512
-    test = calib.compute_interppixel2line(nbpix_x, nbpix_y, nbline_x, nbline_y)
-    calib.check_interp_lines_coeffs()
+    nbpix_x, nbpix_y, nbline_x, nbline_y = 1024, 1024, 128, 128
+    calib.compute_interppixel2line(nbpix_x, nbpix_y, nbline_x, nbline_y,
+                                          test=True)
+    # calib.save('test.npy')
+    # calib.check_interp_lines_coeffs()
+    # calib.check_interp_lines()
+    # calib.check_interp_levels()
 
     
 
