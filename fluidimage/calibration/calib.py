@@ -610,6 +610,15 @@ class CalibDirect():
     def load(self, pth_file):
         self.interp_lines = np.load(pth_file)
 
+    def intersect_with_plane(self, indx, indy, a, b, c, d):
+        x0 = self.interp_lines[0]((indx, indy))
+        y0 = self.interp_lines[1]((indx, indy))
+        z0 = self.interp_lines[2]((indx, indy))
+        dx = self.interp_lines[3]((indx, indy))
+        dy = self.interp_lines[4]((indx, indy))
+        dz = self.interp_lines[5]((indx, indy))
+        t = -(a * x0 + b * y0 + c * z0 + d) / (a * dx  + b * dy + c * dz)
+        return x0 + t * dx, y0 + t * dy, z0 + t * dz
 
     def check_interp_levels(self):
         interp = self.interp_levels
