@@ -550,6 +550,7 @@ class CalibDirect():
             interp.cam2Y.append(interpolator((x, y), Y))
             interp.real2x.append(interpolator((X, Y), x))
             interp.real2y.append(interpolator((X, Y), y))
+
         self.interp_levels = interp
 
     def compute_interppixel2line(self, nbline_x, nbline_y,
@@ -801,51 +802,68 @@ class DirectStereoReconstruction():
         self.A0, self.B0 = self.calib0.get_base_camera_plane()
         self.A1, self.B1 = self.calib1.get_base_camera_plane()
 
-    def apply_calib(self, indx0, indy0, dx0, dy0, indx1, indy1, dx1, dy1,
+    def project2cam(self, indx0, indy0, dx0, dy0, indx1, indy1, dx1, dy1,
                     a, b, c, d):
         X0 = self.calib0.intersect_with_plane(indx0, indy0, a, b, c, d)
         dX0 = self.calib0.apply_calib(indx0, indy0, dx0, dy0, a, b, c, d)
+        
         X1 = self.calib1.intersect_with_plane(indx1, indy1, a, b, c, d)
         dX1 = self.calib1.apply_calib(indx1, indy1, dx1, dy1, a, b, c, d)
 
+        # project on camera planes, d0cam[2] is unknown
         d0cam = np.dot(self.B0, dX0)
+        d0cam = d0cam[:2]
+        
         d1cam = np.dot(self.B1, dX1)
-
+        d1cam = d1cam[:2]
         return X0, X1, d0cam, d1cam
 
     def reconstruction(self, X0, X1, d0cam, d1cam):
         # ajouter boucle sur toutes positions + trouver grille en commun puis
         # reconstruction
-        dX = d0cam + d1cam
+        # MX = dcam
+        
+        M = np.vstack([self.B0[:2], self.B1[:1]])
+        dcam = np.hstack([d0cam, d1cam[:1]])
+        dX1 = np.dot(np.linalg.inv(M), dcam)
 
+        M = np.vstack([self.B0[:1], self.B1[:2]])
+        dcam = np.hstack([d0cam[:1], d1cam])
+        dX2 = np.dot(np.linalg.inv(M), dcam)
 
+        dX = (dX1 + dX2)/2
+        error = np.abs(dX1 - dX2)
+        return dX, error
+
+        
+    
 if __name__ == "__main__":
     def clf():
         pylab.close('all')
-    # pathimg = '/.fsdyn_people/campagne8a/project/16BICOUCHE/Antoine/0_Ref_mika/Dalsa1'
-    # nb_pixely, nb_pixelx = 1024, 1024
-    # calib = CalibDirect(pathimg, nb_pixelx, nb_pixely)
-    # calib.compute_interpolents()
-    # nbpix_x, nbpix_y, nbline_x, nbline_y = 1024, 1024, 64, 64
-    # calib.compute_interppixel2line(nbline_x, nbline_y,
-    #                                       test=False)
-    # calib.save('calib1.npy')
-
-    # pathimg = '/.fsdyn_people/campagne8a/project/16BICOUCHE/Antoine/0_Ref_mika/Dalsa2'
+    pathimg = '/.fsdyn_people/campagne8a/project/16BICOUCHE/Antoine/0_Ref_mika/Dalsa1'
     nb_pixely, nb_pixelx = 1024, 1024
-    # calib = CalibDirect(pathimg, nb_pixelx, nb_pixely)
-    # calib.compute_interpolents()
-    # nbpix_x, nbpix_y, nbline_x, nbline_y = 1024, 1024, 64, 64
-    # calib.compute_interppixel2line(nbline_x, nbline_y,
-    #                                       test=False)
-    # calib.save('calib2.npy')
+    calib = CalibDirect(pathimg, nb_pixelx, nb_pixely)
+    calib.compute_interpolents()
+    nbpix_x, nbpix_y, nbline_x, nbline_y = 1024, 1024, 64, 64
+    calib.compute_interppixel2line(nbline_x, nbline_y,
+                                          test=False)
+    calib.save('calib1.npy')
+    # calib.check_interp_lines_coeffs()
+    # calib.check_interp_lines()
+    # calib.check_interp_levels()
+    
+    pathimg = '/.fsdyn_people/campagne8a/project/16BICOUCHE/Antoine/0_Ref_mika/Dalsa2'
+    nb_pixely, nb_pixelx = 1024, 1024
+    calib = CalibDirect(pathimg, nb_pixelx, nb_pixely)
+    calib.compute_interpolents()
+    nbpix_x, nbpix_y, nbline_x, nbline_y = 1024, 1024, 64, 64
+    calib.compute_interppixel2line(nbline_x, nbline_y,
+                                          test=False)
+    calib.save('calib2.npy')
 
 
     stereo = DirectStereoReconstruction('calib1.npy', nb_pixelx, nb_pixely, 'calib2.npy', nb_pixelx, nb_pixely)
     
-    # calib.check_interp_lines_coeffs()
-    # calib.check_interp_lines()
-    # calib.check_interp_levels()
 
     
 
