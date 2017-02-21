@@ -557,7 +557,8 @@ class CalibDirect():
                                  test=False):
         # compute interpolents for parameters for each optical path
         # (number of optical path is given by nbline_x, nbline_y)
-        # optical paths are defined with a point x0, y0, z0 and a vector dx, dy, dz
+        # optical paths are defined with
+        # a point x0, y0, z0 and a vector dx, dy, dz
 
         xtmp = np.unique(np.floor(np.linspace(0, self.nb_pixelx, nbline_x)))
         ytmp = np.unique(np.floor(np.linspace(0, self.nb_pixely, nbline_y)))
@@ -619,7 +620,8 @@ class CalibDirect():
 
     def pixel2line(self, indx, indy):
         # compute parameters of the optical path for a pixel
-        # optical path is defined with a point x0, y0, z0 and a vector dx, dy, dz
+        # optical path is defined with
+        # a point x0, y0, z0 and a vector dx, dy, dz
 
         interp = self.interp_levels
         X = []
@@ -669,7 +671,7 @@ class CalibDirect():
             return dX
 
     def get_base_camera_plane(self):
-        # matrix of base change from camera plane to fixed plane 
+        # matrix of base change from camera plane to fixed plane
         indx = range(self.nb_pixelx/2-20, self.nb_pixelx/2+20)
         indy = range(self.nb_pixely/2-20, self.nb_pixely/2+20)
         indx, indy = np.meshgrid(indx, indy)
@@ -801,42 +803,42 @@ class DirectStereoReconstruction():
         # matrices from camera planes to fixed plane and inverse
         self.A0, self.B0 = self.calib0.get_base_camera_plane()
         self.A1, self.B1 = self.calib1.get_base_camera_plane()
+        # M1, M2: see reconstruction function
+        self.invM1 = np.linalg.inv(np.vstack([self.B0[:2], self.B1[:1]]))
+        self.invM2 = np.linalg.inv(np.vstack([self.B0[:1], self.B1[:2]]))
 
     def project2cam(self, indx0, indy0, dx0, dy0, indx1, indy1, dx1, dy1,
                     a, b, c, d):
         X0 = self.calib0.intersect_with_plane(indx0, indy0, a, b, c, d)
         dX0 = self.calib0.apply_calib(indx0, indy0, dx0, dy0, a, b, c, d)
-        
+
         X1 = self.calib1.intersect_with_plane(indx1, indy1, a, b, c, d)
         dX1 = self.calib1.apply_calib(indx1, indy1, dx1, dy1, a, b, c, d)
 
         # project on camera planes, d0cam[2] is unknown
         d0cam = np.dot(self.B0, dX0)
         d0cam = d0cam[:2]
-        
+
         d1cam = np.dot(self.B1, dX1)
         d1cam = d1cam[:2]
         return X0, X1, d0cam, d1cam
 
-    def reconstruction(self, X0, X1, d0cam, d1cam):
+    def reconstruction(self, d0cam, d1cam):
         # ajouter boucle sur toutes positions + trouver grille en commun puis
         # reconstruction
         # MX = dcam
-        
-        M = np.vstack([self.B0[:2], self.B1[:1]])
-        dcam = np.hstack([d0cam, d1cam[:1]])
-        dX1 = np.dot(np.linalg.inv(M), dcam)
 
-        M = np.vstack([self.B0[:1], self.B1[:2]])
+        dcam = np.hstack([d0cam, d1cam[:1]])
+        dX1 = np.dot(self.invM1, dcam)
+
         dcam = np.hstack([d0cam[:1], d1cam])
-        dX2 = np.dot(np.linalg.inv(M), dcam)
+        dX2 = np.dot(self.invM2, dcam)
 
         dX = (dX1 + dX2)/2
         error = np.abs(dX1 - dX2)
         return dX, error
 
-        
-    
+
 if __name__ == "__main__":
     def clf():
         pylab.close('all')
