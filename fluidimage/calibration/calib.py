@@ -38,7 +38,7 @@ def get_base_from_normal_vector(nx, ny, nz):
         ez = ez / np.linalg.norm(ez)
         
         ex1, ex2 = 1, 0
-        ex3 = -(ex1 * nx + ex2 * ny)/ nz
+        ex3 = -(ex1 * nx + ex2 * ny) / nz
         ex = np.array([ex1, ex2, ex3])
         ex = ex / np.linalg.norm(ex)
 
@@ -512,7 +512,29 @@ class CalibDirect():
             self.load(pth_file)
         else:
             pass
+        
+    def get_points(self, img):
+        imgpts = ParamContainer(path_file=img)
+        tidy_container(imgpts)
+        imgpts = imgpts.geometry_calib.source_calib.__dict__
+        pts = ([x for x in imgpts.keys() if 'point_' in x or 'Point' in x])
 
+        # coord in real space
+        X = np.array(
+            [get_number_from_string2(imgpts[tmp])[0] for tmp in pts])/100.
+        Y = np.array(
+            [get_number_from_string2(imgpts[tmp])[1] for tmp in pts])/100.
+        Z = np.array(
+            [get_number_from_string2(imgpts[tmp])[2] for tmp in pts])[0]/100.
+        # coord in image
+        x = np.array(
+            [get_number_from_string2(imgpts[tmp])[3] for tmp in pts])
+        y = self.nb_pixely - \
+            np.array(
+                [get_number_from_string2(imgpts[tmp])[4] for tmp in pts])
+        # difference of convention with calibration done with uvmat for Y!
+        return X, Y, Z, x, y
+    
     def compute_interpolents(self, interpolator=LinearNDInterpolator):
         # compute interpolents (self.interp_levels) from camera coordinates to
         # real coordinates for each plane z=?
@@ -526,25 +548,8 @@ class CalibDirect():
         interp.Z = []
 
         for i, img in enumerate(imgs):
-            imgpts = ParamContainer(path_file=img)
-            tidy_container(imgpts)
-            imgpts = imgpts.geometry_calib.source_calib.__dict__
-            pts = ([x for x in imgpts.keys() if 'point_' in x or 'Point' in x])
-
-            # coord in real space
-            X = np.array(
-                [get_number_from_string2(imgpts[tmp])[0] for tmp in pts])/100.
-            Y = np.array(
-                [get_number_from_string2(imgpts[tmp])[1] for tmp in pts])/100.
-            interp.Z.append(
-                get_number_from_string2(imgpts[pts[0]])[2]/100.)
-            # coord in image
-            x = np.array(
-                [get_number_from_string2(imgpts[tmp])[3] for tmp in pts])
-            y = self.nb_pixely - \
-                np.array(
-                    [get_number_from_string2(imgpts[tmp])[4] for tmp in pts])
-            # difference of convention with calibration done with uvmat for Y!
+            X, Y, Z, x, y = self.get_points(img)
+            interp.Z.append(Z)
 
             interp.cam2X.append(interpolator((x, y), X))
             interp.cam2Y.append(interpolator((x, y), Y))
@@ -638,8 +643,10 @@ class CalibDirect():
         ind = np.isnan(X+Y) == False
         XYZ = XYZ[ind, :]
         if XYZ.shape[0] > 1:
+            arg = np.argsort(XYZ[:, 2])
+            XYZ = XYZ[arg, :]
             u, s, v = np.linalg.svd(XYZ, full_matrices=True, compute_uv=1)
-            direction = np.cross(v[:, -1], v[:, -2])
+            direction = np.cross(v[-1, :], v[-2, :])
             return np.hstack([XYZ0, direction])
         else:
             return np.hstack([np.nan]*6)
@@ -683,8 +690,8 @@ class CalibDirect():
 
     def check_interp_levels(self):
         interp = self.interp_levels
-        indx = range(500, 800, 10)
-        indy = range(500, 800, 10)
+        indx = range(0, self.nb_pixelx, self.nb_pixelx/20)
+        indy = range(0, self.nb_pixely, self.nb_pixely/20)
         indx, indy = np.meshgrid(indx, indy)
         Z = interp.Z
         for i in range(len(Z)):
@@ -710,22 +717,11 @@ class CalibDirect():
         fig = pylab.figure()
         ax = Axes3D(fig)
         for i, img in enumerate(imgs):
-            imgpts = ParamContainer(path_file=img)
-            tidy_container(imgpts)
-            imgpts = imgpts.geometry_calib.source_calib.__dict__
-            pts = ([x for x in imgpts.keys() if 'point_' in x or 'Point' in x])
+            X, Y, Z, x, y = self.get_points(img)
+            ax.scatter(X, Y, Z, marker='+')
 
-            # coord in real space
-            X = np.array([get_number_from_string2(
-                imgpts[tmp])[0] for tmp in pts])/100.
-            Y = np.array([get_number_from_string2(
-                imgpts[tmp])[1] for tmp in pts])/100.
-            Z = np.array([get_number_from_string2(
-                imgpts[tmp])[2] for tmp in pts])/100.
-            # ax.scatter(X,Y,Z, marker='+')
-
-        x = range(500, 800, 10)
-        y = range(500, 800, 10)
+        x = range(0, self.nb_pixelx, self.nb_pixelx/10)
+        y = range(0, self.nb_pixely, self.nb_pixely/10)
         x, y = np.meshgrid(x, y)
         x = x.flatten()
         y = y.flatten()
@@ -842,29 +838,22 @@ class DirectStereoReconstruction():
 if __name__ == "__main__":
     def clf():
         pylab.close('all')
-    pathimg = '/.fsdyn_people/campagne8a/project/16BICOUCHE/Antoine/0_Ref_mika/Dalsa1'
-    nb_pixely, nb_pixelx = 1024, 1024
+
+    
+    pathimg = '/.fsdyn_people/campagne8a/project/15DELDUCA/Data2/Calib_Cam/Left/Calibration_2017_02_23'
+    nb_pixely, nb_pixelx = 2560, 2160
     calib = CalibDirect(pathimg, nb_pixelx, nb_pixely)
     calib.compute_interpolents()
-    nbpix_x, nbpix_y, nbline_x, nbline_y = 1024, 1024, 64, 64
+    nbline_x, nbline_y = 64, 64
     calib.compute_interppixel2line(nbline_x, nbline_y,
                                           test=False)
-    calib.save('calib1.npy')
+    calib.save('calibLeft.npy')
+
     # calib.check_interp_lines_coeffs()
     # calib.check_interp_lines()
     # calib.check_interp_levels()
-    
-    pathimg = '/.fsdyn_people/campagne8a/project/16BICOUCHE/Antoine/0_Ref_mika/Dalsa2'
-    nb_pixely, nb_pixelx = 1024, 1024
-    calib = CalibDirect(pathimg, nb_pixelx, nb_pixely)
-    calib.compute_interpolents()
-    nbpix_x, nbpix_y, nbline_x, nbline_y = 1024, 1024, 64, 64
-    calib.compute_interppixel2line(nbline_x, nbline_y,
-                                          test=False)
-    calib.save('calib2.npy')
 
-
-    stereo = DirectStereoReconstruction('calib1.npy', nb_pixelx, nb_pixely, 'calib2.npy', nb_pixelx, nb_pixely)
+    # stereo = DirectStereoReconstruction('calib1.npy', nb_pixelx, nb_pixely, 'calib2.npy', nb_pixelx, nb_pixely)
     
 
     
