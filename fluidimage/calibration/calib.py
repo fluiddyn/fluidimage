@@ -647,6 +647,8 @@ class CalibDirect():
             XYZ = XYZ[arg, :]
             u, s, v = np.linalg.svd(XYZ, full_matrices=True, compute_uv=1)
             direction = np.cross(v[-1, :], v[-2, :])
+            if direction[2] < 0:
+                direction = -direction
             return np.hstack([XYZ0, direction])
         else:
             return np.hstack([np.nan]*6)
@@ -739,8 +741,8 @@ class CalibDirect():
         pylab.show()
 
     def check_interp_lines_coeffs(self):
-        x = range(500, 800, 10)
-        y = range(500, 800, 10)
+        x = range(0, self.nb_pixelx, self.nb_pixelx/10)
+        y = range(0, self.nb_pixely, self.nb_pixely/10)
         x, y = np.meshgrid(x, y)
         X0 = np.zeros(x.shape)
         Y0 = np.zeros(x.shape)
@@ -839,12 +841,12 @@ if __name__ == "__main__":
     def clf():
         pylab.close('all')
 
-    
+    nb_pixelx, nb_pixely = 2560, 2160
+    nbline_x, nbline_y = 256, 256
+
     pathimg = '/.fsdyn_people/campagne8a/project/15DELDUCA/Data2/Calib_Cam/Left/Calibration_2017_02_23'
-    nb_pixely, nb_pixelx = 2560, 2160
     calib = CalibDirect(pathimg, nb_pixelx, nb_pixely)
     calib.compute_interpolents()
-    nbline_x, nbline_y = 64, 64
     calib.compute_interppixel2line(nbline_x, nbline_y,
                                           test=False)
     calib.save('calibLeft.npy')
@@ -852,7 +854,14 @@ if __name__ == "__main__":
     # calib.check_interp_lines_coeffs()
     # calib.check_interp_lines()
     # calib.check_interp_levels()
-
+    
+    pathimg = '/.fsdyn_people/campagne8a/project/15DELDUCA/Data2/Calib_Cam/Right/Calibration_2017_02_23'
+    calib2 = CalibDirect(pathimg, nb_pixelx, nb_pixely)
+    calib2.compute_interpolents()
+    calib2.compute_interppixel2line(nbline_x, nbline_y,
+                                          test=False)
+    calib2.save('calibRight.npy')
+    
     # stereo = DirectStereoReconstruction('calib1.npy', nb_pixelx, nb_pixely, 'calib2.npy', nb_pixelx, nb_pixely)
     
 
