@@ -93,14 +93,14 @@ class DisplayPIV(object):
                 deltays = piv_results.deltays
                 xs = piv_results.xs
                 ys = piv_results.ys
-
+                
             if im0 is None:
                 deltays *= -1
 
             self.q = ax1.quiver(
                 xs, ys,
                 deltaxs, -deltays,
-                picker=20, color='g', scale_units='xy', scale=scale)
+                picker=20, color='g',  scale=scale)
 
             self.inds_error = inds_error = piv_results.deltays_wrong.keys()
 
