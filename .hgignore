@@ -13,7 +13,6 @@ syntax: glob
 
 *build/*
 .tox/*
-.coverage/*
 
 *.so
 *.o
