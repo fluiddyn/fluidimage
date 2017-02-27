@@ -8,6 +8,8 @@ import pylab
 from mpl_toolkits.mplot3d import Axes3D
 from scipy.interpolate import griddata
 from scipy.interpolate import CloughTocher2DInterpolator, LinearNDInterpolator,RegularGridInterpolator
+import matplotlib.pyplot as plt
+
 from math import sin, cos, sqrt
 from fluiddyn.util.paramcontainer import ParamContainer, tidy_container
 
@@ -141,9 +143,12 @@ class Calibration(object):
 
         """
 
-        Xphys, Yphys, Zphys = self.pix2phys(X, Y, index_level=index_level, nbypix=nbypix, angle=True)
-        dxb, dyb, dzb = self.pix2phys(X + dx/2.0, Y + dy/2.0, index_level, nbypix=nbypix, angle=True)
-        dxa, dya, dza = self.pix2phys(X - dx/2.0, Y - dy/2.0, index_level, nbypix=nbypix, angle=True)
+        Xphys, Yphys, Zphys = self.pix2phys(X, Y, index_level=index_level,
+                                            nbypix=nbypix, angle=True)
+        dxb, dyb, dzb = self.pix2phys(X + dx/2.0, Y + dy/2.0, index_level,
+                                      nbypix=nbypix, angle=True)
+        dxa, dya, dza = self.pix2phys(X - dx/2.0, Y - dy/2.0, index_level,
+                                      nbypix=nbypix, angle=True)
         dxphys = dxb - dxa
         dyphys = dyb - dya
         dzphys = dzb - dza
@@ -529,8 +534,10 @@ class CalibDirect():
         # coord in image
         x = np.array(
             [get_number_from_string2(imgpts[tmp])[3] for tmp in pts])
-        y = self.nb_pixely - \
-            np.array(
+        # y = self.nb_pixely - \
+        #     np.array(
+                # [get_number_from_string2(imgpts[tmp])[4] for tmp in pts])
+        y = np.array(
                 [get_number_from_string2(imgpts[tmp])[4] for tmp in pts])
         # difference of convention with calibration done with uvmat for Y!
         return X, Y, Z, x, y
@@ -569,6 +576,8 @@ class CalibDirect():
         ytmp = np.unique(np.floor(np.linspace(0, self.nb_pixely, nbline_y)))
 
         x, y = np.meshgrid(xtmp, ytmp)
+        x = x.transpose()
+        y = y.transpose()
         V = np.zeros((x.shape[0], x.shape[1], 6))
 
         xtrue = []
@@ -698,11 +707,12 @@ class CalibDirect():
                     indx-dx/2, indy-dy/2, a, b, c, d)
             return dX
 
-    def get_base_camera_plane(self):
+    def get_base_camera_plane(self, indx=None, indy=None):
         # matrix of base change from camera plane to fixed plane
-        indx = range(self.nb_pixelx/2-20, self.nb_pixelx/2+20)
-        indy = range(self.nb_pixely/2-20, self.nb_pixely/2+20)
-        indx, indy = np.meshgrid(indx, indy)
+        if indx == None:
+            indx = range(self.nb_pixelx/2-20, self.nb_pixelx/2+20)
+            indy = range(self.nb_pixely/2-20, self.nb_pixely/2+20)
+            indx, indy = np.meshgrid(indx, indy)
         dx = np.nanmean(self.interp_lines[3]((indx, indy)))
         dy = np.nanmean(self.interp_lines[4]((indx, indy)))
         dz = np.nanmean(self.interp_lines[5]((indx, indy)))
@@ -757,6 +767,9 @@ class CalibDirect():
             Y = (np.arange(10)-5)/20. * dy + Y0
             Z = (np.arange(10)-5)/20. * dz + Z0
             ax.plot(X, Y, Z, 'r')
+        ax.set_xlabel('x (m)')
+        ax.set_ylabel('y (m)')
+        ax.set_zlabel('z (m)')
         pylab.show()
 
     def check_interp_lines_coeffs(self):
@@ -818,35 +831,64 @@ class DirectStereoReconstruction():
         self.A0, self.B0 = self.calib0.get_base_camera_plane()
         self.A1, self.B1 = self.calib1.get_base_camera_plane()
         # M1, M2: see reconstruction function
-        self.invM0 = np.linalg.inv(np.vstack([self.B0[:2], self.B1[:1]]))
-        self.invM1 = np.linalg.inv(np.vstack([self.B0[:1], self.B1[:2]]))
-        self.invM2 = np.linalg.inv(np.vstack([self.B0[:2], self.B1[2]]))
-        self.invM3 = np.linalg.inv(np.vstack([self.B0[2], self.B1[:2]]))
+        self.invM0 = np.linalg.inv(np.vstack([self.B0[0:2, :], self.B1[0:1, :]]))
+        self.invM1 = np.linalg.inv(np.vstack([self.B0[0:1, :], self.B1[0:2, :]]))
+        self.invM2 = np.linalg.inv(np.vstack([self.B0[0:2, :], self.B1[1:2, :]]))
+        self.invM3 = np.linalg.inv(np.vstack([self.B0[1:2, :], self.B1[0:2, :]]))
 
     def project2cam(self, indx0, indy0, dx0, dy0, indx1, indy1, dx1, dy1,
-                    a, b, c, d):
+                    a, b, c, d, check=False):
+        
         X0 = self.calib0.intersect_with_plane(indx0, indy0, a, b, c, d)
         dX0 = self.calib0.apply_calib(indx0, indy0, dx0, dy0, a, b, c, d)
 
         X1 = self.calib1.intersect_with_plane(indx1, indy1, a, b, c, d)
         dX1 = self.calib1.apply_calib(indx1, indy1, dx1, dy1, a, b, c, d)
 
-        def project(d0, d1):
-            # project on camera planes, d0cam[2] is unknown
+        def project0(d0):
+            # project on camera planes
             d0ca = np.dot(self.B0, d0)
-            d0ca = d0[:2]
-
+            d0ca = d0[:2] #d0cam[2] is unknown
+            return d0ca
+        
+        def project1(d1):
             d1ca = np.dot(self.B1, d1)
             d1ca = d1[:2]
-            return d0ca, d1ca
-        
-        if np.size(X0.shape) ==2:
+            return d1ca
+
+        if np.size(X0.shape) >=2:
             d0cam = np.zeros([np.shape(X0)[0], 2])
-            d1cam = np.zeros([np.shape(X0)[0], 2])
             for i, dx in enumerate(dX0):
-                d0cam[i], d1cam[i] = project(dx, dX1[i])
+                d0cam[i] = project0(dx)
         else:
-            d0cam, d1cam = project(dX0, dX1)
+            d0cam= project0(dX0)
+
+        if np.size(X1.shape) >=2:
+            d1cam = np.zeros([np.shape(X1)[0], 2])
+            for i, dx in enumerate(dX1):
+                d1cam[i] = project1(dx)
+        else:
+            d1cam = project1(dX1)
+            
+        if check:
+            fig = plt.figure()
+            plt.quiver(indx0, indy0, dx0, dy0)
+            plt.axis('equal')
+            plt.title('Cam 0 in pixel')
+            fig = plt.figure()
+            plt.quiver(X0[:, 0], X0[:, 1], dX0[:, 0], dX0[:, 1])
+            plt.axis('equal')
+            plt.title('Cam 0 in m')
+            fig = plt.figure()
+            plt.quiver(indx1, indy1, dx1, dy1)
+            plt.axis('equal')
+            plt.title('Cam 1 in pixel')
+            fig = plt.figure()
+            plt.quiver(X1[:, 0], X1[:, 1], dX1[:, 0], dX1[:, 1])
+            plt.axis('equal')
+            plt.title('Cam 1 in m')
+            plt.show()
+    
         return X0, X1, d0cam, d1cam
 
     def find_common_grid(self, X0, X1, a, b, c, d):
@@ -888,9 +930,9 @@ class DirectStereoReconstruction():
         x = np.linspace(xmin, xmax, int((xmax-xmin)/dx))
         y = np.linspace(ymin, ymax, int((ymax-ymin)/dy))
         x, y = np.meshgrid(x, y)
-        self.grid_x = x
-        self.grid_y = y
-        self.grid_z = -(a*x+ b*y+d)/c
+        self.grid_x = x.transpose()
+        self.grid_y = y.transpose()
+        self.grid_z = -(a*self.grid_x+ b*self.grid_y+d)/c
 
     def interp_on_common_grid(self, X0, X1, d0cam, d1cam, a, b, c, d):
         if not hasattr(self, 'grid_x'):
@@ -904,19 +946,21 @@ class DirectStereoReconstruction():
                           (self.grid_x, self.grid_y))
         d0ycam = griddata((X0[ind0, 0], X0[ind0, 1]), d0cam[ind0, 1],
                           (self.grid_x, self.grid_y))
-        d1xcam = griddata((X0[ind0, 0], X0[ind0, 1]), d1cam[ind0, 0],
+        d1xcam = griddata((X1[ind1, 0], X1[ind1, 1]), d1cam[ind1, 0],
                           (self.grid_x, self.grid_y))
-        d1ycam = griddata((X0[ind0, 0], X0[ind0, 1]), d1cam[ind0, 1],
+        d1ycam = griddata((X1[ind1, 0], X1[ind1, 1]), d1cam[ind1, 1],
                           (self.grid_x, self.grid_y))
         return d0xcam, d0ycam, d1xcam, d1ycam 
 
-    def reconstruction(self, X0, X1, d0cam, d1cam, a, b, c, d):
+    def reconstruction(self, X0, X1, d0cam, d1cam, a, b, c, d,
+                       check=False):
         # ajouter boucle sur toutes positions + trouver grille en commun puis
         # reconstruction
         # MX = dcam
         
         d0xcam, d0ycam, d1xcam, d1ycam = self.interp_on_common_grid(
             X0, X1, d0cam, d1cam, a, b, c, d)
+
         dXx = np.zeros(d0xcam.shape)
         dXy = np.zeros(d0xcam.shape)
         dXz = np.zeros(d0xcam.shape)
@@ -932,7 +976,7 @@ class DirectStereoReconstruction():
                 dX2 = np.dot(self.invM1, dcam)
                 dcam = np.hstack([d0xcam[i, j], d0ycam[i, j], d1ycam[i, j]])
                 dX3 = np.dot(self.invM2, dcam)
-                dcam = np.hstack([d0ycam[i, j], d0xcam[i, j], d1ycam[i, j]])
+                dcam = np.hstack([d0ycam[i, j], d1xcam[i, j], d1ycam[i, j]])
                 dX4 = np.dot(self.invM3, dcam)
                 
                 dXx[i, j] = (dX1[0] + dX2[0] + dX3[0] + dX4[0])/4
@@ -941,6 +985,52 @@ class DirectStereoReconstruction():
                 Errory[i, j] = np.std((dX1[1], dX2[1], dX3[1], dX4[1]))
                 dXz[i, j] = (dX1[2] + dX2[2] + dX3[2] + dX4[2])/4
                 Errorz[i, j] = np.std((dX1[2], dX2[2], dX3[2], dX4[2]))
+
+        if check:
+            fig = plt.figure()
+            plt.quiver(self.grid_x, self.grid_y, d0xcam, d0ycam)
+            plt.axis('equal')
+            plt.title('Cam 0 plane projection')
+            fig = plt.figure()
+            plt.quiver(self.grid_x, self.grid_y, d1xcam, d1ycam)
+            plt.axis('equal')
+            plt.title('Cam 1 plane projection')
+            fig = plt.figure()
+            plt.quiver(self.grid_x, self.grid_y, dXx, dXy)
+            plt.axis('equal')
+            plt.title('Reconstruction on laser plane')
+            plt.show()
+            fig = plt.figure()
+            plt.pcolor(self.grid_x, self.grid_y, d0xcam)
+            plt.axis('equal')
+            plt.title('dxcam0')
+            plt.colorbar()
+            fig = plt.figure()
+            plt.pcolor(self.grid_x, self.grid_y, d0ycam)
+            plt.axis('equal')
+            plt.title('dycam0')
+            plt.colorbar()
+            fig = plt.figure()
+            plt.pcolor(self.grid_x, self.grid_y, d1xcam)
+            plt.axis('equal')
+            plt.title('dxcam1')
+            plt.colorbar()
+            fig = plt.figure()
+            plt.pcolor(self.grid_x, self.grid_y, d1ycam)
+            plt.axis('equal')
+            plt.title('dycam1')
+            plt.colorbar()
+            fig = plt.figure()
+            plt.pcolor(self.grid_x, self.grid_y, d0xcam-d1xcam)
+            plt.axis('equal')
+            plt.title('dxcam0-dxcam1')
+            plt.colorbar()
+            fig = plt.figure()
+            plt.pcolor(self.grid_x, self.grid_y, d0ycam-d1ycam)
+            plt.axis('equal')
+            plt.title('dycam0-dycam1')
+            plt.colorbar()
+            
         return self.grid_x, self.grid_y, self.grid_z, \
             dXx, dXy, dXz, Errorx, Errory, Errorz
 
