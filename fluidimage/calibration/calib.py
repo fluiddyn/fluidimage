@@ -961,6 +961,14 @@ class DirectStereoReconstruction():
         d0xcam, d0ycam, d1xcam, d1ycam = self.interp_on_common_grid(
             X0, X1, d0cam, d1cam, a, b, c, d)
 
+        # in the case where 2 vectors from different cameras are approximately
+        # the same, they don't have to be used both in the computation
+        n1 = np.linalg.norm((self.A0-self.A1)[0])
+        n2 = np.linalg.norm((self.A0-self.A1)[1])
+        n3 = np.linalg.norm((self.A0[1]-self.A1[0]))
+        n4 = np.linalg.norm((self.A0[0]-self.A1[1]))
+        seuil = 0.2
+        
         dXx = np.zeros(d0xcam.shape)
         dXy = np.zeros(d0xcam.shape)
         dXz = np.zeros(d0xcam.shape)
@@ -970,21 +978,27 @@ class DirectStereoReconstruction():
         
         for i in range(d0xcam.shape[0]):
             for j in range(d0xcam.shape[1]):
-                dcam = np.hstack([d0xcam[i, j], d0ycam[i, j], d1xcam[i, j]])
-                dX1 = np.dot(self.invM0, dcam)
-                dcam = np.hstack([d0xcam[i, j], d1xcam[i, j], d1ycam[i, j]])
-                dX2 = np.dot(self.invM1, dcam)
-                dcam = np.hstack([d0xcam[i, j], d0ycam[i, j], d1ycam[i, j]])
-                dX3 = np.dot(self.invM2, dcam)
-                dcam = np.hstack([d0ycam[i, j], d1xcam[i, j], d1ycam[i, j]])
-                dX4 = np.dot(self.invM3, dcam)
+                tmp = []
+                if n1>seuil and n3>seuil:
+                    dcam = np.hstack([d0xcam[i, j], d0ycam[i, j], d1xcam[i, j]])
+                    tmp.append(np.dot(self.invM0, dcam))
+                if n1>seuil and  n4>seuil:
+                    dcam = np.hstack([d0xcam[i, j], d1xcam[i, j], d1ycam[i, j]])
+                    tmp.append(np.dot(self.invM1, dcam))
+                if n2> seuil and n4>seuil: 
+                    dcam = np.hstack([d0xcam[i, j], d0ycam[i, j], d1ycam[i, j]])
+                    tmp.append(np.dot(self.invM2, dcam))
+                if n2>seuil and n3>seuil:
+                    dcam = np.hstack([d0ycam[i, j], d1xcam[i, j], d1ycam[i, j]])
+                    tmp.append(np.dot(self.invM3, dcam))
+                tmp = np.array(tmp)
                 
-                dXx[i, j] = (dX1[0] + dX2[0] + dX3[0] + dX4[0])/4
-                Errorx[i, j] = np.std((dX1[0], dX2[0], dX3[0], dX4[0]))
-                dXy[i, j] = (dX1[1] + dX2[1] + dX3[1] + dX4[1])/4
-                Errory[i, j] = np.std((dX1[1], dX2[1], dX3[1], dX4[1]))
-                dXz[i, j] = (dX1[2] + dX2[2] + dX3[2] + dX4[2])/4
-                Errorz[i, j] = np.std((dX1[2], dX2[2], dX3[2], dX4[2]))
+                dXx[i, j] = np.mean(tmp,0)[0]                
+                Errorx[i, j] = np.std(tmp, 0)[0]
+                dXy[i, j] = np.mean(tmp,0)[1]
+                Errory[i, j] = np.std(tmp, 0)[1]
+                dXz[i, j] = np.mean(tmp,0)[2]
+                Errorz[i, j] = np.std(tmp, 0)[2]
 
         if check:
             fig = plt.figure()
@@ -1000,37 +1014,7 @@ class DirectStereoReconstruction():
             plt.axis('equal')
             plt.title('Reconstruction on laser plane')
             plt.show()
-            fig = plt.figure()
-            plt.pcolor(self.grid_x, self.grid_y, d0xcam)
-            plt.axis('equal')
-            plt.title('dxcam0')
-            plt.colorbar()
-            fig = plt.figure()
-            plt.pcolor(self.grid_x, self.grid_y, d0ycam)
-            plt.axis('equal')
-            plt.title('dycam0')
-            plt.colorbar()
-            fig = plt.figure()
-            plt.pcolor(self.grid_x, self.grid_y, d1xcam)
-            plt.axis('equal')
-            plt.title('dxcam1')
-            plt.colorbar()
-            fig = plt.figure()
-            plt.pcolor(self.grid_x, self.grid_y, d1ycam)
-            plt.axis('equal')
-            plt.title('dycam1')
-            plt.colorbar()
-            fig = plt.figure()
-            plt.pcolor(self.grid_x, self.grid_y, d0xcam-d1xcam)
-            plt.axis('equal')
-            plt.title('dxcam0-dxcam1')
-            plt.colorbar()
-            fig = plt.figure()
-            plt.pcolor(self.grid_x, self.grid_y, d0ycam-d1ycam)
-            plt.axis('equal')
-            plt.title('dycam0-dycam1')
-            plt.colorbar()
-            
+       
         return self.grid_x, self.grid_y, self.grid_z, \
             dXx, dXy, dXz, Errorx, Errory, Errorz
 
