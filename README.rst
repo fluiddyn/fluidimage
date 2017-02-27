@@ -11,6 +11,10 @@ FluidImage
    :target: http://fluidimage.readthedocs.org
    :alt: Documentation status
 
+.. |coverage| image:: https://codecov.io/bb/fluiddyn/fluidimage/branch/default/graph/badge.svg
+   :target: https://codecov.io/bb/fluiddyn/fluidimage/branch/default/
+   :alt: Code coverage
+
 FluidImage is a libre Python framework for scientific treatments of large
 series of images.  Today, this package is in an early stage of development and
 the only treatments available are preprocessing of images and Particle Image
