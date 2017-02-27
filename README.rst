@@ -11,6 +11,10 @@ FluidImage
    :target: http://fluidimage.readthedocs.org
    :alt: Documentation status
 
+.. |coverage| image:: https://codecov.io/bb/fluiddyn/fluidimage/branch/default/graph/badge.svg
+   :target: https://codecov.io/bb/fluiddyn/fluidimage/branch/default/
+   :alt: Code coverage
+
 FluidImage is a libre Python framework for scientific treatments of large
 series of images.  Today, this package is in an early stage of development and
 the only treatments available are preprocessing of images and Particle Image
@@ -18,10 +22,11 @@ Velocimetry (PIV), i.e. computation of velocity fields by correlations of
 images.
 
 We want to make FluidImage easy (useful documentation, easy installation,
-usable with scripts and GUI in Qt), reliable (with good unittests) and very
-efficient, in particular when the number of images to treat becomes large. Thus
-we want FluidImage to be able to run efficiently and easily on a personal
-computer and on a big cluster. The efficiency is achieved by using
+usable with scripts and GUI in Qt), reliable (with good `unittests
+<https://codecov.io/bb/fluiddyn/fluidimage/>`_) and very efficient, in
+particular when the number of images to treat becomes large. Thus we want
+FluidImage to be able to run efficiently and easily on a personal computer and
+on a big cluster. The efficiency is achieved by using
 
 - an asynchronous framework (and in the long term we want to be able to plug
   FluidImage to distributed computational systems like `Storm
