@@ -12,6 +12,7 @@ syntax: glob
 \#*\#
 
 *build/*
+.tox/*
 
 *.so
 *.o
@@ -56,3 +57,5 @@ image_samples/*/*.pre*
 image_samples/*/*.piv
 image_samples/*/*/log_*.txt
 image_samples/*/*/params_*.xml
+
+.coverage/*

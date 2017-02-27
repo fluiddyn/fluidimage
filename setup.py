@@ -6,7 +6,10 @@ from datetime import datetime
 
 from runpy import run_path
 
+from distutils.sysconfig import get_config_var
 from setuptools import setup, find_packages
+
+import numpy as np
 
 try:
     from pythran.dist import PythranExtension
@@ -59,10 +62,13 @@ def make_pythran_extensions(modules):
         base_file = mod.replace('.', os.path.sep)
         py_file = base_file + '.py'
         # warning: does not work on Windows
-        bin_file = base_file + '.so'
+        suffix = get_config_var('EXT_SUFFIX') or '.so'
+        bin_file = base_file + suffix
         if not develop or not os.path.exists(bin_file) or \
            modification_date(bin_file) < modification_date(py_file):
-            extensions.append(PythranExtension(mod, [py_file]))
+            pext = PythranExtension(mod, [py_file])
+            pext.include_dirs.append(np.get_include())
+            extensions.append(pext)
     return extensions
 
 if use_pythran:
