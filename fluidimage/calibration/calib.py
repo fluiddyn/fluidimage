@@ -517,7 +517,7 @@ class CalibDirect():
             self.pathimg = pathimg
             self.nb_pixelx = nb_pixelx
             self.nb_pixely = nb_pixely
-        
+
     def get_points(self, img):
         imgpts = ParamContainer(path_file=img)
         tidy_container(imgpts)
@@ -536,12 +536,11 @@ class CalibDirect():
             [get_number_from_string2(imgpts[tmp])[3] for tmp in pts])
         # y = self.nb_pixely - \
         #     np.array(
-                # [get_number_from_string2(imgpts[tmp])[4] for tmp in pts])
-        y = np.array(
-                [get_number_from_string2(imgpts[tmp])[4] for tmp in pts])
+        # [get_number_from_string2(imgpts[tmp])[4] for tmp in pts])
+        y = np.array([get_number_from_string2(imgpts[tmp])[4] for tmp in pts])
         # difference of convention with calibration done with uvmat for Y!
         return X, Y, Z, x, y
-    
+
     def compute_interpolents(self, interpolator=LinearNDInterpolator):
         # compute interpolents (self.interp_levels) from camera coordinates to
         # real coordinates for each plane z=?
@@ -687,14 +686,14 @@ class CalibDirect():
             dz = self.interp_lines[5]((ix, iy))
             t = -(a * x0 + b * y0 + c * z0 + d) / (a * dx + b * dy + c * dz)
             return np.array([x0 + t * dx, y0 + t * dy, z0 + t * dz])
-        
+
         if np.size(indx) > 1:
             X = np.zeros([np.size(indx), 3])
             for i, ind in enumerate(indx):
                 tmp = get_coord(ind, indy[i])
-                X[i,0] = tmp[0]
-                X[i,1] = tmp[1]
-                X[i,2] = tmp[2]
+                X[i, 0] = tmp[0]
+                X[i, 1] = tmp[1]
+                X[i, 2] = tmp[2]
         else:
             X = get_coord(indx, indy)
         return X
@@ -831,14 +830,18 @@ class DirectStereoReconstruction():
         self.A0, self.B0 = self.calib0.get_base_camera_plane()
         self.A1, self.B1 = self.calib1.get_base_camera_plane()
         # M1, M2: see reconstruction function
-        self.invM0 = np.linalg.inv(np.vstack([self.B0[0:2, :], self.B1[0:1, :]]))
-        self.invM1 = np.linalg.inv(np.vstack([self.B0[0:1, :], self.B1[0:2, :]]))
-        self.invM2 = np.linalg.inv(np.vstack([self.B0[0:2, :], self.B1[1:2, :]]))
-        self.invM3 = np.linalg.inv(np.vstack([self.B0[1:2, :], self.B1[0:2, :]]))
+        self.invM0 = np.linalg.inv(
+            np.vstack([self.B0[0:2, :], self.B1[0:1, :]]))
+        self.invM1 = np.linalg.inv(
+            np.vstack([self.B0[0:1, :], self.B1[0:2, :]]))
+        self.invM2 = np.linalg.inv(
+            np.vstack([self.B0[0:2, :], self.B1[1:2, :]]))
+        self.invM3 = np.linalg.inv(
+            np.vstack([self.B0[1:2, :], self.B1[0:2, :]]))
 
     def project2cam(self, indx0, indy0, dx0, dy0, indx1, indy1, dx1, dy1,
                     a, b, c, d, check=False):
-        
+
         X0 = self.calib0.intersect_with_plane(indx0, indy0, a, b, c, d)
         dX0 = self.calib0.apply_calib(indx0, indy0, dx0, dy0, a, b, c, d)
 
@@ -848,9 +851,9 @@ class DirectStereoReconstruction():
         def project0(d0):
             # project on camera planes
             d0ca = np.dot(self.B0, d0)
-            d0ca = d0[:2] #d0cam[2] is unknown
+            d0ca = d0[:2]  # d0cam[2] is unknown
             return d0ca
-        
+
         def project1(d1):
             d1ca = np.dot(self.B1, d1)
             d1ca = d1[:2]
@@ -869,55 +872,52 @@ class DirectStereoReconstruction():
                 d1cam[i] = project1(dx)
         else:
             d1cam = project1(dX1)
-            
+
         if check:
-            fig = plt.figure()
+            plt.figure()
             plt.quiver(indx0, indy0, dx0, dy0)
             plt.axis('equal')
             plt.title('Cam 0 in pixel')
-            fig = plt.figure()
+            plt.figure()
             plt.quiver(X0[:, 0], X0[:, 1], dX0[:, 0], dX0[:, 1])
             plt.axis('equal')
             plt.title('Cam 0 in m')
-            fig = plt.figure()
+            plt.figure()
             plt.quiver(indx1, indy1, dx1, dy1)
             plt.axis('equal')
             plt.title('Cam 1 in pixel')
-            fig = plt.figure()
+            plt.figure()
             plt.quiver(X1[:, 0], X1[:, 1], dX1[:, 0], dX1[:, 1])
             plt.axis('equal')
             plt.title('Cam 1 in m')
             plt.show()
-    
+
         return X0, X1, d0cam, d1cam
 
     def find_common_grid(self, X0, X1, a, b, c, d):
-        xmin0 = np.nanmin(X0[:,0])
-        xmax0 = np.nanmax(X0[:,0])
-        ymin0 = np.nanmin(X0[:,1])
-        ymax0 = np.nanmax(X0[:,1])
-        xmin1 = np.nanmin(X1[:,0])
-        xmax1 = np.nanmax(X1[:,0])
-        ymin1 = np.nanmin(X1[:,1])
-        ymax1 = np.nanmax(X1[:,1])
-        
+        xmin0 = np.nanmin(X0[:, 0])
+        xmax0 = np.nanmax(X0[:, 0])
+        ymin0 = np.nanmin(X0[:, 1])
+        ymax0 = np.nanmax(X0[:, 1])
+        xmin1 = np.nanmin(X1[:, 0])
+        xmax1 = np.nanmax(X1[:, 0])
+        ymin1 = np.nanmin(X1[:, 1])
+        ymax1 = np.nanmax(X1[:, 1])
+
         xmin = max([xmin0, xmin1])
         xmax = min([xmax0, xmax1])
         ymin = max([ymin0, ymin1])
         ymax = min([ymax1, ymax1])
 
-        Lx0 =  xmax0 - xmin0
-        Ly0 =  ymax0 - ymin0
-        Lx1 =  xmax1 - xmin1
-        Ly1 =  ymax1 - ymin1
+        Lx0 = xmax0 - xmin0
+        Ly0 = ymax0 - ymin0
+        Lx1 = xmax1 - xmin1
+        Ly1 = ymax1 - ymin1
 
-        Lx = min([Lx0, Lx1])
-        Ly = min([Ly0, Ly1])
-        
-        Nx0 = sqrt(X0[np.isnan(X0[:,0]) == False, 0].size) * sqrt(Lx0/Ly0)
-        Ny0 = X0[np.isnan(X0[:,1]) == False, 1].size /Nx0
-        Nx1 = sqrt(X1[np.isnan(X1[:,0]) == False, 0].size) * sqrt(Lx1/Ly1)
-        Ny1 = X1[np.isnan(X1[:,1]) == False, 1].size /Nx1
+        Nx0 = sqrt(X0[np.isnan(X0[:, 0]) == False, 0].size) * sqrt(Lx0/Ly0)
+        Ny0 = X0[np.isnan(X0[:, 1]) == False, 1].size /Nx0
+        Nx1 = sqrt(X1[np.isnan(X1[:, 0]) == False, 0].size) * sqrt(Lx1/Ly1)
+        Ny1 = X1[np.isnan(X1[:, 1]) == False, 1].size /Nx1
 
         dx0 = Lx0 / Nx0
         dy0 = Ly0 / Ny0
@@ -937,11 +937,11 @@ class DirectStereoReconstruction():
     def interp_on_common_grid(self, X0, X1, d0cam, d1cam, a, b, c, d):
         if not hasattr(self, 'grid_x'):
             self.find_common_grid(X0, X1, a, b, c, d)
-        ind0 = (np.isnan(X0[:,0]) == False) * (np.isnan(X0[:,1]) == False) *\
-               (np.isnan(d0cam[:,0]) == False) * (np.isnan(d0cam[:,1]) == False)
-        ind1 = (np.isnan(X1[:,0]) == False) * (np.isnan(X1[:,1]) == False) *\
-               (np.isnan(d1cam[:,0]) == False) * (np.isnan(d1cam[:,1]) == False)
-        
+        ind0 = (np.isnan(X0[:, 0]) == False) * (np.isnan(X0[:, 1]) == False) *\
+               (np.isnan(d0cam[:, 0]) == False) * (np.isnan(d0cam[:, 1]) == False)
+        ind1 = (np.isnan(X1[:, 0]) == False) * (np.isnan(X1[:, 1]) == False) *\
+               (np.isnan(d1cam[:, 0]) == False) * (np.isnan(d1cam[:, 1]) == False)
+
         d0xcam = griddata((X0[ind0, 0], X0[ind0, 1]), d0cam[ind0, 0],
                           (self.grid_x, self.grid_y))
         d0ycam = griddata((X0[ind0, 0], X0[ind0, 1]), d0cam[ind0, 1],
@@ -950,71 +950,75 @@ class DirectStereoReconstruction():
                           (self.grid_x, self.grid_y))
         d1ycam = griddata((X1[ind1, 0], X1[ind1, 1]), d1cam[ind1, 1],
                           (self.grid_x, self.grid_y))
-        return d0xcam, d0ycam, d1xcam, d1ycam 
+        return d0xcam, d0ycam, d1xcam, d1ycam
 
     def reconstruction(self, X0, X1, d0cam, d1cam, a, b, c, d,
                        check=False):
-        # ajouter boucle sur toutes positions + trouver grille en commun puis
-        # reconstruction
+        # reconstruction => resolution of the equation
         # MX = dcam
-        
+
         d0xcam, d0ycam, d1xcam, d1ycam = self.interp_on_common_grid(
             X0, X1, d0cam, d1cam, a, b, c, d)
 
         # in the case where 2 vectors from different cameras are approximately
         # the same, they don't have to be used both in the computation
-        n1 = np.linalg.norm((self.A0-self.A1)[0])
-        n2 = np.linalg.norm((self.A0-self.A1)[1])
-        n3 = np.linalg.norm((self.A0[1]-self.A1[0]))
-        n4 = np.linalg.norm((self.A0[0]-self.A1[1]))
-        seuil = 0.2
-        
+        n1 = np.abs(np.inner(self.A0[0], self.A1[0]))
+        n2 = np.abs(np.inner(self.A0[1], self.A1[1]))
+        n3 = np.abs(np.inner(self.A0[1], self.A1[0]))
+        n4 = np.abs(np.inner(self.A0[0], self.A1[1]))
+        # I suppose that 5deg between vectors is sufficient
+        threshold = np.cos(5*2*np.pi/180.)
+
         dXx = np.zeros(d0xcam.shape)
         dXy = np.zeros(d0xcam.shape)
         dXz = np.zeros(d0xcam.shape)
         Errorx = np.zeros(d0xcam.shape)
         Errory = np.zeros(d0xcam.shape)
         Errorz = np.zeros(d0xcam.shape)
-        
+
         for i in range(d0xcam.shape[0]):
             for j in range(d0xcam.shape[1]):
                 tmp = []
-                if n1>seuil and n3>seuil:
-                    dcam = np.hstack([d0xcam[i, j], d0ycam[i, j], d1xcam[i, j]])
+                if n1 < threshold and n3 < threshold:
+                    dcam = np.hstack(
+                        [d0xcam[i, j], d0ycam[i, j], d1xcam[i, j]])
                     tmp.append(np.dot(self.invM0, dcam))
-                if n1>seuil and  n4>seuil:
-                    dcam = np.hstack([d0xcam[i, j], d1xcam[i, j], d1ycam[i, j]])
+                if n1 < threshold and n4 < threshold:
+                    dcam = np.hstack(
+                        [d0xcam[i, j], d1xcam[i, j], d1ycam[i, j]])
                     tmp.append(np.dot(self.invM1, dcam))
-                if n2> seuil and n4>seuil: 
-                    dcam = np.hstack([d0xcam[i, j], d0ycam[i, j], d1ycam[i, j]])
+                if n2 < threshold and n4 < threshold:
+                    dcam = np.hstack(
+                        [d0xcam[i, j], d0ycam[i, j], d1ycam[i, j]])
                     tmp.append(np.dot(self.invM2, dcam))
-                if n2>seuil and n3>seuil:
-                    dcam = np.hstack([d0ycam[i, j], d1xcam[i, j], d1ycam[i, j]])
+                if n2 < threshold and n3 < threshold:
+                    dcam = np.hstack(
+                        [d0ycam[i, j], d1xcam[i, j], d1ycam[i, j]])
                     tmp.append(np.dot(self.invM3, dcam))
                 tmp = np.array(tmp)
-                
-                dXx[i, j] = np.mean(tmp,0)[0]                
-                Errorx[i, j] = np.std(tmp, 0)[0]
-                dXy[i, j] = np.mean(tmp,0)[1]
-                Errory[i, j] = np.std(tmp, 0)[1]
-                dXz[i, j] = np.mean(tmp,0)[2]
-                Errorz[i, j] = np.std(tmp, 0)[2]
+
+                dXx[i, j] = np.nanmean(tmp, 0)[0]
+                Errorx[i, j] = np.nanstd(tmp, 0)[0]
+                dXy[i, j] = np.nanmean(tmp, 0)[1]
+                Errory[i, j] = np.nanstd(tmp, 0)[1]
+                dXz[i, j] = np.nanmean(tmp, 0)[2]
+                Errorz[i, j] = np.nanstd(tmp, 0)[2]
 
         if check:
-            fig = plt.figure()
+            plt.figure()
             plt.quiver(self.grid_x, self.grid_y, d0xcam, d0ycam)
             plt.axis('equal')
             plt.title('Cam 0 plane projection')
-            fig = plt.figure()
+            plt.figure()
             plt.quiver(self.grid_x, self.grid_y, d1xcam, d1ycam)
             plt.axis('equal')
             plt.title('Cam 1 plane projection')
-            fig = plt.figure()
+            plt.figure()
             plt.quiver(self.grid_x, self.grid_y, dXx, dXy)
             plt.axis('equal')
             plt.title('Reconstruction on laser plane')
             plt.show()
-       
+
         return self.grid_x, self.grid_y, self.grid_z, \
             dXx, dXy, dXz, Errorx, Errory, Errorz
 
@@ -1025,7 +1029,7 @@ if __name__ == "__main__":
 
     nb_pixelx, nb_pixely = 2560, 2160
     # nbline_x, nbline_y = nb_pixelx/2, nb_pixely/2
-    nbline_x, nbline_y = 64, 64
+    nbline_x, nbline_y = 256, 216
 
     pathimg = '/.fsdyn_people/campagne8a/project/15DELDUCA/Data2/Calib_Cam/Left/Calibration_2017_02_23'
     calib = CalibDirect(pathimg, nb_pixelx, nb_pixely)
