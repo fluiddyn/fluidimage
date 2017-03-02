@@ -155,7 +155,7 @@ class Calibration(object):
         return Xphys, Yphys, Zphys, dxphys, dyphys, dzphys
 
     def pix2phys(self, X, Y, index_level, nbypix, angle=True):
-        params = ParamCalibration(path_file=self.path_file)
+        params = copy.deepcopy(self.params)
         Y = nbypix-Y # difference of convention with calibration done with uvmat!       
         # determine position of Z0
         testangle = 0
