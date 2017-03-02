@@ -1,6 +1,6 @@
 
 import re
-
+import copy
 import numpy as np
 import glob
 import os
@@ -271,7 +271,7 @@ class Calibration(object):
         return Xphys, Yphys, Zphys
 
     def phys2pix(self, Xphys, Yphys, Zphys=0):
-        params = self.params
+        params = copy.deepcopy(self.params)
         Xphys *= 100  # m to cm
         Yphys *= 100  # m to cm
         Zphys *= 100  # m to cm
@@ -322,8 +322,8 @@ class Calibration(object):
 
     def get_coeff(Calib, X, Y, x, y, z):
         # compute A~ coefficients 
-        R = self.R
-        T_z = self.T[2]
+        R = copy.deepcopy(self.R)
+        T_z = copy.deepcopy(self.T[2])
         T = R[6] * x + R[7]*y+R[8] * z + T_z;
 
         A[:, :, 0, 0] = (R[0] - R[6] * X) / T
