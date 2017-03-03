@@ -687,15 +687,8 @@ class CalibDirect():
             t = -(a * x0 + b * y0 + c * z0 + d) / (a * dx + b * dy + c * dz)
             return np.array([x0 + t * dx, y0 + t * dy, z0 + t * dz])
 
-        if np.size(indx) > 1:
-            X = np.zeros([np.size(indx), 3])
-            for i, ind in enumerate(indx):
-                tmp = get_coord(ind, indy[i])
-                X[i, 0] = tmp[0]
-                X[i, 1] = tmp[1]
-                X[i, 2] = tmp[2]
-        else:
-            X = get_coord(indx, indy)
+        X = get_coord(indx, indy).transpose()
+
         return X
 
     def apply_calib(self, indx, indy, dx, dy, a, b, c, d):
@@ -848,30 +841,10 @@ class DirectStereoReconstruction():
         X1 = self.calib1.intersect_with_plane(indx1, indy1, a, b, c, d)
         dX1 = self.calib1.apply_calib(indx1, indy1, dx1, dy1, a, b, c, d)
 
-        def project0(d0):
-            # project on camera planes
-            d0ca = np.dot(self.B0, d0)
-            d0ca = d0[:2]  # d0cam[2] is unknown
-            return d0ca
-
-        def project1(d1):
-            d1ca = np.dot(self.B1, d1)
-            d1ca = d1[:2]
-            return d1ca
-
-        if np.size(X0.shape) >=2:
-            d0cam = np.zeros([np.shape(X0)[0], 2])
-            for i, dx in enumerate(dX0):
-                d0cam[i] = project0(dx)
-        else:
-            d0cam= project0(dX0)
-
-        if np.size(X1.shape) >=2:
-            d1cam = np.zeros([np.shape(X1)[0], 2])
-            for i, dx in enumerate(dX1):
-                d1cam[i] = project1(dx)
-        else:
-            d1cam = project1(dX1)
+        d0cam = np.tensordot(
+            self.B0, dX0.swapaxes(0, 1), axes=1)[:2, :].transpose()
+        d1cam = np.tensordot(
+            self.B1, dX1.swapaxes(0, 1), axes=1)[:2, :].transpose()
 
         if check:
             plt.figure()
@@ -969,40 +942,69 @@ class DirectStereoReconstruction():
         # I suppose that 5deg between vectors is sufficient
         threshold = np.cos(5*2*np.pi/180.)
 
-        dXx = np.zeros(d0xcam.shape)
-        dXy = np.zeros(d0xcam.shape)
-        dXz = np.zeros(d0xcam.shape)
-        Errorx = np.zeros(d0xcam.shape)
-        Errory = np.zeros(d0xcam.shape)
-        Errorz = np.zeros(d0xcam.shape)
+        tmp = []
+        dcam = np.zeros((3, d0xcam.shape[0], d0xcam.shape[1]))
+        if n1 < threshold and n3 < threshold:
+            dcam[0, :, :] = d0xcam
+            dcam[1, :, :] = d0ycam
+            dcam[2, :, :] = d1xcam
+            tmp.append(np.tensordot(self.invM0, dcam, axes=([1], [0])))
+        if n1 < threshold and n4 < threshold:
+            dcam[0, :, :] = d0xcam
+            dcam[1, :, :] = d1xcam
+            dcam[2, :, :] = d1ycam
+            tmp.append(np.tensordot(self.invM1, dcam, axes=([1], [0])))
+        if n2 < threshold and n4 < threshold:
+            dcam[0, :, :] = d0xcam
+            dcam[1, :, :] = d0ycam
+            dcam[2, :, :] = d1ycam
+            tmp.append(np.tensordot(self.invM2, dcam, axes=([1], [0])))
+        if n2 < threshold and n3 < threshold:
+            dcam[0, :, :] = d0ycam
+            dcam[1, :, :] = d1xcam
+            dcam[2, :, :] = d1ycam
+            tmp.append(np.tensordot(self.invM3, dcam, axes=([1], [0])))
+        tmp = np.array(tmp)
+        dX = np.nanmean(tmp, 0)[0]
+        Errorx = np.nanstd(tmp, 0)[0]
+        dY = np.nanmean(tmp, 0)[1]
+        Errory = np.nanstd(tmp, 0)[1]
+        dZ = np.nanmean(tmp, 0)[2]
+        Errorz = np.nanstd(tmp, 0)[2]
 
-        for i in range(d0xcam.shape[0]):
-            for j in range(d0xcam.shape[1]):
-                tmp = []
-                if n1 < threshold and n3 < threshold:
-                    dcam = np.hstack(
-                        [d0xcam[i, j], d0ycam[i, j], d1xcam[i, j]])
-                    tmp.append(np.dot(self.invM0, dcam))
-                if n1 < threshold and n4 < threshold:
-                    dcam = np.hstack(
-                        [d0xcam[i, j], d1xcam[i, j], d1ycam[i, j]])
-                    tmp.append(np.dot(self.invM1, dcam))
-                if n2 < threshold and n4 < threshold:
-                    dcam = np.hstack(
-                        [d0xcam[i, j], d0ycam[i, j], d1ycam[i, j]])
-                    tmp.append(np.dot(self.invM2, dcam))
-                if n2 < threshold and n3 < threshold:
-                    dcam = np.hstack(
-                        [d0ycam[i, j], d1xcam[i, j], d1ycam[i, j]])
-                    tmp.append(np.dot(self.invM3, dcam))
-                tmp = np.array(tmp)
+        # dXx = np.zeros(d0xcam.shape)
+        # dXy = np.zeros(d0xcam.shape)
+        # dXz = np.zeros(d0xcam.shape)
+        # Errorx = np.zeros(d0xcam.shape)
+        # Errory = np.zeros(d0xcam.shape)
+        # Errorz = np.zeros(d0xcam.shape)
+        # for i in range(d0xcam.shape[0]):
+        #     for j in range(d0xcam.shape[1]):
+        #         tmp = []
+        #         if n1 < threshold and n3 < threshold:
+        #             dcam = np.hstack(
+        #                 [d0xcam[i, j], d0ycam[i, j], d1xcam[i, j]])
+        #             tmp.append(np.dot(self.invM0, dcam))
+        #         if n1 < threshold and n4 < threshold:
+        #             dcam = np.hstack(
+        #                 [d0xcam[i, j], d1xcam[i, j], d1ycam[i, j]])
+        #             tmp.append(np.dot(self.invM1, dcam))
+        #         if n2 < threshold and n4 < threshold:
+        #             dcam = np.hstack(
+        #                 [d0xcam[i, j], d0ycam[i, j], d1ycam[i, j]])
+        #             tmp.append(np.dot(self.invM2, dcam))
+        #         if n2 < threshold and n3 < threshold:
+        #             dcam = np.hstack(
+        #                 [d0ycam[i, j], d1xcam[i, j], d1ycam[i, j]])
+        #             tmp.append(np.dot(self.invM3, dcam))
+        #         tmp = np.array(tmp)
 
-                dXx[i, j] = np.nanmean(tmp, 0)[0]
-                Errorx[i, j] = np.nanstd(tmp, 0)[0]
-                dXy[i, j] = np.nanmean(tmp, 0)[1]
-                Errory[i, j] = np.nanstd(tmp, 0)[1]
-                dXz[i, j] = np.nanmean(tmp, 0)[2]
-                Errorz[i, j] = np.nanstd(tmp, 0)[2]
+                # dXx[i, j] = np.nanmean(tmp, 0)[0]
+                # Errorx[i, j] = np.nanstd(tmp, 0)[0]
+                # dXy[i, j] = np.nanmean(tmp, 0)[1]
+                # Errory[i, j] = np.nanstd(tmp, 0)[1]
+                # dXz[i, j] = np.nanmean(tmp, 0)[2]
+                # Errorz[i, j] = np.nanstd(tmp, 0)[2]
 
         if check:
             plt.figure()
@@ -1014,13 +1016,13 @@ class DirectStereoReconstruction():
             plt.axis('equal')
             plt.title('Cam 1 plane projection')
             plt.figure()
-            plt.quiver(self.grid_x, self.grid_y, dXx, dXy)
+            plt.quiver(self.grid_x, self.grid_y, dX, dY)
             plt.axis('equal')
             plt.title('Reconstruction on laser plane')
             plt.show()
 
         return self.grid_x, self.grid_y, self.grid_z, \
-            dXx, dXy, dXz, Errorx, Errory, Errorz
+            dX, dY, dZ, Errorx, Errory, Errorz
 
 
 if __name__ == "__main__":
