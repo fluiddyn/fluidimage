@@ -1031,24 +1031,24 @@ if __name__ == "__main__":
 
     nb_pixelx, nb_pixely = 2560, 2160
     # nbline_x, nbline_y = nb_pixelx/2, nb_pixely/2
-    nbline_x, nbline_y = 256, 216
+    nb_pixelx, nb_pixely = 1024, 1024
 
-    pathimg = '/.fsdyn_people/campagne8a/project/15DELDUCA/Data2/Calib_Cam/Left/Calibration_2017_02_23'
+    nbline_x, nbline_y = 128, 128
+
+    pathimg = '/.fsdyn_people/campagne8a/project/15DELDUCA/tmp/4th_PIV-Challenge_Case_E/E_Calibration_Images/Camera_01'
     calib = CalibDirect(pathimg, nb_pixelx, nb_pixely)
     calib.compute_interpolents()
-    calib.compute_interppixel2line(nbline_x, nbline_y, test=False)
-    calib.save('/.fsdyn_people/campagne8a/project/15DELDUCA/Data2/Calib_Cam/Left/Calibration_2017_02_23/calibLeft.npy')
+    calib.compute_interppixel2line(nbline_x, nbline_y, test=True)
+    calib.save('/.fsdyn_people/campagne8a/project/15DELDUCA/tmp/4th_PIV-Challenge_Case_E/E_Calibration_Images/Camera_01/calib1.npy')
 
     # calib.check_interp_lines_coeffs()
     # calib.check_interp_lines()
     # calib.check_interp_levels()
-    
-    pathimg = '/.fsdyn_people/campagne8a/project/15DELDUCA/Data2/Calib_Cam/Right/Calibration_2017_02_23'
+    pathimg = '/.fsdyn_people/campagne8a/project/15DELDUCA/tmp/4th_PIV-Challenge_Case_E/E_Calibration_Images/Camera_03'
     calib2 = CalibDirect(pathimg, nb_pixelx, nb_pixely)
     calib2.compute_interpolents()
-    calib2.compute_interppixel2line(nbline_x, nbline_y, test=False)
-    calib2.save('/.fsdyn_people/campagne8a/project/15DELDUCA/Data2/Calib_Cam/Right/Calibration_2017_02_23/calibRight.npy')
-    
+    calib2.compute_interppixel2line(nbline_x, nbline_y, test=True)
+    calib2.save('/.fsdyn_people/campagne8a/project/15DELDUCA/tmp/4th_PIV-Challenge_Case_E/E_Calibration_Images/Camera_03/calib3.npy')    
     # stereo = DirectStereoReconstruction('calib1.npy', nb_pixelx, nb_pixely, 'calib2.npy', nb_pixelx, nb_pixely)
     
 

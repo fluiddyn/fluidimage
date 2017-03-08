@@ -22,7 +22,7 @@ class SubPix(object):
        - same subpix methods as in UVmat...
 
     """
-    methods = ['2d_gaussian', 'centroid', 'no_subpix']
+    methods = ['2d_gaussian', '2d_gaussian2', 'centroid', 'no_subpix']
 
     def __init__(self, method='centroid', nsubpix=None):
         self.prepare_subpix(method, nsubpix)
@@ -112,7 +112,29 @@ class SubPix(object):
             if np.isnan(deplx) or np.isnan(deply):
                 return self.compute_subpix(
                     correl, ix, iy, method='centroid', nsubpix=nsubpix)
+            
+        if method == '2d_gaussian2':
 
+            correl2 = correl[iy-1:iy+2, ix-1:ix+2]
+            correl2[correl2<0] = 1e-6
+            c10 = 0
+            c01 = 0
+            c11 = 0
+            c20 = 0
+            c02 = 0
+            for i in range(0, 3):
+                for j in range(0, 3):
+                    c10 += (i-1)*np.log(correl2[j, i])
+                    c01 += (j-1)*np.log(correl2[j, i])
+                    c11 += (i-1)*(j-1)*np.log(correl2[j, i])
+                    c20 += (3*(i-1)**2-2)*np.log(correl2[j, i])
+                    c02 += (3*(j-1)**2-2)*np.log(correl2[j, i])
+                    c00 = (5-3*(i-1)**2-3*(j-1)**2)*np.log(correl2[j, i])
+
+            c00, c10, c01, c11, c20, c02 = c00/9, c10/6, c01/6, c11/4, c20/6, c02/6
+            deplx = (c11*c01-2*c10*c02)/(4*c20*c02-c11**2)
+            deply = (c11*c10-2*c01*c20)/(4*c20*c02-c11**2)
+            
         elif method == 'centroid':
 
             correl2 = correl[iy-nsubpix:iy+nsubpix+1, ix-nsubpix:ix+nsubpix+1]
