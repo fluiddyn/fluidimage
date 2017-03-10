@@ -71,7 +71,12 @@ class BaseWorkPIV(BaseWork):
 
         if params is None:
             params = self.__class__.create_default_params()
-
+        else:
+            if params.piv0.method_subpix == "2d_gaussian2" and \
+               params.piv0.nsubpix is not None:
+                raise ValueError(
+                    "Subpixel method '2d_gaussian2' doesn't require nsubpix. " +
+                    "params.piv0.nsubpix has to be equal to None")
         self.params = params
 
         overlap = params.piv0.grid.overlap
