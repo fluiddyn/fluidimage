@@ -906,32 +906,34 @@ class DirectStereoReconstruction():
         self.grid_x = x.transpose()
         self.grid_y = y.transpose()
         self.grid_z = -(a*self.grid_x+ b*self.grid_y+d)/c
+        return self.grid_x, self.grid_y, self.grid_z
 
-    def interp_on_common_grid(self, X0, X1, d0cam, d1cam, a, b, c, d):
-        if not hasattr(self, 'grid_x'):
-            self.find_common_grid(X0, X1, a, b, c, d)
+    def interp_on_common_grid(
+            self, X0, X1, d0cam, d1cam, a, b, c, d, grid_x, grid_y):
+        # if not hasattr(self, 'grid_x'):
+        #     self.find_common_grid(X0, X1, a, b, c, d)
         ind0 = (np.isnan(X0[:, 0]) == False) * (np.isnan(X0[:, 1]) == False) *\
                (np.isnan(d0cam[:, 0]) == False) * (np.isnan(d0cam[:, 1]) == False)
         ind1 = (np.isnan(X1[:, 0]) == False) * (np.isnan(X1[:, 1]) == False) *\
                (np.isnan(d1cam[:, 0]) == False) * (np.isnan(d1cam[:, 1]) == False)
 
         d0xcam = griddata((X0[ind0, 0], X0[ind0, 1]), d0cam[ind0, 0],
-                          (self.grid_x, self.grid_y))
+                          (grid_x, grid_y))
         d0ycam = griddata((X0[ind0, 0], X0[ind0, 1]), d0cam[ind0, 1],
-                          (self.grid_x, self.grid_y))
+                          (grid_x, grid_y))
         d1xcam = griddata((X1[ind1, 0], X1[ind1, 1]), d1cam[ind1, 0],
-                          (self.grid_x, self.grid_y))
+                          (grid_x, grid_y))
         d1ycam = griddata((X1[ind1, 0], X1[ind1, 1]), d1cam[ind1, 1],
-                          (self.grid_x, self.grid_y))
+                          (grid_x, grid_y))
         return d0xcam, d0ycam, d1xcam, d1ycam
 
-    def reconstruction(self, X0, X1, d0cam, d1cam, a, b, c, d,
+    def reconstruction(self, X0, X1, d0cam, d1cam, a, b, c, d, grid_x, grid_y,
                        check=False):
         # reconstruction => resolution of the equation
         # MX = dcam
 
         d0xcam, d0ycam, d1xcam, d1ycam = self.interp_on_common_grid(
-            X0, X1, d0cam, d1cam, a, b, c, d)
+            X0, X1, d0cam, d1cam, a, b, c, d, grid_x, grid_y)
 
         # in the case where 2 vectors from different cameras are approximately
         # the same, they don't have to be used both in the computation
@@ -1021,8 +1023,7 @@ class DirectStereoReconstruction():
             plt.title('Reconstruction on laser plane')
             plt.show()
 
-        return self.grid_x, self.grid_y, self.grid_z, \
-            dX, dY, dZ, Errorx, Errory, Errorz
+        return dX, dY, dZ, Errorx, Errory, Errorz
 
 
 if __name__ == "__main__":
