@@ -56,10 +56,13 @@ class InstructionsUVMAT(ParamContainer):
         # get nicer names and a simpler organization...
         tidy_container(self)
 
-        input_table = self.input_table.split(' & ')
-        self.input_table = '|'.join(input_table)
-        path_file_input = os.path.abspath(self.input_table.replace('|', ''))
-        path_dir_input = os.path.dirname(path_file_input)
+        self.input_table = input_table = self.input_table.split(' & ')
+
+        filename = ''.join(input_table[2:])
+        path_dir = os.path.join(*input_table[:2])
+
+        path_file_input = os.path.abspath(os.path.join(path_dir, filename))
+        path_dir_input = path_dir
         self._set_attrib('path_dir_input', path_dir_input)
         self._set_attrib('path_file_input', path_file_input)
 
@@ -68,6 +71,9 @@ class InstructionsUVMAT(ParamContainer):
             path_dir_input + self.output_dir_ext)
 
         ir = self.index_range
+        if not hasattr(ir, 'incr_i'):
+            ir._set_attrib('incr_i', 1)
+
         slice0 = [ir.first_i, ir.last_i+1, ir.incr_i]
         try:
             slice1 = [ir.first_j-1, ir.last_j, ir.incr_j]
@@ -130,7 +136,7 @@ class ActionAverage(ActionBase):
 def params_from_uvmat_xml(instructions):
     params = TopologyPIV.create_default_params()
 
-    params.series.path = instructions.input_table.replace('|', '')
+    params.series.path = instructions.path_file_input
 
     params.series.strcouple = instructions.strcouple
     params.series.ind_stop = instructions.ind_stop
@@ -165,6 +171,7 @@ class ActionPIV(ActionBase):
         t = time() - t
 
         print('ellapsed time: {}s'.format(t))
+
 
 actions_classes = {'aver_stat': ActionAverage,
                    'civ_series': ActionPIV}
