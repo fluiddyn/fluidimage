@@ -165,8 +165,8 @@ class ArrayCouple(DataObject):
 
         if path is not None:
             raise NotImplementedError
-        self.names = tuple(hdf5_object.attrs['names'][5:].split("', u'"))
-        self.paths = tuple(hdf5_object.attrs['paths'][5:].split("', u'"))
+        self.names = tuple(hdf5_object.attrs['names'][5:].split(b"', u'"))
+        self.paths = tuple(hdf5_object.attrs['paths'][5:].split(b"', u'"))
         # self.names = tuple(hdf5_object.attrs['names'])
         # self.paths = tuple(hdf5_object.attrs['paths'])
         try:

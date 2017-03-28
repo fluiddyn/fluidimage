@@ -82,10 +82,10 @@ threshold_tps :  float
 
     def __init__(self, params=None):
         if params.piv0.method_subpix == "2d_gaussian2" and \
-               params.piv0.nsubpix is not None:
-                raise ValueError(
-                    "Subpixel method '2d_gaussian2' doesn't require nsubpix. " +
-                    "params.piv0.nsubpix has to be equal to None")
+           params.piv0.nsubpix is not None:
+            raise ValueError(
+                "For the subpixel method '2d_gaussian2', "
+                "params.piv0.nsubpix has to be equal to None.")
         self.params = params
 
         self.works_piv = []
@@ -159,8 +159,8 @@ threshold_tps :  float
 
         try:
             work_piv.apply_interp(piv_result, last=True)
-        except InterpError:
-            pass
+        except InterpError as e:
+            print('Warning: InterpError at the end of the last piv pass:', e)
 
         return results
 

@@ -87,7 +87,7 @@ class WorkFIX(BaseWork):
             xs = piv_results.xs
             ys = piv_results.ys
 
-            #import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
 
             dxs, dys = smooth_clean(
                 xs, ys, deltaxs, deltays, iyvecs, ixvecs, threshold)
@@ -97,7 +97,6 @@ class WorkFIX(BaseWork):
             with np.errstate(invalid='ignore'):
                 inds = (abs(dxs - deltaxs) +
                         abs(dys - deltays) > threshold).nonzero()[0]
-
 
             put_to_nan(inds, 'diff neighbour too large')
 

@@ -75,7 +75,7 @@ class BaseWorkPIV(BaseWork):
             if params.piv0.method_subpix == "2d_gaussian2" and \
                params.piv0.nsubpix is not None:
                 raise ValueError(
-                    "Subpixel method '2d_gaussian2' doesn't require nsubpix. " +
+                    "Subpixel method '2d_gaussian2' doesn't require nsubpix. "
                     "params.piv0.nsubpix has to be equal to None")
         self.params = params
 
@@ -115,6 +115,11 @@ class BaseWorkPIV(BaseWork):
 
         niw0 = self.n_interrogation_window0 = n_interrogation_window0
         niw1 = self.n_interrogation_window1 = n_interrogation_window1
+
+        for size in niw0 + niw1:
+            if size % 2 == 1:
+                raise NotImplementedError(
+                    'All dimensions of the cropped windows must be even.')
 
         self.niw0o2 = (int(niw0[0]//2), int(niw0[1]//2))
         self.niw1o2 = (int(niw1[0]//2), int(niw1[1]//2))
@@ -447,6 +452,11 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
 
         niw0 = self.n_interrogation_window0 = shape_crop_im0
         niw1 = self.n_interrogation_window1 = shape_crop_im1
+
+        for size in niw0 + niw1:
+            if size % 2 == 1:
+                raise NotImplementedError(
+                    'All dimensions of the cropped windows must be even.')
 
         self.niw0o2 = (int(niw0[0]//2), int(niw0[1]//2))
         self.niw1o2 = (int(niw1[0]//2), int(niw1[1]//2))
