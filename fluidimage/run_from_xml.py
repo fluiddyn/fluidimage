@@ -57,10 +57,12 @@ class InstructionsUVMAT(ParamContainer):
         tidy_container(self)
 
         self.input_table = input_table = self.input_table.split(' & ')
+        for i in range(1, len(input_table)):
+            if input_table[i].startswith('/'):
+                input_table[i] = input_table[i][1:]
 
         filename = ''.join(input_table[2:])
         path_dir = os.path.join(*input_table[:2])
-
         path_file_input = os.path.abspath(os.path.join(path_dir, filename))
         path_dir_input = path_dir
         self._set_attrib('path_dir_input', path_dir_input)
