@@ -6,10 +6,10 @@ PY_FILES = $(UI_FILES:.ui=.py)
 
 .PHONY: run clean
 
-ui2py: $(PY_FILES)
-
 run: $(PY_FILES)
-	python -m fluidimage.gui.launcher.main
+	python -m fluidimage.gui.launcher.main &
+
+ui2py: $(PY_FILES)
 
 clean:
 	rm -f $(PY_FILES)

@@ -28,6 +28,7 @@ class QtParamContainer(object):
 
         self.labels = {}
         self.lines_edit = {}
+        self.buttons = {}
 
         self.qt_params_children = {}
 
@@ -59,7 +60,9 @@ class QtParamContainer(object):
             self.formLayout_attribs.setObjectName(_fromUtf8(
                 'formLayout_' + self.full_tag))
 
-            for i, key in enumerate(key_attribs):
+            i = -1
+            for key in key_attribs:
+                i += 1
                 label = self.labels[key] = QtGui.QLabel(self.page_attribs)
                 label.setObjectName(_fromUtf8(
                     'label_' + self.full_tag + '_' + key))
@@ -78,6 +81,19 @@ class QtParamContainer(object):
                 line.setText(_translate(
                     'MainWindow', repr(self.params[key]), None))
 
+                if key == 'path':
+                    i += 1
+                    def choose_name():
+                        fileName = QtGui.QFileDialog.getOpenFileName(
+                            self.page_attribs, 'OpenFile')
+                        self.lines_edit['path'].setText("'" + fileName + "'")
+
+                    self.buttons[key] = QtGui.QPushButton(self.page_attribs)
+                    self.formLayout_attribs.setWidget(
+                        i, QtGui.QFormLayout.FieldRole, self.buttons[key])
+                    self.buttons[key].setText('Navigate to choose the path')
+                    self.buttons[key].released.connect(choose_name)
+                    
             self.verticalLayout.addWidget(self.page_attribs)
 
         if len(tag_children) > 0:
