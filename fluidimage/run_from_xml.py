@@ -24,6 +24,7 @@ from . import (
     config_logging, ParamContainer, SerieOfArraysFromFiles)
 
 from fluiddyn.util.paramcontainer import tidy_container
+from fluiddyn.util.util import import_class
 
 from fluidimage.topologies.piv import TopologyPIV
 
@@ -33,70 +34,54 @@ config_logging('info')
 logger = logging.getLogger('fluidimage')
 
 
-class InstructionsUVMAT(ParamContainer):
-    """
-    instructions = InstructionsUVMAT(path_file=(
-        '../image_samples/Oseen/Images.civ_uvmat/0_XML/Oseen_center_1.xml'))
+def tidy_uvmat_instructions(params):
 
+    params._tag = 'instructions_uvmat'
 
-    """
+    # get nicer names and a simpler organization...
+    tidy_container(params)
 
-    def __init__(self, **kargs):
+    params.input_table = input_table = params.input_table.split(' & ')
+    for i in range(1, len(input_table)):
+        if input_table[i].startswith('/'):
+            input_table[i] = input_table[i][1:]
 
-        if 'tag' not in kargs:
-            kargs['tag'] = 'instructions_uvmat'
+    filename = ''.join(input_table[2:])
+    path_dir = os.path.join(*input_table[:2])
+    path_file_input = os.path.abspath(os.path.join(path_dir, filename))
+    path_dir_input = path_dir
+    params._set_attrib('path_dir_input', path_dir_input)
+    params._set_attrib('path_file_input', path_file_input)
 
-        super(InstructionsUVMAT, self).__init__(**kargs)
+    params._set_attrib(
+        'path_dir_output',
+        path_dir_input + params.output_dir_ext)
 
-        if kargs['tag'] == 'instructions_uvmat' and 'path_file' in kargs:
-            self._init_root()
+    ir = params.index_range
+    if not hasattr(ir, 'incr_i'):
+        ir._set_attrib('incr_i', 1)
 
-    def _init_root(self):
+    if not hasattr(ir, 'first_i'):
+        print('Warning: no attribute first_i in xml UVmat file.')
+        ir._set_attrib('first_i', 1)
 
-        # get nicer names and a simpler organization...
-        tidy_container(self)
+    if not hasattr(ir, 'last_i'):
+        print('Warning: no attribute last_i in xml UVmat file.')
+        ir._set_attrib('last_i', None)
 
-        self.input_table = input_table = self.input_table.split(' & ')
-        for i in range(1, len(input_table)):
-            if input_table[i].startswith('/'):
-                input_table[i] = input_table[i][1:]
+    if not hasattr(ir, 'first_j'):
+        strcouple = 'i+{}:i+{}:{}'.format(
+            ir.first_i, ir.first_i+ir.incr_i+1, ir.incr_i)
 
-        filename = ''.join(input_table[2:])
-        path_dir = os.path.join(*input_table[:2])
-        path_file_input = os.path.abspath(os.path.join(path_dir, filename))
-        path_dir_input = path_dir
-        self._set_attrib('path_dir_input', path_dir_input)
-        self._set_attrib('path_file_input', path_file_input)
-
-        self._set_attrib(
-            'path_dir_output',
-            path_dir_input + self.output_dir_ext)
-
-        ir = self.index_range
-        if not hasattr(ir, 'incr_i'):
-            ir._set_attrib('incr_i', 1)
-
-        if not hasattr(ir, 'first_i'):
-            print('Warning: no attribute first_i in xml UVmat file.')
-            ir._set_attrib('first_i', 1)
-
-        if not hasattr(ir, 'last_i'):
-            print('Warning: no attribute last_i in xml UVmat file.')
-            ir._set_attrib('last_i', None)
-
-        if not hasattr(ir, 'first_j'):
-            strcouple = 'i+{}:i+{}:{}'.format(
-                ir.first_i, ir.first_i+ir.incr_i+1, ir.incr_i)
-
-            if ir.last_i is None:
-                ind_stop = None
-            else:
-                ind_stop = ir.last_i - ir.first_i + 1
+        if ir.last_i is None:
+            ind_stop = None
         else:
-            raise NotImplementedError
+            ind_stop = ir.last_i - ir.first_i + 1
+    else:
+        raise NotImplementedError
 
-        self._set_attrib('strcouple', strcouple)
-        self._set_attrib('ind_stop', ind_stop)
+    params._set_attrib('strcouple', strcouple)
+    params._set_attrib('ind_stop', ind_stop)
 
 
 class ActionBase(object):
@@ -187,6 +172,8 @@ class ActionPIV(ActionBase):
 actions_classes = {'aver_stat': ActionAverage,
                    'civ_series': ActionPIV}
 
+programs = ['uvmat', 'fluidimage']
+
 
 def main():
     if len(sys.argv) > 1:
@@ -197,18 +184,45 @@ def main():
     logger.info('\nFrom Python, start with instructions in xml file:\n%s',
                 path_instructions_xml)
 
-    instructions = InstructionsUVMAT(path_file=path_instructions_xml)
+    params = ParamContainer(path_file=path_instructions_xml)
 
-    action_name = instructions.action.action_name
-    logger.info('Check if the action "%s" is implemented by FluidImage',
-                action_name)
-    if action_name not in actions_classes.keys():
-        raise NotImplementedError(
-            'action "' + action_name + '" is not yet implemented.')
+    program = None
 
-    Action = actions_classes[action_name]
-    action = Action(instructions)
-    return action.run()
+    try:
+        params.Action.ActionName
+    except AttributeError:
+        pass
+    else:
+        program = 'uvmat'
+
+    try:
+        program = params._value_text['program']
+    except (AttributeError, KeyError):
+        pass
+
+    if program not in programs:
+        raise ValueError('Can not detect the program to launch.')
+
+    if program == 'uvmat':
+        tidy_uvmat_instructions(params)
+        action_name = params.action.action_name
+        logger.info('Check if the action "%s" is implemented by FluidImage',
+                    action_name)
+        if action_name not in actions_classes.keys():
+            raise NotImplementedError(
+                'action "' + action_name + '" is not yet implemented.')
+
+        Action = actions_classes[action_name]
+        action = Action(params)
+        return action.run()
+    elif program == 'fluidimage':
+        print(program)
+
+        cls = import_class(params._value_text['module'],
+                           params._value_text['class'])
+
+        obj = cls(params)
+        obj.compute()
 
 
 if __name__ == '__main__':

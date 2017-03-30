@@ -7,6 +7,7 @@
 
 """
 import os
+import json
 
 from .. import ParamContainer, SerieOfArraysFromFiles, SeriesOfArrays
 
@@ -49,6 +50,13 @@ class TopologyPIV(TopologyBase):
             "`how` can be 'ask', 'new_dir', 'complete' or 'recompute'.")
 
         WorkPIV._complete_params_with_default(params)
+
+        params._set_internal_attr(
+            '_value_text',
+            json.dumps({'program': 'fluidimage',
+                        'module': 'fluidimage.topologies.piv',
+                        'class': 'TopologyPIV'}))
+
         return params
 
     def __init__(self, params=None, logging_level='info', nb_max_workers=None):

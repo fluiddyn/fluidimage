@@ -388,8 +388,7 @@ class FirstWorkPIV(BaseWorkPIV):
             'nsubpix': 1,
             'coef_correl_no_displ': None})
 
-        params.piv0._set_doc("""
-Parameters describing one PIV step.
+        params.piv0._set_doc("""Parameters describing one PIV step.
 
 shape_crop_im0 : int (48)
     Shape of the cropped images 0 from which are computed the correlation.
