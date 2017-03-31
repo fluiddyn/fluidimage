@@ -496,9 +496,9 @@ class PreprocTools(object):
             tool_params = self.params.__dict__[tool]
             if tool_params.enable:
                 logger.debug('Apply ' + tool)
-                kwargs = tool_params._make_dict()
+                kwargs = tool_params._make_dict_attribs()
                 for k in list(kwargs.keys()):
-                    if k in ['_attribs', '_tag', '_tag_children', 'enable']:
+                    if k == 'enable':
                         kwargs.pop(k)
 
                 cls = self.__class__

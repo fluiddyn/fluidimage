@@ -7,7 +7,7 @@ PY_FILES = $(UI_FILES:.ui=.py)
 .PHONY: run clean
 
 run: $(PY_FILES)
-	python -m fluidimage.gui.launcher.main &
+	python -m fluidimage.gui.launcher.main
 
 ui2py: $(PY_FILES)
 
@@ -16,4 +16,3 @@ clean:
 
 %.py: %.ui
 	python $(PATHPyQt4)/uic/pyuic.py $(notdir $<) -o $@
-

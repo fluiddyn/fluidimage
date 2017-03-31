@@ -13,6 +13,7 @@ Provides:
 """
 
 import os
+import json
 
 from fluiddyn.util.serieofarrays import SeriesOfArrays
 from fluiddyn.io.image import imread
@@ -56,6 +57,12 @@ class TopologyPreproc(TopologyBase):
         params.preproc.saving._set_doc(
             "`how` can be 'ask', 'new_dir', 'complete' or 'recompute'.\n" +
             "`format` can be 'img' or 'hdf5'")
+
+        params._set_internal_attr(
+            '_value_text',
+            json.dumps({'program': 'fluidimage',
+                        'module': 'fluidimage.topologies.pre_proc',
+                        'class': 'TopologyPreproc'}))
 
         return params
 

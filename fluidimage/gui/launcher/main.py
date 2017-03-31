@@ -3,7 +3,7 @@
 from __future__ import division
 
 import sys
-from copy import deepcopy
+from copy import deepcopy, copy
 import subprocess
 
 from PyQt4 import QtGui
@@ -11,18 +11,21 @@ from PyQt4 import QtGui
 from .mainwindow import Ui_MainWindow, _translate, _fromUtf8
 
 from fluiddyn.util import time_as_str
+
+from fluidimage.topologies.pre_proc import TopologyPreproc
 from fluidimage.topologies.piv import TopologyPIV
 
-
-params = TopologyPIV.create_default_params()
+topologies = [TopologyPreproc, TopologyPIV]
+topologies = {cls.__name__: cls for cls in topologies}
 
 
 class QtParamContainer(object):
 
-    def __init__(self, params, top=False, create_default_params=None):
+    def __init__(self, params, top=False,
+                 module_run_from_xml='fluidimage.run_from_xml'):
 
         self.params = deepcopy(params)
-        self.create_default_params = create_default_params
+        self.module_run_from_xml = module_run_from_xml
         full_tag_dot = params._make_full_tag()
         self.full_tag = full_tag_dot.replace('.', '_')
 
@@ -83,6 +86,7 @@ class QtParamContainer(object):
 
                 if key == 'path':
                     i += 1
+
                     def choose_name():
                         fileName = QtGui.QFileDialog.getOpenFileName(
                             self.page_attribs, 'OpenFile')
@@ -93,7 +97,7 @@ class QtParamContainer(object):
                         i, QtGui.QFormLayout.FieldRole, self.buttons[key])
                     self.buttons[key].setText('Navigate to choose the path')
                     self.buttons[key].released.connect(choose_name)
-                    
+
             self.verticalLayout.addWidget(self.page_attribs)
 
         if len(tag_children) > 0:
@@ -157,7 +161,7 @@ class QtParamContainer(object):
             find_new_name=True)
         print(path)
         retcode = subprocess.call(
-            ['python', '-m', 'fluidimage.run_from_xml', path])
+            ['python', '-m', self.module_run_from_xml, path])
         return retcode
 
 
@@ -167,12 +171,39 @@ class Program(QtGui.QMainWindow, Ui_MainWindow):
         QtGui.QMainWindow.__init__(self)
         self.setupUi(self)
 
-        self.qt_params = QtParamContainer(params, top=True)
+        topo_names = ['TopologyPreproc', 'TopologyPIV']
+        self.actions = {}
 
-        self.stackedWidget.addWidget(self.qt_params.page_main)
+        for topo_name in topo_names:
+            action = self.actions[topo_name] = QtGui.QAction(self)
+            self.menuTopologies.addAction(action)
+            action.setText(topo_name)
+
+            def func(_, topo_name=topo_name):
+                self.init_topo(topo_name)
+
+            action.triggered.connect(func)
 
     def closeEvent(self, QCloseEvent):
         pass
+
+    def init_topo(self, topo_name):
+        Topology = topologies[topo_name]
+        params = Topology.create_default_params()
+
+        self.qt_params = QtParamContainer(
+            params, top=True, module_run_from_xml='fluidimage.run_from_xml')
+
+        # first remove all widgets from verticalLayout_2
+        layout = self.verticalLayout_2
+        for i in reversed(range(layout.count())):
+            widgetToRemove = layout.itemAt(i).widget()
+            # remove it from the layout list
+            layout.removeWidget(widgetToRemove)
+            # remove it from the gui
+            widgetToRemove.setParent(None)
+
+        self.verticalLayout_2.addWidget(self.qt_params.page_main)
 
 
 def main():

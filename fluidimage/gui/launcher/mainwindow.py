@@ -30,9 +30,6 @@ class Ui_MainWindow(object):
         self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
         self.verticalLayout_2 = QtGui.QVBoxLayout(self.centralwidget)
         self.verticalLayout_2.setObjectName(_fromUtf8("verticalLayout_2"))
-        self.stackedWidget = QtGui.QStackedWidget(self.centralwidget)
-        self.stackedWidget.setObjectName(_fromUtf8("stackedWidget"))
-        self.verticalLayout_2.addWidget(self.stackedWidget)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 775, 24))
@@ -49,13 +46,16 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
         self.actionOpen = QtGui.QAction(MainWindow)
         self.actionOpen.setObjectName(_fromUtf8("actionOpen"))
+        self.actionTopologyPIV = QtGui.QAction(MainWindow)
+        self.actionTopologyPIV.setObjectName(_fromUtf8("actionTopologyPIV"))
+        self.actionTopologyPreproc = QtGui.QAction(MainWindow)
+        self.actionTopologyPreproc.setObjectName(_fromUtf8("actionTopologyPreproc"))
         self.menuFile.addAction(self.actionOpen)
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuTopologies.menuAction())
         self.menubar.addAction(self.menuComputations.menuAction())
 
         self.retranslateUi(MainWindow)
-        self.stackedWidget.setCurrentIndex(-1)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -64,4 +64,6 @@ class Ui_MainWindow(object):
         self.menuTopologies.setTitle(_translate("MainWindow", "Topologies", None))
         self.menuComputations.setTitle(_translate("MainWindow", "Computations", None))
         self.actionOpen.setText(_translate("MainWindow", "Open", None))
+        self.actionTopologyPIV.setText(_translate("MainWindow", "TopologyPIV", None))
+        self.actionTopologyPreproc.setText(_translate("MainWindow", "TopologyPreproc", None))
 
