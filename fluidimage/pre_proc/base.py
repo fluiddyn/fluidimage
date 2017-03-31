@@ -27,8 +27,7 @@ class PreprocBase(object):
         params._set_child('preproc')
         params.preproc._set_child('series', attribs={'path': ''})
 
-        PreprocTools._complete_class_with_tools(params)
-
+        PreprocTools.create_default_params(params)
         return params
 
     def __init__(self, params=None):

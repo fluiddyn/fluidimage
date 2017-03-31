@@ -432,11 +432,8 @@ class PreprocTools(object):
     """Wrapper class for functions in the current module."""
 
     @classmethod
-    def _complete_class_with_tools(cls, params):
-        """
-        Dynamically add the global functions in this module as staticmethods of
-        the present class. Also create default parameters from the function
-        argument list.
+    def create_default_params(cls, params):
+        """Create default parameters from the function argument list.
 
         """
         params.preproc._set_child('tools')
@@ -446,10 +443,7 @@ class PreprocTools(object):
 
         for tool in available_tools:
             func = globals()[tool]
-
-            # Add tools as `staticmethods` of the class
-            setattr(PreprocTools, tool, func)
-
+            
             # TODO: Replace with inspect.getfullargspec (Python >= 3).
             func_args = inspect.getcallargs(func)
             for arg in list(func_args.keys()):
@@ -474,6 +468,20 @@ class PreprocTools(object):
                              '        Set as `True` to enable the tool'
                 params.__dict__[tool]._set_doc(func_doc + enable_doc)
 
+    @classmethod
+    def _complete_class_with_tools(cls):
+        """
+        Dynamically add the global functions in this module as staticmethods of
+        the present class.
+
+        """
+
+        for tool in available_tools:
+            func = globals()[tool]
+
+            # Add tools as `staticmethods` of the class
+            setattr(cls, tool, func)
+                
     def __init__(self, params):
         self.params = params.preproc.tools
 
@@ -491,7 +499,7 @@ class PreprocTools(object):
         sequence = self.params.sequence
         if sequence is None:
             sequence = self.params.available_tools
-
+            
         for tool in sequence:
             tool_params = self.params.__dict__[tool]
             if tool_params.enable:
@@ -505,3 +513,5 @@ class PreprocTools(object):
                 img = cls.__dict__[tool](img, **kwargs)
 
         return img
+
+PreprocTools._complete_class_with_tools()
