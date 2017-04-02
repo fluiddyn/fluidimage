@@ -2,30 +2,29 @@
 from __future__ import division
 
 import sys
-from copy import deepcopy, copy
-import subprocess
 
-from PyQt4 import QtGui
+from matplotlib.backends.qt_compat import QtGui
 
-from .mainwindow import Ui_MainWindow, _translate, _fromUtf8
+from .mainwindow import Ui_MainWindow
 
-from fluiddyn.util import time_as_str
 from fluiddyn.util.paramcontainer_gui import QtParamContainer
+from fluiddyn.util.paramcontainer import ParamContainer
 
-from fluidimage.topologies.pre_proc import TopologyPreproc
-from fluidimage.topologies.piv import TopologyPIV
+from fluidimage.topologies.launcher import (
+    TopologyPreprocLauncher,
+    TopologyPIVLauncher)
 
 
 class Program(QtGui.QMainWindow, Ui_MainWindow):
 
     def __init__(self):
-        topologies = [TopologyPreproc, TopologyPIV]
+        topologies = [TopologyPreprocLauncher, TopologyPIVLauncher]
         self.topologies = {cls.__name__: cls for cls in topologies}
 
         QtGui.QMainWindow.__init__(self)
         self.setupUi(self)
 
-        topo_names = ['TopologyPreproc', 'TopologyPIV']
+        topo_names = ['TopologyPreprocLauncher', 'TopologyPIVLauncher']
         self.actions = {}
 
         for topo_name in topo_names:
@@ -38,8 +37,18 @@ class Program(QtGui.QMainWindow, Ui_MainWindow):
 
             action.triggered.connect(func)
 
+        self.actionOpen.triggered.connect(self.open_file)
+
     def closeEvent(self, QCloseEvent):
         pass
+
+    def open_file(self):
+        path_file = QtGui.QFileDialog.getOpenFileName(
+            self.centralwidget, 'OpenFile')
+
+        params = ParamContainer(path_file=path_file)
+        print(params)
+        raise NotImplementedError
 
     def init_topo(self, topo_name):
         Topology = self.topologies[topo_name]

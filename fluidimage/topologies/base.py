@@ -90,7 +90,20 @@ _nb_max_workers = nb_max_workers
 
 
 class TopologyBase(object):
-    """Base class for topologies of treatment."""
+    """Base class for topologies of treatment.
+
+    Parameters
+    ----------
+
+    queues
+
+    path_output: None
+
+    logging_level: 'info'
+
+    nb_max_workers: None
+
+    """
     def __init__(self, queues, path_output=None, logging_level='info',
                  nb_max_workers=None):
 
@@ -140,7 +153,22 @@ class TopologyBase(object):
             signal.signal(12, handler_signals)
 
     def compute(self, sequential=None, has_to_exit=True):
-        """Compute (run all works to be done)."""
+        """Compute (run all works to be done).
+
+        Parameters
+        ----------
+
+        sequential: None
+
+          If bool(sequential) is True, the computations are run in sequential
+          (useful for debugging).
+
+        has_to_exit: True
+
+          If bool(has_to_exit) is True and if the computation has to stop
+          because of a signal 12 (cluster), a signal 99 is sent at exit.
+
+        """
         if hasattr(self, 'path_output'):
             logger.info('path results:\n' + self.path_output)
             if hasattr(self, 'params'):
