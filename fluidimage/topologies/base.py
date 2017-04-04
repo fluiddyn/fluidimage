@@ -115,8 +115,17 @@ class TopologyBase(object):
                 path_output,
                 'log_' + time_as_str() + '_' + str(os.getpid()) + '.txt')
             f = open(log, 'w')
-            sys.stdout = MultiFile([sys.__stdout__, f])
-            sys.stderr = MultiFile([sys.__stderr__, f])
+
+            stdout = sys.stdout
+            if isinstance(stdout, MultiFile):
+                stdout = sys.__stdout__
+
+            stderr = sys.stderr
+            if isinstance(stderr, MultiFile):
+                stderr = sys.__stderr__
+
+            sys.stdout = MultiFile([stdout, f])
+            sys.stderr = MultiFile([stderr, f])
 
         if logging_level is not None:
             for handler in logger.handlers:

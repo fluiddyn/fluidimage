@@ -48,6 +48,8 @@ fluidimage/**.dot
 doc/ipynb/*.rst
 doc/ipynb/.ipynb_checkpoints/*
 
+*/.ipynb_checkpoints/*
+
 doc/examples/oar_launcher*
 
 fluidimage/post_proc/*.h5
