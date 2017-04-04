@@ -152,10 +152,13 @@ threshold_tps :  float
         piv_result = couple
 
         for i, work_piv in enumerate(self.works_piv):
+            # print(i, work_piv)
             work_fix = self.works_fix[i]
             piv_result = work_piv.calcul(piv_result)
             piv_result = work_fix.calcul(piv_result)
             results.append(piv_result)
+
+        # print(results)
 
         try:
             work_piv.apply_interp(piv_result, last=True)

@@ -25,6 +25,11 @@ class SubPix(object):
     methods = ['2d_gaussian', '2d_gaussian2', 'centroid', 'no_subpix']
 
     def __init__(self, method='centroid', nsubpix=None):
+        if method == '2d_gaussian2' and nsubpix is not None:
+                raise ValueError(
+                    "Subpixel method '2d_gaussian2' doesn't require nsubpix. "
+                    "In this case, nsubpix has to be equal to None.")
+
         self.prepare_subpix(method, nsubpix)
 
     def prepare_subpix(self, method, nsubpix):

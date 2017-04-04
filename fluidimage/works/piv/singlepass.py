@@ -71,12 +71,6 @@ class BaseWorkPIV(BaseWork):
 
         if params is None:
             params = self.__class__.create_default_params()
-        else:
-            if params.piv0.method_subpix == "2d_gaussian2" and \
-               params.piv0.nsubpix is not None:
-                raise ValueError(
-                    "Subpixel method '2d_gaussian2' doesn't require nsubpix. "
-                    "params.piv0.nsubpix has to be equal to None")
         self.params = params
 
         overlap = params.piv0.grid.overlap
@@ -384,8 +378,8 @@ class FirstWorkPIV(BaseWorkPIV):
             'delta_max': None,
             'delta_mean': None,
             'method_correl': 'fftw',
-            'method_subpix': '2d_gaussian',
-            'nsubpix': 1,
+            'method_subpix': '2d_gaussian2',
+            'nsubpix': None,
             'coef_correl_no_displ': None})
 
         params.piv0._set_doc("""Parameters describing one PIV step.
@@ -401,9 +395,9 @@ delta_mean : None
 
 method_correl : str, {'fftw', ...}
 
-method_subpix : str, {'2d_gaussian', ...}
+method_subpix : str, {'2d_gaussian2', ...}
 
-nsubpix : 1
+nsubpix : None
     Integer used in the subpix finder. It is related to the typical size of the
     particles. It has to be increased in case of peak locking (plot the
     histograms of the displacements).

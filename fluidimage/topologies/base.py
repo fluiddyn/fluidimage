@@ -245,6 +245,22 @@ class TopologyBase(object):
                (any([not q.is_empty() for q in self.queues]) or
                 len(workers) > 0)):
 
+            # debug
+            if logger.level == 10 and \
+               all([q.is_empty() for q in self.queues]) and len(workers) == 1:
+                for worker in workers:
+                    try:
+                        is_alive = worker.is_alive()
+                    except AttributeError:
+                        is_alive = None
+
+                    logger.debug(
+                        str((worker, worker.exitcode, is_alive)))
+
+                    if time() - worker.t_start > 60:
+                        from fluiddyn.debug import ipydebug
+                        ipydebug()
+
             self.nb_workers = len(workers)
 
             # slow down this loop...

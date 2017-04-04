@@ -35,8 +35,7 @@ logger = logging.getLogger('fluidimage')
 
 
 def tidy_uvmat_instructions(params):
-
-    params._tag = 'instructions_uvmat'
+    params._set_internal_attr('_tag', 'instructions_uvmat')
 
     # get nicer names and a simpler organization...
     tidy_container(params)

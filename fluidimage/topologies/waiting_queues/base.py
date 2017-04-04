@@ -70,7 +70,7 @@ class WaitingQueueBase(dict):
                 try:
                     cls = work.__class__
                     work_name = (cls.__module__ + '.' + cls.__name__ + '.' +
-                                 work.__name__)  
+                                 work.__name__)
                 except AttributeError:
                     work_name = work.__module__ + '.' + work.__name__
 
@@ -139,7 +139,9 @@ class WaitingQueueBase(dict):
 
 
 def exec_work_and_comm(work, o, comm):
+    # print('start', work, o, comm)
     result = work(o)
+    # print('comm', work, o, comm)
     comm.put(result)
 
 
@@ -200,9 +202,10 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
 
         comm = self._Queue()
         p = self._Process(target=exec_work_and_comm, args=(self.work, o, comm))
-        t_start = time()
+        p.t_start = t_start = time()
         p.start()
         p.comm = comm
+        p.k = k
 
         # we do this after p.start() because an error can be raised here
         assert k == self._keys.pop(0)
@@ -219,7 +222,7 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
             if isinstance(p, multiprocessing.Process):
                 if p.exitcode:
                     logger.exception(cstring(
-                        'Error in work (thread): '
+                        'Error in work (Process): '
                         'work_name = {}; key = {}; exitcode = {}'.format(
                             self.work_name, k, p.exitcode),
                         color='FAIL'))

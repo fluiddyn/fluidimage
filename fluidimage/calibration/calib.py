@@ -35,10 +35,10 @@ def get_plane_equation(z0, alpha, beta):
 def get_base_from_normal_vector(nx, ny, nz):
         # matrix of base change from a given plane to the fixed plane
         # n has to be approximately vertical: i.e. nz approx. 1
-        
+
         ez = np.array([nx, ny, nz])
         ez = ez / np.linalg.norm(ez)
-        
+
         ex1, ex2 = 1, 0
         ex3 = -(ex1 * nx + ex2 * ny) / nz
         ex = np.array([ex1, ex2, ex3])
@@ -47,89 +47,85 @@ def get_base_from_normal_vector(nx, ny, nz):
         ey = np.cross(ez, ex)
         A = np.vstack([ex, ey, ez]).transpose()
         return A, np.linalg.inv(A)
-    
+
 class Interpolent():
     pass
 
-class ParamCalibration(ParamContainer):
 
-    def __init__(self, tag=None, attribs=None,
-                 path_file=None, elemxml=None, hdf5_object=None):
+def make_params_calibration(path_file):
 
-        if path_file is None:
-            super(ParamCalibration, self).__init__(
-                tag=tag, attribs=attribs,
-                elemxml=elemxml, hdf5_object=hdf5_object)
-            return
+    params = ParamContainer(tag='calib')
 
-        super(ParamCalibration, self).__init__(tag='calib')
+    calib_uvmat = ParamContainer(path_file=path_file)
+    tidy_container(calib_uvmat)
 
-        calib_uvmat = ParamContainer(path_file=path_file)
-        tidy_container(calib_uvmat)
+    calib_uvmat = calib_uvmat['geometry_calib']
 
-        calib_uvmat = calib_uvmat['geometry_calib']
+    f = map(
+        float, np.asarray(get_number_from_string(calib_uvmat.fx_fy)))
+    C = np.asarray(get_number_from_string(calib_uvmat.cx__cy))
+    kc = np.asarray(calib_uvmat.kc)
+    T = np.asarray(get_number_from_string(calib_uvmat.tx__ty__tz))
 
-        f = map(
-            float, np.asarray(get_number_from_string(calib_uvmat.fx_fy)))
-        C = np.asarray(get_number_from_string(calib_uvmat.cx__cy))
-        kc = np.asarray(calib_uvmat.kc)
-        T = np.asarray(get_number_from_string(calib_uvmat.tx__ty__tz))
+    R = []
+    for i in range(3):
+        R = np.hstack([
+            R, get_number_from_string(calib_uvmat['r_{}'.format(i+1)])])
 
-        R = []
-        for i in range(3):
-            R = np.hstack([
-                R, get_number_from_string(calib_uvmat['r_{}'.format(i+1)])])
+    omc = np.asarray(get_number_from_string(calib_uvmat['omc']))
 
-        omc = np.asarray(get_number_from_string(calib_uvmat['omc']))
+    params._set_attribs(
+        {'f': f, 'C': C, 'kc': kc, 'T': T, 'R': R, 'omc': omc})
 
-        self._set_attribs(
-            {'f': f, 'C': C, 'kc': kc, 'T': T, 'R': R, 'omc': omc})
+    if calib_uvmat.nb_slice is not None:
 
-        if calib_uvmat.nb_slice is not None:
+        nb_slice = np.asarray(calib_uvmat['nb_slice'])
+        zslice_coord = np.zeros([nb_slice, 3])
 
-            nb_slice = np.asarray(calib_uvmat['nb_slice'])
-            zslice_coord = np.zeros([nb_slice, 3])
-            
-            if calib_uvmat.nb_slice == 1:
-                zslice_coord[:] = get_number_from_string(
-                    calib_uvmat['slice_coord'])
-                if hasattr(calib_uvmat, 'slice_angle') and calib_uvmat['slice_angle'] is not None:
-                    slice_angle = np.zeros([nb_slice, 3])
-                    slice_angle[:] = get_number_from_string(
-                        calib_uvmat['slice_angle'])
-                else:
-                    slice_angle = [0, 0, 0]
+        if calib_uvmat.nb_slice == 1:
+            zslice_coord[:] = get_number_from_string(
+                calib_uvmat['slice_coord'])
+            if hasattr(calib_uvmat, 'slice_angle') and \
+               calib_uvmat['slice_angle'] is not None:
+                slice_angle = np.zeros([nb_slice, 3])
+                slice_angle[:] = get_number_from_string(
+                    calib_uvmat['slice_angle'])
             else:
+                slice_angle = [0, 0, 0]
+        else:
+            for i in range(nb_slice):
+                zslice_coord[i][:] = get_number_from_string(
+                    calib_uvmat['slice_coord_{}'.format(i+1)])
+
+            if hasattr(calib_uvmat, 'slice_angle_1') and \
+               calib_uvmat['slice_angle_1'] is not None:
+                slice_angle = np.zeros([nb_slice, 3])
                 for i in range(nb_slice):
-                    zslice_coord[i][:] = get_number_from_string(
-                        calib_uvmat['slice_coord_{}'.format(i+1)])
+                    slice_angle[i][:] = get_number_from_string(
+                        calib_uvmat['slice_angle_{}'.format(i+1)])
+            else:
+                slice_angle = [0, 0, 0]
 
-                if hasattr(calib_uvmat, 'slice_angle_1') and calib_uvmat['slice_angle_1'] is not None:
-                    slice_angle = np.zeros([nb_slice, 3])
-                    for i in range(nb_slice):
-                        slice_angle[i][:] = get_number_from_string(
-                            calib_uvmat['slice_angle_{}'.format(i+1)])
-                else:
-                    slice_angle = [0, 0, 0]
+        params._set_child('slices', attribs={
+            'nb_slice': nb_slice,
+            'zslice_coord': zslice_coord,
+            'slice_angle': slice_angle})
 
-            self._set_child('slices', attribs={
-                'nb_slice': nb_slice,
-                'zslice_coord': zslice_coord,
-                'slice_angle': slice_angle})
+    if hasattr(calib_uvmat, 'refraction_index'):
+        params._set_attrib('refraction_index', calib_uvmat.refraction_index)
 
-        if hasattr(calib_uvmat, 'refraction_index'):
-            self._set_attrib('refraction_index', calib_uvmat.refraction_index)
+    if hasattr(calib_uvmat, 'interface_coord'):
+        params._set_attrib(
+            'interface_coord',
+            get_number_from_string(calib_uvmat['interface_coord']))
 
-        if hasattr(calib_uvmat, 'interface_coord'):
-            self._set_attrib(
-                'interface_coord',
-                get_number_from_string(calib_uvmat['interface_coord']))
+    return params
 
 
 class Calibration(object):
     def __init__(self, path_file):
         self.path_file=path_file;
-        self.params = ParamCalibration(path_file=path_file)
+        self.params = make_params_calibration(path_file)
 
     def pix2phys_UV(self, X, Y, dx, dy, index_level, nbypix, angle=True):
         """Apply Tsai Calibration to the field
@@ -156,7 +152,7 @@ class Calibration(object):
 
     def pix2phys(self, X, Y, index_level, nbypix, angle=True):
         params = copy.deepcopy(self.params)
-        Y = nbypix-Y # difference of convention with calibration done with uvmat!       
+        Y = nbypix-Y # difference of convention with calibration done with uvmat!
         # determine position of Z0
         testangle = 0
         if hasattr(params.slices, 'slice_angle') and \
@@ -211,7 +207,7 @@ class Calibration(object):
             #R[6]= params.R[2]
             #R[5]= params.R[5]
             #R[7]= params.R[7]
-            
+
             if testangle:
                 a = -norm_plane[0]/norm_plane[2]
                 b = -norm_plane[1]/norm_plane[2]
@@ -321,7 +317,7 @@ class Calibration(object):
         return X, Y
 
     def get_coeff(Calib, X, Y, x, y, z):
-        # compute A~ coefficients 
+        # compute A~ coefficients
         R = copy.deepcopy(self.R)
         T_z = copy.deepcopy(self.T[2])
         T = R[6] * x + R[7]*y+R[8] * z + T_z;
@@ -370,12 +366,12 @@ class StereoReconstruction(Calibration):
     def shift2z(xmid, ymid, u, v):
         z=0;
         error=0;
-        
+
         # first image
         R = self.field1.R
         T = self.field1.T
         x_a = xmid - u/2
-        y_a = ymid - v/2 
+        y_a = ymid - v/2
         z_a = R[6] * x_a + R[7] * y_a + T[0,2]
         Xa = (R[0] * x_a + R[1] * y_a + T[0, 0]) / z_a
         Ya = (R[3] * x_a + R[4] * y_a + T[0,1]) / z_a
@@ -396,7 +392,7 @@ class StereoReconstruction(Calibration):
         R = self.field2.R
         T = self.field2.T
         x_b = xmid - u/2
-        y_b = ymid - v/2 
+        y_b = ymid - v/2
         z_b = R[6] * x_b + R[7] * y_b + T[0,2]
         Xb = (R[0] * x_b + R[1] * y_b + T[0, 0]) / z_b
         Yb = (R[3] * x_b + R[4] * y_b + T[0,1]) / z_b
@@ -421,8 +417,8 @@ class StereoReconstruction(Calibration):
         ynew[0,:] = Dya * z + y_a;
         ynew[1,:] = Dyb * z + y_b;
         Xphy=mean(xnew,0);
-        Yphy=mean(ynew,0); 
-        
+        Yphy=mean(ynew,0);
+
         return z, Xphy, Yphy, error
 
     def stereo_reconstruction(X1, Y1, U1, V1, Xa, Ya, X2, Y2, U2, V2, Xb, Yb):
@@ -431,24 +427,24 @@ class StereoReconstruction(Calibration):
         # yI=ObjectData.RangeY(1):ObjectData.DY:ObjectData.RangeY(2);
         # XI, YI = np.meshgrid(xI, yI);
         # ZI = ??
-        
+
         U=zeros(size(XI,1),size(XI,2));
         V=zeros(size(XI,1),size(XI,2));
         W=zeros(size(XI,1),size(XI,2));
-        
+
         Ua = np.griddata(X1, Y1, U1, Xa, Ya)
         Va = np.griddata(X1,Y1,V1,Xa,Ya);
         Ua, Va, Xa, Ya = self.field1.Ud2U(Xa,Ya,Ua,Va)
         A = self.field1.get_coeff(Xa,Ya,XI,YI,ZI)
-    
+
         Ub=griddata(X2,Y2,U2,Xb,Yb);
         Vb=griddata(X2,Y2,V2,Xb,Yb);
         Ub, Vb, Xb, Yb = self.field2.Ud2U(Xb, Yb, Ub, Vb)
         B = self.field2.get_coeff(Xb, Yb, XI, YI, ZI)
-    
+
         S = ones(size(XI,0), size(XI,1), 3);
         D = np.ones(size(XI,0), size(XI,1), 3, 3);
-    
+
         S[:, :, 0] = A[:, :, 0, 0] * Ua + A[: ,: ,1 ,0] * Va + B[:, :, 0, 0] *\
                      Ub + B[:, :, 1, 0] * Vb
         S[:, :, 1] = A[:, :, 0, 1] * Ua + A[:, : ,1, 1] * Va + B[:, :, 0, 1] * \
@@ -470,7 +466,7 @@ class StereoReconstruction(Calibration):
         D[:, :, 1, 1] = A[:, :, 0, 1] * A[:, :, 0, 1] + A[:, :, 1, 1] *\
                         A[:, :, 1, 1] + B[:, :, 0, 1] * B[: ,: ,0 ,1] +\
                         B[:, :, 1, 1] * B[:, :, 1, 1]
-        
+
         D[:, :, 1, 2] = A[:, :, 0, 1] *A[:, :, 0, 2] + A[:, :, 1, 1] *\
                         A[:, :, 1, 2] + B[:, :, 0, 1] * B[:, :, 0, 2] + \
                         B[:, :, 1, 1] * B[:, :, 1, 2]
@@ -483,7 +479,7 @@ class StereoReconstruction(Calibration):
         D[:, :, 2, 2] = A[:, :, 0, 2]  * A[:, :, 0, 2] + A[:, :, 1, 2] * \
                         A[:, :, 0, 2] + B[:, :, 0, 2] * B[:, :, 0, 2] +\
                         B[:, :, 1, 2] * B[:, :, 1, 2]
-        
+
         for indj in range(np.size(XI)[0]):
             for indi in range(np.size(XI)[1]):
                 dxyz, resid,rank, s = np.linalg.lstsq(
@@ -1049,10 +1045,5 @@ if __name__ == "__main__":
     calib2 = CalibDirect(pathimg, nb_pixelx, nb_pixely)
     calib2.compute_interpolents()
     calib2.compute_interppixel2line(nbline_x, nbline_y, test=True)
-    calib2.save('/.fsdyn_people/campagne8a/project/15DELDUCA/tmp/4th_PIV-Challenge_Case_E/E_Calibration_Images/Camera_03/calib3.npy')    
+    calib2.save('/.fsdyn_people/campagne8a/project/15DELDUCA/tmp/4th_PIV-Challenge_Case_E/E_Calibration_Images/Camera_03/calib3.npy')
     # stereo = DirectStereoReconstruction('calib1.npy', nb_pixelx, nb_pixely, 'calib2.npy', nb_pixelx, nb_pixely)
-    
-
-    
-
-
