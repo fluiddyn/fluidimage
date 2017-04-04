@@ -26,6 +26,9 @@ from ..config import get_config
 from .waiting_queues.base import WaitingQueueThreading
 from .. import config_logging
 
+_stdout_at_import = sys.stdout
+_stderr_at_import = sys.stderr
+
 config = get_config()
 
 dt = 0.25  # s
@@ -118,11 +121,11 @@ class TopologyBase(object):
 
             stdout = sys.stdout
             if isinstance(stdout, MultiFile):
-                stdout = sys.__stdout__
+                stdout = _stdout_at_import
 
             stderr = sys.stderr
             if isinstance(stderr, MultiFile):
-                stderr = sys.__stderr__
+                stderr = _stderr_at_import
 
             sys.stdout = MultiFile([stdout, f])
             sys.stderr = MultiFile([stderr, f])
@@ -327,8 +330,8 @@ class TopologyBase(object):
         self._reset_std_as_default()
 
     def _reset_std_as_default(self):
-        sys.stdout = sys.__stdout__
-        sys.stderr = sys.__stderr__
+        sys.stdout = _stdout_at_import
+        sys.stderr = _stderr_at_import
 
     def _clear_save_queue(self, workers, sequential):
         """Clear the last queue (which is often saving) before stopping."""

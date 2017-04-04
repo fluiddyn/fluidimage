@@ -63,8 +63,8 @@ Parameters indicating the input series of images
 
 path: str, {''}
 
-    String indicating the input images (can be a full path towards a image file
-    or a string given to `glob`).
+    String indicating the input images (can be a full path towards an image
+    file or a string given to `glob`).
 
 strcouple: 'i:i+2'
 
@@ -74,8 +74,8 @@ strcouple: 'i:i+2'
     the function range (`range(ind_start, ind_stop, ind_step)`).
 
     Python slicing is a very powerful notation to define subset from a
-    (possibly multidimensional) set of images. An alternative is to understand
-    how Python slicing works. See for example this page:
+    (possibly multidimensional) set of images. For a user, an alternative is to
+    understand how Python slicing works. See for example this page:
     http://stackoverflow.com/questions/509211/explain-pythons-slice-notation.
 
     Another possibility is to follow simple examples:
