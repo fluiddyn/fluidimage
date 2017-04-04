@@ -10,11 +10,12 @@ from matplotlib.widgets import TextBox, Button
 
 from fluiddyn.io.image import imread
 
-extensions = ['png', 'tif', 'tiff' 'jpg', 'jpeg']
+extensions = ['png', 'tif', 'tiff' 'jpg', 'jpeg', 'bmp']
 extensions = ['.' + ext for ext in extensions]
 
+
 def check_image(path):
-    return any(map(path.endswith, extensions))
+    return any([path.endswith(ext) for ext in extensions])
 
 
 size_button = 0.06
@@ -150,7 +151,7 @@ class ImageViewer(object):
             im, interpolation='nearest', cmap=self.cmap, origin='upper',
             extent=[0, im.shape[1], im.shape[0], 0],
             vmin=self.clim[0], vmax=self.clim[1])
-        self.maps[i] = self.mappable
+        self.maps[ifile] = self.mappable
 
     def get_namefile(self):
         return os.path.split(self.path_files[self.ifile])[-1]
