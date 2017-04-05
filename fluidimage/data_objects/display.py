@@ -93,7 +93,7 @@ class DisplayPIV(object):
                 deltays = piv_results.deltays
                 xs = piv_results.xs
                 ys = piv_results.ys
-                
+
             if im0 is None:
                 deltays *= -1
 
@@ -102,7 +102,8 @@ class DisplayPIV(object):
                 deltaxs, -deltays,
                 picker=20, color='g',  scale=scale)
 
-            self.inds_error = inds_error = piv_results.deltays_wrong.keys()
+            self.inds_error = inds_error = list(
+                piv_results.deltays_wrong.keys())
 
             if show_error:
                 xs_wrong = xs[inds_error]

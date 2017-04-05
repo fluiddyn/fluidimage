@@ -112,7 +112,9 @@ class DataObject(object):
 class ArrayCouple(DataObject):
     def __init__(
             self, names=None, arrays=None, serie=None,
-            str_path=None, hdf5_parent=None):
+            str_path=None, hdf5_parent=None, params_mask=None):
+
+        self.params_mask = params_mask
 
         if str_path is not None:
             self._load(path=str_path)
@@ -130,15 +132,37 @@ class ArrayCouple(DataObject):
             self.paths = tuple(os.path.abspath(p) for p in paths)
 
             if arrays is None:
-                arrays = serie.get_arrays()
+                arrays = self._read_images()
 
         self.names = tuple(names)
-        self.arrays = tuple(arrays)
+        self.arrays = self._mask_arrays(arrays)
         self.serie = serie
+
+    def _read_image(self, index):
+        arr = imread(self.paths[index])
+        return arr
+
+    def _read_images(self):
+        return tuple(self._read_image(i) for i in [0, 1])
+
+    def _mask_array(self, array):
+        if self.params_mask is None:
+            return array
+
+        if self.params_mask.strcrop is not None:
+            indices = tuple(slice(*(int(i) if i else None
+                                    for i in part.strip().split(':')))
+                            for part in self.params_mask.strcrop.split(','))
+            array = array[indices]
+
+        return array
+
+    def _mask_arrays(self, arrays):
+        return tuple(self._mask_array(arr) for arr in arrays)
 
     def get_arrays(self):
         if not hasattr(self, 'arrays'):
-            self.arrays = tuple(imread(path) for path in self.paths)
+            self.arrays = self._mask_arrays(self._read_images())
 
         return self.arrays
 
@@ -155,11 +179,11 @@ class ArrayCouple(DataObject):
         group.attrs['paths'] = str(self.paths).encode()
 
         if not hasattr(self, 'arrays'):
-            im0 = imread(self.paths[0])
+            arr0 = self._mask_array(self._read_image(0))
         else:
-            im0 = self.arrays[0]
+            arr0 = self.arrays[0]
 
-        group.create_dataset('shape_images', data=im0.shape)
+        group.create_dataset('shape_images', data=arr0.shape)
 
     def _load(self, path=None, hdf5_object=None):
 

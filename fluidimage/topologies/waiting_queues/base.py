@@ -396,4 +396,5 @@ class WaitingQueueMakeCouple(WaitingQueueBase):
                             self.nb_couples_to_create[k1] - 1
 
                     self.destination[newk] = ArrayCouple(
-                        (k0, k1), (v0, v1), serie)
+                        (k0, k1), (v0, v1), serie,
+                        params_mask=self.topology.params.mask)

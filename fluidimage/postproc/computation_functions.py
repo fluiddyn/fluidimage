@@ -81,10 +81,10 @@ def oneD_fourier_transform(x, signal, axis=0, parseval=False):
     psd =1.0/Lomega/n* np.abs(ft)**2
 
     if parseval:
-        print 'np.sum(signal**2) * dx / Lx ='
-        print np.sum(signal**2) * dx / Lx
-        print 'np.sum(psd) * domega='
-        print np.sum(psd) * domega
+        print('np.sum(signal**2) * dx / Lx =')
+        print(np.sum(signal**2) * dx / Lx)
+        print('np.sum(psd) * domega=')
+        print(np.sum(psd) * domega)
 
     return ft, omega, psd
 
@@ -128,10 +128,10 @@ def twoD_fourier_transform(X, Y, U, axis =(1,2) ,parseval=False):
     psd = 1.0/Lkx/nx/Lky/ny* np.abs(ft)**2
 
     if parseval:
-        print 'np.sum(signal**2)* dx* dy/ Lx/ Ly'
-        print np.sum(np.power(U,2)* 1.0 * dx * dy/ Lx/ Ly)
-        print 'np.sum(psd) *dkx * dky ='
-        print np.sum(psd) * 1.0 * dkx * dky
+        print('np.sum(signal**2)* dx* dy/ Lx/ Ly')
+        print(np.sum(np.power(U, 2) * 1.0 * dx * dy / Lx / Ly))
+        print('np.sum(psd) *dkx * dky =')
+        print(np.sum(psd) * 1.0 * dkx * dky)
 
 
     return ft, kx, ky, psd

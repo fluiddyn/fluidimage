@@ -162,7 +162,7 @@ class BaseWorkPIV(BaseWork):
 
     def calcul(self, couple):
         if isinstance(couple, SerieOfArraysFromFiles):
-            couple = ArrayCouple(serie=couple)
+            couple = ArrayCouple(serie=couple, params_mask=self.params.mask)
 
         if not isinstance(couple, ArrayCouple):
             raise ValueError
@@ -417,7 +417,16 @@ from : str {'overlap'}
     Keyword for the method from which is computed the grid.
 """)
 
-        params._set_child('mask', attribs={})
+        params._set_child('mask', attribs={'strcrop': None})
+
+        params.mask._set_doc("""
+Parameters describing how images are masked.
+
+strcrop : None, str
+
+    Two-dimensional slice (for example '100:600, :'). If None, the whole image
+    is used.
+""")
 
 
 class WorkPIVFromDisplacement(BaseWorkPIV):
