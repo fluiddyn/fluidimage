@@ -139,13 +139,6 @@ threshold_tps :  float
 
     def calcul(self, couple):
 
-        # if hasattr(couple, 'serie'):
-        #     serie = couple.serie
-        # else:
-        #     serie = couple
-        # name = get_name_piv(serie)[:-3]
-        # sys.stdout = open('log_' + name + '_' + str(os.getpid()), 'w')
-
         results = MultipassPIVResults()
 
         # just for simplicity

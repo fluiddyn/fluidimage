@@ -175,8 +175,8 @@ class ArrayCouple(DataObject):
 
         hdf5_parent.create_group('couple')
         group = hdf5_parent['couple']
-        group.attrs['names'] = str(self.names).encode()
-        group.attrs['paths'] = str(self.paths).encode()
+        group.attrs['names'] = repr(self.names).encode()
+        group.attrs['paths'] = repr(self.paths).encode()
 
         if not hasattr(self, 'arrays'):
             arr0 = self._mask_array(self._read_image(0))
@@ -189,10 +189,13 @@ class ArrayCouple(DataObject):
 
         if path is not None:
             raise NotImplementedError
-        self.names = tuple(hdf5_object.attrs['names'][5:].split(b"', u'"))
-        self.paths = tuple(hdf5_object.attrs['paths'][5:].split(b"', u'"))
-        # self.names = tuple(hdf5_object.attrs['names'])
-        # self.paths = tuple(hdf5_object.attrs['paths'])
+
+        names = hdf5_object.attrs['names'].decode()
+        paths = hdf5_object.attrs['paths'].decode()
+
+        self.names = eval(names)
+        self.paths = eval(paths)
+
         try:
             self.shape_images = hdf5_object['shape_images'].value
         except KeyError:
@@ -342,9 +345,13 @@ class HeavyPIVResults(DataObject):
 
         if not hasattr(self, 'params'):
             self.params = ParamContainer(hdf5_object=f['params'])
+            try:
+                params_mask = self.params.mask
+            except AttributeError:
+                params_mask = None
 
         if not hasattr(self, 'couple'):
-            self.couple = ArrayCouple(hdf5_parent=f)
+            self.couple = ArrayCouple(hdf5_parent=f, params_mask=params_mask)
 
         for k in self._keys_to_be_saved:
             if k in g_piv:
@@ -438,7 +445,13 @@ class MultipassPIVResults(DataObject):
         self.file_name = os.path.basename(path)
         with h5py.File(path, 'r') as f:
             self.params = ParamContainer(hdf5_object=f['params'])
-            self.couple = ArrayCouple(hdf5_parent=f)
+
+            try:
+                params_mask = self.params.mask
+            except AttributeError:
+                params_mask = None
+
+            self.couple = ArrayCouple(hdf5_parent=f, params_mask=params_mask)
 
             nb_passes = f.attrs['nb_passes']
 
@@ -636,7 +649,11 @@ class LightPIVResults(DataObject):
     def _load(self, path):
         with h5py.File(path, 'r') as f:
             self.params = ParamContainer(hdf5_object=f['params'])
-            self.couple = ArrayCouple(hdf5_parent=f)
+            try:
+                params_mask = self.params.mask
+            except AttributeError:
+                params_mask = None
+            self.couple = ArrayCouple(hdf5_parent=f, params_mask=params_mask)
 
         with h5py.File(path, 'r') as f:
             self._load_from_hdf5_object(f['piv'])
@@ -647,9 +664,13 @@ class LightPIVResults(DataObject):
 
         if not hasattr(self, 'params'):
             self.params = ParamContainer(hdf5_object=f['params'])
+            try:
+                params_mask = self.params.mask
+            except AttributeError:
+                params_mask = None
 
         if not hasattr(self, 'couple'):
-            self.couple = ArrayCouple(hdf5_parent=f)
+            self.couple = ArrayCouple(hdf5_parent=f, params_mask=params_mask)
 
         for k in self._keys_to_be_saved:
             dataset = g_piv[k]

@@ -155,6 +155,7 @@ class BaseWorkPIV(BaseWork):
         iyvecs = np.arange(niwo2[0], len_y-niwo2[0], stepy, dtype=int)
         self.ixvecs = ixvecs
         self.iyvecs = iyvecs
+
         iyvecs, ixvecs = np.meshgrid(iyvecs, ixvecs)
 
         self.ixvecs_grid = ixvecs.flatten()
@@ -236,6 +237,12 @@ class BaseWorkPIV(BaseWork):
 
             if im0crop.shape != self.n_interrogation_window0 or \
                im1crop.shape != self.n_interrogation_window1:
+
+                print('Warning: Bad im_crop shape.',
+                      ixvec0, iyvec0, ixvec1, iyvec1,
+                      im0crop.shape, self.n_interrogation_window0,
+                      im1crop.shape, self.n_interrogation_window1)
+
                 deltaxs[ivec] = np.nan
                 deltays[ivec] = np.nan
                 correls_max[ivec] = np.nan
@@ -292,9 +299,9 @@ class BaseWorkPIV(BaseWork):
         return subim - subim.mean()
 
     def apply_interp(self, piv_results, last=False):
-        couple = piv_results.couple
+        # couple = piv_results.couple
 
-        im0, im1 = couple.get_arrays()
+        # im0, im1 = couple.get_arrays()
         if not last and not hasattr(piv_results, 'ixvecs_approx'):
             piv_results.ixvecs_approx = self.ixvecs_grid
             piv_results.iyvecs_approx = self.iyvecs_grid

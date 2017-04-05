@@ -18,7 +18,7 @@ from .waiting_queues.base import (
     WaitingQueueMakeCouple, WaitingQueueLoadImage)
 
 from ..works.piv import WorkPIV
-from ..data_objects.piv import get_name_piv, set_path_dir_result
+from ..data_objects.piv import get_name_piv, set_path_dir_result, ArrayCouple
 from ..util.util import logger
 
 
@@ -237,6 +237,16 @@ postfix: str
         k, o = self.wq0.popitem()
         im = self.wq0.work(o)
         self.wq0.fill_destination(k, im)
+
+        # a little bit strange, to apply mask...
+        try:
+            params_mask = self.params.mask
+        except AttributeError:
+            params_mask = None
+
+        couple = ArrayCouple(
+            names=(0, 0), arrays=(im, im), params_mask=params_mask)
+        im, _ = couple.get_arrays()
 
         self.piv_work._prepare_with_image(im)
 

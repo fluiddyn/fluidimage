@@ -6,7 +6,7 @@ from fluidimage.works.piv import WorkPIV
 params = WorkPIV.create_default_params()
 
 params.multipass.number = 2
-params.multipass.use_tps = False
+params.multipass.use_tps = True
 
 params.piv0.shape_crop_im0 = 32
 params.fix.correl_min = 0.2
@@ -16,11 +16,14 @@ params.mask.strcrop = ':, 50:500'
 
 work = WorkPIV(params=params)
 
-series = SeriesOfArrays('../../image_samples/Oseen/Images', 'i+1:i+3')
+path = '../../image_samples/Oseen/Images'
+# path = '../../image_samples/Karman/Images'
+series = SeriesOfArrays(path, 'i+1:i+3')
 serie = series.get_serie_from_index(0)
 
 piv = work.calcul(serie)
 
-piv.display(show_interp=False, scale=80, show_error=True)
+piv.display(show_interp=True, scale=80, show_error=True)
+# piv.display(show_interp=False, scale=80, show_error=True)
 
 # result.save()
