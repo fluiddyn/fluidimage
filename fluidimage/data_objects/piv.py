@@ -135,6 +135,7 @@ class ArrayCouple(DataObject):
                 arrays = self._read_images()
 
         self.names = tuple(names)
+        self.name = '-'.join(self.names)
         self.arrays = self._mask_arrays(arrays)
         self.serie = serie
 

@@ -138,10 +138,15 @@ class WaitingQueueBase(dict):
                 self.topology.nb_items_lim)
 
 
-def exec_work_and_comm(work, o, comm):
-    # print('start', work, o, comm)
+def exec_work_and_comm(work, o, comm, comm_started):
+    # try:
+    #     name = o.name
+    # except AttributeError:
+    #     name = repr(o)
+    # print('start', work, name)
+    comm_started.put(True)
     result = work(o)
-    # print('comm', work, o, comm)
+    # print('work finished, communication.', work, name)
     comm.put(result)
 
 
@@ -189,9 +194,6 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
 
     def _launch_worker(self):
 
-        # k = self._keys.pop(0)
-        # o = self.pop(k)
-
         k = self._keys[0]
         o = self[k]
 
@@ -201,11 +203,18 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
             ' ({}). mem usage'.format(k))
 
         comm = self._Queue()
-        p = self._Process(target=exec_work_and_comm, args=(self.work, o, comm))
+        comm_started = self._Queue()
+        p = self._Process(target=exec_work_and_comm,
+                          args=(self.work, o, comm, comm_started))
         p.t_start = t_start = time()
-        p.start()
         p.comm = comm
-        p.k = k
+        p.key = k
+
+        # to handle a bug py3 multiprocessing
+        p.comm_started = comm_started
+        p.really_started = False
+
+        p.start()
 
         # we do this after p.start() because an error can be raised here
         assert k == self._keys.pop(0)
@@ -221,7 +230,7 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
         def fill_destination():
             if isinstance(p, multiprocessing.Process):
                 if p.exitcode:
-                    logger.exception(cstring(
+                    logger.error(cstring(
                         'Error in work (Process): '
                         'work_name = {}; key = {}; exitcode = {}'.format(
                             self.work_name, k, p.exitcode),
@@ -245,7 +254,7 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
                     return False
             else:
                 if p.exitcode:
-                    logger.exception(cstring(
+                    logger.error(cstring(
                         'Error in work (thread): '
                         'work_name = {}; key = {}; exitcode = {}'.format(
                             self.work_name, k, p.exitcode),
