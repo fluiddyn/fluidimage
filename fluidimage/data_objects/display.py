@@ -100,7 +100,7 @@ class DisplayPIV(object):
             self.q = ax1.quiver(
                 xs, ys,
                 deltaxs, -deltays,
-                picker=20, color='g',  scale=scale)
+                picker=20, color='g', scale_units='xy', scale=scale)
 
             self.inds_error = inds_error = list(
                 piv_results.deltays_wrong.keys())
@@ -312,9 +312,9 @@ class DisplayPreProc(object):
                 np.reshape(im1p, (1, np.product(im1p.shape))).transpose(),
                 bins='fd')
             incr = 1
-            ax3.plot(hist0[1][0:-1:incr],  hist0[0][0::incr], 'k+')
+            ax3.plot(hist0[1][0:-1:incr], hist0[0][0::incr], 'k+')
             ax3.plot(hist0p[1][0:-1:incr], hist0p[0][0::incr], 'r+')
-            ax4.plot(hist1[1][0:-1:incr],  hist1[0][0::incr], 'k+')
+            ax4.plot(hist1[1][0:-1:incr], hist1[0][0::incr], 'k+')
             ax4.plot(hist1p[1][0:-1:incr], hist1p[0][0::incr], 'r+')
 
             ax3.set_xlim(-10, max([p0, p0p]))
