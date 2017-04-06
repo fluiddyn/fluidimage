@@ -25,7 +25,7 @@ tidy_uvmat_instructions(instructions)
 
 params = params_from_uvmat_xml(instructions)
 
-params.series.ind_start = 2
+params.series.ind_start = 0
 
 params.saving.path = os.path.split(
     os.path.dirname(xml_file))[0].replace('.civ', '.piv')
@@ -46,6 +46,6 @@ print('params.multipass.subdom_size = ', params.multipass.subdom_size)
 
 params.multipass.use_tps = True
 
-topology = TopologyPIV(params, logging_level='debug')
+topology = TopologyPIV(params, logging_level='info', nb_max_workers=None)
 
 topology.compute()

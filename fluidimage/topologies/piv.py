@@ -245,7 +245,7 @@ postfix: str
             params_mask = None
 
         couple = ArrayCouple(
-            names=(0, 0), arrays=(im, im), params_mask=params_mask)
+            names=('', ''), arrays=(im, im), params_mask=params_mask)
         im, _ = couple.get_arrays()
 
         self.piv_work._prepare_with_image(im)

@@ -299,9 +299,7 @@ class BaseWorkPIV(BaseWork):
         return subim - subim.mean()
 
     def apply_interp(self, piv_results, last=False):
-        # couple = piv_results.couple
 
-        # im0, im1 = couple.get_arrays()
         if not last and not hasattr(piv_results, 'ixvecs_approx'):
             piv_results.ixvecs_approx = self.ixvecs_grid
             piv_results.iyvecs_approx = self.iyvecs_grid
@@ -326,7 +324,7 @@ class BaseWorkPIV(BaseWork):
 
         if self.params.multipass.use_tps is True or \
            self.params.multipass.use_tps == 'last' and last:
-            print('TPS interpolation.')
+            print('TPS interpolation ({}).'.format(piv_results.couple.name))
             # compute TPS coef
             smoothing_coef = self.params.multipass.smoothing_coef
             subdom_size = self.params.multipass.subdom_size

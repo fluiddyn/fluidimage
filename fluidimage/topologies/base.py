@@ -18,6 +18,12 @@ import gc
 # from copy import copy
 import threading
 
+try:
+    import queue
+except ImportError:
+    # python 2
+    import Queue as queue
+
 from fluiddyn.util import time_as_str
 from fluiddyn.util.tee import MultiFile
 from ..util.util import cstring, logger, log_memory_usage
@@ -216,20 +222,23 @@ class TopologyBase(object):
                 self.exitcode = None
                 self.daemon = True
 
+            def in_time_loop(self):
+                t_tmp = time()
+                for worker in workers:
+                    if isinstance(worker, self.cls_to_be_updated) and \
+                       worker.fill_destination():
+                        workers.remove(worker)
+                t_tmp = time() - t_tmp
+                if t_tmp > 0.2:
+                    logger.info(
+                        'update list of workers with fill_destination '
+                        'done in {:.3f} s'.format(t_tmp))
+                sleep(dt_update)
+
             def run(self):
                 try:
                     while not self.has_to_stop:
-                        t_tmp = time()
-                        for worker in workers:
-                            if isinstance(worker, self.cls_to_be_updated) and \
-                               worker.fill_destination():
-                                workers.remove(worker)
-                        t_tmp = time() - t_tmp
-                        if t_tmp > 0.2:
-                            logger.info(
-                                'update list of workers with fill_destination '
-                                'done in {:.3f} s'.format(t_tmp))
-                        sleep(dt_update)
+                        self.in_time_loop()
                 except Exception as e:
                     print('Exception in UpdateThread')
                     self.exitcode = 1
@@ -237,6 +246,30 @@ class TopologyBase(object):
 
         class CheckWorksProcess(CheckWorksThread):
             cls_to_be_updated = Process
+
+            def in_time_loop(self):
+                # weird bug subprocessing py3
+                for worker in workers:
+                    if not worker.really_started:
+                        # print('check if worker has really started.' +
+                        #       worker.key)
+                        try:
+                            worker.really_started = \
+                                worker.comm_started.get_nowait()
+                        except queue.Empty:
+                            pass
+                        if time() - worker.t_start > 4:
+                            # bug! The worker does not work. We kill it! :-)
+                            logger.error(cstring(
+                                'Mysterious bug multiprocessing: '
+                                'a launched worker has not started. '
+                                'We kill it! (key: {}).'.format(worker.key),
+                                color='FAIL'))
+                            # the case of this worker has been
+                            worker.really_started = True
+                            worker.terminate()
+
+                super(CheckWorksProcess, self).in_time_loop()
 
         self.thread_check_works_t = CheckWorksThread()
         self.thread_check_works_t.start()
@@ -249,20 +282,20 @@ class TopologyBase(object):
                 len(workers) > 0)):
 
             # debug
-            if logger.level == 10 and \
-               all([q.is_empty() for q in self.queues]) and len(workers) == 1:
-                for worker in workers:
-                    try:
-                        is_alive = worker.is_alive()
-                    except AttributeError:
-                        is_alive = None
+            # if logger.level == 10 and \
+            #    all([q.is_empty() for q in self.queues]) and len(workers) == 1:
+            #     for worker in workers:
+            #         try:
+            #             is_alive = worker.is_alive()
+            #         except AttributeError:
+            #             is_alive = None
 
-                    logger.debug(
-                        str((worker, worker.exitcode, is_alive)))
+            #         logger.debug(
+            #             str((worker, worker.key, worker.exitcode, is_alive)))
 
-                    if time() - worker.t_start > 60:
-                        from fluiddyn.debug import ipydebug
-                        ipydebug()
+            #         if time() - worker.t_start > 60:
+            #             from fluiddyn.debug import ipydebug
+            #             ipydebug()
 
             self.nb_workers = len(workers)
 
@@ -282,7 +315,7 @@ class TopologyBase(object):
                     try:
                         new_workers = q.check_and_act(sequential=sequential)
                     except OSError:
-                        logger.exception(cstring(
+                        logger.error(cstring(
                             'Memory full: to free some memory, no more '
                             'computing job will be launched while the last '
                             '(saving) waiting queue is not empty.',
@@ -391,20 +424,20 @@ class TopologyBase(object):
         txt_queue = '"{name}"\t[label="<f0> {name}|' + '|'.join(
             ['<f{}>'.format(i) for i in range(1, 5)]) + '"]\n'
 
-        for queue in self.queues:
-            code += txt_queue.format(name=queue.name)
+        for q in self.queues:
+            code += txt_queue.format(name=q.name)
 
         # works and links
         code += "\nnode [shape=\"ellipse\"]\n"
 
         txt_work = '"{name}"\t[label="{name}"]'
-        for queue in self.queues:
-            name_work = queue.work_name or str(queue.work)
+        for q in self.queues:
+            name_work = q.work_name or str(q.work)
             code += txt_work.format(name=name_work)
-            code += '"{}" -> "{}"'.format(queue.name, name_work)
-            if hasattr(queue.destination, 'name'):
+            code += '"{}" -> "{}"'.format(q.name, name_work)
+            if hasattr(q.destination, 'name'):
                 code += '"{}" -> "{}"'.format(
-                    name_work, queue.destination.name)
+                    name_work, q.destination.name)
 
         code += '}\n'
 
