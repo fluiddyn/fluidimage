@@ -86,7 +86,7 @@ class WaitingQueueBase(dict):
         else:
             index = range(min(length, 3))
             keys = [self._keys[i] for i in index]
-            keys.extend(['...',  self._keys[-1]])
+            keys.extend(['...', self._keys[-1]])
 
         length = str(length)
         return cstring('WaitingQueue', repr(self.name),
@@ -209,6 +209,7 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
         p.t_start = t_start = time()
         p.comm = comm
         p.key = k
+        p.work_name = self.work_name
 
         # to handle a bug py3 multiprocessing
         p.comm_started = comm_started

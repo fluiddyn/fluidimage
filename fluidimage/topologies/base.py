@@ -258,12 +258,14 @@ class TopologyBase(object):
                                 worker.comm_started.get_nowait()
                         except queue.Empty:
                             pass
-                        if time() - worker.t_start > 4:
+                        if not worker.really_started and \
+                           time() - worker.t_start > 10:
                             # bug! The worker does not work. We kill it! :-)
                             logger.error(cstring(
                                 'Mysterious bug multiprocessing: '
                                 'a launched worker has not started. '
-                                'We kill it! (key: {}).'.format(worker.key),
+                                'We kill it! ({}, key: {}).'.format(
+                                    worker.work_name, worker.key),
                                 color='FAIL'))
                             # the case of this worker has been
                             worker.really_started = True
