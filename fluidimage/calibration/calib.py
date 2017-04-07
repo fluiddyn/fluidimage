@@ -1,3 +1,15 @@
+"""Calibration
+==============
+
+.. autoclass:: Calibration
+   :members:
+   :private-members:
+
+.. autoclass:: StereoReconstruction
+   :members:
+   :private-members:
+
+"""
 
 import re
 import copy
@@ -7,30 +19,36 @@ import os
 import pylab
 from mpl_toolkits.mplot3d import Axes3D
 from scipy.interpolate import griddata
-from scipy.interpolate import CloughTocher2DInterpolator, LinearNDInterpolator,RegularGridInterpolator
+from scipy.interpolate import CloughTocher2DInterpolator, \
+    LinearNDInterpolator, RegularGridInterpolator
 import matplotlib.pyplot as plt
 
 from math import sin, cos, sqrt
 from fluiddyn.util.paramcontainer import ParamContainer, tidy_container
 
+
 def get_number_from_string(string):
     return map(float, re.findall(r"[-+]?\d*\.\d+|\d+", string))
 
+
 def get_number_from_string2(string):
-    s = string.split()
     return [float(s) for s in string.split()]
+
 
 def get_plane_equation(z0, alpha, beta):
     # Works only when 0 or 1 angle ~= 0
     # alpha is angle in radian around x axis
     # beta is angle in radian around y axis
     # plane is defined with ax + by + cz + d = 0
-    assert not (alpha != 0 and beta != 0)  #"Works only when 0 or 1 angle != 0"
+
+    #  "Works only when 0 or 1 angle != 0"
+    assert not (alpha != 0 and beta != 0)
     a = sin(beta)
     b = -sin(alpha) * cos(beta)
     c = cos(alpha) * cos(beta)
     d = -c * z0
     return a, b, c, d
+
 
 def get_base_from_normal_vector(nx, ny, nz):
         # matrix of base change from a given plane to the fixed plane
@@ -47,6 +65,7 @@ def get_base_from_normal_vector(nx, ny, nz):
         ey = np.cross(ez, ex)
         A = np.vstack([ex, ey, ez]).transpose()
         return A, np.linalg.inv(A)
+
 
 class Interpolent():
     pass
@@ -123,8 +142,9 @@ def make_params_calibration(path_file):
 
 
 class Calibration(object):
+    """Calibration..."""
     def __init__(self, path_file):
-        self.path_file=path_file;
+        self.path_file = path_file
         self.params = make_params_calibration(path_file)
 
     def pix2phys_UV(self, X, Y, dx, dy, index_level, nbypix, angle=True):
@@ -152,7 +172,8 @@ class Calibration(object):
 
     def pix2phys(self, X, Y, index_level, nbypix, angle=True):
         params = copy.deepcopy(self.params)
-        Y = nbypix-Y # difference of convention with calibration done with uvmat!
+        # difference of convention with calibration done with uvmat!
+        Y = nbypix - Y
         # determine position of Z0
         testangle = 0
         if hasattr(params.slices, 'slice_angle') and \
@@ -193,20 +214,20 @@ class Calibration(object):
 
         if hasattr(params, 'R'):
             R = params.R
-            #R[0]= params.R[4]
-            #R[1]= params.R[3]
-            #R[2]= params.R[5]
-            #R[4]= params.R[0]
-            #R[5]= params.R[2]
-            #R[6]= params.R[7]
-            #R[7]= params.R[6]
+            # R[0]= params.R[4]
+            # R[1]= params.R[3]
+            # R[2]= params.R[5]
+            # R[4]= params.R[0]
+            # R[5]= params.R[2]
+            # R[6]= params.R[7]
+            # R[7]= params.R[6]
 
-            #R[1]= params.R[3]
-            #R[3]= params.R[1]
-            #R[2]= params.R[6]
-            #R[6]= params.R[2]
-            #R[5]= params.R[5]
-            #R[7]= params.R[7]
+            # R[1]= params.R[3]
+            # R[3]= params.R[1]
+            # R[2]= params.R[6]
+            # R[6]= params.R[2]
+            # R[5]= params.R[5]
+            # R[7]= params.R[7]
 
             if testangle:
                 a = -norm_plane[0]/norm_plane[2]
@@ -239,7 +260,6 @@ class Calibration(object):
             A12 = R[1]*Tz-R[7]*Tx+Z12*Z0virt
             A21 = -R[6]*Ty+R[3]*Tz+Z21*Z0virt
             A22 = -R[0]*Tz+R[6]*Tx+Z22*Z0virt
-
 
             X0 = (R[4]*Tx-R[1]*Ty+Zx0*Z0virt)
             Y0 = (-R[3]*Tx+R[0]*Ty+Zy0*Z0virt)
@@ -316,11 +336,11 @@ class Calibration(object):
 
         return X, Y
 
-    def get_coeff(Calib, X, Y, x, y, z):
+    def get_coeff(self, X, Y, x, y, z):
         # compute A~ coefficients
         R = copy.deepcopy(self.R)
         T_z = copy.deepcopy(self.T[2])
-        T = R[6] * x + R[7]*y+R[8] * z + T_z;
+        T = R[6] * x + R[7]*y+R[8] * z + T_z
 
         A[:, :, 0, 0] = (R[0] - R[6] * X) / T
         A[:, :, 0, 1] = (R[1] - R[7] * X) / T
@@ -330,31 +350,35 @@ class Calibration(object):
         A[:, :, 1, 2] = (R[5] - R[8] * Y) / T
         return A
 
-    def ud2u(Xd, Yd, Ud, Vd):
-        #convert image coordinates to view angles, after removal of  quadratic distorsion
-        # input in pixel, output in radians
-        X1d = Xd-Ud/2;
-        X2d = Xd+Ud/2;
-        Y1d = Yd-Vd/2;
-        Y2d = Yd+Vd/2;
+    def ud2u(self, Xd, Yd, Ud, Vd):
+        """convert image coordinates to view angles, 
+        after removal of quadratic distorsion.
 
-        X1 = (X1d - self.C[0]) /  self.f[0] * \
-             (1 + self.kc * self.f[0]**(-2)  * (X1d - self.C[0])**2 + \
-              self.kc * self.f[1]**(-2) * (Y1d - self.C[1])**2 )**(-1)
-        X1 = (X2d - self.C[0]) /  self.f[0] * \
-             (1 + self.kc * self.f[0]**(-2)  * (X2d - self.C[0])**2 + \
-              self.kc * self.f[1]**(-2) * (Y2d - self.C[1])**2 )**(-1)
-        X1 = (Y1d - self.C[1]) /  self.f[1] * \
-             (1 + self.kc * self.f[0]**(-2)  * (X1d - self.C[0])**2 + \
-              self.kc * self.f[1]**(-2) * (Y1d - self.C[1])**2 )**(-1)
-        X1 = (Y2d - self.C[1]) /  self.f[1] * \
-             (1 + self.kc * self.f[0]**(-2)  * (X2d - self.C[0])**2 + \
-              self.kc * self.f[1]**(-2) * (Y2d - self.C[1])**2 )**(-1)
+        input in pixel, output in radians
 
-        U=X2-X1
-        V=Y2-Y1
-        X=X1+U/2
-        Y=Y1+V/2
+        """
+        X1d = Xd-Ud/2
+        X2d = Xd+Ud/2
+        Y1d = Yd-Vd/2
+        Y2d = Yd+Vd/2
+
+        X1 = (X1d - self.C[0]) / self.f[0] * \
+             (1 + self.kc * self.f[0]**(-2) * (X1d - self.C[0])**2 +
+              self.kc * self.f[1]**(-2) * (Y1d - self.C[1])**2)**(-1)
+        X1 = (X2d - self.C[0]) / self.f[0] * \
+             (1 + self.kc * self.f[0]**(-2) * (X2d - self.C[0])**2 +
+              self.kc * self.f[1]**(-2) * (Y2d - self.C[1])**2)**(-1)
+        X1 = (Y1d - self.C[1]) / self.f[1] * \
+             (1 + self.kc * self.f[0]**(-2) * (X1d - self.C[0])**2 +
+              self.kc * self.f[1]**(-2) * (Y1d - self.C[1])**2)**(-1)
+        X1 = (Y2d - self.C[1]) / self.f[1] * \
+             (1 + self.kc * self.f[0]**(-2) * (X2d - self.C[0])**2 +
+              self.kc * self.f[1]**(-2) * (Y2d - self.C[1])**2)**(-1)
+
+        U = X2 - X1
+        V = Y2 - Y1
+        X = X1 + U/2
+        Y = Y1 + V/2
         return U, V, X, Y
 
 
@@ -363,87 +387,88 @@ class StereoReconstruction(Calibration):
         self.field1 = Calibration(path_file1)
         self.field2 = Calibration(path_file2)
 
-    def shift2z(xmid, ymid, u, v):
-        z=0;
-        error=0;
+    def shift2z(self, xmid, ymid, u, v):
+        z = 0
+        error = 0
 
         # first image
         R = self.field1.R
         T = self.field1.T
         x_a = xmid - u/2
         y_a = ymid - v/2
-        z_a = R[6] * x_a + R[7] * y_a + T[0,2]
+        z_a = R[6] * x_a + R[7] * y_a + T[0, 2]
         Xa = (R[0] * x_a + R[1] * y_a + T[0, 0]) / z_a
-        Ya = (R[3] * x_a + R[4] * y_a + T[0,1]) / z_a
+        Ya = (R[3] * x_a + R[4] * y_a + T[0, 1]) / z_a
 
-        A_1_1=R[0] - R[6] * Xa;
-        A_1_2=R[1] - R[7] * Xa;
-        A_1_3=R[2] - R[8] * Xa;
-        A_2_1=R[3] - R[6] * Ya;
-        A_2_2=R[4] - R[7] * Ya;
-        A_2_3=R[5] - R[8] * Ya;
-        Det = A_1_1 * A_2_2 - A_1_2 * A_2_1;
-        Dxa = (A_1_2 * A_2_3 - A_2_2 * A_1_3) / Det;
-        Dya = (A_2_1 * A_1_3 - A_1_1 * A_2_3) / Det;
+        A_1_1 = R[0] - R[6] * Xa
+        A_1_2 = R[1] - R[7] * Xa
+        A_1_3 = R[2] - R[8] * Xa
+        A_2_1 = R[3] - R[6] * Ya
+        A_2_2 = R[4] - R[7] * Ya
+        A_2_3 = R[5] - R[8] * Ya
+        Det = A_1_1 * A_2_2 - A_1_2 * A_2_1
+        Dxa = (A_1_2 * A_2_3 - A_2_2 * A_1_3) / Det
+        Dya = (A_2_1 * A_1_3 - A_1_1 * A_2_3) / Det
 
-        #second image
-        #loading shift angle
+        # second image
+        # loading shift angle
 
         R = self.field2.R
         T = self.field2.T
         x_b = xmid - u/2
         y_b = ymid - v/2
-        z_b = R[6] * x_b + R[7] * y_b + T[0,2]
+        z_b = R[6] * x_b + R[7] * y_b + T[0, 2]
         Xb = (R[0] * x_b + R[1] * y_b + T[0, 0]) / z_b
-        Yb = (R[3] * x_b + R[4] * y_b + T[0,1]) / z_b
+        Yb = (R[3] * x_b + R[4] * y_b + T[0, 1]) / z_b
 
-        B_1_1=R[0] - R[6] * Xb
-        B_1_2=R[1] - R[7] * Xb
-        B_1_3=R[2] - R[8] * Xb
-        B_2_1=R[3] - R[6] * Yb
-        B_2_2=R[4] - R[7] * Yb
-        B_2_3=R[5] - R[8] * Yb
+        B_1_1 = R[0] - R[6] * Xb
+        B_1_2 = R[1] - R[7] * Xb
+        B_1_3 = R[2] - R[8] * Xb
+        B_2_1 = R[3] - R[6] * Yb
+        B_2_2 = R[4] - R[7] * Yb
+        B_2_3 = R[5] - R[8] * Yb
         Det = B_1_1 * B_2_2 - B_1_2 * B_2_1
         Dxb = (B_1_2 * B_2_3 - B_2_2 * B_1_3) / Det
         Dyb = (B_2_1 * B_1_3 - B_1_1 * B_2_3) / Det
 
         # result
-        Den = (Dxb - Dxa) * (Dxb - Dxa) + (Dyb - Dya) * (Dyb - Dya);
-        error=abs(((Dyb - Dya) *(-u) - (Dxb - Dxa) * (-v))) / Den;
-        z=((Dxb - Dxa) * (-u) + (Dyb - Dya) * (-v)) /Den;
+        Den = (Dxb - Dxa) * (Dxb - Dxa) + (Dyb - Dya) * (Dyb - Dya)
+        error = abs(((Dyb - Dya) *(-u) - (Dxb - Dxa) * (-v))) / Den
+        z = ((Dxb - Dxa) * (-u) + (Dyb - Dya) * (-v)) /Den
 
-        xnew[0,:] = Dxa * z + x_a;
-        xnew[1,:] = Dxb * z + x_b;
-        ynew[0,:] = Dya * z + y_a;
-        ynew[1,:] = Dyb * z + y_b;
-        Xphy=mean(xnew,0);
-        Yphy=mean(ynew,0);
+        xnew[0,:] = Dxa * z + x_a
+        xnew[1,:] = Dxb * z + x_b
+        ynew[0,:] = Dya * z + y_a
+        ynew[1,:] = Dyb * z + y_b
+        Xphy = mean(xnew,0)
+        Yphy = mean(ynew,0)
 
         return z, Xphy, Yphy, error
 
-    def stereo_reconstruction(X1, Y1, U1, V1, Xa, Ya, X2, Y2, U2, V2, Xb, Yb):
+    def stereo_reconstruction(
+            self, X1, Y1, U1, V1, Xa, Ya, X2, Y2, U2, V2, Xb, Yb):
         # initialisatiion des matrices
         # xI=ObjectData.RangeX(1):ObjectData.DX:ObjectData.RangeX(2);
         # yI=ObjectData.RangeY(1):ObjectData.DY:ObjectData.RangeY(2);
         # XI, YI = np.meshgrid(xI, yI);
         # ZI = ??
 
-        U=zeros(size(XI,1),size(XI,2));
-        V=zeros(size(XI,1),size(XI,2));
-        W=zeros(size(XI,1),size(XI,2));
+        U = np.zeros(size(XI,1), size(XI,2))
+        V = np.zeros(size(XI,1), size(XI,2))
+        W = np.zeros(size(XI,1), size(XI,2))
 
         Ua = np.griddata(X1, Y1, U1, Xa, Ya)
-        Va = np.griddata(X1,Y1,V1,Xa,Ya);
+        Va = np.griddata(X1,Y1,V1,Xa,Ya)
         Ua, Va, Xa, Ya = self.field1.Ud2U(Xa,Ya,Ua,Va)
         A = self.field1.get_coeff(Xa,Ya,XI,YI,ZI)
 
-        Ub=griddata(X2,Y2,U2,Xb,Yb);
-        Vb=griddata(X2,Y2,V2,Xb,Yb);
+        Ub = griddata(X2,Y2,U2,Xb,Yb)
+        Vb = griddata(X2,Y2,V2,Xb,Yb)
         Ub, Vb, Xb, Yb = self.field2.Ud2U(Xb, Yb, Ub, Vb)
         B = self.field2.get_coeff(Xb, Yb, XI, YI, ZI)
 
-        S = ones(size(XI,0), size(XI,1), 3);
-        D = np.ones(size(XI,0), size(XI,1), 3, 3);
+        S = ones(size(XI,0), size(XI,1), 3)
+        D = np.ones(size(XI,0), size(XI,1), 3, 3)
 
         S[:, :, 0] = A[:, :, 0, 0] * Ua + A[: ,: ,1 ,0] * Va + B[:, :, 0, 0] *\
                      Ub + B[:, :, 1, 0] * Vb
@@ -489,7 +514,7 @@ class StereoReconstruction(Calibration):
                 # V(indj,indi)=dxyz[1]
                 # W(indj,indi)=dxyz[2]
 
-        Error = zeros(np.size(XI)[0], np.size(XI)[1],4);
+        Error = np.zeros(np.size(XI)[0], np.size(XI)[1],4)
         Error[:, :, 0] = A[:, :, 0, 0] * U + A[:, :, 0, 1] * \
                          V + A[:, :, 0, 2] * W - Ua
         Error[:, :, 1] = A[:, :, 1, 0] * U + A[: ,: ,1 ,1] *\
@@ -504,6 +529,20 @@ class StereoReconstruction(Calibration):
 
 
 class CalibDirect():
+    """Direct calibration.
+
+    Parameters
+    ----------
+
+    pathimg: str, optional
+
+    nb_pixelx: optional
+
+    nb_pixely: optional
+
+    pth_file: str, optional
+
+    """
     def __init__(self, pathimg=None, nb_pixelx=None, nb_pixely=None,
                  pth_file=None):
 
@@ -669,7 +708,6 @@ class CalibDirect():
         self.nb_pixelx = tmp[2]
         self.nb_pixely = tmp[3]
 
-
     def intersect_with_plane(self, indx, indy, a, b, c, d):
         # find intersection with the line associated to the pixel  indx, indy
         # and a plane defined by ax + by + cz + d =0
@@ -697,7 +735,7 @@ class CalibDirect():
 
     def get_base_camera_plane(self, indx=None, indy=None):
         # matrix of base change from camera plane to fixed plane
-        if indx == None:
+        if indx is None:
             indx = range(self.nb_pixelx/2-20, self.nb_pixelx/2+20)
             indy = range(self.nb_pixely/2-20, self.nb_pixely/2+20)
             indx, indy = np.meshgrid(indx, indy)
@@ -811,7 +849,16 @@ class CalibDirect():
 
 
 class DirectStereoReconstruction():
+    """Direct stereo reconstruction.
 
+    Parameters
+    ----------
+
+    pth_file0: str
+
+    pth_file1: str
+
+    """
     def __init__(self, pth_file0, pth_file1):
         self.calib0 = CalibDirect(pth_file=pth_file0)
         self.calib1 = CalibDirect(pth_file=pth_file1)
@@ -901,17 +948,17 @@ class DirectStereoReconstruction():
         x, y = np.meshgrid(x, y)
         self.grid_x = x.transpose()
         self.grid_y = y.transpose()
-        self.grid_z = -(a*self.grid_x+ b*self.grid_y+d)/c
+        self.grid_z = -(a*self.grid_x + b*self.grid_y+d)/c
         return self.grid_x, self.grid_y, self.grid_z
 
     def interp_on_common_grid(
             self, X0, X1, d0cam, d1cam, a, b, c, d, grid_x, grid_y):
         # if not hasattr(self, 'grid_x'):
         #     self.find_common_grid(X0, X1, a, b, c, d)
-        ind0 = (np.isnan(X0[:, 0]) == False) * (np.isnan(X0[:, 1]) == False) *\
-               (np.isnan(d0cam[:, 0]) == False) * (np.isnan(d0cam[:, 1]) == False)
-        ind1 = (np.isnan(X1[:, 0]) == False) * (np.isnan(X1[:, 1]) == False) *\
-               (np.isnan(d1cam[:, 0]) == False) * (np.isnan(d1cam[:, 1]) == False)
+        ind0 = ((~np.isnan(X0[:, 0])) * (~np.isnan(X0[:, 1])) *
+                (~np.isnan(d0cam[:, 0])) * (~np.isnan(d0cam[:, 1])))
+        ind1 = ((~np.isnan(X1[:, 0])) * (~np.isnan(X1[:, 1])) *
+                (~np.isnan(d1cam[:, 0])) * (~np.isnan(d1cam[:, 1])))
 
         d0xcam = griddata((X0[ind0, 0], X0[ind0, 1]), d0cam[ind0, 0],
                           (grid_x, grid_y))
@@ -1024,7 +1071,7 @@ class DirectStereoReconstruction():
 
 if __name__ == "__main__":
     def clf():
-        pylab.close('all')
+        plt.close('all')
 
     nb_pixelx, nb_pixely = 2560, 2160
     # nbline_x, nbline_y = nb_pixelx/2, nb_pixely/2

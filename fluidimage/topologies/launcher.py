@@ -1,4 +1,20 @@
+"""
+Launchers for topologies used for GUI (:mod:`fluidimage.topologies.launcher`)
+=============================================================================
 
+.. autoclass:: TopologyLauncher
+   :members:
+   :private-members:
+
+.. autoclass:: TopologyPIVLauncher
+   :members:
+   :private-members:
+
+.. autoclass:: TopologyPreprocLauncher
+   :members:
+   :private-members:
+
+"""
 import inspect
 import json
 
@@ -19,6 +35,7 @@ def _get_args_bound_method(method):
 
 
 class TopologyLauncher(object):
+    """Launcher (class to be subclassed)."""
     Topology = TopologyPIV
 
     @classmethod
@@ -63,8 +80,9 @@ class TopologyLauncher(object):
 
 
 class TopologyPIVLauncher(TopologyLauncher):
-    pass
+    """PIV topology launcher"""
 
 
 class TopologyPreprocLauncher(TopologyLauncher):
+    """Preproc topology launcher"""
     Topology = TopologyPreproc

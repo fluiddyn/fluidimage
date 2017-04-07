@@ -1,5 +1,5 @@
-"""Topology for PIV computation
-===============================
+"""Topology for PIV computation (:mod:`fluidimage.topologies.piv`)
+==================================================================
 
 .. autoclass:: TopologyPIV
    :members:

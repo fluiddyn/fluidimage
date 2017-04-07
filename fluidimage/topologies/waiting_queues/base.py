@@ -1,5 +1,5 @@
-"""Waiting queues classes
-=========================
+"""Waiting queues classes (:mod:`fluidimage.topologies.waiting_queues.base`)
+============================================================================
 
 .. autoclass:: WaitingQueueBase
    :members:

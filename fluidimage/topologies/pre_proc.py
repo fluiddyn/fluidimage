@@ -1,8 +1,7 @@
 """Topology for preprocessing images (:mod:`fluidimage.topologies.pre_proc`)
 ============================================================================
-To preprocess series of images using multiprocessing and waiting queues.
 
-.. currentmodule:: fluidimage.topologies.pre_proc
+To preprocess series of images using multiprocessing and waiting queues.
 
 Provides:
 

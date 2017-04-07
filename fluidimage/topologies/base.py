@@ -1,5 +1,5 @@
-"""Topology base
-================
+"""Topology base (:mod:`fluidimage.topologies.base`)
+====================================================
 
 .. autoclass:: TopologyBase
    :members:
@@ -104,13 +104,13 @@ class TopologyBase(object):
     Parameters
     ----------
 
-    queues
+    queues : list
 
-    path_output: None
+    path_output : None
 
-    logging_level: 'info'
+    logging_level : 'info'
 
-    nb_max_workers: None
+    nb_max_workers : None
 
     """
     def __init__(self, queues, path_output=None, logging_level='info',
@@ -176,12 +176,12 @@ class TopologyBase(object):
         Parameters
         ----------
 
-        sequential: None
+        sequential : None
 
           If bool(sequential) is True, the computations are run in sequential
           (useful for debugging).
 
-        has_to_exit: True
+        has_to_exit : True
 
           If bool(has_to_exit) is True and if the computation has to stop
           because of a signal 12 (cluster), a signal 99 is sent at exit.

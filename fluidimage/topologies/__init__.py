@@ -15,7 +15,10 @@ transfer of data between them.
    :toctree:
 
    base
-   piv
    waiting_queues
+   piv
+   pre_proc
+   log
+   launcher
 
 """
