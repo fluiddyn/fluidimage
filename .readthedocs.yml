@@ -8,7 +8,7 @@ formats:
 requirements_file: doc/requirements.txt
 
 python:
-   version: 3
+   version: 3.6
 
 python:
    setup_py_install: true
