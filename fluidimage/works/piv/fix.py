@@ -35,6 +35,25 @@ class WorkFIX(BaseWork):
             'threshold_diff_neighbour': 10,
             'displacement_max': None})
 
+        params._set_doc("""
+Parameters indicating how are detected and treated false vectors.
+
+correl_min : 0.2
+
+    Vectors associated with correlation smaller than correl_min are considered
+    as false vectors.
+
+threshold_diff_neighbour : 10
+
+    Vectors for which the difference with the average vectors is larger than
+    `threshold_diff_neighbour` are considered as false vectors.
+
+displacement_max : None
+
+    Vectors larger than `displacement_max` are considered as false vectors.
+
+""")
+
     def __init__(self, params, piv_work):
         self.params = params
         self.piv_work = piv_work

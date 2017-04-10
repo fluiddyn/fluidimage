@@ -48,10 +48,10 @@ functions.
 .. autosummary::
    :toctree: generated/
 
+   fluidimage.topologies
    fluidimage.data_objects
    fluidimage.works
    fluidimage.calcul
-   fluidimage.topologies
    fluidimage.pre_proc
    fluidimage.calibration
    fluidimage.postproc

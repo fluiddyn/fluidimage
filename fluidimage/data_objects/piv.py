@@ -110,6 +110,7 @@ class DataObject(object):
 
 
 class ArrayCouple(DataObject):
+    """Couple of arrays (images)."""
     def __init__(
             self, names=None, arrays=None, serie=None,
             str_path=None, hdf5_parent=None, params_mask=None):
@@ -204,6 +205,7 @@ class ArrayCouple(DataObject):
 
 
 class HeavyPIVResults(DataObject):
+    """Heavy PIV results containing displacements and correlation."""
 
     def __init__(self, deltaxs=None, deltays=None,
                  xs=None, ys=None, errors=None,
@@ -380,7 +382,7 @@ class HeavyPIVResults(DataObject):
 
 
 class MultipassPIVResults(DataObject):
-
+    """Result of a multipass PIV computation."""
     def __init__(self, str_path=None):
         self.passes = []
 

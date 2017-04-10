@@ -1,13 +1,15 @@
-"""Particle Image Velocimetry (PIV)
-===================================
+"""Particle Image Velocimetry (PIV) (:mod:`fluidimage.works.piv`)
+=================================================================
 
 .. autosummary::
    :toctree:
 
-   singlepass
    multipass
+   singlepass
    fix
 
 """
 
 from .multipass import WorkPIV
+
+__all__ = ['WorkPIV']

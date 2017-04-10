@@ -33,15 +33,15 @@ class ThinPlateSplineSubdom(object):
     """Helper class for thin plate interpolation."""
 
     def __init__(self, centers, subdom_size,
-                 smoothing_coef, threshold=None, pourc_buffer_area=0.2):
+                 smoothing_coef, threshold=None, percent_buffer_area=0.2):
 
         self.centers = centers
         self.subdom_size = subdom_size
         self.smoothing_coef = smoothing_coef
         self.threshold = threshold
-        self.compute_indices(pourc_buffer_area)
+        self.compute_indices(percent_buffer_area)
 
-    def compute_indices(self, pourc_buffer_area=0.2):
+    def compute_indices(self, percent_buffer_area=0.25):
         xs = self.centers[1]
         ys = self.centers[0]
         max_coord = np.max(self.centers, 1)
@@ -66,9 +66,9 @@ class ThinPlateSplineSubdom(object):
         x_dom = np.linspace(min_coord[1], max_coord[1], nb_subdomx+1)
         y_dom = np.linspace(min_coord[0], max_coord[0], nb_subdomy+1)
 
-        buffer_area_x = (range_coord[1]/(nb_subdomx)*pourc_buffer_area *
+        buffer_area_x = (range_coord[1]/(nb_subdomx)*percent_buffer_area *
                          np.ones_like(x_dom))
-        buffer_area_y = (range_coord[0]/(nb_subdomy)*pourc_buffer_area *
+        buffer_area_y = (range_coord[0]/(nb_subdomy)*percent_buffer_area *
                          np.ones_like(y_dom))
 
         self.x_dom = x_dom
