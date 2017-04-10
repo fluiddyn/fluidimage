@@ -39,7 +39,7 @@ else:
     with open('fluidimage/_hg_rev.py', 'w') as f:
         f.write('hg_rev = "{}"\n'.format(hg_rev))
 
-install_requires = ['fluiddyn >= 0.0.13b0']
+install_requires = ['fluiddyn >= 0.1.3']
 
 on_rtd = os.environ.get('READTHEDOCS')
 if not on_rtd:
