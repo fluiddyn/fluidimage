@@ -1,0 +1,24 @@
+<params>
+  {"program": "fluidimage", "class": "TopologyPIV", "module":
+  "fluidimage.topologies.piv"}
+  <series ind_start="1" ind_step="1" ind_stop="2"
+          path="../../image_samples/4th_PIV-Challenge_Case_E/E_Particle_Images/Camera_03"
+          strcouple="i:i+2"/>  
+
+  <saving how="recompute" path="None" postfix="piv"/>  
+
+  <piv0 coef_correl_no_displ="None" delta_max="None" delta_mean="None"
+        method_correl="fftw" method_subpix="2d_gaussian2" nsubpix="None"
+        shape_crop_im0="64" shape_crop_im1="None">
+    <grid from="overlap" overlap="0.5"/>  
+
+  </piv0>
+
+  <mask strcrop="None"/>  
+
+  <fix correl_min="0.2" displacement_max="None" threshold_diff_neighbour="5"/>  
+
+  <multipass coeff_zoom="2" number="2" smoothing_coef="0.5" subdom_size="200"
+             threshold_tps="1.0" use_tps="last"/>  
+
+</params>

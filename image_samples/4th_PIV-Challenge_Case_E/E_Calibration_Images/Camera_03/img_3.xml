@@ -1,0 +1,58 @@
+<?xml version="1.0" ?>
+<tag>
+   <GeometryCalib>
+      <CoordUnit>
+         cm
+      </CoordUnit>
+      <SourceCalib>
+         <PointCoord i="1">
+            0	      3	      0	102.131	240.559
+         </PointCoord>
+         <PointCoord i="2">
+            1.5	      3	      0	372.796	241.032
+         </PointCoord>
+         <PointCoord i="3">
+            3	      3	      0	641.965	241.895
+         </PointCoord>
+         <PointCoord i="4">
+            4.5	      3	      0	912.552	244.071
+         </PointCoord>
+         <PointCoord i="5">
+            0	    1.5	      0	106.567	493.374
+         </PointCoord>
+         <PointCoord i="6">
+            1.5	    1.5	      0	373.126	493.306
+         </PointCoord>
+         <PointCoord i="7">
+            3	    1.5	      0	639.669	493.871
+         </PointCoord>
+         <PointCoord i="8">
+            4.5	    1.5	      0	905.899	495.378
+         </PointCoord>
+         <PointCoord i="9">
+            0	      0	      0	110.873	739.871
+         </PointCoord>
+         <PointCoord i="10">
+            1.5	      0	      0	373.849	739.295
+         </PointCoord>
+         <PointCoord i="11">
+            3	      0	      0	636.659	740.016
+         </PointCoord>
+         <PointCoord i="12">
+            4.5	      0	      0	899.125	742.361
+         </PointCoord>
+         <PointCoord i="13">
+            0	   -1.5	      0	 114.34	982.219
+         </PointCoord>
+         <PointCoord i="14">
+            1.5	   -1.5	      0	374.521	980.517
+         </PointCoord>
+         <PointCoord i="15">
+            3	   -1.5	      0	634.375	981.585
+         </PointCoord>
+         <PointCoord i="16">
+            4.5	   -1.5	      0	894.196	982.707
+         </PointCoord>
+      </SourceCalib>
+   </GeometryCalib>
+</tag>
