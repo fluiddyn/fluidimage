@@ -1,7 +1,11 @@
 
+channels:
+  - conda-forge
+
 dependencies:
   - python=3.5
   - numpy
+  - scipy
   - cython
   - mpi4py
   - h5py
