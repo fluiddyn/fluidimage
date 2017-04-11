@@ -24,7 +24,7 @@ IPYTHON_NOTEBOOKS_DIR = $(IPYTHON_NOTEBOOKS:.ipynb=_files)
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
-	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
+	@echo "Build finished. Address: $(BUILDDIR)/html/index.html"
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
@@ -165,8 +165,8 @@ doctest:
 zip: html
 	cd _build/html &&  zip -r html.zip * && mv html.zip ../../.
 
-%.rst: %.ipynb
-	cd $(IPYNB_DIR) && ipython nbconvert --to rst $(notdir $<)
+# %.rst: %.ipynb
+# 	cd $(IPYNB_DIR) && ipython nbconvert --to rst $(notdir $<)
 
 open_html: html
 	firefox _build/html/index.html

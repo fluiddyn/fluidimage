@@ -51,6 +51,7 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode', 'sphinx.ext.autosummary',
     'numpydoc',
+    'IPython.sphinxext.ipython_console_highlighting'
     # 'mathmacro',
 ]
 
@@ -94,7 +95,7 @@ version = '{}.{}'.format(version[0], version[1])
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ['_build']
+exclude_patterns = ['_build', '**.ipynb_checkpoints']
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.
