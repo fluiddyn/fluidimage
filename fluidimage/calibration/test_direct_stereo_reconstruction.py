@@ -1,47 +1,8 @@
-from fluidimage.topologies.piv import TopologyPIV
 import h5py
 from fluidimage.calibration.util import get_plane_equation
 from fluidimage.calibration import DirectStereoReconstruction
 import os
 import fluidimage
-
-path_fluidimage = os.path.join(
-    '/', *os.path.abspath(fluidimage.__file__).split('/')[:-2])
-
-postfixpiv = 'piv'
-
-base = path_fluidimage + '/image_samples/4th_PIV-Challenge_Case_E'
-pathbase = base + '/E_Particle_Images/Camera_01'
-pathbase2 = base + '/E_Particle_Images/Camera_03'
-
-params = TopologyPIV.create_default_params()
-params.series.path = pathbase
-
-params.series.strcouple = 'i:i+2'
-params.series.ind_start = 1
-params.series.ind_stop = 2
-
-params.piv0.shape_crop_im0 = 64
-params.piv0.method_correl = 'fftw'
-params.piv0.method_subpix = '2d_gaussian2'
-params.piv0.nsubpix = None
-params.multipass.number = 2
-params.multipass.use_tps = 'last'
-params.fix.threshold_diff_neighbour = 5
-
-
-# params.saving.how has to be equal to 'complete' for idempotent jobs
-# (on clusters)
-params.saving.how = 'recompute'
-params.saving.postfix = postfixpiv
-
-topology = TopologyPIV(params)
-topology.compute()
-
-params.series.path = pathbase2
-topology = TopologyPIV(params)
-topology.compute()
-
 
 def get_piv_field(path):
 
@@ -60,6 +21,8 @@ def get_piv_field(path):
 
     return X, Y, dx, dy
 
+path_fluidimage = os.path.join(
+    '/', *os.path.abspath(fluidimage.__file__).split('/')[:-2])
 
 postfix = '.piv/'
 
