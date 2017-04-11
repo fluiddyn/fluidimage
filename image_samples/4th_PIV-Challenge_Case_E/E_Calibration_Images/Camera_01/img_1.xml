@@ -1,0 +1,118 @@
+<?xml version="1.0" ?>
+<tag>
+   <GeometryCalib>
+      <CoordUnit>
+         cm
+      </CoordUnit>
+      <SourceCalib>
+         <PointCoord i="1">
+            -1.5	      6	   -0.2	35.4801	96.0441
+         </PointCoord>
+         <PointCoord i="2">
+            0	      6	   -0.2	214.482	95.3993
+         </PointCoord>
+         <PointCoord i="3">
+            1.5	      6	   -0.2	393.395	93.7564
+         </PointCoord>
+         <PointCoord i="4">
+            3	      6	   -0.2	572.472	92.5136
+         </PointCoord>
+         <PointCoord i="5">
+            4.5	      6	   -0.2	750.704	90.8586
+         </PointCoord>
+         <PointCoord i="6">
+            6	      6	   -0.2	929.517	89.4861
+         </PointCoord>
+         <PointCoord i="7">
+            -1.5	    4.5	   -0.2	 36.943	275.351
+         </PointCoord>
+         <PointCoord i="8">
+            0	    4.5	   -0.2	215.937	273.982
+         </PointCoord>
+         <PointCoord i="9">
+            1.5	    4.5	   -0.2	395.018	 272.53
+         </PointCoord>
+         <PointCoord i="10">
+            3	    4.5	   -0.2	573.675	271.179
+         </PointCoord>
+         <PointCoord i="11">
+            4.5	    4.5	   -0.2	752.503	269.534
+         </PointCoord>
+         <PointCoord i="12">
+            6	    4.5	   -0.2	931.071	268.228
+         </PointCoord>
+         <PointCoord i="13">
+            -1.5	      3	   -0.2	37.9908	454.005
+         </PointCoord>
+         <PointCoord i="14">
+            0	      3	   -0.2	217.282	452.505
+         </PointCoord>
+         <PointCoord i="15">
+            1.5	      3	   -0.2	 396.46	451.413
+         </PointCoord>
+         <PointCoord i="16">
+            3	      3	   -0.2	575.177	449.799
+         </PointCoord>
+         <PointCoord i="17">
+            4.5	      3	   -0.2	753.789	448.169
+         </PointCoord>
+         <PointCoord i="18">
+            6	      3	   -0.2	932.519	446.511
+         </PointCoord>
+         <PointCoord i="19">
+            -1.5	    1.5	   -0.2	39.4435	633.011
+         </PointCoord>
+         <PointCoord i="20">
+            0	    1.5	   -0.2	218.814	631.875
+         </PointCoord>
+         <PointCoord i="21">
+            1.5	    1.5	   -0.2	397.766	630.183
+         </PointCoord>
+         <PointCoord i="22">
+            3	    1.5	   -0.2	576.943	628.553
+         </PointCoord>
+         <PointCoord i="23">
+            4.5	    1.5	   -0.2	755.305	626.893
+         </PointCoord>
+         <PointCoord i="24">
+            6	    1.5	   -0.2	934.146	625.193
+         </PointCoord>
+         <PointCoord i="25">
+            -1.5	      0	   -0.2	40.9439	812.009
+         </PointCoord>
+         <PointCoord i="26">
+            0	      0	   -0.2	 220.02	810.508
+         </PointCoord>
+         <PointCoord i="27">
+            1.5	      0	   -0.2	 399.16	809.144
+         </PointCoord>
+         <PointCoord i="28">
+            3	      0	   -0.2	578.044	807.314
+         </PointCoord>
+         <PointCoord i="29">
+            4.5	      0	   -0.2	756.736	805.782
+         </PointCoord>
+         <PointCoord i="30">
+            6	      0	   -0.2	935.855	803.858
+         </PointCoord>
+         <PointCoord i="31">
+            -1.5	   -1.5	   -0.2	42.5256	991.057
+         </PointCoord>
+         <PointCoord i="32">
+            0	   -1.5	   -0.2	221.561	989.452
+         </PointCoord>
+         <PointCoord i="33">
+            1.5	   -1.5	   -0.2	400.363	987.919
+         </PointCoord>
+         <PointCoord i="34">
+            3	   -1.5	   -0.2	579.928	986.319
+         </PointCoord>
+         <PointCoord i="35">
+            4.5	   -1.5	   -0.2	758.351	984.496
+         </PointCoord>
+         <PointCoord i="36">
+            6	   -1.5	   -0.2	937.432	982.607
+         </PointCoord>
+      </SourceCalib>
+   </GeometryCalib>
+</tag>
