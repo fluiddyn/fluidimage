@@ -5,12 +5,13 @@
    :toctree:
 
    util
-   calibTsai
-   calibDirect
+   calib_tsai
+   calib_direct
 """
 
-from calibTsai import Calibration
-from calibDirect import CalibDirect, DirectStereoReconstruction
-from util import get_plane_equation
+from .calib_tsai import Calibration
+from .calib_direct import CalibDirect, DirectStereoReconstruction
+from .util import get_plane_equation
 
-__all__ = ['Calibration']
+__all__ = ['Calibration', 'CalibDirect', 'DirectStereoReconstruction',
+           'get_plane_equation']
