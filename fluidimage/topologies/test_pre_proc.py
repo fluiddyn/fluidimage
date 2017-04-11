@@ -2,21 +2,49 @@
 import unittest
 
 import os
+from glob import glob
+from shutil import rmtree
 
 from fluiddyn.io import stdout_redirected
 
 from fluidimage.topologies.pre_proc import TopologyPreproc
+from fluiddyn.io.image import imread, imsave
+
 
 here = os.path.abspath(os.path.dirname(__file__))
 
 
-class TestPreproc(unittest.TestCase):
+class TestPreprocKarman(unittest.TestCase):
+
+    name = 'Karman'
+
+    @classmethod
+    def setUpClass(cls):
+        path_in = os.path.join(
+            here, '..', '..', 'image_samples', cls.name, 'Images')
+
+        cls._work_dir = os.path.join(
+            'test_fluidimage_topo_pre_proc_' + cls.name, 'Images')
+        if not os.path.exists(cls._work_dir):
+            os.makedirs(cls._work_dir)
+
+        paths = glob(path_in + '/*')
+
+        for path in paths:
+            name = os.path.split(path)[-1]
+            im = imread(path)
+            im = im[::6, ::6]
+            imsave(os.path.join(cls._work_dir, name), im)
+
+    @classmethod
+    def tearDownClass(cls):
+        rmtree(os.path.split(cls._work_dir)[0])
+
     def test_preproc(self):
         '''Test pre_proc subpackage on image sample Karman with one index.'''
         params = TopologyPreproc.create_default_params()
 
-        params.preproc.series.path = os.path.join(
-            here, '..', '..', 'image_samples', 'Karman', 'Images')
+        params.preproc.series.path = self._work_dir
         params.preproc.series.strcouple = 'i:i+3'
         params.preproc.series.ind_start = 1
 
@@ -29,15 +57,18 @@ class TestPreproc(unittest.TestCase):
         params.preproc.saving.postfix = 'preproc_test'
 
         with stdout_redirected():
-            topology = TopologyPreproc(params, logging_level=False)
+            topology = TopologyPreproc(params, logging_level='debug')
             topology.compute()
 
-    def test_preproc_two_indices(self):
+
+class TestPreprocTime(TestPreprocKarman):
+    name = 'Jet'
+
+    def test_preproc(self):
         '''Test pre_proc subpackage on image sample Jet with two indices.'''
         params = TopologyPreproc.create_default_params()
 
-        params.preproc.series.path = os.path.join(
-            here, '..', '..', 'image_samples', 'Jet', 'Images')
+        params.preproc.series.path = self._work_dir
         params.preproc.series.strcouple = 'i:i+2,1'
         params.preproc.series.ind_start = 60
 
@@ -50,7 +81,7 @@ class TestPreproc(unittest.TestCase):
         params.preproc.saving.postfix = 'preproc_test'
 
         with stdout_redirected():
-            topology = TopologyPreproc(params, logging_level=False)
+            topology = TopologyPreproc(params, logging_level='debug')
             topology.compute()
 
 

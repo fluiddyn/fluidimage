@@ -10,7 +10,7 @@ from matplotlib.widgets import TextBox, Button
 
 from fluiddyn.io.image import imread
 
-extensions = ['png', 'tif', 'tiff' 'jpg', 'jpeg', 'bmp']
+extensions = ['png', 'tif', 'tiff', 'jpg', 'jpeg', 'bmp']
 extensions = ['.' + ext for ext in extensions]
 
 
@@ -62,6 +62,9 @@ class ImageViewer(object):
             self.path_files.sort()
             ifile = self.path_files.index(path_file)
 
+        if len(self.path_files) == 0:
+            raise ValueError('No image files detected.')
+
         path_dir = os.path.split(self.path_files[0])[0]
         self.nb_images = len(self.path_files)
         print('Will use {} files in the dir {}'.format(
@@ -69,8 +72,6 @@ class ImageViewer(object):
 
         self._buttons = {}
         self._textboxes = {}
-
-        # print(self.path_files)
 
         fig = self.fig = plt.figure()
         self.ax = fig.add_axes([0.07, 0.15, 0.7, 0.78])

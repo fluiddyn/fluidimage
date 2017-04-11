@@ -24,7 +24,7 @@ IPYTHON_NOTEBOOKS_DIR = $(IPYTHON_NOTEBOOKS:.ipynb=_files)
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
-	@echo "Build finished. Address: $(BUILDDIR)/html/index.html"
+	@echo "Build finished.\nfile://"$(shell pwd)"/_build/html/index.html"
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
