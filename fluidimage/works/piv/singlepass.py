@@ -31,7 +31,6 @@ from copy import deepcopy
 
 import numpy as np
 
-from fluiddyn.util.paramcontainer import ParamContainer
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
 
 from ...data_objects.piv import ArrayCouple, HeavyPIVResults
@@ -54,34 +53,14 @@ class BaseWorkPIV(BaseWork):
     This class is meant to be subclassed, not instantiated directly.
 
     """
-    @classmethod
-    def create_default_params(cls):
-        params = ParamContainer(tag='params')
-        cls._complete_params_with_default(params)
-        return params
 
     @classmethod
     def _complete_params_with_default(cls, params):
         pass
 
-    def __init__(self, params=None):
-
-        if params is None:
-            params = self.__class__.create_default_params()
-        self.params = params
-
-        overlap = params.piv0.grid.overlap
-        if overlap >= 1:
-            raise ValueError(
-                'params.piv0.grid.overlap has to be smaller than 1')
-        self.overlap = overlap
-
-        shape_crop_im0 = params.piv0.shape_crop_im0
-        shape_crop_im1 = params.piv0.shape_crop_im1
+    def _init_shape_crop(self, shape_crop_im0, shape_crop_im1):
         if shape_crop_im1 is None:
             shape_crop_im1 = shape_crop_im0
-        self.shape_crop_im0 = shape_crop_im0
-        self.shape_crop_im1 = shape_crop_im1
 
         if isinstance(shape_crop_im0, int):
             shape_crop_im0 = (shape_crop_im0, shape_crop_im0)
@@ -106,11 +85,8 @@ class BaseWorkPIV(BaseWork):
             raise ValueError(
                 'shape_crop_im1 must be inferior or equal to shape_crop_im0')
 
-        self.shape_crop_im0 = shape_crop_im0
-        self.shape_crop_im1 = shape_crop_im1
-
-        self._init_crop()
-        self._init_correl()
+        self.shape_crop_im0 = tuple(int(n) for n in shape_crop_im0)
+        self.shape_crop_im1 = tuple(int(n) for n in shape_crop_im1)
 
     def _init_correl(self):
         try:
@@ -441,7 +417,17 @@ class BaseWorkPIV(BaseWork):
 
 
 class FirstWorkPIV(BaseWorkPIV):
-    """Basic PIV pass."""
+    """First PIV pass (without input displacements).
+
+    Parameters
+    ----------
+
+    params : ParamContainer
+
+      ParamContainer object produced by the function
+      :func:`fluidimage.works.piv.multipass.WorkPIV.create_default_params`.
+
+    """
     index_pass = 0
 
     @classmethod
@@ -507,9 +493,37 @@ strcrop : None, str
     is used.
 """)
 
+    def __init__(self, params):
+
+        self.params = params
+
+        self.overlap = params.piv0.grid.overlap
+        if self.overlap >= 1:
+            raise ValueError(
+                'params.piv0.grid.overlap has to be smaller than 1')
+
+        self._init_shape_crop(
+            params.piv0.shape_crop_im0, params.piv0.shape_crop_im1)
+        self._init_crop()
+        self._init_correl()
+
 
 class WorkPIVFromDisplacement(BaseWorkPIV):
     """Work PIV working from already computed displacement (for multipass).
+
+    Parameters
+    ----------
+
+    params : ParamContainer
+
+      ParamContainer object produced by the function
+      :func:`fluidimage.works.piv.multipass.WorkPIV.create_default_params`.
+
+    index_pass : int, 1
+
+    shape_crop_im0 : int or tuple, optional
+
+    shape_crop_im1 : int or tuple, optional
 
     Notes
     -----
@@ -525,29 +539,20 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
 
     """
 
-    def __init__(self, params=None, index_pass=1, shape_crop_im0=None,
+    def __init__(self, params, index_pass=1, shape_crop_im0=None,
                  shape_crop_im1=None):
-
-        if params is None:
-            params = self.__class__.create_default_params()
 
         self.params = params
         self.index_pass = index_pass
+
+        self.overlap = params.piv0.grid.overlap
 
         if shape_crop_im0 is None:
             shape_crop_im0 = params.piv0.shape_crop_im0
         if shape_crop_im1 is None:
             shape_crop_im1 = params.piv0.shape_crop_im1
 
-        self.shape_crop_im0 = shape_crop_im0
-        self.shape_crop_im1 = shape_crop_im1
-
-        shape_crop_im0 = tuple(int(n) for n in shape_crop_im0)
-        shape_crop_im1 = tuple(int(n) for n in shape_crop_im1)
-
-        self.shape_crop_im0 = shape_crop_im0
-        self.shape_crop_im1 = shape_crop_im1
-        self.overlap = params.piv0.grid.overlap
+        self._init_shape_crop(shape_crop_im0, shape_crop_im1)
         self._init_crop()
         self._init_correl()
 

@@ -4,6 +4,7 @@ from fluidimage.calibration import DirectStereoReconstruction
 import os
 import fluidimage
 
+
 def get_piv_field(path):
 
     try:
@@ -21,37 +22,40 @@ def get_piv_field(path):
 
     return X, Y, dx, dy
 
-path_fluidimage = os.path.join(
-    '/', *os.path.abspath(fluidimage.__file__).split('/')[:-2])
 
-postfix = '.piv/'
+def test():
 
-pathbase = path_fluidimage + '/image_samples/4th_PIV-Challenge_Case_E'
+    path_fluidimage = os.path.join(
+        '/', *os.path.abspath(fluidimage.__file__).split('/')[:-2])
 
-# level = 0
-v = 'piv_00001-00002.h5'
+    postfix = '.piv/'
 
-pathcalib1 = pathbase + '/E_Calibration_Images/Camera_01/calib1.npy'
-pathcalib3 = pathbase + '/E_Calibration_Images/Camera_03/calib3.npy'
+    pathbase = path_fluidimage + '/image_samples/4th_PIV-Challenge_Case_E'
 
-dt = 0.001
+    # level = 0
+    v = 'piv_00001-00002.h5'
 
-path1 = pathbase + '/E_Particle_Images/Camera_01' + postfix + v
-path3 = pathbase + '/E_Particle_Images/Camera_03' + postfix + v
+    pathcalib1 = pathbase + '/E_Calibration_Images/Camera_01/calib1.npy'
+    pathcalib3 = pathbase + '/E_Calibration_Images/Camera_03/calib3.npy'
 
-z0 = 0
-alpha = 0
-beta = 0
-a, b, c, d = get_plane_equation(z0, alpha, beta)
+    dt = 0.001
 
-Xl, Yl, dxl, dyl = get_piv_field(path1)
-Xr, Yr, dxr, dyr = get_piv_field(path3)
+    path1 = pathbase + '/E_Particle_Images/Camera_01' + postfix + v
+    path3 = pathbase + '/E_Particle_Images/Camera_03' + postfix + v
 
-stereo = DirectStereoReconstruction(pathcalib1, pathcalib3)
-X0, X1, d0cam, d1cam = stereo.project2cam(
-    Xl, Yl, dxl, dyl, Xr, Yr, dxr, dyr, a, b, c, d, check=False)
-X, Y, Z = stereo.find_common_grid(X0, X1, a, b, c, d)
+    z0 = 0
+    alpha = 0
+    beta = 0
+    a, b, c, d = get_plane_equation(z0, alpha, beta)
 
-dx, dy, dz, erx, ery, erz = stereo.reconstruction(
-    X0, X1, d0cam, d1cam, a, b, c, d, X, Y, check=False)
-dx, dy, dz, erx, ery, erz = dx/dt, dy/dt, dz/dt, erx/dt, ery/dt, erz/dt
+    Xl, Yl, dxl, dyl = get_piv_field(path1)
+    Xr, Yr, dxr, dyr = get_piv_field(path3)
+
+    stereo = DirectStereoReconstruction(pathcalib1, pathcalib3)
+    X0, X1, d0cam, d1cam = stereo.project2cam(
+        Xl, Yl, dxl, dyl, Xr, Yr, dxr, dyr, a, b, c, d, check=False)
+    X, Y, Z = stereo.find_common_grid(X0, X1, a, b, c, d)
+
+    dx, dy, dz, erx, ery, erz = stereo.reconstruction(
+        X0, X1, d0cam, d1cam, a, b, c, d, X, Y, check=False)
+    dx, dy, dz, erx, ery, erz = dx/dt, dy/dt, dz/dt, erx/dt, ery/dt, erz/dt
