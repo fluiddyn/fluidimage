@@ -6,11 +6,15 @@ import sys
 import h5py
 from fluidimage.calibration.util import get_plane_equation
 from fluidimage.calibration import DirectStereoReconstruction
+import os
+import fluidimage
 
+path_fluidimage = os.path.join(
+    '/', *os.path.abspath(fluidimage.__file__).split('/')[:-2])
 
 postfixpiv = 'piv'
 
-base = '../../image_samples/4th_PIV-Challenge_Case_E'
+base = path_fluidimage + '/image_samples/4th_PIV-Challenge_Case_E'
 pathbase = base + '/E_Particle_Images/Camera_01'
 pathbase2 = base + '/E_Particle_Images/Camera_03'
 
@@ -63,13 +67,13 @@ def get_piv_field(path):
 
 postfix = '.piv/'
 
-pathbase = '../../image_samples/4th_PIV-Challenge_Case_E'
+pathbase = path_fluidimage + '/image_samples/4th_PIV-Challenge_Case_E'
 
 # level = 0
 v = 'piv_00001-00002.h5'
 
-pathcalib1 = '../../image_samples/4th_PIV-Challenge_Case_E/E_Calibration_Images/Camera_01/calib1.npy'
-pathcalib3 = '../../image_samples/4th_PIV-Challenge_Case_E/E_Calibration_Images/Camera_03/calib3.npy'
+pathcalib1 = pathbase + '/E_Calibration_Images/Camera_01/calib1.npy'
+pathcalib3 = pathbase + '/E_Calibration_Images/Camera_03/calib3.npy'
 
 dt = 0.001
 
