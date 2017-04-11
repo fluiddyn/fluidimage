@@ -1,8 +1,4 @@
 from fluidimage.topologies.piv import TopologyPIV
-from fluidimage import create_object_from_file
-from fluidcoriolis.milestone import paths_exp
-from fluidimage.data_objects.piv import MultipassPIVResults
-import sys
 import h5py
 from fluidimage.calibration.util import get_plane_equation
 from fluidimage.calibration import DirectStereoReconstruction
