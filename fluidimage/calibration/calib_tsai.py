@@ -1,6 +1,6 @@
 import copy
 import numpy as np
-from util import make_params_calibration
+from .util import make_params_calibration
 
 
 class Calibration(object):

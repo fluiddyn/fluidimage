@@ -12,7 +12,7 @@ from math import sqrt
 
 from fluiddyn.util.paramcontainer import ParamContainer, tidy_container
 
-from util import get_number_from_string2, get_base_from_normal_vector
+from .util import get_number_from_string2, get_base_from_normal_vector
 
 
 class Interpolent():
@@ -93,13 +93,16 @@ class CalibDirect():
 
         self.interp_levels = interp
 
-    def compute_interppixel2line(self, nbline_x, nbline_y,
+    def compute_interppixel2line(self, nbline,
                                  test=False):
         """ Compute interpolents for parameters for each optical path
-        (number of optical path is given by nbline_x, nbline_y)
+        (number of optical path is given by nbline=(nbline_x, nbline_y)
         optical paths are defined with
         a point x0, y0, z0 and a vector dx, dy, dz
         """
+        nbline_x = nbline[0]
+        nbline_y = nbline[1]
+        
         xtmp = np.unique(np.floor(np.linspace(0, self.nb_pixelx, nbline_x)))
         ytmp = np.unique(np.floor(np.linspace(0, self.nb_pixely, nbline_y)))
 
@@ -601,18 +604,18 @@ if __name__ == "__main__":
     nbline_x, nbline_y = 32, 32
 
     pathimg = '../../image_samples/4th_PIV-Challenge_Case_E/E_Calibration_Images/Camera_01/img*'
-    calib = CalibDirect(pathimg, nb_pixelx, nb_pixely)
+    calib = CalibDirect(pathimg, (nb_pixelx, nb_pixely))
     calib.compute_interpolents()
-    calib.compute_interppixel2line(nbline_x, nbline_y, test=False)
+    calib.compute_interppixel2line((nbline_x, nbline_y), test=False)
     calib.save('../../image_samples/4th_PIV-Challenge_Case_E/E_Calibration_Images/Camera_01/calib1.npy')
 
     # calib.check_interp_lines_coeffs()
     # calib.check_interp_lines()
     # calib.check_interp_levels()
     pathimg = '../../image_samples/4th_PIV-Challenge_Case_E/E_Calibration_Images/Camera_03/img*'
-    calib3 = CalibDirect(pathimg, nb_pixelx, nb_pixely)
+    calib3 = CalibDirect(pathimg, (nb_pixelx, nb_pixely))
     calib3.compute_interpolents()
-    calib3.compute_interppixel2line(nbline_x, nbline_y, test=False)
+    calib3.compute_interppixel2line((nbline_x, nbline_y), test=False)
     calib3.save('../../image_samples/4th_PIV-Challenge_Case_E/E_Calibration_Images/Camera_03/calib3.npy')
 
     stereo = DirectStereoReconstruction(
