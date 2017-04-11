@@ -410,8 +410,9 @@ class CorrelFFTW(CorrelBase):
             im1_shape = im0_shape
 
         if im0_shape != im1_shape:
-            raise ValueError('with this correlation method the input images '
-                             'have to have the same shape.')
+            raise ValueError(
+                'with this correlation method ({})'.format(self._tag) +
+                ' the input images have to have the same shape.')
 
         n0, n1 = im1_shape
         self.op = self.FFTClass(n1, n0)

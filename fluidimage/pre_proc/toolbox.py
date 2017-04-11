@@ -287,7 +287,7 @@ def rescale_intensity_tanh(img=None, threshold=None):
     '''
     if threshold is None:
         threshold = 2 * np.sqrt(np.mean(img**2))
-        
+
     img_out = np.tanh(img / threshold)
     img_out = np.floor(np.max(img) / np.max(img_out) * img_out)
     return img_out
@@ -298,7 +298,7 @@ def equalize_hist_global(img=None, nbins=256):
     '''
     Increases global contrast of the image. Equalized image would have a
     roughly linear cumulative distribution function for each pixel
-    neighborhood. It works well when pixel intensities are nearly uniform [1,2]. 
+    neighborhood. It works well when pixel intensities are nearly uniform [1,2].
 
     Parameters
     ----------
@@ -334,8 +334,8 @@ def equalize_hist_adapt(img=None, window_shape=(10, 10), nbins=256):
 
     References
     ----------
-    .. [1] http://scikit-image.org/docs/dev/auto_examples/color_exposure/plot_local_equalize.html # noqa
-    .. [2] https://en.wikipedia.org/wiki/Histogram_equalization
+    .. [3] http://scikit-image.org/docs/dev/auto_examples/color_exposure/plot_local_equalize.html # noqa
+    .. [4] https://en.wikipedia.org/wiki/Histogram_equalization
 
     '''
     minimum = img.min()
@@ -362,8 +362,8 @@ def equalize_hist_local(img=None, radius=10):
 
     References
     ----------
-    .. [1] http://scikit-image.org/docs/dev/auto_examples/color_exposure/plot_local_equalize.html # noqa
-    .. [2] https://en.wikipedia.org/wiki/Adaptive_histogram_equalization
+    .. [5] http://scikit-image.org/docs/dev/auto_examples/color_exposure/plot_local_equalize.html # noqa
+    .. [6] https://en.wikipedia.org/wiki/Adaptive_histogram_equalization
 
     '''
     selem = morphology.disk(radius)
@@ -398,8 +398,8 @@ def gamma_correction(img=None, gamma=1., gain=1.):
 
     References
     ----------
-    .. [1] http://scikit-image.org/docs/dev/auto_examples/color_exposure/plot_log_gamma.html # noqa
-    .. [2] http://en.wikipedia.org/wiki/Gamma_correction
+    .. [7] http://scikit-image.org/docs/dev/auto_examples/color_exposure/plot_log_gamma.html # noqa
+    .. [8] http://en.wikipedia.org/wiki/Gamma_correction
 
     '''
     img_out = exposure.adjust_gamma(img, gamma, gain)
@@ -443,7 +443,7 @@ class PreprocTools(object):
 
         for tool in available_tools:
             func = globals()[tool]
-            
+
             # TODO: Replace with inspect.getfullargspec (Python >= 3).
             func_args = inspect.getcallargs(func)
             for arg in list(func_args.keys()):
@@ -481,7 +481,7 @@ class PreprocTools(object):
 
             # Add tools as `staticmethods` of the class
             setattr(cls, tool, func)
-                
+
     def __init__(self, params):
         self.params = params.preproc.tools
 
@@ -499,7 +499,7 @@ class PreprocTools(object):
         sequence = self.params.sequence
         if sequence is None:
             sequence = self.params.available_tools
-            
+
         for tool in sequence:
             tool_params = self.params.__dict__[tool]
             if tool_params.enable:

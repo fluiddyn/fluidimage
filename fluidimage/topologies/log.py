@@ -1,6 +1,9 @@
-"""Parse and analyze logging files.
-===================================
+"""Parse and analyze logging files (:mod:`fluidimage.topologies.log`)
+=====================================================================
 
+.. autoclass:: LogTopology
+   :members:
+   :private-members:
 
 """
 from __future__ import print_function

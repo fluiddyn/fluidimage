@@ -35,7 +35,7 @@ from . import tps_pythran
 
 def compute_tps_coeff_subdom(centers, U, smoothing_coef, subdom_size,
                              new_positions, threshold=None,
-                             pourc_buffer_area=0.2):
+                             percent_buffer_area=0.25):
 
     max_coord = np.max(centers, 1)
     min_coord = np.min(centers, 1)
@@ -52,9 +52,9 @@ def compute_tps_coeff_subdom(centers, U, smoothing_coef, subdom_size,
     y_dom = np.arange(min_coord[0], max_coord[0], range_coord[0] / nb_subdomy)
     y_dom = np.unique(np.append(y_dom, max_coord[0]))
 
-    buffer_area_x = x_dom*0 + range_coord[1]/(nb_subdomx) * pourc_buffer_area
+    buffer_area_x = x_dom*0 + range_coord[1]/(nb_subdomx) * percent_buffer_area
     # buffer_area_x[0], buffer_area_x[-1] = 0, 0
-    buffer_area_y = y_dom*0 + range_coord[0]/(nb_subdomy) * pourc_buffer_area
+    buffer_area_y = y_dom*0 + range_coord[0]/(nb_subdomy) * percent_buffer_area
     # buffer_area_y[0], buffer_area_y[-1] = 0, 0
 
     ind_subdom = np.zeros([nb_subdom, 2])
@@ -209,7 +209,9 @@ def compute_tps_matrix_numpy(dsites, centers):
     -------
 
     EM : np.array
-        ``[(N+nb_dim), M]`` matrix representing the contributions at the M sites.
+
+        ``[(N+nb_dim), M]`` matrix representing the contributions at the M
+        sites.
 
         From unit sources located at each of the N centers, +
         (nb_dim+1) columns representing the contribution of the linear

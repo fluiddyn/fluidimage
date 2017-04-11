@@ -3,9 +3,6 @@
 
 .. todo::
 
-   - as in UVmat: better patch "thin-plate spline" (?). Add variables as
-     in UVmat (NbCenter, Coord_tps, SubRange, U_tps, V_tps)
-
    - detect and save multipeaks. Add variables:
 
      * deltaxs_2ndpeak {ivec: float32}
@@ -87,42 +84,35 @@ class BaseWorkPIV(BaseWork):
         self.shape_crop_im1 = shape_crop_im1
 
         if isinstance(shape_crop_im0, int):
-            n_interrogation_window0 = (shape_crop_im0, shape_crop_im0)
-        elif isinstance(shape_crop_im0, tuple) and len(shape_crop_im0) == 2:
-            n_interrogation_window0 = shape_crop_im0
+            shape_crop_im0 = (shape_crop_im0, shape_crop_im0)
+        elif (isinstance(shape_crop_im0, (tuple, list)) and
+              len(shape_crop_im0) == 2):
+            shape_crop_im0 = tuple(shape_crop_im0)
         else:
             raise NotImplementedError(
                 'For now, shape_crop_im0 has to be one or two integer!')
 
         if isinstance(shape_crop_im1, int):
-            n_interrogation_window1 = (shape_crop_im1, shape_crop_im1)
-        elif isinstance(shape_crop_im1, tuple) and len(shape_crop_im1) == 2:
-            n_interrogation_window1 = shape_crop_im1
+            shape_crop_im1 = (shape_crop_im1, shape_crop_im1)
+        elif (isinstance(shape_crop_im1, (tuple, list)) and
+              len(shape_crop_im1) == 2):
+            shape_crop_im1 = tuple(shape_crop_im1)
         else:
             raise NotImplementedError(
                 'For now, shape_crop_im1 has to be one or two integer!')
 
-        if (n_interrogation_window1[0] > n_interrogation_window0[0] or
-                n_interrogation_window1[1] > n_interrogation_window0[1]):
-            raise NotImplementedError(
+        if (shape_crop_im1[0] > shape_crop_im0[0] or
+                shape_crop_im1[1] > shape_crop_im0[1]):
+            raise ValueError(
                 'shape_crop_im1 must be inferior or equal to shape_crop_im0')
 
-        niw0 = self.n_interrogation_window0 = n_interrogation_window0
-        niw1 = self.n_interrogation_window1 = n_interrogation_window1
+        self.shape_crop_im0 = shape_crop_im0
+        self.shape_crop_im1 = shape_crop_im1
 
-        for size in niw0 + niw1:
-            if size % 2 == 1:
-                raise NotImplementedError(
-                    'All dimensions of the cropped windows must be even.')
-
-        self.niw0o2 = (int(niw0[0]//2), int(niw0[1]//2))
-        self.niw1o2 = (int(niw1[0]//2), int(niw1[1]//2))
-
+        self._init_crop()
         self._init_correl()
 
     def _init_correl(self):
-        niw0 = self.n_interrogation_window0
-        niw1 = self.n_interrogation_window1
         try:
             correl_cls = correlation_classes[self.params.piv0.method_correl]
         except KeyError:
@@ -130,29 +120,26 @@ class BaseWorkPIV(BaseWork):
                 'params.piv0.method_correl should be in ' +
                 str(correlation_classes.keys()))
 
-        self.correl = correl_cls(im0_shape=niw0, im1_shape=niw1,
+        self.correl = correl_cls(im0_shape=self.shape_crop_im0,
+                                 im1_shape=self.shape_crop_im1,
                                  method_subpix=self.params.piv0.method_subpix,
                                  nsubpix=self.params.piv0.nsubpix)
 
     def _prepare_with_image(self, im0):
         """Initialize the object with an image.
-
-        .. todo::
-
-           Better ixvecs and iyvecs (starting from 0 and padding is silly).
-
         """
         self.imshape0 = len_y, len_x = im0.shape
-        niw = self.n_interrogation_window0
-        niwo2 = self.niw0o2
+        scim = self.shape_crop_im0
 
-        stepy = niw[0] - int(np.round(self.overlap*niw[0]))
-        stepx = niw[1] - int(np.round(self.overlap*niw[1]))
+        stepy = scim[0] - int(np.round(self.overlap*scim[0]))
+        stepx = scim[1] - int(np.round(self.overlap*scim[1]))
         assert stepy >= 1
         assert stepx >= 1
 
-        ixvecs = np.arange(niwo2[1], len_x-niwo2[1], stepx, dtype=int)
-        iyvecs = np.arange(niwo2[0], len_y-niwo2[0], stepy, dtype=int)
+        ixvecs = np.arange(self._start_for_crop0[1],
+                           len_x-self._stop_for_crop0[1], stepx, dtype=int)
+        iyvecs = np.arange(self._start_for_crop0[0],
+                           len_y-self._stop_for_crop0[0], stepy, dtype=int)
         self.ixvecs = ixvecs
         self.iyvecs = iyvecs
 
@@ -162,6 +149,7 @@ class BaseWorkPIV(BaseWork):
         self.iyvecs_grid = iyvecs.flatten()
 
     def calcul(self, couple):
+        """Calcul the PIV (one pass) from a couple of images."""
         if isinstance(couple, SerieOfArraysFromFiles):
             couple = ArrayCouple(serie=couple, params_mask=self.params.mask)
 
@@ -190,32 +178,62 @@ class BaseWorkPIV(BaseWork):
            Choose correctly the variable npad.
 
         """
-        npad = self.npad = max(self.niw0o2)
+        npad = self.npad = max(self._start_for_crop0 + self._stop_for_crop0)
         tmp = [(npad, npad), (npad, npad)]
         im0pad = np.pad(im0 - im0.min(), tmp, 'constant')
         im1pad = np.pad(im1 - im1.min(), tmp, 'constant')
         return im0pad, im1pad
 
-    def calcul_indices_vec(self, deltaxs_approx=None, deltays_approx=None):
+    def _calcul_indices_vec(self, deltaxs_approx=None, deltays_approx=None):
+        """Calcul the indices corresponding to the vectors and cropped windows.
 
-        xs = self.ixvecs_grid
-        ys = self.iyvecs_grid
+        Returns
+        -------
 
+        xs : np.array
+
+          x index of the position of the computed vector in the original
+          images.
+
+        ys : np.array
+
+          y index of the position of the computed vector in the original
+          images.
+
+        ixs0_pad : np.array
+
+          x index of the center of the crop image 0 in the padded image 0.
+
+        iys0_pad : np.array
+
+          y index of the center of the crop image 0 in the padded image 0.
+
+        ixs1_pad : np.array
+
+          x index of the center of the crop image 1 in the padded image 1.
+
+        iys1_pad : np.array
+
+          y index of the center of the crop image 1 in the padded image 1.
+
+        """
         ixs0_pad = self.ixvecs_grid + self.npad
         iys0_pad = self.iyvecs_grid + self.npad
         ixs1_pad = ixs0_pad
         iys1_pad = iys0_pad
 
-        return xs, ys, ixs0_pad, iys0_pad, ixs1_pad, iys1_pad
+        return (self.ixvecs_grid, self.iyvecs_grid, ixs0_pad, iys0_pad,
+                ixs1_pad, iys1_pad)
 
     def _loop_vectors(self, im0, im1,
                       deltaxs_approx=None, deltays_approx=None):
+        """Loop over the vectors to compute them."""
 
         im0pad, im1pad = self._pad_images(im0, im1)
 
         xs, ys, ixs0_pad, iys0_pad, ixs1_pad, iys1_pad = \
-            self.calcul_indices_vec(deltaxs_approx=deltaxs_approx,
-                                    deltays_approx=deltays_approx)
+            self._calcul_indices_vec(deltaxs_approx=deltaxs_approx,
+                                     deltays_approx=deltays_approx)
 
         nb_vec = len(xs)
 
@@ -235,13 +253,13 @@ class BaseWorkPIV(BaseWork):
             im0crop = self._crop_im0(ixvec0, iyvec0, im0pad)
             im1crop = self._crop_im1(ixvec1, iyvec1, im1pad)
 
-            if im0crop.shape != self.n_interrogation_window0 or \
-               im1crop.shape != self.n_interrogation_window1:
+            if im0crop.shape != self.shape_crop_im0 or \
+               im1crop.shape != self.shape_crop_im1:
 
                 print('Warning: Bad im_crop shape.',
                       ixvec0, iyvec0, ixvec1, iyvec1,
-                      im0crop.shape, self.n_interrogation_window0,
-                      im1crop.shape, self.n_interrogation_window1)
+                      im0crop.shape, self.shape_crop_im0,
+                      im1crop.shape, self.shape_crop_im1)
 
                 deltaxs[ivec] = np.nan
                 deltays[ivec] = np.nan
@@ -249,7 +267,6 @@ class BaseWorkPIV(BaseWork):
                 errors[ivec] = 'Bad im_crop shape.'
                 continue
 
-            # print(im0crop.shape, im1crop.shape)
             correl, coef_norm = self.correl(im0crop, im1crop)
             if self.index_pass == 0 and \
                self.params.piv0.coef_correl_no_displ is not None:
@@ -284,21 +301,73 @@ class BaseWorkPIV(BaseWork):
 
         return deltaxs, deltays, xs, ys, correls_max, correls, errors
 
+    def _init_crop(self):
+        """Initialize the cropping of the images."""
+
+        scim0 = self.shape_crop_im0
+        scim1 = self.shape_crop_im1
+
+        self._start_for_crop0 = (scim0[0]//2, scim0[1]//2)
+        _stop_for_crop0 = [scim0[0]//2, scim0[1]//2]
+
+        if scim0[0] % 2 == 1:
+            _stop_for_crop0[0] += 1
+
+        if scim0[1] % 2 == 1:
+            _stop_for_crop0[1] += 1
+
+        self._stop_for_crop0 = tuple(_stop_for_crop0)
+
+        self._start_for_crop1 = (scim1[0]//2, scim1[1]//2)
+        _stop_for_crop1 = [scim1[0]//2, scim1[1]//2]
+
+        if scim1[0] % 2 == 1:
+            _stop_for_crop1[0] += 1
+
+        if scim1[1] % 2 == 1:
+            _stop_for_crop1[1] += 1
+
+        self._stop_for_crop1 = tuple(_stop_for_crop1)
+
     def _crop_im0(self, ixvec, iyvec, im):
-        niwo2 = self.niw0o2
-        subim = im[iyvec - niwo2[0]:iyvec + niwo2[0],
-                   ixvec - niwo2[1]:ixvec + niwo2[1]]
+        """Crop image 0."""
+        subim = im[
+            iyvec - self._start_for_crop0[0]:iyvec + self._stop_for_crop0[0],
+            ixvec - self._start_for_crop0[1]:ixvec + self._stop_for_crop0[1]]
         subim = np.array(subim, dtype=np.float32)
         return subim - subim.mean()
 
     def _crop_im1(self, ixvec, iyvec, im):
-        niwo2 = self.niw1o2
-        subim = im[iyvec - niwo2[0]:iyvec + niwo2[0],
-                   ixvec - niwo2[1]:ixvec + niwo2[1]]
+        """Crop image 1."""
+        subim = im[
+            iyvec - self._start_for_crop1[0]:iyvec + self._stop_for_crop1[0],
+            ixvec - self._start_for_crop1[1]:ixvec + self._stop_for_crop1[1]]
         subim = np.array(subim, dtype=np.float32)
         return subim - subim.mean()
 
     def apply_interp(self, piv_results, last=False):
+        """Interpolate a PIV result object on the grid of the PIV work.
+
+        Parameters
+        ----------
+
+        piv_results : :class;`HeavyPIVResults`
+
+            The interpolated field are added to this object.
+
+        last : bool (False)
+
+            Last pass or not.
+
+        Notes
+        -----
+
+        Depending on the value of `params.multipass.use_tps`, the interpolation
+        is done with an interative method based on the Thin Plate Spline method
+        (:class:`fluidimage.calcul.interpolate.thin_plate_spline_subdom.ThinPlateSplineSubdom`)
+        or done with a simple griddata method (much faster).
+
+        """
 
         if not last and not hasattr(piv_results, 'ixvecs_approx'):
             piv_results.ixvecs_approx = self.ixvecs_grid
@@ -332,7 +401,7 @@ class BaseWorkPIV(BaseWork):
 
             tps = ThinPlateSplineSubdom(
                 centers, subdom_size, smoothing_coef,
-                threshold=threshold, pourc_buffer_area=0.5)
+                threshold=threshold, percent_buffer_area=0.25)
             try:
                 deltaxs_smooth, deltaxs_tps = \
                     tps.compute_tps_coeff_subdom(deltaxs)
@@ -394,7 +463,7 @@ shape_crop_im0 : int (48)
 shape_crop_im1 : int or None
     Shape of the cropped images 0 (has to be None for correl based on fft).
 delta_max : None
-    Displacement maximum.
+        Displacement maximum (NotImplemented).
 delta_mean : None
     Displacement averaged over space.
 
@@ -406,6 +475,11 @@ nsubpix : None
     Integer used in the subpix finder. It is related to the typical size of the
     particles. It has to be increased in case of peak locking (plot the
     histograms of the displacements).
+
+coef_correl_no_displ : None, number
+    If this coefficient is not None, the correlation of the point corresponding
+    to no displacement is multiplied by this coefficient (for the first pass).
+
 """)
 
         params.piv0._set_child('grid', attribs={
@@ -435,7 +509,21 @@ strcrop : None, str
 
 
 class WorkPIVFromDisplacement(BaseWorkPIV):
-    """Work PIV working from already computed displacement (for multipass)."""
+    """Work PIV working from already computed displacement (for multipass).
+
+    Notes
+    -----
+
+    Steps for the PIV computation:
+
+    - prepare the work PIV with an image if not already done (grid),
+
+    - apply interpolation (TPS or griddata) to compute a estimation of the
+      displacements,
+
+    - loop over vectors to compute displacements.
+
+    """
 
     def __init__(self, params=None, index_pass=1, shape_crop_im0=None,
                  shape_crop_im1=None):
@@ -457,23 +545,14 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
         shape_crop_im0 = tuple(int(n) for n in shape_crop_im0)
         shape_crop_im1 = tuple(int(n) for n in shape_crop_im1)
 
-        niw0 = self.n_interrogation_window0 = shape_crop_im0
-        niw1 = self.n_interrogation_window1 = shape_crop_im1
-
-        for size in niw0 + niw1:
-            if size % 2 == 1:
-                raise NotImplementedError(
-                    'All dimensions of the cropped windows must be even.')
-
-        self.niw0o2 = (int(niw0[0]//2), int(niw0[1]//2))
-        self.niw1o2 = (int(niw1[0]//2), int(niw1[1]//2))
-
+        self.shape_crop_im0 = shape_crop_im0
+        self.shape_crop_im1 = shape_crop_im1
         self.overlap = params.piv0.grid.overlap
-
+        self._init_crop()
         self._init_correl()
 
     def calcul(self, piv_results):
-        """Calcul the piv.
+        """Calcul the PIV (one pass) from a couple of images and displacement.
 
         .. todo::
 
@@ -509,13 +588,37 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
 
         return result
 
-    def calcul_indices_vec(self, deltaxs_approx=None, deltays_approx=None):
-        """Calcul the indices corresponding to the windows in im0 and im1.
+    def _calcul_indices_vec(self, deltaxs_approx=None, deltays_approx=None):
+        """Calcul the indices corresponding to the vectors and cropped windows.
 
-        .. todo::
+        Returns
+        -------
 
-           Better handle calculus of indices for crop image center on
-           image 0 and image 1.
+        xs : np.array
+
+          x index of the position of the computed vector in the original
+          images.
+
+        ys : np.array
+
+          y index of the position of the computed vector in the original
+          images.
+
+        ixs0_pad : np.array
+
+          x index of the center of the crop image 0 in the padded image 0.
+
+        iys0_pad : np.array
+
+          y index of the center of the crop image 0 in the padded image 0.
+
+        ixs1_pad : np.array
+
+          x index of the center of the crop image 1 in the padded image 1.
+
+        iys1_pad : np.array
+
+          y index of the center of the crop image 1 in the padded image 1.
 
         """
         ixs0 = self.ixvecs_grid - deltaxs_approx // 2

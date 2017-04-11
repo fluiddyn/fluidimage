@@ -21,6 +21,11 @@ IPYTHON_NOTEBOOKS_DIR = $(IPYTHON_NOTEBOOKS:.ipynb=_files)
 
 .PHONY: help clean html dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest gettext
 
+html:
+	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
+	@echo
+	@echo "Build finished. Address: $(BUILDDIR)/html/index.html"
+
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
 	@echo "  html       to make standalone HTML files"
@@ -50,11 +55,6 @@ clean:
 
 cleanall: clean
 	rm -rf generated html.zip
-
-html:
-	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
-	@echo
-	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
 
 dirhtml:
 	$(SPHINXBUILD) -b dirhtml $(ALLSPHINXOPTS) $(BUILDDIR)/dirhtml
@@ -165,8 +165,8 @@ doctest:
 zip: html
 	cd _build/html &&  zip -r html.zip * && mv html.zip ../../.
 
-%.rst: %.ipynb
-	cd $(IPYNB_DIR) && ipython nbconvert --to rst $(notdir $<)
+# %.rst: %.ipynb
+# 	cd $(IPYNB_DIR) && ipython nbconvert --to rst $(notdir $<)
 
 open_html: html
 	firefox _build/html/index.html

@@ -1,5 +1,6 @@
-"""Waiting queues for series
-============================
+"""
+Waiting queues for series (:mod:`fluidimage.topologies.waiting_queues.series`)
+==============================================================================
 
 .. autoclass:: WaitingQueueLoadImageSeries
    :members:

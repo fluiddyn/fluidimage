@@ -7,53 +7,35 @@ This interpolation/smoothing (Duchon, 1976; NguyenDuc and Sommeria,
 1988) minimises a linear combination of the squared curvature and
 squared difference from the initial data.
 
-We first need to compute tps coefficients ``U_tps`` (function
-``compute_tps_coeff``). Interpolated data can then be obtained as the
-matrix product ``dot(U_tps, EM)`` where the matrix ``EM`` is obtained
-by the function ``compute_tps_matrix``.  The spatial derivatives are
-obtained as ``dot(U_tps, EMDX)`` and ``dot(U_tps, EMDY)``, where
-``EMDX`` and ``EMDY`` are obtained from the function
-``compute_tps_matrix_dxy``. A helper class is also provided.
-
-.. autofunction:: compute_tps_coeff
-
 .. autoclass:: ThinPlateSpline
    :members:
-
-.. autofunction:: compute_tps_matrix
-
-.. autofunction:: compute_tps_matrices_dxy
-
-
-.. todo::
-
-   Understand and do as UVmat (TPS with subdomains).
 
 """
 import numpy as np
 
+
 class ThinPlateSpline(object):
     """Helper class for thin plate interpolation."""
 
-    def __init__(self, new_positions, centers, U, subdom_size, smoothing_coef, 
-                 threshold=None, pourc_buffer_area=0.2):
-        
+    def __init__(self, new_positions, centers, U, subdom_size, smoothing_coef,
+                 threshold=None, percent_buffer_area=0.2):
+
         self.centers = centers
         self.subdom_size = subdom_size
         self.new_positions = new_positions
         self.smoothing_coef = smoothing_coef
         self.threshold = threshold
-        
+
         self.U = U
-        
-        self.compute_indices(pourc_buffer_area)
-        
+
+        self.compute_indices(percent_buffer_area)
+
         self.compute_tps_coeff_subdom()
-        
+
         self.compute_tps_matrices_dxy()
-        
-        #self.EM = compute_tps_matrix(new_positions, centers)
-        #self.DMX, self.DMY = compute_tps_matrices_dxy(new_positions, centers)
+
+        # self.EM = compute_tps_matrix(new_positions, centers)
+        # self.DMX, self.DMY = compute_tps_matrices_dxy(new_positions, centers)
 
     def compute_field(self):
         """Compute the interpolated field."""
@@ -63,108 +45,116 @@ class ThinPlateSpline(object):
         """Compute the gradient (dx_U, dy_U)"""
         return np.dot(U_tps, self.DMX), np.dot(U_tps, self.DMY)
 
-
-    def compute_indices(self, pourc_buffer_area=0.2):
+    def compute_indices(self, percent_buffer_area=0.2):
         max_coord = np.max(self.centers, 1)
         min_coord = np.min(self.centers, 1)
         range_coord = max_coord - min_coord
         aspect_ratio = range_coord[1] / range_coord[0]
-    
-        nb_subdom = self.centers[0,:].size / self.subdom_size
-        nb_subdomx = int( np.max ( np.floor( np.sqrt( nb_subdom / aspect_ratio ) ), 0) )
-        nb_subdomy = int( np.max ( np.floor( np.sqrt( nb_subdom * aspect_ratio ) ), 0) )
+
+        nb_subdom = self.centers[0, :].size / self.subdom_size
+        nb_subdomx = int(np.max(np.floor(np.sqrt(nb_subdom/aspect_ratio)), 0))
+        nb_subdomy = int(np.max(np.floor(np.sqrt(nb_subdom*aspect_ratio)), 0))
         nb_subdom = nb_subdomx * nb_subdomy
-    
-        x_dom = np.arange(min_coord[0],max_coord[0],range_coord[0] / nb_subdomx)
-        x_dom = np.unique( np.append(x_dom, max_coord[0]) )
-        y_dom = np.arange(min_coord[1],max_coord[1],range_coord[1] / nb_subdomy)
-        y_dom = np.unique( np.append(y_dom, max_coord[1]) )
 
-        buffer_area_x = x_dom*0 + range_coord[0]/(nb_subdomx) * pourc_buffer_area
-        buffer_area_y = y_dom*0 + range_coord[1]/(nb_subdomy) * pourc_buffer_area
+        x_dom = np.arange(min_coord[0], max_coord[0],
+                          range_coord[0] / nb_subdomx)
+        x_dom = np.unique(np.append(x_dom, max_coord[0]))
+        y_dom = np.arange(min_coord[1], max_coord[1],
+                          range_coord[1] / nb_subdomy)
+        y_dom = np.unique(np.append(y_dom, max_coord[1]))
 
-        ind_subdom = np.zeros([nb_subdom,2])    
-        ind_v_subdom = []               
+        buffer_area_x = (x_dom*0 +
+                         range_coord[0]/(nb_subdomx) * percent_buffer_area)
+        buffer_area_y = (y_dom*0 +
+                         range_coord[1]/(nb_subdomy) * percent_buffer_area)
+
+        ind_subdom = np.zeros([nb_subdom, 2])
+        ind_v_subdom = []
         if self.new_positions is not None:
-            ind_new_positions_subdom= []
-        
+            ind_new_positions_subdom = []
+
         count = 0
         for i in range(nb_subdomx):
             for j in range(nb_subdomy):
-                ind_subdom[count,:] = [i, j]
-            
-                ind_v_subdom.append( np.argwhere( 
-                (self.centers[0 , :] >= x_dom[i] - buffer_area_x[i]) & 
-                (self.centers[0 , :] < x_dom[i+1] + buffer_area_x[i+1]) & 
-                (self.centers[1 , :] >= y_dom[j] - buffer_area_y[j]) & 
-                (self.centers[1 , :] < y_dom[j+1] + buffer_area_y[j+1]) ).flatten())
-            
+                ind_subdom[count, :] = [i, j]
+
+                ind_v_subdom.append(np.argwhere(
+                    (self.centers[0, :] >= x_dom[i] - buffer_area_x[i]) &
+                    (self.centers[0, :] < x_dom[i+1] + buffer_area_x[i+1]) &
+                    (self.centers[1, :] >= y_dom[j] - buffer_area_y[j]) &
+                    (self.centers[1, :] < y_dom[j+1] + buffer_area_y[j+1])
+                ).flatten())
+
                 if self.new_positions is not None:
-                    ind_new_positions_subdom.append( np.argwhere( 
-                    (self.new_positions[0 , :] >= x_dom[i] - buffer_area_x[i]) & 
-                    (self.new_positions[0 , :] < x_dom[i+1] + buffer_area_x[i+1]) & 
-                    (self.new_positions[1 , :] >= y_dom[j] - buffer_area_y[j]) & 
-                    (self.new_positions[1 , :] < y_dom[j+1] + buffer_area_y[j+1]) ).flatten())        
-            
-                count +=1
+                    ind_new_positions_subdom.append(np.argwhere(
+                        (self.new_positions[0, :] >=
+                         x_dom[i] - buffer_area_x[i]) &
+                        (self.new_positions[0, :] <
+                         x_dom[i+1] + buffer_area_x[i+1]) &
+                        (self.new_positions[1, :] >=
+                         y_dom[j] - buffer_area_y[j]) &
+                        (self.new_positions[1, :] <
+                         y_dom[j+1] + buffer_area_y[j+1])).flatten())
+
+                count += 1
         self.ind_v_subdom = ind_v_subdom
         self.ind_new_positions_subdom = ind_new_positions_subdom
         self.nb_subdom = nb_subdom
-    
-    
 
     def compute_tps_coeff_subdom(self):
-        
+
         U_tps = [None] * self.nb_subdom
         U_smooth = [None] * self.nb_subdom
         EM = [None] * self.nb_subdom
 
         for i in range(self.nb_subdom):
-            centerstemp=np.vstack( [self.centers[0][self.ind_v_subdom[i]], self.centers[1][self.ind_v_subdom[i]] ] )
+            centerstemp = np.vstack(
+                [self.centers[0][self.ind_v_subdom[i]],
+                 self.centers[1][self.ind_v_subdom[i]]])
             Utemp = self.U[self.ind_v_subdom[i]]
-            U_smooth[i], U_tps[i] = self.compute_tps_coeff_iter(centerstemp, Utemp)
-        
-            centers_newposition_temp=np.vstack( [self.new_positions[0][self.ind_new_positions_subdom[i]], 
-                                                 self.new_positions[1][self.ind_new_positions_subdom[i]] ] )
-        
-            EM[i] = self.compute_tps_matrix(centers_newposition_temp, centerstemp)
-        
-        self.U_smooth = U_smooth 
+            U_smooth[i], U_tps[i] = self.compute_tps_coeff_iter(
+                centerstemp, Utemp)
+
+            centers_newposition_temp = np.vstack(
+                [self.new_positions[0][self.ind_new_positions_subdom[i]],
+                 self.new_positions[1][self.ind_new_positions_subdom[i]]])
+
+            EM[i] = self.compute_tps_matrix(
+                centers_newposition_temp, centerstemp)
+
+        self.U_smooth = U_smooth
         self.U_tps = U_tps
-        self.EM = EM 
-    
-    
+        self.EM = EM
 
     def compute_tps_coeff_iter(self, centers, U):
-        """ Compute the thin plate spline (tps) coefficients removing erratic 
+        """Compute the thin plate spline (tps) coefficients removing erratic
         vectors
-        It computes iteratively "compute_tps_coeff", compares the tps result 
-        to the initial data and remove it if difference is larger than the given 
+
+        It computes iteratively "compute_tps_coeff", compares the tps result to
+        the initial data and remove it if difference is larger than the given
         threshold
 
         """
         U_smooth, U_tps = self.compute_tps_coeff(centers, U)
         if self.threshold is not None:
-            Udiff = np.sqrt( (U_smooth - U)**2 )
+            Udiff = np.sqrt((U_smooth - U)**2)
             ind_erratic_vector = np.argwhere(Udiff > self.threshold)
-        
+
             count = 1
             while ind_erratic_vector.size != 0:
                 U[ind_erratic_vector] = U_smooth[ind_erratic_vector]
-                U_smooth, U_tps = self.compute_tps_coeff(centers, U)  
-            
-                Udiff = np.sqrt( (U_smooth-U)**2 )
+                U_smooth, U_tps = self.compute_tps_coeff(centers, U)
+
+                Udiff = np.sqrt((U_smooth-U)**2)
                 ind_erratic_vector = np.argwhere(Udiff > self.threshold)
                 count += 1
-            
+
                 if count > 10:
-                    print('tps stopped after 10 iterations')                
+                    print('tps stopped after 10 iterations')
                     break
-        if count > 1  :      
-            print ('tps done after ', count, ' attempt(s)') 
+        if count > 1:
+            print('tps done after ', count, ' attempt(s)')
         return U_smooth, U_tps
-        
-    
 
     def compute_tps_coeff(self, centers, U):
         """Calculate the thin plate spline (tps) coefficients
@@ -181,7 +171,9 @@ class ThinPlateSpline(object):
             scalar measured at the centres ``centers``.
 
         smoothing_coef : float
-            Smoothing parameter. The result is smoother for larger smoothing_coef.
+
+            Smoothing parameter. The result is smoother for larger
+            smoothing_coef.
 
         Returns
         -------
@@ -205,7 +197,7 @@ class ThinPlateSpline(object):
         U_tps, r, r2, r3 = np.linalg.lstsq(IM, U)
         U_smooth = np.dot(EM, U_tps)
         return U_smooth.ravel(), U_tps.ravel()
-        
+
     def compute_tps_matrix(self, dsites, centers):
         """calculate the thin plate spline (tps) interpolation at a set of points
 
@@ -224,7 +216,9 @@ class ThinPlateSpline(object):
         -------
 
         EM : np.array
-            ``[(N+nb_dim), M]`` matrix representing the contributions at the M sites.
+
+            ``[(N+nb_dim), M]`` matrix representing the contributions at the M
+            sites.
 
             From unit sources located at each of the N centers, +
             (nb_dim+1) columns representing the contribution of the linear
@@ -234,7 +228,7 @@ class ThinPlateSpline(object):
         -----
 
         >>> U_interp = np.dot(U_tps, EM)
-        
+
         """
         s, M = dsites.shape
         s2, N = centers.shape
@@ -243,12 +237,12 @@ class ThinPlateSpline(object):
         for d in range(s):
             Dsites, Centers = np.meshgrid(dsites[d], centers[d])
             EM = EM + (Dsites - Centers) ** 2
-                
+
         nb_p = np.where(EM != 0)
         EM[nb_p] = EM[nb_p] * np.log(EM[nb_p]) / 2
         EM = np.vstack([EM, np.ones(M), dsites])
         return EM
-        
+
     def compute_tps_matrices_dxy(self):
         """Calculate the derivatives of thin plate spline (tps) interpolation
         at a set of points (limited to the 2D case)
@@ -277,49 +271,49 @@ class ThinPlateSpline(object):
 
         """
 
-        DMX_tps = [None] * self.nb_subdom            
+        DMX_tps = [None] * self.nb_subdom
         DMY_tps = [None] * self.nb_subdom
-        DUX_smooth = [None] * self.nb_subdom            
+        DUX_smooth = [None] * self.nb_subdom
         DUY_smooth = [None] * self.nb_subdom
-        
-        
+
         for i in range(self.nb_subdom):
-            centers_newposition_temp=np.vstack( [self.new_positions[0][self.ind_new_positions_subdom[i]], 
-                                                 self.new_positions[1][self.ind_new_positions_subdom[i]] ] )
-            centers_temp=np.vstack( [self.centers[0][self.ind_v_subdom[i]], 
-                                                 self.centers[1][self.ind_v_subdom[i]] ] )
+            centers_newposition_temp = np.vstack(
+                [self.new_positions[0][self.ind_new_positions_subdom[i]],
+                 self.new_positions[1][self.ind_new_positions_subdom[i]]])
+            centers_temp = np.vstack([self.centers[0][self.ind_v_subdom[i]],
+                                      self.centers[1][self.ind_v_subdom[i]]])
             s, M = centers_newposition_temp.shape
             s2, N = centers_temp.shape
             assert s == s2
-            Dsites, Centers = np.meshgrid(centers_newposition_temp[0], centers_temp[0])
+            Dsites, Centers = np.meshgrid(
+                centers_newposition_temp[0], centers_temp[0])
             DX = Dsites - Centers
-            Dsites, Centers = np.meshgrid(centers_newposition_temp[1], centers_temp[1])
+            Dsites, Centers = np.meshgrid(
+                centers_newposition_temp[1], centers_temp[1])
             DY = Dsites - Centers
             DM = DX * DX + DY * DY
             DM[DM != 0] = np.log(DM[DM != 0]) + 1
-            
-            DMX_tps[i] = np.vstack([DX * DM, np.zeros(M), np.ones(M), np.zeros(M)])
-            DMY_tps[i] = np.vstack([DY * DM, np.zeros(M), np.zeros(M), np.ones(M)])
+
+            DMX_tps[i] = np.vstack(
+                [DX * DM, np.zeros(M), np.ones(M), np.zeros(M)])
+            DMY_tps[i] = np.vstack(
+                [DY * DM, np.zeros(M), np.zeros(M), np.ones(M)])
             DUX_smooth[i] = np.dot(self.U_tps[i], DMX_tps[i])
             DUY_smooth[i] = np.dot(self.U_tps[i], DMY_tps[i])
-            
-            
-                
-        self.DMX_tps =DMX_tps
+
+        self.DMX_tps = DMX_tps
         self.DMY_tps = DMY_tps
-        self.DUX_smooth = DUX_smooth        
+        self.DUX_smooth = DUX_smooth
         self.DUY_smooth = DUY_smooth
 
-        #return DMX, DMY
-        
-        
     def compute_U_eval(self):
-        
+
         U_eval = np.zeros(self.new_positions[0].shape)
         nb_tps = np.zeros(self.new_positions[0].shape)
-        
+
         for i in range(self.nb_subdom):
-            U_eval[self.ind_new_positions_subdom[i]] += np.dot(self.U_tps[i], self.EM[i])
+            U_eval[self.ind_new_positions_subdom[i]] += np.dot(
+                self.U_tps[i], self.EM[i])
 
             nb_tps[self.ind_new_positions_subdom[i]] += 1.0
 
@@ -327,16 +321,18 @@ class ThinPlateSpline(object):
 
         self.U_eval = U_eval
         return U_eval
-        
+
     def compute_dxy_eval(self):
-        
-        DMX_eval = np.zeros(self.new_positions[0].shape)        
+
+        DMX_eval = np.zeros(self.new_positions[0].shape)
         DMY_eval = np.zeros(self.new_positions[0].shape)
         nb_tps = np.zeros(self.new_positions[0].shape)
-        
+
         for i in range(self.nb_subdom):
-            DMX_eval[self.ind_new_positions_subdom[i]] += np.dot(self.U_tps[i], self.DMX_tps[i])
-            DMY_eval[self.ind_new_positions_subdom[i]] += np.dot(self.U_tps[i], self.DMY_tps[i])
+            DMX_eval[self.ind_new_positions_subdom[i]] += np.dot(
+                self.U_tps[i], self.DMX_tps[i])
+            DMY_eval[self.ind_new_positions_subdom[i]] += np.dot(
+                self.U_tps[i], self.DMY_tps[i])
             nb_tps[self.ind_new_positions_subdom[i]] += 1.0
 
         DMX_eval /= nb_tps
@@ -346,5 +342,3 @@ class ThinPlateSpline(object):
         self.DMY_eval = DMY_eval
 
         return DMX_eval, DMY_eval
-        
-

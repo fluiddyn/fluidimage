@@ -9,14 +9,11 @@
 
 from __future__ import print_function
 
-# import os
-# import sys
 from copy import copy
 
 from fluiddyn.util.paramcontainer import ParamContainer
 
 from .. import BaseWork
-# from ...data_objects.piv import get_name_piv
 
 from .fix import WorkFIX
 from .singlepass import FirstWorkPIV, WorkPIVFromDisplacement, InterpError
@@ -25,16 +22,44 @@ from ...data_objects.piv import MultipassPIVResults
 
 
 class WorkPIV(BaseWork):
-    """Main work for PIV with multipass."""
+    """Main work for PIV with multipass.
+
+    Parameters
+    ----------
+
+    params : :class:`fluiddyn.util.paramcontainer.ParamContainer`
+
+      The default parameters are obtained from the class method
+      :func:`WorkPIV.create_default_params`.
+
+    Notes
+    -----
+
+    Steps for a computation:
+
+    - first estimation of the PIV field with a work
+      :class:`fluidimage.works.piv.singlepass.FirstWorkPIV`
+
+    - fix (remove "false vectors") with a work
+      :class:`fluidimage.works.piv.fix.WorkFIX`
+
+    - depending of the value of `params.multipass.number`, iteration to compute
+      PIV displacements with the works
+      :class:`fluidimage.works.piv.singlepass.WorkPIVFromDisplacement` and
+      :class:`fluidimage.works.piv.fix.WorkFIX`.
+
+    """
 
     @classmethod
     def create_default_params(cls):
+        "Create an object containing the default parameters (class method)."
         params = ParamContainer(tag='params')
         cls._complete_params_with_default(params)
         return params
 
     @classmethod
     def _complete_params_with_default(cls, params):
+        """Complete the default parameters (class method)."""
         FirstWorkPIV._complete_params_with_default(params)
         WorkFIX._complete_params_with_default(params)
 
@@ -81,11 +106,7 @@ threshold_tps :  float
 """)
 
     def __init__(self, params=None):
-        if params.piv0.method_subpix == "2d_gaussian2" and \
-           params.piv0.nsubpix is not None:
-            raise ValueError(
-                "For the subpixel method '2d_gaussian2', "
-                "params.piv0.nsubpix has to be equal to None.")
+
         self.params = params
 
         self.works_piv = []
@@ -113,19 +134,22 @@ threshold_tps :  float
 
         if isinstance(shape_crop_im0, int):
             shape_crop_im0 = (shape_crop_im0, shape_crop_im0)
-        elif not(isinstance(shape_crop_im0, tuple) and
-                 len(shape_crop_im0) == 2):
+        elif (isinstance(shape_crop_im0, (list, tuple)) and
+              len(shape_crop_im0) == 2):
+            shape_crop_im0 = tuple(shape_crop_im0)
+        else:
             raise NotImplementedError(
                 'For now, shape_crop_im0 has to be one or two integer!')
         if isinstance(shape_crop_im1, int):
             shape_crop_im1 = (shape_crop_im1, shape_crop_im1)
-        elif not(isinstance(shape_crop_im1, tuple) and
-                 len(shape_crop_im1) == 2):
+        elif (isinstance(shape_crop_im1, (list, tuple)) and
+              len(shape_crop_im1) == 2):
+            shape_crop_im1 = tuple(shape_crop_im1)
+        else:
             raise NotImplementedError(
                 'For now, shape_crop_im1 has to be one or two integer!')
 
         for i in range(1, params.multipass.number):
-
             shape_crop_im0 = (copy(shape_crop_im0[0]/coeffs_zoom[i-1]),
                               copy(shape_crop_im0[1]/coeffs_zoom[i-1]))
             shape_crop_im1 = (copy(shape_crop_im1[0]/coeffs_zoom[i-1]),
@@ -138,6 +162,7 @@ threshold_tps :  float
             self.works_fix.append(WorkFIX(params.fix, work_piv))
 
     def calcul(self, couple):
+        """Compute a PIV field (multipass) from a couple of image."""
 
         results = MultipassPIVResults()
 
@@ -158,5 +183,10 @@ threshold_tps :  float
         return results
 
     def _prepare_with_image(self, im):
+        """Prepare the works PIV with an image."""
         for work_piv in self.works_piv:
             work_piv._prepare_with_image(im)
+
+
+params = WorkPIV.create_default_params()
+__doc__ += params._get_formatted_docs()

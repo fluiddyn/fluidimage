@@ -1,5 +1,5 @@
-"""Topology for PIV computation
-===============================
+"""Topology for PIV computation (:mod:`fluidimage.topologies.piv`)
+==================================================================
 
 .. autoclass:: TopologyPIV
    :members:
@@ -59,7 +59,7 @@ class TopologyPIV(TopologyBase):
                                              'ind_step': 1})
 
         params.series._set_doc("""
-Parameters indicating the input series of images
+Parameters indicating the input series of images.
 
 path: str, {''}
 
@@ -118,7 +118,7 @@ int_stop: None
                                              'postfix': 'piv'})
 
         params.saving._set_doc(
-            """Saving of the results
+            """Saving of the results.
 
 path: None or str
 
@@ -266,3 +266,7 @@ postfix: str
         txt += '\npath results:\n' + self.path_dir_result
 
         print(txt)
+
+params = TopologyPIV.create_default_params()
+
+__doc__ += params._get_formatted_docs()

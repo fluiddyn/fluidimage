@@ -1,8 +1,7 @@
 """Topology for preprocessing images (:mod:`fluidimage.topologies.pre_proc`)
 ============================================================================
-To preprocess series of images using multiprocessing and waiting queues.
 
-.. currentmodule:: fluidimage.topologies.pre_proc
+To preprocess series of images using multiprocessing and waiting queues.
 
 Provides:
 
@@ -72,7 +71,7 @@ class TopologyPreproc(TopologyBase):
 
         self.params = params.preproc
         self.preproc_work = WorkPreproc(params)
-        serie_arrays = self.preproc_work.serie_arrays        
+        serie_arrays = self.preproc_work.serie_arrays
         self.series = SeriesOfArrays(
             serie_arrays, params.preproc.series.strcouple,
             ind_start=params.preproc.series.ind_start,
@@ -177,3 +176,8 @@ class TopologyPreproc(TopologyBase):
                       self.series.get_name_all_files()[indices[1]])
         return DisplayPreProc(
             im0, im1, im0p, im1p, hist=hist)
+
+params = TopologyPreproc.create_default_params()
+
+__doc__ += params._get_formatted_docs().replace(
+    'Parameters\n    ----------', '').replace('References\n    ----------', '')

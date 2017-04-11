@@ -13,11 +13,11 @@ Dependencies
 Install in development mode (recommended)
 -----------------------------------------
 
-FluidImage is still in alpha version ("testing for developers"!).  So I would
-advice to work "as a developer", i.e. to get the source code and to use
-revision control and the development mode of the Python installer.
+FluidImage is still in beta version ("testing for users").  So it can be good
+to work "as a developer", i.e. to get the source code and to use revision
+control and the development mode of the Python installer.
 
-For FluidImage, I use the revision control software Mercurial and the main
+For FluidImage, we use the revision control software Mercurial and the main
 repository is hosted `here <https://bitbucket.org/fluiddyn/fluidimage>`_ in
 Bitbucket. I would advice to fork this repository (click on "Fork") and to
 clone your newly created repository to get the code on your computer (click on
@@ -41,9 +41,9 @@ or (without virtualenv)::
 Of course you can also install FluidDyn with the install command ``python
 setup.py install``.
 
-After the installation, it is a good practice to run the unit tests by
-running ``python -m unittest discover`` from the root directory or
-from any of the "test" directories (or just ``make tests``).
+After the installation, it is a good practice to run the unit tests by running
+``python -m unittest discover`` (or just ``make tests``) from the root
+directory or from any of the "test" directories.
 
 Installation with pip
 ---------------------
@@ -54,5 +54,5 @@ FluidImage can also be installed from the Python Package Index::
 
 The ``--pre`` option of pip allows the installation of a pre-release version.
 
-However, the project is so new that it is better to have the last version (from
-the mercurial repository hosted on Bitbucket).
+However, the project is in an active phase of development so it can be better
+to use the last version (from the mercurial repository hosted on Bitbucket).

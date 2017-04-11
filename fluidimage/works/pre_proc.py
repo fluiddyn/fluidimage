@@ -1,8 +1,7 @@
 """Works Preprocess (:mod:`fluidimage.works.pre_proc`)
-====================================================
-To preprocess series of images using topology.
+======================================================
 
-.. currentmodule:: fluidimage.works.pre_proc
+To preprocess series of images using topology.
 
 Provides:
 
@@ -20,6 +19,7 @@ from ..data_objects.pre_proc import ArraySerie, PreprocResults, get_ind_middle
 
 
 class WorkPreproc(PreprocBase):
+    """Work for preprocessing."""
 
     def calcul(self, serie):
         """Apply all enabled preprocessing tools on the series of arrays
