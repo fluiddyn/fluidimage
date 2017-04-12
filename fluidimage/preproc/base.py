@@ -1,8 +1,7 @@
-"""Preprocess base (:mod:`fluidimage.pre_proc.base`)
-====================================================
-To preprocess series of images.
+"""Preprocess base (:mod:`fluidimage.preproc.base`)
+===================================================
 
-.. currentmodule:: fluidimage.pre_proc.base
+To preprocess series of images.
 
 Provides:
 

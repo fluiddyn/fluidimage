@@ -1,4 +1,15 @@
+"""Direct calibration (:mod:`fluidimage.calibration.calib_direct`)
+==================================================================
 
+.. autoclass:: CalibDirect
+   :members:
+   :private-members:
+
+.. autoclass:: DirectStereoReconstruction
+   :members:
+   :private-members:
+
+"""
 import numpy as np
 import glob
 import os

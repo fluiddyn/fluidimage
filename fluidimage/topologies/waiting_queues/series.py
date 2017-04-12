@@ -21,7 +21,7 @@ from ...util.util import logger
 from .base import (
     WaitingQueueLoadImage, WaitingQueueBase, WaitingQueueMultiprocessing)
 
-from ...data_objects.pre_proc import ArraySerie
+from ...data_objects.preproc import ArraySerie
 
 
 class WaitingQueueLoadImageSeries(WaitingQueueLoadImage):

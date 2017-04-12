@@ -28,18 +28,19 @@ class TopologyPIV(TopologyBase):
     Parameters
     ----------
 
-    params: None
+    params : None
 
       A ParamContainer containing the parameters for the computation.
 
-    logging_level: str, {'warning', 'info', 'debug', ...}
+    logging_level : str, {'warning', 'info', 'debug', ...}
 
       Logging level.
 
-    nb_max_workers: None, int
+    nb_max_workers : None, int
 
       Maximum numbers of "workers". If None, a number is computed from the
-      number of cores detected.
+      number of cores detected. If there are memory errors, you can try to
+      decrease the number of workers.
 
     """
 
@@ -61,12 +62,12 @@ class TopologyPIV(TopologyBase):
         params.series._set_doc("""
 Parameters indicating the input series of images.
 
-path: str, {''}
+path : str, {''}
 
     String indicating the input images (can be a full path towards an image
     file or a string given to `glob`).
 
-strcouple: 'i:i+2'
+strcouple : 'i:i+2'
 
     String indicating as a Python slicing how couples of images are formed.
     There is one couple per value of `i`. The values of `i` are set with the
@@ -105,11 +106,11 @@ strcouple: 'i:i+2'
 
     >>> params.series.strcouple = 'i:i+2, 0'
 
-ind_start: int, {0}
+ind_start : int, {0}
 
-ind_step: int, {1}
+ind_step : int, {1}
 
-int_stop: None
+int_stop : None
 
 """)
 
@@ -120,16 +121,16 @@ int_stop: None
         params.saving._set_doc(
             """Saving of the results.
 
-path: None or str
+path : None or str
 
     Path of the directory where the data will be saved. If None, the path is
     obtained from the input path and the parameter `postfix`.
 
-how: str {'ask'}
+how : str {'ask'}
 
     'ask', 'new_dir', 'complete' or 'recompute'.
 
-postfix: str
+postfix : str
 
     Postfix from which the output file is computed.
 """)

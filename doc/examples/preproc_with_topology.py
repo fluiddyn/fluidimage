@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-from fluidimage.topologies.pre_proc import TopologyPreproc
+from fluidimage.topologies.preproc import TopologyPreproc
 
 
 params = TopologyPreproc.create_default_params()

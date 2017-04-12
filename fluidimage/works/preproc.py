@@ -1,5 +1,5 @@
-"""Works Preprocess (:mod:`fluidimage.works.pre_proc`)
-======================================================
+"""Works Preprocess (:mod:`fluidimage.works.preproc`)
+=====================================================
 
 To preprocess series of images using topology.
 
@@ -13,9 +13,9 @@ Provides:
 import numpy as np
 
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
-from fluidimage.util.util import print_memory_usage
-from fluidimage.pre_proc.base import PreprocBase
-from ..data_objects.pre_proc import ArraySerie, PreprocResults, get_ind_middle
+from ..util.util import print_memory_usage
+from ..preproc.base import PreprocBase
+from ..data_objects.preproc import ArraySerie, PreprocResults, get_ind_middle
 
 
 class WorkPreproc(PreprocBase):

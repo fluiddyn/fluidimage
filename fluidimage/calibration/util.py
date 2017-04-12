@@ -1,21 +1,45 @@
+"""Utilities for calibration (:mod:`fluidimage.calibration.util`)
+=================================================================
+
+
+
+
+"""
+
 import re
 import numpy as np
 from math import sin, cos, sqrt
 from fluiddyn.util.paramcontainer import ParamContainer, tidy_container
 
 def get_number_from_string(string):
-    return map(float, re.findall(r"[-+]?\d*\.\d+|\d+", string))
+    return [float(s) for s in re.findall(r"[-+]?\d*\.\d+|\d+", string)]
 
 def get_number_from_string2(string):
     s = string.split()
     return [float(s) for s in string.split()]
 
 def get_plane_equation(z0, alpha, beta):
-    """
+    """Return coefficients a, b, c, d of the equation of a plane
+
+    The plane is defined with ax + by + cz + d = 0
+
+    Parameters
+    ----------
+
+    z0 : number
+
+    alpha : number
+
+      The angle in radian around x axis
+
+    beta : number
+
+      The angle in radian around y axis
+
+    Notes
+    -----
+
     Works only when 0 or 1 angle ~= 0
-    alpha is angle in radian around x axis
-    beta is angle in radian around y axis
-    Plane is defined with ax + by + cz + d = 0
     """
     assert not (alpha != 0 and beta != 0)  #"Works only when 0 or 1 angle != 0"
     a = sin(beta)
@@ -25,23 +49,26 @@ def get_plane_equation(z0, alpha, beta):
     return a, b, c, d
 
 def get_base_from_normal_vector(nx, ny, nz):
-        # matrix of base change from a given plane to the fixed plane
-        # n has to be approximately vertical: i.e. nz approx. 1
+    """matrix of base change from a given plane to the fixed plane
+    n has to be approximately vertical: i.e. nz approx. 1
+    """
 
-        ez = np.array([nx, ny, nz])
-        ez = ez / np.linalg.norm(ez)
+    ez = np.array([nx, ny, nz])
+    ez = ez / np.linalg.norm(ez)
 
-        ex1, ex2 = 1, 0
-        ex3 = -(ex1 * nx + ex2 * ny) / nz
-        ex = np.array([ex1, ex2, ex3])
-        ex = ex / np.linalg.norm(ex)
+    ex1, ex2 = 1, 0
+    ex3 = -(ex1 * nx + ex2 * ny) / nz
+    ex = np.array([ex1, ex2, ex3])
+    ex = ex / np.linalg.norm(ex)
 
-        ey = np.cross(ez, ex)
-        A = np.vstack([ex, ey, ez]).transpose()
-        return A, np.linalg.inv(A)
+    ey = np.cross(ez, ex)
+    A = np.vstack([ex, ey, ez]).transpose()
+    return A, np.linalg.inv(A)
 
 def make_params_calibration(path_file):
+    """Make a tidy parameter container from a UVmat file.
 
+    """
     params = ParamContainer(tag='calib')
 
     calib_uvmat = ParamContainer(path_file=path_file)
@@ -49,25 +76,25 @@ def make_params_calibration(path_file):
 
     calib_uvmat = calib_uvmat['geometry_calib']
 
-    f = map(
-        float, np.asarray(get_number_from_string(calib_uvmat.fx_fy)))
-    C = np.asarray(get_number_from_string(calib_uvmat.cx__cy))
-    kc = np.asarray(calib_uvmat.kc)
-    T = np.asarray(get_number_from_string(calib_uvmat.tx__ty__tz))
+    f = [float(n) for n in
+         np.array(get_number_from_string(calib_uvmat.fx_fy))]
+    C = np.array(get_number_from_string(calib_uvmat.cx__cy))
+    kc = np.array(calib_uvmat.kc)
+    T = np.array(get_number_from_string(calib_uvmat.tx__ty__tz))
 
     R = []
     for i in range(3):
         R = np.hstack([
             R, get_number_from_string(calib_uvmat['r_{}'.format(i+1)])])
 
-    omc = np.asarray(get_number_from_string(calib_uvmat['omc']))
+    omc = np.array(get_number_from_string(calib_uvmat['omc']))
 
     params._set_attribs(
         {'f': f, 'C': C, 'kc': kc, 'T': T, 'R': R, 'omc': omc})
 
     if calib_uvmat.nb_slice is not None:
 
-        nb_slice = np.asarray(calib_uvmat['nb_slice'])
+        nb_slice = np.array(calib_uvmat['nb_slice'])
         zslice_coord = np.zeros([nb_slice, 3])
 
         if calib_uvmat.nb_slice == 1:

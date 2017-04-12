@@ -7,7 +7,7 @@ from shutil import rmtree
 
 from fluiddyn.io import stdout_redirected
 
-from fluidimage.topologies.pre_proc import TopologyPreproc
+from fluidimage.topologies.preproc import TopologyPreproc
 from fluiddyn.io.image import imread, imsave
 
 
@@ -24,7 +24,7 @@ class TestPreprocKarman(unittest.TestCase):
             here, '..', '..', 'image_samples', cls.name, 'Images')
 
         cls._work_dir = os.path.join(
-            'test_fluidimage_topo_pre_proc_' + cls.name, 'Images')
+            'test_fluidimage_topo_preproc_' + cls.name, 'Images')
         if not os.path.exists(cls._work_dir):
             os.makedirs(cls._work_dir)
 
@@ -41,7 +41,7 @@ class TestPreprocKarman(unittest.TestCase):
         rmtree(os.path.split(cls._work_dir)[0])
 
     def test_preproc(self):
-        '''Test pre_proc subpackage on image sample Karman with one index.'''
+        '''Test preproc subpackage on image sample Karman with one index.'''
         params = TopologyPreproc.create_default_params()
 
         params.preproc.series.path = self._work_dir
@@ -65,7 +65,7 @@ class TestPreprocTime(TestPreprocKarman):
     name = 'Jet'
 
     def test_preproc(self):
-        '''Test pre_proc subpackage on image sample Jet with two indices.'''
+        '''Test preproc subpackage on image sample Jet with two indices.'''
         params = TopologyPreproc.create_default_params()
 
         params.preproc.series.path = self._work_dir

@@ -52,9 +52,10 @@ functions.
    fluidimage.data_objects
    fluidimage.works
    fluidimage.calcul
-   fluidimage.pre_proc
+   fluidimage.preproc
    fluidimage.calibration
    fluidimage.postproc
+   fluidimage.util
    fluidimage.gui
 
 More

@@ -1,14 +1,13 @@
 '''
-ParamList(:mod:`fluidimage.util.paramlist`)
-==========================================
+ParamList (:mod:`fluidimage.util.paramlist`)
+============================================
+
 To launch topologies in bulk, parameters have to be stored in bulk.
 
 Provides inherited list designed to store `ParamContainer` instances
 for a directory tree. It assumes the following hierarchy of directories:
 
 .. Experiment --> Camera --> Level --> Images
-
-.. currentmodule:: fluidimage.util.paramlist
 
 Provides:
 
@@ -28,7 +27,7 @@ import string
 from copy import deepcopy
 from glob import glob
 from warnings import warn
-from fluidimage.topologies.pre_proc import TopologyPreproc
+from fluidimage.topologies.preproc import TopologyPreproc
 
 
 class ParamListBase(list):

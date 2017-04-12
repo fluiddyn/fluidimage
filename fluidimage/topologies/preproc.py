@@ -1,5 +1,5 @@
-"""Topology for preprocessing images (:mod:`fluidimage.topologies.pre_proc`)
-============================================================================
+"""Topology for preprocessing images (:mod:`fluidimage.topologies.preproc`)
+===========================================================================
 
 To preprocess series of images using multiprocessing and waiting queues.
 
@@ -17,11 +17,11 @@ import json
 from fluiddyn.util.serieofarrays import SeriesOfArrays
 from fluiddyn.io.image import imread
 
-from ..works.pre_proc import WorkPreproc
+from ..works.preproc import WorkPreproc
 
 from ..data_objects.piv import set_path_dir_result
 from ..data_objects.display import DisplayPreProc
-from ..data_objects.pre_proc import get_name_preproc
+from ..data_objects.preproc import get_name_preproc
 
 from ..util.util import logger
 
@@ -37,6 +37,23 @@ class TopologyPreproc(TopologyBase):
     """Preprocess series of images and provides interface for I/O and
     multiprocessing.
 
+    Parameters
+    ----------
+
+    params: None
+
+      A ParamContainer containing the parameters for the computation.
+
+    logging_level: str, {'warning', 'info', 'debug', ...}
+
+      Logging level.
+
+    nb_max_workers: None, int
+
+      Maximum numbers of "workers". If None, a number is computed from the
+      number of cores detected. If there are memory errors, you can try to
+      decrease the number of workers.
+
     """
 
     @classmethod
@@ -47,6 +64,8 @@ class TopologyPreproc(TopologyBase):
                                             'ind_stop': None,
                                             'ind_step': 1,
                                             'sequential_loading': True})
+        params.preproc.series._set_doc("""
+Parameters indicating the input series of images.""")
 
         params.preproc._set_child('saving', attribs={'path': None,
                                                      'how': 'ask',
@@ -54,13 +73,30 @@ class TopologyPreproc(TopologyBase):
                                                      'postfix': 'pre'})
 
         params.preproc.saving._set_doc(
-            "`how` can be 'ask', 'new_dir', 'complete' or 'recompute'.\n" +
-            "`format` can be 'img' or 'hdf5'")
+            """Saving of the results.
+
+path : None or str
+
+    Path of the directory where the data will be saved. If None, the path is
+    obtained from the input path and the parameter `postfix`.
+
+how : str {'ask'}
+
+    'ask', 'new_dir', 'complete' or 'recompute'.
+
+postfix : str
+
+    Postfix from which the output file is computed.
+
+format : str
+
+    Can be 'img' or 'hdf5'.
+""")
 
         params._set_internal_attr(
             '_value_text',
             json.dumps({'program': 'fluidimage',
-                        'module': 'fluidimage.topologies.pre_proc',
+                        'module': 'fluidimage.topologies.preproc',
                         'class': 'TopologyPreproc'}))
 
         return params
@@ -179,5 +215,17 @@ class TopologyPreproc(TopologyBase):
 
 params = TopologyPreproc.create_default_params()
 
-__doc__ += params._get_formatted_docs().replace(
-    'Parameters\n    ----------', '').replace('References\n    ----------', '')
+doc = params._get_formatted_docs()
+
+strings_to_remove = [
+    'Parameters\n    ----------', 'References\n    ----------']
+
+for string in strings_to_remove:
+    doc = doc.replace(string, '')
+
+lines = []
+for line in doc.split('\n'):
+    if not line.startswith('    - http'):
+        lines.append(line)
+
+__doc__ += '\n'.join(lines)

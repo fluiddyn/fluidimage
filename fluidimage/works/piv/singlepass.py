@@ -3,11 +3,11 @@
 
 .. todo::
 
-   - detect and save multipeaks. Add variables:
+   - fix using secondary peak in correlation
 
-     * deltaxs_2ndpeak {ivec: float32}
-     * deltays_2ndpeak {ivec: float32}
-     * correl_2ndpeak {ivec: float32}
+   - displacement_max
+
+   - displacement_mean
 
 
 .. autoclass:: BaseWorkPIV
@@ -41,6 +41,7 @@ from ...calcul.interpolate.thin_plate_spline_subdom import \
     ThinPlateSplineSubdom
 
 from ...calcul.interpolate.griddata import griddata
+from ...calcul.subpix import SubPix
 
 
 class InterpError(ValueError):
@@ -94,7 +95,7 @@ class BaseWorkPIV(BaseWork):
         except KeyError:
             raise ValueError(
                 'params.piv0.method_correl should be in ' +
-                str(correlation_classes.keys()))
+                str(list(correlation_classes.keys())))
 
         self.correl = correl_cls(im0_shape=self.shape_crop_im0,
                                  im1_shape=self.shape_crop_im1,
@@ -435,8 +436,8 @@ class FirstWorkPIV(BaseWorkPIV):
         params._set_child('piv0', attribs={
             'shape_crop_im0': 48,
             'shape_crop_im1': None,
-            'delta_max': None,
-            'delta_mean': None,
+            'displacement_max': None,  # NotImplemented
+            'displacement_mean': None,  # NotImplemented
             'method_correl': 'fftw',
             'method_subpix': '2d_gaussian2',
             'nsubpix': None,
@@ -448,14 +449,20 @@ shape_crop_im0 : int (48)
     Shape of the cropped images 0 from which are computed the correlation.
 shape_crop_im1 : int or None
     Shape of the cropped images 0 (has to be None for correl based on fft).
-delta_max : None
+displacement_max : None
         Displacement maximum (NotImplemented).
-delta_mean : None
-    Displacement averaged over space.
+displacement_mean : None
+    Displacement averaged over space (NotImplemented).
 
-method_correl : str, {'fftw', ...}
+method_correl : str, default 'fftw'
 
-method_subpix : str, {'2d_gaussian2', ...}
+    Can be in """ + str(list(correlation_classes.keys())) +
+                             """
+
+method_subpix : str, default '2d_gaussian2'
+
+    Can be in """ + str(SubPix.methods) +
+                             """
 
 nsubpix : None
     Integer used in the subpix finder. It is related to the typical size of the

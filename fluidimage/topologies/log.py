@@ -27,10 +27,10 @@ class LogTopology(object):
     """Parse and analyze logging files.
 
     """
-    def __init__(self, path=None, path_dir=''):
+    def __init__(self, path):
 
-        if path is None:
-            pattern = os.path.join(path_dir, 'log_*.txt')
+        if os.path.isdir(path):
+            pattern = os.path.join(path, 'log_*.txt')
             paths = glob(pattern)
             paths.sort()
             if len(paths) == 0:
@@ -130,7 +130,7 @@ class LogTopology(object):
                     durations[name].append(np.nan)
 
     def plot_memory(self):
-
+        """Plot the memory usage versus time."""
         plt.figure()
         ax = plt.gca()
         ax.set_xlabel('time (s)')
@@ -150,7 +150,7 @@ class LogTopology(object):
         plt.show()
 
     def plot_durations(self):
-
+        """Plot the duration of the works."""
         plt.figure()
         ax = plt.gca()
         ax.set_xlabel('time (s)')
@@ -179,6 +179,7 @@ class LogTopology(object):
         plt.show()
 
     def plot_nb_workers(self, str_names=None):
+        """Plot the number of workers versus time."""
         if str_names is not None:
             names = [name for name in self.names_works if str_names in name]
         else:

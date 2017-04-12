@@ -1,13 +1,8 @@
-"""Handles I/O of images to tools(:mod:`fluidimage.pre_proc.io`)
-==================================================================================
+"""Handles I/O of images to tools(:mod:`fluidimage.preproc.io`)
+===============================================================
+
 Provides decorators to handle input and output of images for tools/functions in
-`fluidimage.pre_proc.toolbox`
-
-.. currentmodule:: fluidimage.pre_proc.io
-
-Provides:
-
-   :members:
+:mod:`fluidimage.preproc.toolbox`.
 
 """
 

@@ -1,10 +1,12 @@
-"""Preprocess toolbox (:mod:`fluidimage.pre_proc.toolbox`)
-==========================================================
+"""Preprocess toolbox (:mod:`fluidimage.preproc.toolbox`)
+=========================================================
+
 A toolbox of filters which operate on a single image (numpy array).
 cf. http://www.scipy-lectures.org/advanced/image_processing/
 
 Provides:
 
+.. autoclass:: PreprocTools
    :members:
 
 """
@@ -295,10 +297,10 @@ def rescale_intensity_tanh(img=None, threshold=None):
 
 @iterate_multiple_imgs
 def equalize_hist_global(img=None, nbins=256):
-    '''
-    Increases global contrast of the image. Equalized image would have a
+    '''Increases global contrast of the image. Equalized image would have a
     roughly linear cumulative distribution function for each pixel
-    neighborhood. It works well when pixel intensities are nearly uniform [1,2].
+    neighborhood. It works well when pixel intensities are nearly uniform
+    [1,2].
 
     Parameters
     ----------
@@ -309,8 +311,8 @@ def equalize_hist_global(img=None, nbins=256):
 
     References
     ----------
-    .. [1] http://scikit-image.org/docs/dev/auto_examples/color_exposure/plot_local_equalize.html # noqa
-    .. [2] https://en.wikipedia.org/wiki/Histogram_equalization
+    - http://scikit-image.org/docs/dev/auto_examples/color_exposure/plot_local_equalize.html
+    - https://en.wikipedia.org/wiki/Histogram_equalization
 
     '''
     img_out = exposure.equalize_hist(img, nbins=nbins, mask=None)
@@ -334,8 +336,8 @@ def equalize_hist_adapt(img=None, window_shape=(10, 10), nbins=256):
 
     References
     ----------
-    .. [3] http://scikit-image.org/docs/dev/auto_examples/color_exposure/plot_local_equalize.html # noqa
-    .. [4] https://en.wikipedia.org/wiki/Histogram_equalization
+    - http://scikit-image.org/docs/dev/auto_examples/color_exposure/plot_local_equalize.html
+    - https://en.wikipedia.org/wiki/Histogram_equalization
 
     '''
     minimum = img.min()
@@ -362,8 +364,8 @@ def equalize_hist_local(img=None, radius=10):
 
     References
     ----------
-    .. [5] http://scikit-image.org/docs/dev/auto_examples/color_exposure/plot_local_equalize.html # noqa
-    .. [6] https://en.wikipedia.org/wiki/Adaptive_histogram_equalization
+    - http://scikit-image.org/docs/dev/auto_examples/color_exposure/plot_local_equalize.html
+    - https://en.wikipedia.org/wiki/Adaptive_histogram_equalization
 
     '''
     selem = morphology.disk(radius)
@@ -398,8 +400,8 @@ def gamma_correction(img=None, gamma=1., gain=1.):
 
     References
     ----------
-    .. [7] http://scikit-image.org/docs/dev/auto_examples/color_exposure/plot_log_gamma.html # noqa
-    .. [8] http://en.wikipedia.org/wiki/Gamma_correction
+    - http://scikit-image.org/docs/dev/auto_examples/color_exposure/plot_log_gamma.html
+    - http://en.wikipedia.org/wiki/Gamma_correction
 
     '''
     img_out = exposure.adjust_gamma(img, gamma, gain)
@@ -466,7 +468,7 @@ class PreprocTools(object):
             if func_doc is not None:
                 enable_doc = 'enable : bool\n' + \
                              '        Set as `True` to enable the tool'
-                params.__dict__[tool]._set_doc(func_doc + enable_doc)
+                params[tool]._set_doc(func_doc + enable_doc)
 
     @classmethod
     def _complete_class_with_tools(cls):
@@ -501,7 +503,7 @@ class PreprocTools(object):
             sequence = self.params.available_tools
 
         for tool in sequence:
-            tool_params = self.params.__dict__[tool]
+            tool_params = self.params[tool]
             if tool_params.enable:
                 logger.debug('Apply ' + tool)
                 kwargs = tool_params._make_dict_attribs()

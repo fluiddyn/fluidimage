@@ -3,7 +3,7 @@ from __future__ import print_function
 
 # import matplotlib.pyplot as plt
 
-from fluidimage.pre_proc.base import PreprocBase
+from fluidimage.preproc.base import PreprocBase
 
 
 params = PreprocBase.create_default_params()

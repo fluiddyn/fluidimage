@@ -80,8 +80,9 @@ number : int (default 1)
 
 coeff_zoom : integer or iterable of size `number - 1`.
 
-    Coefficient defining the size of the interrogation windows for the passes 1
-            to `number - 1` (always defined comparing the passes `i-1`).
+    Reduction coefficient defining the size of the interrogation windows for
+    the passes 1 (second pass) to `number - 1` (last pass) (always
+    defined comparing the passes `i-1`).
 
 use_tps : bool or 'last'
 

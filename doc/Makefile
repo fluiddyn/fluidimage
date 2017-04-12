@@ -170,3 +170,6 @@ zip: html
 
 open_html: html
 	firefox _build/html/index.html
+
+notebook:
+	python $(shell which jupyter-notebook)

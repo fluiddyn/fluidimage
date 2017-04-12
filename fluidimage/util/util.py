@@ -2,6 +2,22 @@
 Miscellaneous utilities
 =======================
 
+Provides:
+
+.. autofunction:: imread
+
+.. autofunction:: log_memory_usage
+
+.. autofunction:: print_memory_usage
+
+.. autofunction:: cstring
+
+.. autofunction:: cprint
+
+.. autofunction:: is_memory_full
+
+.. autofunction:: raise_exception
+
 """
 from __future__ import print_function
 
