@@ -1,6 +1,6 @@
 import h5py
 from fluidimage.calibration.util import get_plane_equation
-from fluidimage.calibration import DirectStereoReconstruction
+from fluidimage.calibration import DirectStereoReconstruction, CalibDirect
 import os
 import fluidimage
 
@@ -24,9 +24,28 @@ def get_piv_field(path):
 
 
 def test():
-
     path_fluidimage = os.path.join(
         '/', *os.path.abspath(fluidimage.__file__).split('/')[:-2])
+
+    nb_pixelx, nb_pixely = 1024, 1024
+
+    nbline_x, nbline_y = 32, 32
+
+    pathimg = path_fluidimage + '/image_samples/4th_PIV-Challenge_Case_E/E_Calibration_Images/Camera_01/img*'
+    calib = CalibDirect(pathimg, (nb_pixelx, nb_pixely))
+    calib.compute_interpolents()
+    calib.compute_interppixel2line((nbline_x, nbline_y), test=False)
+    calib.save(path_fluidimage + '/image_samples/4th_PIV-Challenge_Case_E/E_Calibration_Images/Camera_01/calib1.npy')
+
+    # calib.check_interp_lines_coeffs()
+    # calib.check_interp_lines()
+    # calib.check_interp_levels()
+    pathimg = path_fluidimage + '/image_samples/4th_PIV-Challenge_Case_E/E_Calibration_Images/Camera_03/img*'
+    calib3 = CalibDirect(pathimg, (nb_pixelx, nb_pixely))
+    calib3.compute_interpolents()
+    calib3.compute_interppixel2line((nbline_x, nbline_y), test=False)
+    calib3.save(path_fluidimage + '/image_samples/4th_PIV-Challenge_Case_E/E_Calibration_Images/Camera_03/calib3.npy')
+    
 
     postfix = '.piv/'
 
@@ -59,3 +78,6 @@ def test():
     dx, dy, dz, erx, ery, erz = stereo.reconstruction(
         X0, X1, d0cam, d1cam, a, b, c, d, X, Y, check=False)
     dx, dy, dz, erx, ery, erz = dx/dt, dy/dt, dz/dt, erx/dt, ery/dt, erz/dt
+
+if __name__ == "__main__":
+    test()
