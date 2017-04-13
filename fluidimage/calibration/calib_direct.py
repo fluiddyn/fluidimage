@@ -12,12 +12,11 @@
 """
 import numpy as np
 import glob
-import os
 import pylab
 from mpl_toolkits.mplot3d import Axes3D
 from scipy.interpolate import griddata
-from scipy.interpolate import CloughTocher2DInterpolator, \
-    LinearNDInterpolator, RegularGridInterpolator
+# from scipy.interpolate import CloughTocher2DInterpolator
+from scipy.interpolate import LinearNDInterpolator, RegularGridInterpolator
 import matplotlib.pyplot as plt
 from math import sqrt
 
@@ -113,7 +112,7 @@ class CalibDirect():
         """
         nbline_x = nbline[0]
         nbline_y = nbline[1]
-        
+
         xtmp = np.unique(np.floor(np.linspace(0, self.nb_pixelx, nbline_x)))
         ytmp = np.unique(np.floor(np.linspace(0, self.nb_pixely, nbline_y)))
 
@@ -153,15 +152,15 @@ class CalibDirect():
 
         if test:
             for j in range(6):
-                fig = pylab.figure()
+                pylab.figure()
                 pylab.pcolor(x, y, V[:, :, j])
                 pylab.colorbar()
-                fig.show()
-            fig = pylab.figure()
+
+            pylab.figure()
             pylab.pcolor(x, y, np.sqrt(
                 V[:, :, 3]**2+V[:, :, 4]**2+V[:, :, 5]**2))
             pylab.colorbar()
-            fig.show()
+            plt.show()
 
         Vtrue = np.array(Vtrue)
         for j in range(6):
@@ -220,7 +219,6 @@ class CalibDirect():
         self.nb_pixelx = tmp[2]
         self.nb_pixely = tmp[3]
 
-
     def intersect_with_plane(self, indx, indy, a, b, c, d):
         """ Find intersection with the line associated to the pixel  indx, indy
         and a plane defined by ax + by + cz + d =0
@@ -252,8 +250,8 @@ class CalibDirect():
         """ Matrix of base change from camera plane to fixed plane
         """
         if indx is None:
-            indx = range(self.nb_pixelx/2-20, self.nb_pixelx/2+20)
-            indy = range(self.nb_pixely/2-20, self.nb_pixely/2+20)
+            indx = range(self.nb_pixelx//2-20, self.nb_pixelx//2+20)
+            indy = range(self.nb_pixely//2-20, self.nb_pixely//2+20)
             indx, indy = np.meshgrid(indx, indy)
         dx = np.nanmean(self.interp_lines[3]((indx, indy)))
         dy = np.nanmean(self.interp_lines[4]((indx, indy)))
@@ -265,21 +263,22 @@ class CalibDirect():
         """ Plot to check interp_levels
         """
         interp = self.interp_levels
-        indx = range(0, self.nb_pixelx, self.nb_pixelx/100)
-        indy = range(0, self.nb_pixely, self.nb_pixely/100)
+        indx = range(0, self.nb_pixelx, self.nb_pixelx//100)
+        indy = range(0, self.nb_pixely, self.nb_pixely//100)
         indx, indy = np.meshgrid(indx, indy)
         Z = interp.Z
         for i in range(len(Z)):
             X = interp.cam2X[i]((indx, indy))
             Y = interp.cam2Y[i]((indx, indy))
-            fig = pylab.figure()
+            pylab.figure()
             pylab.pcolor(indx, indy, X)
             pylab.colorbar()
-            fig.show()
-            fig = pylab.figure()
+
+            pylab.figure()
             pylab.pcolor(indx, indy, Y)
             pylab.colorbar()
-            fig.show()
+
+        plt.show()
 
     def check_interp_lines(self):
         """ Plot to check interp_lines
@@ -316,7 +315,7 @@ class CalibDirect():
         ax.set_xlabel('x (m)')
         ax.set_ylabel('y (m)')
         ax.set_zlabel('z (m)')
-        pylab.show()
+        plt.show()
 
     def check_interp_lines_coeffs(self):
         """ Plot to check interp_lines coefficients
@@ -340,34 +339,29 @@ class CalibDirect():
                 dy[i, j] = self.interp_lines[4]((x[i, j], y[i, j]))
                 dz[i, j] = self.interp_lines[5]((x[i, j], y[i, j]))
 
-        fig = pylab.figure()
+        pylab.figure()
         pylab.pcolor(x, y, X0)
         pylab.colorbar()
-        fig.show()
-        fig = pylab.figure()
+        pylab.figure()
         pylab.pcolor(x, y, Y0)
         pylab.colorbar()
-        fig.show()
-        fig = pylab.figure()
+        pylab.figure()
         pylab.pcolor(x, y, Z0)
         pylab.colorbar()
-        fig.show()
-        fig = pylab.figure()
+        pylab.figure()
         pylab.pcolor(x, y, dx)
         pylab.colorbar()
-        fig.show()
-        fig = pylab.figure()
+        pylab.figure()
         pylab.pcolor(x, y, dy)
         pylab.colorbar()
-        fig.show()
-        fig = pylab.figure()
+        pylab.figure()
         pylab.pcolor(x, y, dz)
         pylab.colorbar()
-        fig.show()
-        fig = pylab.figure()
+        pylab.figure()
         pylab.pcolor(x, y, np.sqrt(dx**2 + dy**2 + dz**2))
         pylab.colorbar()
-        fig.show()
+
+        plt.show()
 
 
 class DirectStereoReconstruction():
@@ -389,6 +383,10 @@ class DirectStereoReconstruction():
         # matrices from camera planes to fixed plane and inverse
         self.A0, self.B0 = self.calib0.get_base_camera_plane()
         self.A1, self.B1 = self.calib1.get_base_camera_plane()
+
+        if np.allclose(self.A0, self.A1):
+            raise ValueError('The two calibrations have to be different.')
+
         # M1, M2: see reconstruction function
         self.invM0 = np.linalg.inv(
             np.vstack([self.B0[0:2, :], self.B1[0:1, :]]))
@@ -459,10 +457,10 @@ class DirectStereoReconstruction():
         Lx1 = xmax1 - xmin1
         Ly1 = ymax1 - ymin1
 
-        Nx0 = sqrt(X0[np.isnan(X0[:, 0]) == False, 0].size) * sqrt(Lx0/Ly0)
-        Ny0 = X0[np.isnan(X0[:, 1]) == False, 1].size /Nx0
-        Nx1 = sqrt(X1[np.isnan(X1[:, 0]) == False, 0].size) * sqrt(Lx1/Ly1)
-        Ny1 = X1[np.isnan(X1[:, 1]) == False, 1].size /Nx1
+        Nx0 = sqrt(X0[~np.isnan(X0[:, 0]), 0].size) * sqrt(Lx0/Ly0)
+        Ny0 = X0[~np.isnan(X0[:, 1]), 1].size / Nx0
+        Nx1 = sqrt(X1[~np.isnan(X1[:, 0]), 0].size) * sqrt(Lx1/Ly1)
+        Ny1 = X1[~np.isnan(X1[:, 1]), 1].size / Nx1
 
         dx0 = Lx0 / Nx0
         dy0 = Ly0 / Ny0
@@ -477,20 +475,20 @@ class DirectStereoReconstruction():
         x, y = np.meshgrid(x, y)
         self.grid_x = x.transpose()
         self.grid_y = y.transpose()
-        self.grid_z = -(a*self.grid_x+ b*self.grid_y+d)/c
+        self.grid_z = -(a*self.grid_x + b*self.grid_y+d)/c
         return self.grid_x, self.grid_y, self.grid_z
 
     def interp_on_common_grid(
             self, X0, X1, d0cam, d1cam, grid_x, grid_y):
-        """ Interpolate displacements of the 2 cameras d0cam, d1cam on the 
+        """ Interpolate displacements of the 2 cameras d0cam, d1cam on the
         common grid grid_x, grid_y
         """
         # if not hasattr(self, 'grid_x'):
         #     self.find_common_grid(X0, X1, a, b, c, d)
-        ind0 = (np.isnan(X0[:, 0]) == False) * (np.isnan(X0[:, 1]) == False) *\
-               (np.isnan(d0cam[:, 0]) == False) * (np.isnan(d0cam[:, 1]) == False)
-        ind1 = (np.isnan(X1[:, 0]) == False) * (np.isnan(X1[:, 1]) == False) *\
-               (np.isnan(d1cam[:, 0]) == False) * (np.isnan(d1cam[:, 1]) == False)
+        ind0 = (~np.isnan(X0[:, 0])) * (~np.isnan(X0[:, 1])) *\
+               (~np.isnan(d0cam[:, 0])) * (~np.isnan(d0cam[:, 1]))
+        ind1 = (~np.isnan(X1[:, 0])) * (~np.isnan(X1[:, 1])) *\
+               (~np.isnan(d1cam[:, 0])) * (~np.isnan(d1cam[:, 1]))
 
         d0xcam = griddata((X0[ind0, 0], X0[ind0, 1]), d0cam[ind0, 0],
                           (grid_x, grid_y))
@@ -504,7 +502,7 @@ class DirectStereoReconstruction():
 
     def reconstruction(self, X0, X1, d0cam, d1cam, a, b, c, d, grid_x, grid_y,
                        check=False):
-        """ Reconstruction of the 3 components of the velocity in the plane 
+        """ Reconstruction of the 3 components of the velocity in the plane
         defined by a, b, c, d on the grid defined by grid_x, grid_y
         from the displacements of the 2 cameras d0cam, d1cam in their respective
         planes d0cam, d1cam
@@ -614,21 +612,23 @@ if __name__ == "__main__":
 
     nbline_x, nbline_y = 32, 32
 
-    pathimg = '../../image_samples/4th_PIV-Challenge_Case_E/E_Calibration_Images/Camera_01/img*'
+    path_cam = ('../../image_samples/4th_PIV-Challenge_Case_E/'
+                'E_Calibration_Images/Camera_0')
+
+    pathimg = path_cam + '1/img*'
     calib = CalibDirect(pathimg, (nb_pixelx, nb_pixely))
     calib.compute_interpolents()
     calib.compute_interppixel2line((nbline_x, nbline_y), test=False)
-    calib.save('../../image_samples/4th_PIV-Challenge_Case_E/E_Calibration_Images/Camera_01/calib1.npy')
+    calib.save(path_cam + '1/calib1.npy')
 
     # calib.check_interp_lines_coeffs()
     # calib.check_interp_lines()
     # calib.check_interp_levels()
-    pathimg = '../../image_samples/4th_PIV-Challenge_Case_E/E_Calibration_Images/Camera_03/img*'
+    pathimg = path_cam + '3/img*'
     calib3 = CalibDirect(pathimg, (nb_pixelx, nb_pixely))
     calib3.compute_interpolents()
     calib3.compute_interppixel2line((nbline_x, nbline_y), test=False)
-    calib3.save('../../image_samples/4th_PIV-Challenge_Case_E/E_Calibration_Images/Camera_03/calib3.npy')
+    calib3.save(path_cam + '3/calib3.npy')
 
     stereo = DirectStereoReconstruction(
-        '../../image_samples/4th_PIV-Challenge_Case_E/E_Calibration_Images/Camera_01/calib1.npy',
-        '../../image_samples/4th_PIV-Challenge_Case_E/E_Calibration_Images/Camera_03/calib3.npy')
+        path_cam + '1/calib1.npy', path_cam + '3/calib3.npy')

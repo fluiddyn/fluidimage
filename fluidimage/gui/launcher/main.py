@@ -1,3 +1,10 @@
+"""Topology launcher Qt GUI (:mod:`fluidimage.gui.launcher.main`)
+
+.. autoclass:: Program
+   :members:
+   :private-members:
+
+"""
 
 from __future__ import division
 
@@ -74,6 +81,7 @@ def main():
     w = Program()
     w.show()
     sys.exit(app.exec_())
+
 
 if __name__ == '__main__':
     main()

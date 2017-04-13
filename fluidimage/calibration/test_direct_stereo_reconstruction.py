@@ -1,8 +1,22 @@
+
+import unittest
+import os
+
 import h5py
+import matplotlib.pyplot as plt
+
 from fluidimage.calibration.util import get_plane_equation
 from fluidimage.calibration import DirectStereoReconstruction, CalibDirect
-import os
-import fluidimage
+
+plt.show = lambda: 0
+
+here = os.path.abspath(os.path.dirname(__file__))
+path_fluidimage = os.path.split(os.path.split(here)[0])[0]
+
+pathbase = os.path.join(path_fluidimage,
+                        'image_samples', '4th_PIV-Challenge_Case_E')
+
+long_test = False
 
 
 def get_piv_field(path):
@@ -23,61 +37,64 @@ def get_piv_field(path):
     return X, Y, dx, dy
 
 
-def test():
-    path_fluidimage = os.path.join(
-        '/', *os.path.abspath(fluidimage.__file__).split('/')[:-2])
+class TestCalib(unittest.TestCase):
+    """Test fluidimage.calibration DirectStereoReconstruction, CalibDirect."""
 
-    nb_pixelx, nb_pixely = 1024, 1024
+    def test(self):
 
-    nbline_x, nbline_y = 32, 32
+        nb_pixelx, nb_pixely = 1024, 1024
 
-    pathimg = path_fluidimage + '/image_samples/4th_PIV-Challenge_Case_E/E_Calibration_Images/Camera_01/img*'
-    calib = CalibDirect(pathimg, (nb_pixelx, nb_pixely))
-    calib.compute_interpolents()
-    calib.compute_interppixel2line((nbline_x, nbline_y), test=False)
-    calib.save(path_fluidimage + '/image_samples/4th_PIV-Challenge_Case_E/E_Calibration_Images/Camera_01/calib1.npy')
+        nbline_x, nbline_y = 32, 32
 
-    # calib.check_interp_lines_coeffs()
-    # calib.check_interp_lines()
-    # calib.check_interp_levels()
-    pathimg = path_fluidimage + '/image_samples/4th_PIV-Challenge_Case_E/E_Calibration_Images/Camera_03/img*'
-    calib3 = CalibDirect(pathimg, (nb_pixelx, nb_pixely))
-    calib3.compute_interpolents()
-    calib3.compute_interppixel2line((nbline_x, nbline_y), test=False)
-    calib3.save(path_fluidimage + '/image_samples/4th_PIV-Challenge_Case_E/E_Calibration_Images/Camera_03/calib3.npy')
-    
+        path_cam1 = os.path.join(pathbase, 'E_Calibration_Images', 'Camera_01')
+        path_cam3 = os.path.join(pathbase, 'E_Calibration_Images', 'Camera_03')
 
-    postfix = '.piv/'
+        path_calib1 = os.path.join(path_cam1, 'calib1.npy')
+        path_calib3 = os.path.join(path_cam3, 'calib3.npy')
 
-    pathbase = path_fluidimage + '/image_samples/4th_PIV-Challenge_Case_E'
+        calib = CalibDirect(os.path.join(path_cam1, 'img*'),
+                            (nb_pixelx, nb_pixely))
+        calib.compute_interpolents()
+        calib.compute_interppixel2line((nbline_x, nbline_y), test=False)
+        calib.save(path_calib1)
 
-    # level = 0
-    v = 'piv_00001-00002.h5'
+        if long_test:
+            calib.check_interp_lines_coeffs()
+            calib.check_interp_lines()
+            calib.check_interp_levels()
 
-    pathcalib1 = pathbase + '/E_Calibration_Images/Camera_01/calib1.npy'
-    pathcalib3 = pathbase + '/E_Calibration_Images/Camera_03/calib3.npy'
+        calib3 = CalibDirect(os.path.join(path_cam3, 'img*'),
+                             (nb_pixelx, nb_pixely))
 
-    dt = 0.001
+        calib3.compute_interpolents()
+        calib3.compute_interppixel2line((nbline_x, nbline_y), test=False)
+        calib3.save(path_calib3)
 
-    path1 = pathbase + '/E_Particle_Images/Camera_01' + postfix + v
-    path3 = pathbase + '/E_Particle_Images/Camera_03' + postfix + v
+        postfix = '.piv'
+        name = 'piv_00001-00002.h5'
+        path_im = os.path.join(pathbase, 'E_Particle_Images')
 
-    z0 = 0
-    alpha = 0
-    beta = 0
-    a, b, c, d = get_plane_equation(z0, alpha, beta)
+        path_piv1 = os.path.join(path_im, 'Camera_01' + postfix, name)
+        path_piv3 = os.path.join(path_im, 'Camera_03' + postfix, name)
 
-    Xl, Yl, dxl, dyl = get_piv_field(path1)
-    Xr, Yr, dxr, dyr = get_piv_field(path3)
+        z0 = 0
+        alpha = 0
+        beta = 0
+        a, b, c, d = get_plane_equation(z0, alpha, beta)
 
-    stereo = DirectStereoReconstruction(pathcalib1, pathcalib3)
-    X0, X1, d0cam, d1cam = stereo.project2cam(
-        Xl, Yl, dxl, dyl, Xr, Yr, dxr, dyr, a, b, c, d, check=False)
-    X, Y, Z = stereo.find_common_grid(X0, X1, a, b, c, d)
+        Xl, Yl, dxl, dyl = get_piv_field(path_piv1)
+        Xr, Yr, dxr, dyr = get_piv_field(path_piv3)
 
-    dx, dy, dz, erx, ery, erz = stereo.reconstruction(
-        X0, X1, d0cam, d1cam, a, b, c, d, X, Y, check=False)
-    dx, dy, dz, erx, ery, erz = dx/dt, dy/dt, dz/dt, erx/dt, ery/dt, erz/dt
+        stereo = DirectStereoReconstruction(path_calib1, path_calib3)
+        X0, X1, d0cam, d1cam = stereo.project2cam(
+            Xl, Yl, dxl, dyl, Xr, Yr, dxr, dyr, a, b, c, d, check=False)
+        X, Y, Z = stereo.find_common_grid(X0, X1, a, b, c, d)
+
+        dx, dy, dz, erx, ery, erz = stereo.reconstruction(
+            X0, X1, d0cam, d1cam, a, b, c, d, X, Y, check=False)
+
+        dt = 0.001
+        dx, dy, dz, erx, ery, erz = dx/dt, dy/dt, dz/dt, erx/dt, ery/dt, erz/dt
 
 if __name__ == "__main__":
-    test()
+    unittest.main()

@@ -1,4 +1,13 @@
+"""Simple viewer adapted for fluid images (:mod:`fluidimage.gui.imviewer`)
+==========================================================================
 
+Coded with matplotlib GUI!
+
+.. autoclass:: ImageViewer
+   :members:
+   :private-members:
+
+"""
 from __future__ import print_function, division
 
 import argparse
@@ -6,7 +15,21 @@ import os
 from glob import glob
 
 import matplotlib.pyplot as plt
-from matplotlib.widgets import TextBox, Button
+
+try:
+    from matplotlib.widgets import TextBox, Button
+    str_error_import_textbox = False
+except ImportError as error_import_textbox:
+    str_error_import_textbox = (
+        str(error_import_textbox) +
+        '\nfluidimviewer needs matplotlib.widgets.TextBox '
+        'which will be included in matplotlib 2.1.')
+
+    import matplotlib
+    if matplotlib.__version__ < '2.1':
+        print('Warning: ' + str_error_import_textbox)
+    else:
+        raise
 
 from fluiddyn.io.image import imread
 
@@ -43,8 +66,12 @@ def parse_args():
 
 
 class ImageViewer(object):
+    """Simple Image viewer."""
 
     def __init__(self, args):
+
+        if str_error_import_textbox:
+            raise ImportError(str_error_import_textbox)
 
         path_in = args.path
         if os.path.isdir(path_in):
@@ -251,6 +278,7 @@ class ImageViewer(object):
 
         if event.key == 'alt+s':
             self._switch()
+
 
 if __name__ == '__main__':
     args = parse_args()
