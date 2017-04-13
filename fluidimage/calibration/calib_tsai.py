@@ -33,7 +33,8 @@ class Calibration(object):
 
     def pix2phys(self, X, Y, index_level, nbypix, angle=True):
         params = copy.deepcopy(self.params)
-        Y = nbypix - Y  # difference of convention with calibration done with uvmat!
+        # difference of convention with calibration done with uvmat!
+        Y = nbypix - Y
         # determine position of Z0
         testangle = 0
         if hasattr(params.slices, 'slice_angle') and \
@@ -120,7 +121,6 @@ class Calibration(object):
             A12 = R[1]*Tz-R[7]*Tx+Z12*Z0virt
             A21 = -R[6]*Ty+R[3]*Tz+Z21*Z0virt
             A22 = -R[0]*Tz+R[6]*Tx+Z22*Z0virt
-
 
             X0 = (R[4]*Tx-R[1]*Ty+Zx0*Z0virt)
             Y0 = (-R[3]*Tx+R[0]*Ty+Zy0*Z0virt)

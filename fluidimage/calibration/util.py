@@ -8,15 +8,17 @@
 
 import re
 import numpy as np
-from math import sin, cos, sqrt
+from math import sin, cos
 from fluiddyn.util.paramcontainer import ParamContainer, tidy_container
 
+
 def get_number_from_string(string):
-    return [float(s) for s in re.findall(r"[-+]?\d*\.\d+|\d+", string)]
+    return [float(s) for s in re.findall(r'[-+]?\d*\.\d+|\d+', string)]
+
 
 def get_number_from_string2(string):
-    s = string.split()
     return [float(s) for s in string.split()]
+
 
 def get_plane_equation(z0, alpha, beta):
     """Return coefficients a, b, c, d of the equation of a plane
@@ -41,12 +43,14 @@ def get_plane_equation(z0, alpha, beta):
 
     Works only when 0 or 1 angle ~= 0
     """
-    assert not (alpha != 0 and beta != 0)  #"Works only when 0 or 1 angle != 0"
+    if alpha != 0 and beta != 0:
+        raise ValueError('Works only when 0 or 1 angle != 0')
     a = sin(beta)
     b = -sin(alpha) * cos(beta)
     c = cos(alpha) * cos(beta)
     d = -c * z0
     return a, b, c, d
+
 
 def get_base_from_normal_vector(nx, ny, nz):
     """matrix of base change from a given plane to the fixed plane
@@ -64,6 +68,7 @@ def get_base_from_normal_vector(nx, ny, nz):
     ey = np.cross(ez, ex)
     A = np.vstack([ex, ey, ez]).transpose()
     return A, np.linalg.inv(A)
+
 
 def make_params_calibration(path_file):
     """Make a tidy parameter container from a UVmat file.
