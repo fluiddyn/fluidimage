@@ -46,6 +46,7 @@ if not on_rtd:
     install_requires.extend([
         'scipy >= 0.14.1', 'numpy >= 1.8',
         'matplotlib >= 1.4.2',
+        'pyfftw >= 0.10.4',
         # 'scikit-image >= 0.12.3',
         'h5py', 'h5netcdf'])
 
