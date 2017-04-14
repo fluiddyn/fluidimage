@@ -1,6 +1,13 @@
 """PIV post-processing
 ======================
 
+.. autoclass:: PIV2d
+   :members:
+   :private-members:
+
+.. autoclass:: ArrayPIV
+   :members:
+   :private-members:
 
 """
 
@@ -15,6 +22,40 @@ from scipy.ndimage.filters import median_filter, gaussian_filter
 
 
 class PIV2d(object):
+    """PIV field on a regular grid.
+
+    Parameters
+    ----------
+
+    x : np.array (1d)
+
+    y : np.array (1d)
+
+    z : number or np.array (1d)
+
+    vx : np.array (2d)
+
+    vy : np.array (2d)
+
+    vy : np.array (2d), optional
+
+    namevx : str, 'vx'
+    namevy : str, 'vy'
+    namevz : str, 'vz'
+
+    unitvx : str, '?'
+    unitvy : str, '?'
+    unitvz : str, '?'
+
+    namex : str, 'x'
+    namey : str, 'y'
+    namez : str, 'z'
+
+    unitx : str, '?'
+    unity : str, '?'
+    unitz : str, '?'
+
+    """
     def __init__(self, x, y, z, vx, vy, vz=np.nan,
                  namevx='vx', namevy='vy', namevz='vz',
                  unitvx='?', unitvy='?', unitvz='?',
@@ -182,7 +223,7 @@ class PIV2d(object):
         ret.vy = _gaussianf(self.vy)
 
         if hasattr(self, 'vz'):
-            #ret.vz = _gaussianf(self.vz)
+            # ret.vz = _gaussianf(self.vz)
             pass
 
         if valid:
@@ -218,7 +259,8 @@ class PIV2d(object):
             ret.vz = _extract2d(ret.vz)
 
         ret.history.append(
-            'extract(start0={}, stop0={}, start1={}, stop1={}, phys={})'.format(
+            ('extract(start0={}, stop0={}, '
+             'start1={}, stop1={}, phys={})').format(
                 start0, stop0, start1, stop1, phys))
 
         return ret
@@ -255,6 +297,7 @@ class PIV2d(object):
 
 
 class ArrayPIV(object):
+    """Array of PIV fields on a regular grid."""
     def __init__(self, l=None):
         if l is None:
             l = []

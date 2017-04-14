@@ -13,8 +13,8 @@ def compute_grid(xs, ys, deltaxs, deltays):
     X, Y = np.meshgrid(x, y)
     X = X.transpose()
     Y = Y.transpose()
-    U=np.reshape(deltaxs,(x.size,y.size))
-    V=np.reshape(deltays,(x.size,y.size))
+    U = np.reshape(deltaxs, (x.size, y.size))
+    V = np.reshape(deltays, (x.size, y.size))
 
     X = X
     Y = Y
@@ -23,6 +23,7 @@ def compute_grid(xs, ys, deltaxs, deltays):
     U = U
     V = V
     return X, Y, dx, dy, U, V
+
 
 def compute_derivatives(dx, dy, U, V, edge_order=2):
 
@@ -33,21 +34,26 @@ def compute_derivatives(dx, dy, U, V, edge_order=2):
 
     return dUdx, dUdy, dVdx, dVdy
 
+
 def compute_rot(dUdy, dVdx):
     rot = dVdx - dUdy
     return rot
+
 
 def compute_div(dUdx, dVdy):
     div = dUdx + dVdy
     return div
 
+
 def compute_ken(U, V):
     ken = (U**2 + V**2 )/2
     return ken
 
+
 def compute_norm(U, V):
     norm = np.sqrt(U**2 + V**2)
     return norm
+
 
 def oneD_fourier_transform(x, signal, axis=0, parseval=False):
 
@@ -88,7 +94,8 @@ def oneD_fourier_transform(x, signal, axis=0, parseval=False):
 
     return ft, omega, psd
 
-def twoD_fourier_transform(X, Y, U, axis =(1,2) ,parseval=False):
+
+def twoD_fourier_transform(X, Y, U, axis=(1, 2), parseval=False):
     """
     Computes the 2D Fourier Transform
     INPUT:
@@ -114,16 +121,16 @@ def twoD_fourier_transform(X, Y, U, axis =(1,2) ,parseval=False):
 
     ft = np.fft.fftshift(np.fft.fft2(U, axes=axis), axes=axis)
 
-    kx = np.fft.fftshift(np.fft.fftfreq(nx, dx))*(2*np.pi) #in rad/m
-    ky = np.fft.fftshift(np.fft.fftfreq(ny, dy))*(2*np.pi) #in rad/m
+    kx = np.fft.fftshift(np.fft.fftfreq(nx, dx))*(2*np.pi)  # in rad/m
+    ky = np.fft.fftshift(np.fft.fftfreq(ny, dy))*(2*np.pi)  # in rad/m
 
     Lkx = np.max(kx) - np.min(kx)
     dkx = kx[1]-kx[0]
     Lky = np.max(ky) - np.min(ky)
     dky = ky[1]-ky[0]
-    #% Kx, Ky = np.meshgrid(kx, ky)
-    #% Kx = Kx.transpose()
-    #% Ky = Ky.transpose()
+    # Kx, Ky = np.meshgrid(kx, ky)
+    # Kx = Kx.transpose()
+    # Ky = Ky.transpose()
 
     psd = 1.0/Lkx/nx/Lky/ny* np.abs(ft)**2
 
