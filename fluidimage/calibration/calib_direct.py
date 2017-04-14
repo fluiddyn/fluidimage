@@ -12,13 +12,15 @@
 """
 import numpy as np
 import glob
+import warnings
+from math import sqrt
+
 import pylab
 from mpl_toolkits.mplot3d import Axes3D
 from scipy.interpolate import griddata
 # from scipy.interpolate import CloughTocher2DInterpolator
 from scipy.interpolate import LinearNDInterpolator, RegularGridInterpolator
 import matplotlib.pyplot as plt
-from math import sqrt
 
 from fluiddyn.util.paramcontainer import ParamContainer, tidy_container
 
@@ -143,13 +145,6 @@ class CalibDirect():
                     ytrue.append(y[i, j])
                     Vtrue.append(tmp)
 
-        # for j in range(6):
-        #     indfalse = np.where(isnan(V[:, :, j]))
-        #     indtrue = np.where(isnan(V[:, :, j]) == False)
-        #     V[indfalse[0], indfalse[1], j]  = griddata((X[indfalse], Y[indfalse]),
-        #                     V[indtrue[0], indtrue[1], j],
-        #                     (X[indtrue], Y[indtrue]))
-
         if test:
             titles = ['X0', 'Y0', 'Z0', 'dx', 'dy', 'dz']
             for j in range(6):
@@ -195,7 +190,9 @@ class CalibDirect():
         X = np.array(X)
         Y = np.array(Y)
         XYZ = np.vstack([X, Y, Z]).transpose()
-        XYZ0 = np.nanmean(XYZ, 0)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=RuntimeWarning)
+            XYZ0 = np.nanmean(XYZ, 0)
         XYZ -= XYZ0
         ind = ~np.isnan(X+Y)
         XYZ = XYZ[ind, :]
@@ -544,10 +541,12 @@ class DirectStereoReconstruction():
 
     def reconstruction(self, X0, X1, d0cam, d1cam, a, b, c, d, grid_x, grid_y,
                        check=False):
-        """ Reconstruction of the 3 components of the velocity in the plane
-        defined by a, b, c, d on the grid defined by grid_x, grid_y
-        from the displacements of the 2 cameras d0cam, d1cam in their respective
-        planes d0cam, d1cam
+        """Reconstruction of the 3 components of the velocity
+
+        In the plane defined by a, b, c, d on the grid defined by grid_x,
+        grid_y from the displacements of the 2 cameras d0cam, d1cam in their
+        respective planes d0cam, d1cam.
+
         """
         # reconstruction => resolution of the equation
         # MX = dcam

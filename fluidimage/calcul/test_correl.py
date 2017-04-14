@@ -7,18 +7,19 @@ import logging
 import numpy as np
 
 from fluidimage.synthetic import make_synthetic_images
-from fluidimage.calcul.correl import correlation_classes
-from fluidimage.calcul.correl import CorrelScipySignal
-from fluidimage.calcul.correl import CorrelTheano, CorrelPythran, CorrelPyCuda
+from fluidimage.calcul.correl import (
+    correlation_classes,
+    CorrelScipySignal, CorrelTheano, CorrelPythran, CorrelPyCuda,
+    CorrelFFTBase, CorrelBase)
 
 # config_logging('debug')
 logger = logging.getLogger('fluidimage')
 
 classes = {k.replace('.', '_'): v for k, v in correlation_classes.items()}
 classes2 = {'sig': CorrelScipySignal,
-           'theano': CorrelTheano,
-           'pycuda': CorrelPyCuda,
-           'pythran': CorrelPythran}
+            'theano': CorrelTheano,
+            'pycuda': CorrelPyCuda,
+            'pythran': CorrelPythran}
 
 try:
     from reikna.cluda import any_api
@@ -66,7 +67,14 @@ class TestCorrel(unittest.TestCase):
 
 for k, cls in classes.items():
     def test(self, cls=cls, k=k):
-        correl = cls(self.im0.shape, self.im1.shape)
+
+        if issubclass(cls, CorrelFFTBase):
+            displacement_max = 10
+        else:
+            displacement_max = None
+
+        correl = cls(self.im0.shape, self.im1.shape,
+                     displacement_max=displacement_max)
 
         # first, no displacement
         c, norm = correl(self.im0, self.im0)

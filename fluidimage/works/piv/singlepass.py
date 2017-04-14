@@ -97,10 +97,11 @@ class BaseWorkPIV(BaseWork):
                 'params.piv0.method_correl should be in ' +
                 str(list(correlation_classes.keys())))
 
-        self.correl = correl_cls(im0_shape=self.shape_crop_im0,
-                                 im1_shape=self.shape_crop_im1,
-                                 method_subpix=self.params.piv0.method_subpix,
-                                 nsubpix=self.params.piv0.nsubpix)
+        self.correl = correl_cls(
+            im0_shape=self.shape_crop_im0, im1_shape=self.shape_crop_im1,
+            method_subpix=self.params.piv0.method_subpix,
+            nsubpix=self.params.piv0.nsubpix,
+            displacement_max=self.params.piv0.displacement_max)
 
     def _prepare_with_image(self, im0):
         """Initialize the object with an image.
@@ -436,7 +437,7 @@ class FirstWorkPIV(BaseWorkPIV):
         params._set_child('piv0', attribs={
             'shape_crop_im0': 48,
             'shape_crop_im1': None,
-            'displacement_max': None,  # NotImplemented
+            'displacement_max': None,
             'displacement_mean': None,  # NotImplemented
             'method_correl': 'fftw',
             'method_subpix': '2d_gaussian2',
@@ -449,8 +450,11 @@ shape_crop_im0 : int (48)
     Shape of the cropped images 0 from which are computed the correlation.
 shape_crop_im1 : int or None
     Shape of the cropped images 0 (has to be None for correl based on fft).
+
 displacement_max : None
-        Displacement maximum (NotImplemented).
+    Displacement maximum used in correlation classes. The exact effect depends
+    on the correlation method.
+
 displacement_mean : None
     Displacement averaged over space (NotImplemented).
 

@@ -73,9 +73,10 @@ class CorrelBase(object):
     _tag = 'base'
 
     def __init__(self, im0_shape, im1_shape, method_subpix='centroid',
-                 nsubpix=1):
+                 nsubpix=1, displacement_max=None):
         self.inds0 = tuple(np.array(im0_shape)//2 - 1)
         self.subpix = SubPix(method=method_subpix, nsubpix=nsubpix)
+        self.displacement_max = displacement_max
 
     def compute_displacement_from_indices(self, indices):
         """Compute the displacement from a couple of indices."""
@@ -118,10 +119,10 @@ class CorrelPythran(CorrelBase):
                                        im0_shape[1]-im1_shape[1]) // 2 - 1
         if displacement_max <= 0:
             raise ValueError(
-                'displacement_max <= 0 : problem with images shapes')
-        self.displacement_max = displacement_max
+                'displacement_max <= 0 : problem with images shapes?')
         super(CorrelPythran, self).__init__(
-            im0_shape, im1_shape, method_subpix=method_subpix, nsubpix=nsubpix)
+            im0_shape, im1_shape, method_subpix=method_subpix, nsubpix=nsubpix,
+            displacement_max=displacement_max)
 
         ind0x = displacement_max
         ind0y = displacement_max
@@ -145,7 +146,7 @@ class CorrelPyCuda(CorrelBase):
 
         if displacement_max is None:
             if im0_shape == im1_shape:
-                displacement_max = max(im0_shape) // 2 #min(max(im0_shape), max(im1_shape)) // 2
+                displacement_max = max(im0_shape) // 2
             else:
                 displacement_max = max(im0_shape[0]-im1_shape[0],
                                        im0_shape[1]-im1_shape[1]) // 2 - 1
@@ -156,7 +157,8 @@ class CorrelPyCuda(CorrelBase):
         self.displacement_max = displacement_max
 
         super(CorrelPyCuda, self).__init__(
-            im0_shape, im1_shape, method_subpix=method_subpix, nsubpix=nsubpix)
+            im0_shape, im1_shape, method_subpix=method_subpix, nsubpix=nsubpix,
+            displacement_max=displacement_max)
 
         ind0x = displacement_max
         ind0y = displacement_max
@@ -173,13 +175,15 @@ class CorrelScipySignal(CorrelBase):
     _tag = 'scipy.signal'
 
     def __init__(self, im0_shape, im1_shape=None,
-                 method_subpix='centroid', nsubpix=1, mode='same'):
+                 method_subpix='centroid', nsubpix=1, mode='same',
+                 displacement_max=None):
 
         if im1_shape is None:
             im1_shape = im0_shape
 
         super(CorrelScipySignal, self).__init__(
-            im0_shape, im1_shape, method_subpix=method_subpix, nsubpix=nsubpix)
+            im0_shape, im1_shape, method_subpix=method_subpix, nsubpix=nsubpix,
+            displacement_max=displacement_max)
 
         modes = ['valid', 'same']
         if mode not in modes:
@@ -221,9 +225,10 @@ class CorrelScipyNdimage(CorrelBase):
     _tag = 'scipy.ndimage'
 
     def __init__(self, im0_shape, im1_shape=None, method_subpix='centroid',
-                 nsubpix=1):
+                 nsubpix=1, displacement_max=None):
         super(CorrelScipyNdimage, self).__init__(
-            im0_shape, im1_shape, method_subpix=method_subpix, nsubpix=nsubpix)
+            im0_shape, im1_shape, method_subpix=method_subpix, nsubpix=nsubpix,
+            displacement_max=displacement_max)
         self.inds0 = tuple(np.array(im0_shape)//2)
 
     def __call__(self, im0, im1):
@@ -236,15 +241,14 @@ class CorrelTheano(CorrelBase):
     """Correlations using theano.tensor.nnet.conv2d"""
     _tag = 'theano'
 
-    def __init__(self, im0_shape, im1_shape=None,
-                 mode='disp', method_subpix='centroid', nsubpix=1,
-                 displacement_max=None):
+    def __init__(self, im0_shape, im1_shape=None, method_subpix='centroid',
+                 nsubpix=1, displacement_max=None, mode='disp'):
         if im1_shape is None:
             im1_shape = im0_shape
 
         if displacement_max is None:
             if im0_shape == im1_shape:
-                displacement_max = max(im0_shape) // 2 #min(max(im0_shape), max(im1_shape)) // 2
+                displacement_max = max(im0_shape) // 2
             else:
                 displacement_max = max(im0_shape[0]-im1_shape[0],
                                        im0_shape[1]-im1_shape[1]) // 2 - 1
@@ -253,7 +257,8 @@ class CorrelTheano(CorrelBase):
                 'displacement_max <= 0 : problem with images shapes')
 
         super(CorrelTheano, self).__init__(
-            im0_shape, im1_shape, method_subpix=method_subpix, nsubpix=nsubpix)
+            im0_shape, im1_shape, method_subpix=method_subpix, nsubpix=nsubpix,
+            displacement_max=displacement_max)
 
         modes = ['valid', 'same', 'disp']
         if mode not in modes:
@@ -373,21 +378,60 @@ class CorrelTheano(CorrelBase):
         return correl, norm
 
 
-class CorrelFFTNumpy(CorrelBase):
-    """Correlations using numpy.fft."""
-    _tag = 'np.fft'
+class CorrelFFTBase(CorrelBase):
+    """Correlations using fft."""
+    _tag = 'fft.base'
 
     def __init__(self, im0_shape, im1_shape=None, method_subpix='centroid',
-                 nsubpix=1):
-        super(CorrelFFTNumpy, self).__init__(
-            im0_shape, im1_shape, method_subpix=method_subpix, nsubpix=nsubpix)
+                 nsubpix=1, displacement_max=None):
+        super(CorrelFFTBase, self).__init__(
+            im0_shape, im1_shape, method_subpix=method_subpix, nsubpix=nsubpix,
+            displacement_max=displacement_max)
 
+        if self.displacement_max is not None:
+
+            where_large_displacement = np.zeros(im0_shape, dtype=bool)
+
+            for indices, v in np.ndenumerate(where_large_displacement):
+                dx, dy = self.compute_displacement_from_indices(indices[::-1])
+                displacement = np.sqrt(dx**2 + dy**2)
+                if displacement > self.displacement_max:
+                    where_large_displacement[indices] = True
+
+            self.where_large_displacement = where_large_displacement
+
+    def _check_im_shape(self, im0_shape, im1_shape):
         if im1_shape is None:
             im1_shape = im0_shape
 
         if im0_shape != im1_shape:
             raise ValueError('with this correlation method the input images '
                              'have to have the same shape.')
+
+    def compute_displacement_from_correl(self, correl, coef_norm=1.,
+                                         method_subpix=None, nsubpix=None):
+
+        """Compute the displacement (with subpix) from a correlation."""
+
+        if self.displacement_max is not None:
+            correl = correl.copy()
+            correl[self.where_large_displacement] = 0.
+
+        return super(CorrelFFTBase, self).compute_displacement_from_correl(
+            correl, coef_norm=coef_norm,
+            method_subpix=method_subpix, nsubpix=nsubpix)
+
+
+class CorrelFFTNumpy(CorrelFFTBase):
+    """Correlations using numpy.fft."""
+    _tag = 'np.fft'
+
+    def __init__(self, im0_shape, im1_shape=None, method_subpix='centroid',
+                 nsubpix=1, displacement_max=None):
+        CorrelFFTBase._check_im_shape(self, im0_shape, im1_shape)
+        super(CorrelFFTNumpy, self).__init__(
+            im0_shape, im1_shape, method_subpix=method_subpix, nsubpix=nsubpix,
+            displacement_max=displacement_max)
 
     def __call__(self, im0, im1):
         """Compute the correlation from images."""
@@ -396,23 +440,17 @@ class CorrelFFTNumpy(CorrelBase):
         return np.fft.fftshift(corr[::-1, ::-1]), norm
 
 
-class CorrelFFTW(CorrelBase):
+class CorrelFFTW(CorrelFFTBase):
     """Correlations using fluidimage.fft.FFTW2DReal2Complex"""
     FFTClass = FFTW2DReal2Complex
     _tag = 'fftw'
 
     def __init__(self, im0_shape, im1_shape=None, method_subpix='centroid',
-                 nsubpix=1):
+                 nsubpix=1, displacement_max=None):
+        CorrelFFTBase._check_im_shape(self, im0_shape, im1_shape)
         super(CorrelFFTW, self).__init__(
-            im0_shape, im1_shape, method_subpix=method_subpix, nsubpix=nsubpix)
-
-        if im1_shape is None:
-            im1_shape = im0_shape
-
-        if im0_shape != im1_shape:
-            raise ValueError(
-                'with this correlation method ({})'.format(self._tag) +
-                ' the input images have to have the same shape.')
+            im0_shape, im1_shape, method_subpix=method_subpix, nsubpix=nsubpix,
+            displacement_max=displacement_max)
 
         n0, n1 = im1_shape
         self.op = self.FFTClass(n1, n0)
@@ -425,22 +463,17 @@ class CorrelFFTW(CorrelBase):
         return np.fft.fftshift(corr[::-1, ::-1]), norm
 
 
-class CorrelCuFFT(CorrelBase):
+class CorrelCuFFT(CorrelFFTBase):
     _tag = 'cufft'
     """Correlations using fluidimage.fft.CUFFT2DReal2Complex"""
     FFTClass = CUFFT2DReal2Complex
 
     def __init__(self, im0_shape, im1_shape=None, method_subpix='centroid',
-                 nsubpix=1):
+                 nsubpix=1, displacement_max=None):
+        CorrelFFTBase._check_im_shape(self, im0_shape, im1_shape)
         super(CorrelCuFFT, self).__init__(
-            im0_shape, im1_shape, method_subpix=method_subpix, nsubpix=nsubpix)
-
-        if im1_shape is None:
-            im1_shape = im0_shape
-
-        if im0_shape != im1_shape:
-            raise ValueError('with this correlation method the input images '
-                             'have to have the same shape.')
+            im0_shape, im1_shape, method_subpix=method_subpix, nsubpix=nsubpix,
+            displacement_max=displacement_max)
 
         n0, n1 = im1_shape
         self.op = self.FFTClass(n1, n0)
@@ -453,22 +486,17 @@ class CorrelCuFFT(CorrelBase):
         return np.fft.fftshift(corr[::-1, ::-1]), norm
 
 
-class CorrelSKCuFFT(CorrelBase):
+class CorrelSKCuFFT(CorrelFFTBase):
     """Correlations using fluidimage.fft.FFTW2DReal2Complex"""
     FFTClass = SKCUFFT2DReal2Complex
     _tag = 'skcufft'
 
     def __init__(self, im0_shape, im1_shape=None, method_subpix='centroid',
-                 nsubpix=1):
+                 nsubpix=1, displacement_max=None):
+        CorrelFFTBase._check_im_shape(self, im0_shape, im1_shape)
         super(CorrelSKCuFFT, self).__init__(
-            im0_shape, im1_shape, method_subpix=method_subpix, nsubpix=nsubpix)
-
-        if im1_shape is None:
-            im1_shape = im0_shape
-
-        if im0_shape != im1_shape:
-            raise ValueError('with this correlation method the input images '
-                             'have to have the same shape.')
+            im0_shape, im1_shape, method_subpix=method_subpix, nsubpix=nsubpix,
+            displacement_max=displacement_max)
 
         n0, n1 = im1_shape
         self.op = self.FFTClass(n1, n0)

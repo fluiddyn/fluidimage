@@ -19,8 +19,6 @@ class SubPix(object):
 
        - evaluate subpix methods.
 
-       - same subpix methods as in UVmat...
-
     """
     methods = ['2d_gaussian', '2d_gaussian2', 'centroid', 'no_subpix']
 
@@ -117,11 +115,11 @@ class SubPix(object):
             if np.isnan(deplx) or np.isnan(deply):
                 return self.compute_subpix(
                     correl, ix, iy, method='centroid', nsubpix=nsubpix)
-            
+
         if method == '2d_gaussian2':
 
             correl2 = correl[iy-1:iy+2, ix-1:ix+2]
-            correl2[correl2<0] = 1e-6
+            correl2[correl2 < 0] = 1e-6
             c10 = 0
             c01 = 0
             c11 = 0
@@ -136,10 +134,11 @@ class SubPix(object):
                     c02 += (3*(j-1)**2-2)*np.log(correl2[j, i])
                     c00 = (5-3*(i-1)**2-3*(j-1)**2)*np.log(correl2[j, i])
 
-            c00, c10, c01, c11, c20, c02 = c00/9, c10/6, c01/6, c11/4, c20/6, c02/6
+            c00, c10, c01, c11, c20, c02 = \
+                c00/9, c10/6, c01/6, c11/4, c20/6, c02/6
             deplx = (c11*c01-2*c10*c02)/(4*c20*c02-c11**2)
             deply = (c11*c10-2*c01*c20)/(4*c20*c02-c11**2)
-            
+
         elif method == 'centroid':
 
             correl2 = correl[iy-nsubpix:iy+nsubpix+1, ix-nsubpix:ix+nsubpix+1]
@@ -154,6 +153,8 @@ class SubPix(object):
             deplx = deply = 0.
 
         if abs(deplx) > nsubpix or abs(deply) > nsubpix:
+            print(correl2)
+            
             raise PIVError(explanation='wrong subpix',
                            result_compute_subpix=(iy, ix))
 
