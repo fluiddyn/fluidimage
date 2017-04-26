@@ -260,8 +260,8 @@ class CalibDirect(object):
         dx = np.nanmean(self.interp_lines[3]((indx, indy)))
         dy = np.nanmean(self.interp_lines[4]((indx, indy)))
         dz = np.nanmean(self.interp_lines[5]((indx, indy)))
-        A = get_base_from_normal_vector(dx, dy, dz)
-        return A
+        A, B = get_base_from_normal_vector(dx, dy, dz)
+        return A, B
 
     def check_interp_levels(self):
         """ Plot to check interp_levels
