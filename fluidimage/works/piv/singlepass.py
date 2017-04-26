@@ -24,7 +24,6 @@
 
 """
 
-
 from __future__ import print_function
 
 from copy import deepcopy
@@ -33,7 +32,8 @@ import numpy as np
 
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
 
-from ...data_objects.piv import ArrayCouple, HeavyPIVResults
+from ...data_objects.piv import ArrayCouple, HeavyPIVResults, \
+    get_slices_from_strcrop
 from ...calcul.correl import PIVError, correlation_classes
 from .. import BaseWork
 
@@ -140,6 +140,8 @@ class BaseWorkPIV(BaseWork):
 
         deltaxs, deltays, xs, ys, correls_max, correls, errors = \
             self._loop_vectors(im0, im1)
+
+        xs, ys = self._xyoriginalimage_from_xymasked(xs, ys)
 
         result = HeavyPIVResults(
             deltaxs, deltays, xs, ys, errors,
@@ -323,6 +325,24 @@ class BaseWorkPIV(BaseWork):
         subim = np.array(subim, dtype=np.float32)
         return subim - subim.mean()
 
+    def _xymasked_from_xyoriginalimage(self, xs, ys):
+        if self.params.mask.strcrop is not None:
+            slices = get_slices_from_strcrop(self.params.mask.strcrop)
+            if slices[1].start is not None:
+                xs = xs - slices[1].start
+            if slices[0].start is not None:
+                ys = ys - slices[0].start
+        return xs, ys
+
+    def _xyoriginalimage_from_xymasked(self, xs, ys):
+        if self.params.mask.strcrop is not None:
+            slices = get_slices_from_strcrop(self.params.mask.strcrop)
+            if slices[1].start is not None:
+                xs = xs + slices[1].start
+            if slices[0].start is not None:
+                ys = ys + slices[0].start
+        return xs, ys
+
     def apply_interp(self, piv_results, last=False):
         """Interpolate a PIV result object on the grid of the PIV work.
 
@@ -348,12 +368,14 @@ class BaseWorkPIV(BaseWork):
         """
 
         if not last and not hasattr(piv_results, 'ixvecs_approx'):
-            piv_results.ixvecs_approx = self.ixvecs_grid
-            piv_results.iyvecs_approx = self.iyvecs_grid
+            piv_results.ixvecs_approx, piv_results.iyvecs_approx = \
+                self._xyoriginalimage_from_xymasked(
+                    self.ixvecs_grid, self.iyvecs_grid)
 
         if last and not hasattr(piv_results, 'ixvecs_final'):
-            piv_results.ixvecs_final = self.ixvecs_grid
-            piv_results.iyvecs_final = self.iyvecs_grid
+            piv_results.ixvecs_final, piv_results.iyvecs_final = \
+                self._xyoriginalimage_from_xymasked(
+                    self.ixvecs_grid, self.iyvecs_grid)
 
         # for the interpolation
         selection = ~(np.isnan(piv_results.deltaxs) |
@@ -364,6 +386,9 @@ class BaseWorkPIV(BaseWork):
 
         xs = piv_results.xs[selection]
         ys = piv_results.ys[selection]
+
+        xs, ys = self._xymasked_from_xyoriginalimage(xs, ys)
+
         centers = np.vstack([ys, xs])
 
         deltaxs = piv_results.deltaxs[selection]
@@ -596,6 +621,8 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
             self._loop_vectors(im0, im1,
                                deltaxs_approx=deltaxs_approx,
                                deltays_approx=deltays_approx)
+
+        xs, ys = self._xyoriginalimage_from_xymasked(xs, ys)
 
         result = HeavyPIVResults(
             deltaxs, deltays, xs, ys, errors,

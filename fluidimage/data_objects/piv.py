@@ -109,6 +109,12 @@ class DataObject(object):
     pass
 
 
+def get_slices_from_strcrop(strcrop):
+    return tuple(slice(*(int(i) if i else None
+                         for i in part.strip().split(':')))
+                 for part in strcrop.split(','))
+
+
 class ArrayCouple(DataObject):
     """Couple of arrays (images)."""
     def __init__(
@@ -126,14 +132,14 @@ class ArrayCouple(DataObject):
             return
 
         if serie is not None:
-            if serie.get_nb_files() != 2:
-                raise ValueError('serie has to contain 2 arrays.')
             names = serie.get_name_files()
+            if len(names) != 2:
+                raise ValueError('serie has to contain 2 arrays.')
             paths = serie.get_path_files()
             self.paths = tuple(os.path.abspath(p) for p in paths)
 
             if arrays is None:
-                arrays = self._read_images()
+                arrays = self.read_images()
 
         self.names = tuple(names)
         self.name = '-'.join(self.names)
@@ -144,7 +150,7 @@ class ArrayCouple(DataObject):
         arr = imread(self.paths[index])
         return arr
 
-    def _read_images(self):
+    def read_images(self):
         return tuple(self._read_image(i) for i in [0, 1])
 
     def _mask_array(self, array):
@@ -152,9 +158,7 @@ class ArrayCouple(DataObject):
             return array
 
         if self.params_mask.strcrop is not None:
-            indices = tuple(slice(*(int(i) if i else None
-                                    for i in part.strip().split(':')))
-                            for part in self.params_mask.strcrop.split(','))
+            indices = get_slices_from_strcrop(self.params_mask.strcrop)
             array = array[indices]
 
         return array
@@ -164,7 +168,7 @@ class ArrayCouple(DataObject):
 
     def get_arrays(self):
         if not hasattr(self, 'arrays'):
-            self.arrays = self._mask_arrays(self._read_images())
+            self.arrays = self._mask_arrays(self.read_images())
 
         return self.arrays
 
@@ -246,12 +250,12 @@ class HeavyPIVResults(DataObject):
         self.params = params
 
     def get_images(self):
-        return self.couple.get_arrays()
+        return self.couple.read_images()
 
     def display(self, show_interp=False, scale=0.2, show_error=True,
                 pourcent_histo=99, hist=False, show_correl=True):
         try:
-            im0, im1 = self.couple.get_arrays()
+            im0, im1 = self.get_images()
         except IOError:
             im0, im1 = None, None
         return DisplayPIV(
@@ -572,8 +576,7 @@ class LightPIVResults(DataObject):
 
     def __init__(self, deltaxs_approx=None, deltays_approx=None,
                  ixvecs_grid=None, iyvecs_grid=None,
-                 correls_max=None, correls=None,
-                 couple=None, params=None,
+                 correls_max=None, couple=None, params=None,
                  str_path=None, hdf5_object=None, file_name=None):
 
         self._keys_to_be_saved = ['xs', 'ys', 'deltaxs', 'deltays']

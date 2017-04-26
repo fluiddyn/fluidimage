@@ -94,12 +94,13 @@ class SubPix(object):
 
         if method == '2d_gaussian':
 
-            correl2 = correl[iy-nsubpix:iy+nsubpix+1, ix-nsubpix:ix+nsubpix+1]
-            ny, nx = correl2.shape
+            correl_crop = correl[iy-nsubpix:iy+nsubpix+1,
+                                 ix-nsubpix:ix+nsubpix+1]
+            ny, nx = correl_crop.shape
 
             assert nx == ny == 2*nsubpix + 1
 
-            correl_map = correl2.ravel()
+            correl_map = correl_crop.ravel()
             correl_map[correl_map <= 0.] = 1e-6
 
             coef = np.dot(self.Minv_subpix, np.log(correl_map))
@@ -118,21 +119,21 @@ class SubPix(object):
 
         if method == '2d_gaussian2':
 
-            correl2 = correl[iy-1:iy+2, ix-1:ix+2]
-            correl2[correl2 < 0] = 1e-6
+            correl_crop = correl[iy-1:iy+2, ix-1:ix+2]
+            correl_crop[correl_crop < 0] = 1e-6
             c10 = 0
             c01 = 0
             c11 = 0
             c20 = 0
             c02 = 0
-            for i in range(0, 3):
-                for j in range(0, 3):
-                    c10 += (i-1)*np.log(correl2[j, i])
-                    c01 += (j-1)*np.log(correl2[j, i])
-                    c11 += (i-1)*(j-1)*np.log(correl2[j, i])
-                    c20 += (3*(i-1)**2-2)*np.log(correl2[j, i])
-                    c02 += (3*(j-1)**2-2)*np.log(correl2[j, i])
-                    c00 = (5-3*(i-1)**2-3*(j-1)**2)*np.log(correl2[j, i])
+            for i in range(3):
+                for j in range(3):
+                    c10 += (i-1)*np.log(correl_crop[j, i])
+                    c01 += (j-1)*np.log(correl_crop[j, i])
+                    c11 += (i-1)*(j-1)*np.log(correl_crop[j, i])
+                    c20 += (3*(i-1)**2-2)*np.log(correl_crop[j, i])
+                    c02 += (3*(j-1)**2-2)*np.log(correl_crop[j, i])
+                    c00 = (5-3*(i-1)**2-3*(j-1)**2)*np.log(correl_crop[j, i])
 
             c00, c10, c01, c11, c20, c02 = \
                 c00/9, c10/6, c01/6, c11/4, c20/6, c02/6
@@ -141,20 +142,24 @@ class SubPix(object):
 
         elif method == 'centroid':
 
-            correl2 = correl[iy-nsubpix:iy+nsubpix+1, ix-nsubpix:ix+nsubpix+1]
-            ny, nx = correl2.shape
+            correl_crop = correl[iy-nsubpix:iy+nsubpix+1,
+                                 ix-nsubpix:ix+nsubpix+1]
+            ny, nx = correl_crop.shape
 
-            sum_correl = np.sum(correl2)
+            sum_correl = np.sum(correl_crop)
 
-            deplx = np.sum(self.X_centroid * correl2) / sum_correl
-            deply = np.sum(self.Y_centroid * correl2) / sum_correl
+            deplx = np.sum(self.X_centroid * correl_crop) / sum_correl
+            deply = np.sum(self.Y_centroid * correl_crop) / sum_correl
 
         elif method == 'no_subpix':
             deplx = deply = 0.
 
-        if abs(deplx) > nsubpix or abs(deply) > nsubpix:
-            print(correl2)
-            
+        if deplx**2 + deply**2 > 2*(0.5+nsubpix)**2:
+            print(('Wrong subpix for one vector:'
+                   ' deplx**2 + deply**2 > (0.5+nsubpix)**2\n'
+                   'method: ' + method +
+                   '\ndeplx, deply = ({}, {})\n'
+                   'correl_subpix =\n{}').format(deplx, deply, correl_crop))
             raise PIVError(explanation='wrong subpix',
                            result_compute_subpix=(iy, ix))
 

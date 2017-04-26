@@ -12,7 +12,7 @@ params.piv0.shape_crop_im0 = 32
 params.fix.correl_min = 0.2
 params.fix.threshold_diff_neighbour = 8
 
-params.mask.strcrop = ':, 50:500'
+params.mask.strcrop = '30:250, 100:'
 
 work = WorkPIV(params=params)
 
@@ -23,7 +23,7 @@ serie = series.get_serie_from_index(0)
 
 piv = work.calcul(serie)
 
-piv.display(show_interp=True, scale=80, show_error=True)
-# piv.display(show_interp=False, scale=80, show_error=True)
+piv.display(show_interp=True, scale=1., show_error=True)
+piv.display(show_interp=False, scale=1., show_error=True)
 
 # result.save()

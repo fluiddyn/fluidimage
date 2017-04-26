@@ -27,11 +27,11 @@ from fluiddyn.util.paramcontainer import ParamContainer, tidy_container
 from .util import get_number_from_string2, get_base_from_normal_vector
 
 
-class Interpolent():
+class Interpolent(object):
     pass
 
 
-class CalibDirect():
+class CalibDirect(object):
     """Class for direct Calibration
     This calibration determine the equations of optical paths for "each" pixels
 
@@ -395,7 +395,7 @@ class CalibDirect():
         plt.show()
 
 
-class DirectStereoReconstruction():
+class DirectStereoReconstruction(object):
     """Class to get stereo reconstruction with direct Calibration
     This calibration determine the equations of optical paths for "each" pixels
 
