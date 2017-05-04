@@ -57,15 +57,71 @@ class TopologyPreproc(TopologyBase):
     """
 
     @classmethod
-    def create_default_params(cls):
-        params = WorkPreproc.create_default_params()
-        params.preproc.series._set_attribs({'strcouple': 'i:i+2',
+    def create_default_params(cls, backend='python'):
+        """Class method returning the default parameters.
+
+        Parameters
+        ----------
+
+        backend : {'python', 'opencv'}
+
+            Specifies which backend to use.
+
+        """
+        params = WorkPreproc.create_default_params(backend)
+        params.preproc.series._set_attribs({'strcouple': 'i:i+1',
                                             'ind_start': 0,
                                             'ind_stop': None,
                                             'ind_step': 1,
                                             'sequential_loading': True})
         params.preproc.series._set_doc("""
-Parameters indicating the input series of images.""")
+Parameters indicating the input series of images.
+
+path : str, {''}
+
+    String indicating the input images (can be a full path towards an image
+    file or a string given to `glob`).
+
+strcouple : str, {'i:i+1'}
+
+    Determines the subset from the whole series of images that should be loaded
+    and preprocessed together. Particularly useful when temporal filtering requires
+    loading multiple neighbouring images at a time.
+
+    For example, for a series of images with just one index,
+
+    >>> params.preproc.series.strcouple = 'i:i+1'   # load one image at a time
+    >>> params.preproc.series.strcouple = 'i-2:i+3'  # loads 5 images at a time
+
+    Similarly for two indices,
+
+    >>> params.preproc.series.strcouple = 'i:i+1,0'   # load one image at a time, with second index fixed
+    >>> params.preproc.series.strcouple = 'i-2:i+3,i'  # loads 5 images at a time, with second index free
+
+    ..todo::
+
+        rename this parameter to strsubset / strslice
+
+ind_start : int, {0}
+
+    Start index for the whole series of images being loaded.
+    For more details: see `class SeriesOfArrays`.
+
+ind_stop : int or None
+
+    Stop index for the whole series of images being loaded.
+    For more details: see `class SeriesOfArrays`.
+
+ind_step : int, {1}
+
+    Step index for the whole series of images being loaded.
+    For more details: see `class SeriesOfArrays`.
+
+sequential_loading : bool, {True}
+
+    When set as `true` the image loading waiting queue `WaitingQueueLoadImageSeries`
+    is processed sequentially. i.e. only one subset of the whole series is loaded at a time.
+""")
 
         params.preproc._set_child('saving', attribs={'path': None,
                                                      'how': 'ask',
@@ -212,6 +268,7 @@ format : str
                       self.series.get_name_all_files()[indices[1]])
         return DisplayPreProc(
             im0, im1, im0p, im1p, hist=hist)
+
 
 params = TopologyPreproc.create_default_params()
 
