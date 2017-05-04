@@ -15,6 +15,13 @@ from __future__ import print_function
 import numpy as np
 try:
     import cv2
+    _border = {'reflect': cv2.BORDER_REFLECT,
+               'default': cv2.BORDER_DEFAULT,
+               'constant': cv2.BORDER_CONSTANT,
+               'wrap': cv2.BORDER_WRAP,
+               'transparent': cv2.BORDER_TRANSPARENT,
+               'replicate': cv2.BORDER_REPLICATE,
+               }
 except ImportError:
     print('Warning: OpenCV must be built and installed with python bindings'
           'to use fluidimage.preproc')
@@ -26,13 +33,6 @@ __all__ = ['sliding_median', 'sliding_minima',
            'global_threshold', 'adaptive_threshold',
            ]
 
-_border = {'reflect': cv2.BORDER_REFLECT,
-           'default': cv2.BORDER_DEFAULT,
-           'constant': cv2.BORDER_CONSTANT,
-           'wrap': cv2.BORDER_WRAP,
-           'transparent': cv2.BORDER_TRANSPARENT,
-           'replicate': cv2.BORDER_REPLICATE,
-           }
 
 # ----------------------------------------------------
 #   SPATIAL FILTERS
