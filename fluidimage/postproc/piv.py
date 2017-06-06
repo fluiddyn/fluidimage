@@ -145,6 +145,10 @@ class PIV2d(object):
         return self.__div__(other)
 
     def display(self, scale=1, background=None):
+
+        if background is not None:
+            raise NotImplementedError
+
         fig = plt.figure()
         ax = plt.gca()
 

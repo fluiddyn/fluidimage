@@ -77,6 +77,7 @@ def make_pythran_extensions(modules):
             extensions.append(pext)
     return extensions
 
+
 if use_pythran:
     ext_modules = make_pythran_extensions(
         ['fluidimage.calcul.correl_pythran',
