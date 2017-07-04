@@ -1,7 +1,7 @@
 FluidImage
 ==========
 
-|release| |docs| |coverage|
+|release| |docs| |coverage| |travis|
 
 .. |release| image:: https://img.shields.io/pypi/v/fluidimage.svg
    :target: https://pypi.python.org/pypi/fluidimage/
@@ -14,6 +14,9 @@ FluidImage
 .. |coverage| image:: https://codecov.io/bb/fluiddyn/fluidimage/branch/default/graph/badge.svg
    :target: https://codecov.io/bb/fluiddyn/fluidimage/branch/default/
    :alt: Code coverage
+
+.. |travis| image:: https://travis-ci.org/fluiddyn/fluidimage.svg?branch=master
+    :target: https://travis-ci.org/fluiddyn/fluidimage
 
 FluidImage is a libre Python framework for scientific treatments of large
 series of images. This package is very young but it is already mature enough to
