@@ -13,4 +13,4 @@ pipelines:
           - pip --version
           - tox --version
           - gcc --version
-          - tox
+          - tox -e py27,py36,codecov
