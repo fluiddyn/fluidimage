@@ -20,7 +20,7 @@ tests:
 
 tests_coverage:
 	mkdir -p .coverage
-	coverage run -m unittest discover
+	coverage run -p -m unittest discover
 
 report_coverage:
 	coverage combine
