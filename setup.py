@@ -36,16 +36,21 @@ long_description = ''.join(lines[iline_coverage+2:])
 d = run_path('fluidimage/_version.py')
 __version__ = d['__version__']
 
+
+def write_rev(rev):
+    with open('fluidimage/_hg_rev.py', 'w') as f:
+        f.write('hg_rev = "{}"\n'.format(rev))
+
+
 try:
     hg_rev = subprocess.check_output(['hg', 'id', '--id']).strip()
+    write_rev(hg_rev)
 except (OSError, subprocess.CalledProcessError):
     try:
         hg_rev = 'git:' + subprocess.check_output(['git', 'rev-parse', 'HEAD']).strip()
+        write_rev(hg_rev)
     except (OSError, subprocess.CalledProcessError):
         pass
-finally:
-    with open('fluidimage/_hg_rev.py', 'w') as f:
-        f.write('hg_rev = "{}"\n'.format(hg_rev))
 
 install_requires = ['fluiddyn >= 0.1.3']
 
