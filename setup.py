@@ -30,7 +30,7 @@ for i, line in enumerate(lines):
         iline_coverage = i
         break
 
-long_description = ''.join(lines[iline_coverage+2:])
+long_description = ''.join(lines[iline_coverage + 2:])
 
 # Get the version from the relevant file
 d = run_path('fluidimage/_version.py')
@@ -43,11 +43,13 @@ def write_rev(rev):
 
 
 try:
-    hg_rev = subprocess.check_output(['hg', 'id', '--id']).strip()
+    hg_rev = subprocess.check_output(
+        ['hg', 'id', '--id']).decode('utf-8').strip()
     write_rev(hg_rev)
 except (OSError, subprocess.CalledProcessError):
     try:
-        hg_rev = 'git:' + subprocess.check_output(['git', 'rev-parse', 'HEAD']).strip()
+        hg_rev = 'git:' + subprocess.check_output(
+            ['git', 'rev-parse', 'HEAD']).decode('utf-8').strip()
         write_rev(hg_rev)
     except (OSError, subprocess.CalledProcessError):
         pass
