@@ -39,8 +39,11 @@ __version__ = d['__version__']
 try:
     hg_rev = subprocess.check_output(['hg', 'id', '--id']).strip()
 except (OSError, subprocess.CalledProcessError):
-    pass
-else:
+    try:
+        hg_rev = 'git:' + subprocess.check_output(['git', 'rev-parse', 'HEAD']).strip()
+    except (OSError, subprocess.CalledProcessError):
+        pass
+finally:
     with open('fluidimage/_hg_rev.py', 'w') as f:
         f.write('hg_rev = "{}"\n'.format(hg_rev))
 
