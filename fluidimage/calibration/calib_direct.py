@@ -12,26 +12,24 @@
 """
 import numpy as np
 import glob
-import warnings
-from math import sqrt
-
 import pylab
 from mpl_toolkits.mplot3d import Axes3D
 from scipy.interpolate import griddata
 # from scipy.interpolate import CloughTocher2DInterpolator
 from scipy.interpolate import LinearNDInterpolator, RegularGridInterpolator
 import matplotlib.pyplot as plt
+from math import sqrt
 
 from fluiddyn.util.paramcontainer import ParamContainer, tidy_container
 
 from .util import get_number_from_string2, get_base_from_normal_vector
 
 
-class Interpolent(object):
+class Interpolent():
     pass
 
 
-class CalibDirect(object):
+class CalibDirect():
     """Class for direct Calibration
     This calibration determine the equations of optical paths for "each" pixels
 
@@ -145,6 +143,13 @@ class CalibDirect(object):
                     ytrue.append(y[i, j])
                     Vtrue.append(tmp)
 
+        # for j in range(6):
+        #     indfalse = np.where(isnan(V[:, :, j]))
+        #     indtrue = np.where(isnan(V[:, :, j]) == False)
+        #     V[indfalse[0], indfalse[1], j]  = griddata((X[indfalse], Y[indfalse]),
+        #                     V[indtrue[0], indtrue[1], j],
+        #                     (X[indtrue], Y[indtrue]))
+
         if test:
             titles = ['X0', 'Y0', 'Z0', 'dx', 'dy', 'dz']
             for j in range(6):
@@ -190,9 +195,7 @@ class CalibDirect(object):
         X = np.array(X)
         Y = np.array(Y)
         XYZ = np.vstack([X, Y, Z]).transpose()
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", category=RuntimeWarning)
-            XYZ0 = np.nanmean(XYZ, 0)
+        XYZ0 = np.nanmean(XYZ, 0)
         XYZ -= XYZ0
         ind = ~np.isnan(X+Y)
         XYZ = XYZ[ind, :]
@@ -236,7 +239,6 @@ class CalibDirect(object):
             dz = self.interp_lines[5]((ix, iy))
             t = -(a * x0 + b * y0 + c * z0 + d) / (a * dx + b * dy + c * dz)
             return np.array([x0 + t * dx, y0 + t * dy, z0 + t * dz])
-
         X = get_coord(indx, indy).transpose()
 
         return X
@@ -246,8 +248,8 @@ class CalibDirect(object):
             camera plane and then projected on the laser plane
             """
             dX = self.intersect_with_plane(
-                indx+dx/2, indy+dy/2, a, b, c, d) - self.intersect_with_plane(
-                    indx-dx/2, indy-dy/2, a, b, c, d)
+                indx+dx/2., indy+dy/2., a, b, c, d) - self.intersect_with_plane(
+                    indx-dx/2., indy-dy/2., a, b, c, d)
             return dX
 
     def get_base_camera_plane(self, indx=None, indy=None):
@@ -395,7 +397,7 @@ class CalibDirect(object):
         plt.show()
 
 
-class DirectStereoReconstruction(object):
+class DirectStereoReconstruction():
     """Class to get stereo reconstruction with direct Calibration
     This calibration determine the equations of optical paths for "each" pixels
 
@@ -541,12 +543,10 @@ class DirectStereoReconstruction(object):
 
     def reconstruction(self, X0, X1, d0cam, d1cam, a, b, c, d, grid_x, grid_y,
                        check=False):
-        """Reconstruction of the 3 components of the velocity
-
-        In the plane defined by a, b, c, d on the grid defined by grid_x,
-        grid_y from the displacements of the 2 cameras d0cam, d1cam in their
-        respective planes d0cam, d1cam.
-
+        """ Reconstruction of the 3 components of the velocity in the plane
+        defined by a, b, c, d on the grid defined by grid_x, grid_y
+        from the displacements of the 2 cameras d0cam, d1cam in their respective
+        planes d0cam, d1cam
         """
         # reconstruction => resolution of the equation
         # MX = dcam

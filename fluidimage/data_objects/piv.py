@@ -579,7 +579,9 @@ class LightPIVResults(DataObject):
                  correls_max=None, couple=None, params=None,
                  str_path=None, hdf5_object=None, file_name=None):
 
-        self._keys_to_be_saved = ['xs', 'ys', 'deltaxs', 'deltays']
+        # self._keys_to_be_saved = ['xs', 'ys', 'deltaxs', 'deltays']
+        self._keys_to_be_saved = ['ixvecs_final', 'iyvecs_final', 'deltaxs_final', 'deltays_final']
+
         if file_name is not None:
             self.file_name = file_name
         if hdf5_object is not None:
@@ -662,7 +664,8 @@ class LightPIVResults(DataObject):
             self.couple = ArrayCouple(hdf5_parent=f, params_mask=params_mask)
 
         with h5py.File(path, 'r') as f:
-            self._load_from_hdf5_object(f['piv'])
+            keys = [(key) for key in f.keys() if 'piv' in key]
+            self._load_from_hdf5_object(f[max(keys)])
 
     def _load_from_hdf5_object(self, g_piv):
 
