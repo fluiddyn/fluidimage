@@ -27,12 +27,6 @@ class PIV_Postproc(LightPIVResults):
         super(PIV_Postproc, self).__init__(str_path=path)
         self.path = os.path.abspath(path)
         self.X, self.Y, self.dx, self.dy, self.U, self.V = self.compute_grid()
-        # self.X = self.xs
-        # self.Y = self.ys
-        # self.dx = self.X[1][0] - self.X[0][0]
-        # self.dy = self.Y[0][1] - self.Y[0][0]
-        # self.U = self.deltaxs
-        # self.V = self.deltaxs
         
     def displayf(self, U=None, V=None, X=None, Y=None, bg=None, *args):
         if bg is None:
@@ -49,7 +43,7 @@ class PIV_Postproc(LightPIVResults):
         displayf(X, Y, U=U, V=V, background=bg, *args)
 
     def spatial_average(self, U):
-        U_mean = np.mean(U, (1, 2))
+        U_mean = np.mean(U, (0, 1))
         return U_mean
 
     def compute_grid(self):
