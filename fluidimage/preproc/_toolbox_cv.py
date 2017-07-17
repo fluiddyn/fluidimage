@@ -24,7 +24,7 @@ try:
                }
 except ImportError:
     print('Warning: OpenCV must be built and installed with python bindings'
-          'to use fluidimage.preproc')
+          'to use fluidimage.preproc with OpenCV')
 
 from .io import iterate_multiple_imgs
 

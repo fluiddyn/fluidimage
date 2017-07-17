@@ -37,6 +37,7 @@ class WaitingQueueLoadImageSeries(WaitingQueueLoadImage):
                            self.topology.nb_items_per_serie)
 
         cond_nb_items = len(self.destination) >= buffer_limit
+
         return (cond_instance and cond_nb_items)
 
     def add_name_files(self, names):
@@ -96,6 +97,7 @@ class WaitingQueueMakeSerie(WaitingQueueBase):
                     nb[name] = 1
 
     def is_destination_full(self):
+
         cond_instance = isinstance(
             self.destination, WaitingQueueMultiprocessing)
 
@@ -105,8 +107,6 @@ class WaitingQueueMakeSerie(WaitingQueueBase):
         return (cond_instance and cond_nb_items)
 
     def check_and_act(self, sequential=None):
-        if self.is_destination_full():
-            return
 
         for names in copy(self.serie_set):
             if self.is_destination_full():

@@ -83,6 +83,8 @@ class WaitingQueueBase(dict):
         length = len(self._keys)
         if length == 0:
             keys = []
+        elif length < 5:
+            keys = self._keys
         else:
             index = range(min(length, 3))
             keys = [self._keys[i] for i in index]
@@ -90,7 +92,7 @@ class WaitingQueueBase(dict):
 
         length = str(length)
         return cstring('WaitingQueue', repr(self.name),
-                       'with keys', repr(keys), length, 'items')
+                       'with keys', repr(keys), '(' + length + ' items)')
 
     def __setitem__(self, key, value):
         if key in self._keys:
@@ -102,6 +104,9 @@ class WaitingQueueBase(dict):
         return not bool(self)
 
     def check_and_act(self, sequential=None):
+        if self.is_empty() or self.is_destination_full():
+            return
+
         k, o = self.popitem()
         log_memory_usage(
             '{:.2f} s. '.format(time() - self.topology.t_start) +
@@ -165,7 +170,6 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
         return self.topology.nb_workers_cpu >= self.topology.nb_max_workers
 
     def check_and_act(self, sequential=False):
-
         if sequential:
             return WaitingQueueBase.check_and_act(self, sequential=sequential)
 
@@ -181,13 +185,13 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
         if i_launch >= self.topology.nb_max_launch:
             logger.debug('stop launching because nb_max_launch.')
 
-        if self.is_empty():
+        elif self.is_empty():
             logger.debug('stop launching because the queue is empty.')
 
-        if self.is_destination_full():
+        elif self.is_destination_full():
             logger.debug('stop launching because the destination is full.')
 
-        if self.enough_workers():
+        elif self.enough_workers():
             logger.debug('stop launching because the workers are saturated.')
 
         return workers

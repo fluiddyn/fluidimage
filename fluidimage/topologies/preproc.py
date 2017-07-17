@@ -170,7 +170,8 @@ format : str
             ind_stop=params.preproc.series.ind_stop,
             ind_step=params.preproc.series.ind_step)
 
-        self.nb_items_per_serie = serie_arrays.get_nb_files()
+        serie = self.series.get_serie_from_index(0)
+        self.nb_items_per_serie = serie.get_nb_files()
 
         if os.path.isdir(params.preproc.series.path):
             path_dir = params.preproc.series.path
@@ -246,7 +247,7 @@ format : str
         else:
             names = series.get_name_all_files()
 
-        print('Add {} image serie(s) to compute.'.format(len(series)))
+        logger.info('Add {} image serie(s) to compute.'.format(len(series)))
 
         self.wq0.add_name_files(names)
         self.wq_images.add_series(series)
