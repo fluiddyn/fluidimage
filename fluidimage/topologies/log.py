@@ -11,6 +11,7 @@ from __future__ import print_function
 from glob import glob
 import os
 import time
+import sys
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -50,7 +51,13 @@ class LogTopology(object):
         nb_max_workers = None
         with open(path, 'r') as f:
             print('Parsing log file: ', path)
-            for line in f:
+            for iline, line in enumerate(f):
+                if iline % 100 == 0:
+                    print('\rparse line {}'.format(iline), end='')
+                    sys.stdout.flush()
+
+                if line.startswith('ERROR: '):
+                    continue
 
                 if nb_cpus is None and \
                    line.startswith('nb_cpus_allowed = '):
