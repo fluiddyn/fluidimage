@@ -66,6 +66,7 @@ def sliding_median(img=None, weight=1., window_size=30,
     img_out = img - weight * ndi.median_filter(img,
                                                size=window_size,
                                                mode=boundary_condition)
+    img_out[img_out < 0] = 0
     return img_out
 
 
@@ -96,6 +97,7 @@ def sliding_percentile(img=None, percentile=10., weight=1., window_size=30,
                                                    percentile,
                                                    size=window_size,
                                                    mode=boundary_condition)
+    img_out[img_out < 0] = 0
     return img_out
 
 
@@ -123,6 +125,7 @@ def sliding_minima(img=None, weight=1., window_size=30,
     img_out = img - weight * ndi.minimum_filter(img,
                                                 size=window_size,
                                                 mode=boundary_condition)
+    img_out[img_out < 0] = 0
     return img_out
 
 

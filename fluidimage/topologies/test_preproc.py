@@ -38,7 +38,7 @@ class TestPreprocKarman(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        rmtree(os.path.split(cls._work_dir)[0])
+        rmtree(os.path.split(cls._work_dir)[0], ignore_errors=True)
 
     def test_preproc(self):
         '''Test preproc subpackage on image sample Karman with one index.'''

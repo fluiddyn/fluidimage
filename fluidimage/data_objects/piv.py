@@ -156,11 +156,9 @@ class ArrayCouple(DataObject):
     def _mask_array(self, array):
         if self.params_mask is None:
             return array
-
         if self.params_mask.strcrop is not None:
             indices = get_slices_from_strcrop(self.params_mask.strcrop)
             array = array[indices]
-
         return array
 
     def _mask_arrays(self, arrays):
