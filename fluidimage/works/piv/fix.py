@@ -35,7 +35,7 @@ class WorkFIX(BaseWork):
             'threshold_diff_neighbour': 10,
             'displacement_max': None})
 
-        params._set_doc("""
+        params.fix._set_doc("""
 Parameters indicating how are detected and treated false vectors.
 
 correl_min : 0.2

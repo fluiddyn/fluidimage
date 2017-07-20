@@ -69,7 +69,7 @@ for k, cls in classes.items():
     def test(self, cls=cls, k=k):
 
         if issubclass(cls, CorrelFFTBase):
-            displacement_max = 10
+            displacement_max = '50%'
         else:
             displacement_max = None
 

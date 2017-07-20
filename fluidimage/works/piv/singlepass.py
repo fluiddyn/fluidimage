@@ -478,7 +478,9 @@ shape_crop_im1 : int or None
 
 displacement_max : None
     Displacement maximum used in correlation classes. The exact effect depends
-    on the correlation method.
+    on the correlation method. For fft based correlation, it can also be of the
+    form '50%' and then the maximum displacement is computed for each pass as a
+    pourcentage of max(shape_crop_im0).
 
 displacement_mean : None
     Displacement averaged over space (NotImplemented).

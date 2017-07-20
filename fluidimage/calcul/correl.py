@@ -48,6 +48,8 @@ different methods.
 
 from __future__ import division, print_function
 
+from future.utils import string_types
+
 import numpy as np
 from scipy.signal import correlate2d
 from scipy.ndimage import correlate
@@ -389,13 +391,16 @@ class CorrelFFTBase(CorrelBase):
             displacement_max=displacement_max)
 
         if self.displacement_max is not None:
+            displ_max = self.displacement_max
+            if isinstance(displ_max, string_types) and '%' in displ_max:
+                displ_max = float(displ_max[:-1])/100 * max(im0_shape)
 
             where_large_displacement = np.zeros(im0_shape, dtype=bool)
 
             for indices, v in np.ndenumerate(where_large_displacement):
                 dx, dy = self.compute_displacement_from_indices(indices[::-1])
                 displacement = np.sqrt(dx**2 + dy**2)
-                if displacement > self.displacement_max:
+                if displacement > displ_max:
                     where_large_displacement[indices] = True
 
             self.where_large_displacement = where_large_displacement
