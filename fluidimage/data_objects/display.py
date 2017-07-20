@@ -102,8 +102,8 @@ class DisplayPIV(object):
                 deltaxs, -deltays, width=0.004,
                 picker=10, color='c', scale_units='xy', scale=scale)
 
-            self.inds_error = inds_error = list(
-                piv_results.deltays_wrong.keys())
+            self.inds_error = inds_error = np.array(list(
+                piv_results.deltays_wrong.keys()), dtype=int)
 
             if show_error:
                 xs_wrong = xs[inds_error]
@@ -121,11 +121,22 @@ class DisplayPIV(object):
                     dxs_wrong, -dys_wrong,
                     picker=10, color='r', scale_units='xy', scale=scale)
 
+                inds_isnan = inds_error[np.isnan(dxs_wrong)]
+                self.inds_isnan = inds_isnan
+                xs_isnan = xs[inds_isnan]
+                ys_isnan = ys[inds_isnan]
+
+                zeros = np.zeros_like(xs_isnan)
+                self.q_isnan = ax1.quiver(
+                    xs_isnan, ys_isnan,
+                    zeros, zeros, minshaft=4,
+                    picker=10, color='r', scale_units='xy', scale=scale)
+
         if hist:
             fig2 = plt.figure()
             ax3 = plt.gca()
-            ind = np.isnan(deltaxs) + np.isnan(deltays) + np.isinf(deltaxs) + \
-                np.isinf(deltays)
+            ind = (np.isnan(deltaxs) + np.isnan(deltays) + np.isinf(deltaxs) +
+                   np.isinf(deltays))
             deltaxs2 = deltaxs[~ind]
             deltays2 = deltays[~ind]
             # histx = np.histogram(deltaxs2, bins='fd')
@@ -167,7 +178,9 @@ class DisplayPIV(object):
             self.select_arrow(self.ind + 1)
 
     def onpick(self, event):
-        if not (event.artist == self.q or event.artist == self.q_wrong):
+        if not (event.artist == self.q or
+                event.artist == self.q_wrong or
+                event.artist == self.q_isnan):
             return True
 
         # the click locations
@@ -180,14 +193,16 @@ class DisplayPIV(object):
         try:
             ind = ind[0]
         except (TypeError, IndexError):
-            pass
+            return
 
         if artist is None:
-            if ind in self.piv_results.errors.keys():
-                artist = self.q_wrong
-                ind = self.inds_error.index(ind)
-            else:
-                artist = self.q
+            print('artist is None')
+            return
+            # if ind in self.piv_results.errors.keys():
+            #     artist = self.q_wrong
+            #     ind = self.inds_error.index(ind)
+            # else:
+            #     artist = self.q
 
         if artist == self.q:
             ind_all = ind
@@ -195,6 +210,11 @@ class DisplayPIV(object):
         elif artist == self.q_wrong:
             ind_all = self.inds_error[ind]
             q = self.q_wrong
+        elif artist == self.q_isnan:
+            ind_all = self.inds_isnan[ind]
+            q = self.q_isnan
+        else:
+            print('other artist', artist)
 
         if ind >= len(q.X) or ind < 0:
             return

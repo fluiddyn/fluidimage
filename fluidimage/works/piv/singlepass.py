@@ -102,7 +102,9 @@ class BaseWorkPIV(BaseWork):
             im0_shape=self.shape_crop_im0, im1_shape=self.shape_crop_im1,
             method_subpix=self.params.piv0.method_subpix,
             nsubpix=self.params.piv0.nsubpix,
-            displacement_max=self.params.piv0.displacement_max)
+            displacement_max=self.params.piv0.displacement_max,
+            particle_radius=self.params.piv0.particle_radius,
+            nb_peaks_to_search=self.params.piv0.nb_peaks_to_search)
 
     def _prepare_with_image(self, im0):
         """Initialize the object with an image.
@@ -258,8 +260,14 @@ class BaseWorkPIV(BaseWork):
                     self.params.piv0.coef_correl_no_displ
 
             correls[ivec] = correl
-            deltax, deltay, correl_max = \
-                self.correl.compute_displacement_from_correl(correl, norm=norm)
+            try:
+                deltax, deltay, correl_max, other_peaks = \
+                    self.correl.compute_displacements_from_correl(
+                        correl, norm=norm)
+            except PIVError as e:
+                errors[ivec] = e.explanation
+                deltaxs[ivec], deltays[ivec], correls_max[ivec] = e.results
+                continue
 
             if has_to_apply_subpix:
                 try:
@@ -464,7 +472,10 @@ class FirstWorkPIV(BaseWorkPIV):
             'method_correl': 'fftw',
             'method_subpix': '2d_gaussian2',
             'nsubpix': None,
-            'coef_correl_no_displ': None})
+            'coef_correl_no_displ': None,
+            'nb_peaks_to_search': 1,
+            'particle_radius': 3
+        })
 
         params.piv0._set_doc("""Parameters describing one PIV step.
 
@@ -500,6 +511,13 @@ nsubpix : None
 coef_correl_no_displ : None, number
     If this coefficient is not None, the correlation of the point corresponding
     to no displacement is multiplied by this coefficient (for the first pass).
+
+nb_peaks_to_search : 1, int
+    Number of peaks to search. Secondary peaks can be used during the fix step.
+
+particle_radius : 3, int
+    Typical radius of a particle (or more preciselly of a correlation
+    peak). Used only if `nb_peaks_to_search` is larger than one.
 
 """)
 

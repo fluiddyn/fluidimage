@@ -24,7 +24,7 @@ serie = series.get_serie_from_index(0)
 
 piv = work.calcul(serie)
 
-piv.display(show_interp=True, scale=0.3, show_error=True)
+# piv.display(show_interp=True, scale=0.3, show_error=True)
 piv.display(show_interp=False, scale=0.3, show_error=True)
 
 # result.save()

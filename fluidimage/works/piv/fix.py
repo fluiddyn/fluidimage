@@ -76,15 +76,15 @@ displacement_max : None
             for ind in inds:
                 ind = int(ind)
 
-                deltaxs_wrong[ind] = deltaxs[ind]
-                deltays_wrong[ind] = deltays[ind]
+                if ind not in deltaxs_wrong:
+                    deltaxs_wrong[ind] = deltaxs[ind]
+                    deltays_wrong[ind] = deltays[ind]
 
-                deltaxs[ind] = np.nan
-                deltays[ind] = np.nan
-                try:
-                    piv_results.errors[ind] += ' + ' + explanation
-                except KeyError:
+                    deltaxs[ind] = np.nan
+                    deltays[ind] = np.nan
                     piv_results.errors[ind] = explanation
+                else:
+                    piv_results.errors[ind] += ' + ' + explanation
 
         # condition correl < correl_min
         inds = (piv_results.correls_max < self.params.correl_min).nonzero()[0]
