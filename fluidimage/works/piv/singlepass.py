@@ -34,7 +34,7 @@ from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
 
 from ...data_objects.piv import ArrayCouple, HeavyPIVResults, \
     get_slices_from_strcrop
-from ...calcul.correl import PIVError, correlation_classes
+from ...calcul.correl import correlation_classes
 from .. import BaseWork
 
 from ...calcul.interpolate.thin_plate_spline_subdom import \
@@ -42,6 +42,7 @@ from ...calcul.interpolate.thin_plate_spline_subdom import \
 
 from ...calcul.interpolate.griddata import griddata
 from ...calcul.subpix import SubPix
+from ...calcul.errors import PIVError
 
 
 class InterpError(ValueError):
@@ -223,6 +224,9 @@ class BaseWorkPIV(BaseWork):
         deltays = np.empty_like(deltaxs)
         correls_max = np.empty_like(deltaxs)
 
+        has_to_apply_subpix = \
+            self.index_pass == self.params.multipass.number - 1
+
         for ivec in range(nb_vec):
 
             ixvec0 = ixs0_pad[ivec]
@@ -247,29 +251,22 @@ class BaseWorkPIV(BaseWork):
                 errors[ivec] = 'Bad im_crop shape.'
                 continue
 
-            correl, coef_norm = self.correl(im0crop, im1crop)
+            correl, norm = self.correl(im0crop, im1crop)
             if self.index_pass == 0 and \
                self.params.piv0.coef_correl_no_displ is not None:
                 correl[self.correl.inds0] *= \
                     self.params.piv0.coef_correl_no_displ
 
             correls[ivec] = correl
-            try:
-                deltax, deltay, correl_max = \
-                    self.correl.compute_displacement_from_correl(
-                        correl, coef_norm=coef_norm)
-            except PIVError as e:
-                errors[ivec] = e.explanation
-                try:
-                    deltax, deltay, correl_max = \
-                        e.results_compute_displacement_from_correl
-                except AttributeError:
-                    deltax = np.nan
-                    deltay = np.nan
-                    correl_max = np.nan
+            deltax, deltay, correl_max = \
+                self.correl.compute_displacement_from_correl(correl, norm=norm)
 
-            if np.isnan(deltax) or np.isnan(deltay):
-                errors[ivec] = 'Problem compute_displacement_from_correl.'
+            if has_to_apply_subpix:
+                try:
+                    deltax, deltay = self.correl.apply_subpix(
+                        deltax, deltay, correl)
+                except PIVError as e:
+                    errors[ivec] = e.explanation
 
             deltaxs[ivec] = deltax
             deltays[ivec] = deltay

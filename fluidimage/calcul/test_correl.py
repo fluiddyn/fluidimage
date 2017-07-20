@@ -79,8 +79,7 @@ for k, cls in classes.items():
         # first, no displacement
         c, norm = correl(self.im0, self.im0)
         dx, dy, correl_max = correl.compute_displacement_from_correl(
-            c, coef_norm=norm,
-            method_subpix='2d_gaussian')
+            c, norm=norm)
         displacement_computed = np.array([dx, dy])
 
         logger.debug(
@@ -94,8 +93,7 @@ for k, cls in classes.items():
         # then, with the 2 figures with displacements
         c, norm = correl(self.im0, self.im1)
         dx, dy, correl_max = correl.compute_displacement_from_correl(
-            c, coef_norm=norm,
-            method_subpix='2d_gaussian')
+            c, norm=norm)
 
         displacement_computed = np.array([dx, dy])
 
@@ -139,8 +137,7 @@ for k, cls in classes.items():
         # first, no displacement
         c, norm = correl(self.im0, self.im0)
         dx, dy, correl_max = correl.compute_displacement_from_correl(
-            c, coef_norm=norm,
-            method_subpix='2d_gaussian')
+            c, norm=norm)
         displacement_computed = np.array([dx, dy])
 
         logger.debug(
@@ -154,8 +151,7 @@ for k, cls in classes.items():
         # then, with the 2 figures with displacements
         c, norm = correl(self.im0, self.im1)
         dx, dy, correl_max = correl.compute_displacement_from_correl(
-            c, coef_norm=norm,
-            method_subpix='2d_gaussian')
+            c, norm=norm)
 
         displacement_computed = np.array([dx, dy])
 
@@ -204,8 +200,7 @@ for k, cls in classes2.items():
         # with the 2 figures with displacements
         c, norm = correl(self.im0, self.im1)
         dx, dy, correl_max = correl.compute_displacement_from_correl(
-            c, coef_norm=norm,
-            method_subpix='2d_gaussian')
+            c, norm=norm)
 
         displacement_computed = np.array([dx, dy])
 

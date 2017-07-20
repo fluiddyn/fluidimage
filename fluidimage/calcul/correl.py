@@ -61,7 +61,6 @@ from .correl_pythran import correl_pythran
 
 from .correl_pycuda import correl_pycuda
 
-from .errors import PIVError
 from .subpix import SubPix
 
 try:
@@ -75,32 +74,29 @@ class CorrelBase(object):
     _tag = 'base'
 
     def __init__(self, im0_shape, im1_shape, method_subpix='centroid',
-                 nsubpix=1, displacement_max=None):
-        self.inds0 = tuple(np.array(im0_shape)//2 - 1)
+                 nsubpix=1, displacement_max=None, apply_subpix=False):
+        self.iy0, self.ix0 = (i//2 - 1 for i in im0_shape)
         self.subpix = SubPix(method=method_subpix, nsubpix=nsubpix)
         self.displacement_max = displacement_max
 
-    def compute_displacement_from_indices(self, indices):
+    def compute_displacement_from_indices(self, ix, iy):
         """Compute the displacement from a couple of indices."""
-        return self.inds0[1] - indices[0], self.inds0[0] - indices[1]
+        return self.ix0 - ix, self.iy0 - iy
 
-    def compute_displacement_from_correl(self, correl, coef_norm=1.,
-                                         method_subpix=None, nsubpix=None):
+    def compute_indices_from_displacement(self, dx, dy):
+        return self.ix0 - dx, self.iy0 - dy
 
+    def compute_displacement_from_correl(self, correl, norm=1.):
         """Compute the displacement (with subpix) from a correlation."""
         iy, ix = np.unravel_index(correl.argmax(), correl.shape)
-        correl_max = correl[iy, ix]/coef_norm
-        try:
-            indices = self.subpix.compute_subpix(
-                correl, ix, iy, method_subpix, nsubpix=nsubpix)
-        except PIVError as e:
-            indices = ix, iy
-            dx, dy = self.compute_displacement_from_indices(indices)
-            e.results_compute_displacement_from_correl = (
-                dx, dy, correl_max)
-            raise e
-        dx, dy = self.compute_displacement_from_indices(indices)
+        correl_max = correl[iy, ix]/norm
+        dx, dy = self.compute_displacement_from_indices(ix, iy)
         return dx, dy, correl_max
+
+    def apply_subpix(self, dx, dy, correl):
+        ix, iy = self.compute_indices_from_displacement(dx, dy)
+        ix, iy = self.subpix.compute_subpix(correl, ix, iy)
+        return self.compute_displacement_from_indices(ix, iy)
 
 
 class CorrelPythran(CorrelBase):
@@ -129,7 +125,7 @@ class CorrelPythran(CorrelBase):
         ind0x = displacement_max
         ind0y = displacement_max
 
-        self.inds0 = tuple([ind0y, ind0x])
+        self.iy0, self.ix0 = (ind0y, ind0x)
 
     def __call__(self, im0, im1):
         """Compute the correlation from images."""
@@ -165,7 +161,7 @@ class CorrelPyCuda(CorrelBase):
         ind0x = displacement_max
         ind0y = displacement_max
 
-        self.inds0 = tuple([ind0y, ind0x])
+        self.iy0, self.ix0 = (ind0y, ind0x)
 
     def __call__(self, im0, im1):
         """Compute the correlation from images."""
@@ -207,7 +203,7 @@ class CorrelScipySignal(CorrelBase):
             ind0x = nx // 2
             ind0y = ny // 2
 
-        self.inds0 = tuple([ind0y, ind0x])
+        self.iy0, self.ix0 = (ind0y, ind0x)
 
     def __call__(self, im0, im1):
         """Compute the correlation from images."""
@@ -231,7 +227,7 @@ class CorrelScipyNdimage(CorrelBase):
         super(CorrelScipyNdimage, self).__init__(
             im0_shape, im1_shape, method_subpix=method_subpix, nsubpix=nsubpix,
             displacement_max=displacement_max)
-        self.inds0 = tuple(np.array(im0_shape)//2)
+        self.iy0, self.ix0 = (i//2 for i in im0_shape)
 
     def __call__(self, im0, im1):
         """Compute the correlation from images."""
@@ -328,7 +324,7 @@ class CorrelTheano(CorrelBase):
         self.correlf = theano.function(inputs=[im00, im11],
                                        outputs=[correl_theano], mode=modec)
 
-        self.inds0 = tuple([ind0y, ind0x])
+        self.iy0, self.ix0 = (ind0y, ind0x)
 
     def __call__(self, im0, im1):
         """Compute the correlation from images."""
@@ -398,7 +394,7 @@ class CorrelFFTBase(CorrelBase):
             where_large_displacement = np.zeros(im0_shape, dtype=bool)
 
             for indices, v in np.ndenumerate(where_large_displacement):
-                dx, dy = self.compute_displacement_from_indices(indices[::-1])
+                dx, dy = self.compute_displacement_from_indices(*indices[::-1])
                 displacement = np.sqrt(dx**2 + dy**2)
                 if displacement > displ_max:
                     where_large_displacement[indices] = True
@@ -413,8 +409,7 @@ class CorrelFFTBase(CorrelBase):
             raise ValueError('with this correlation method the input images '
                              'have to have the same shape.')
 
-    def compute_displacement_from_correl(self, correl, coef_norm=1.,
-                                         method_subpix=None, nsubpix=None):
+    def compute_displacement_from_correl(self, correl, norm=1.):
 
         """Compute the displacement (with subpix) from a correlation."""
 
@@ -423,8 +418,7 @@ class CorrelFFTBase(CorrelBase):
             correl[self.where_large_displacement] = 0.
 
         return super(CorrelFFTBase, self).compute_displacement_from_correl(
-            correl, coef_norm=coef_norm,
-            method_subpix=method_subpix, nsubpix=nsubpix)
+            correl, norm=norm)
 
 
 class CorrelFFTNumpy(CorrelFFTBase):

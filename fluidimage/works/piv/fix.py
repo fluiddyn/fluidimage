@@ -113,11 +113,16 @@ displacement_max : None
             piv_results.dxs_smooth_clean = dxs
             piv_results.dys_smooth_clean = dys
 
+            differences = np.sqrt((dxs - deltaxs)**2 + (dys - deltays)**2)
+
             with np.errstate(invalid='ignore'):
-                inds = (abs(dxs - deltaxs) +
-                        abs(dys - deltays) > threshold).nonzero()[0]
+                inds = (differences > threshold).nonzero()[0]
 
             put_to_nan(inds, 'diff neighbour too large')
+
+            for ind in inds:
+                piv_results.errors[ind] += ' (diff = {:.2f})'.format(
+                    differences[ind])
 
             piv_results.deltaxs_wrong = deltaxs_wrong
             piv_results.deltays_wrong = deltays_wrong

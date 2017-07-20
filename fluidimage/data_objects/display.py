@@ -99,8 +99,8 @@ class DisplayPIV(object):
 
             self.q = ax1.quiver(
                 xs, ys,
-                deltaxs, -deltays,
-                picker=20, color='g', scale_units='xy', scale=scale)
+                deltaxs, -deltays, width=0.004,
+                picker=10, color='c', scale_units='xy', scale=scale)
 
             self.inds_error = inds_error = list(
                 piv_results.deltays_wrong.keys())
@@ -119,7 +119,7 @@ class DisplayPIV(object):
                 self.q_wrong = ax1.quiver(
                     xs_wrong, ys_wrong,
                     dxs_wrong, -dys_wrong,
-                    picker=20, color='r', scale_units='xy', scale=scale)
+                    picker=10, color='r', scale_units='xy', scale=scale)
 
         if hist:
             fig2 = plt.figure()
