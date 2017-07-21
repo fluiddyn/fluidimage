@@ -59,13 +59,12 @@ displacement_max : None
         self.piv_work = piv_work
 
     def calcul(self, piv_results):
-
+        print('piv_results = ', piv_results)
         deltaxs_wrong = {}
         deltays_wrong = {}
 
         deltaxs = piv_results.deltaxs
         deltays = piv_results.deltays
-
         for ierr in piv_results.errors.keys():
             deltaxs_wrong[ierr] = deltaxs[ierr]
             deltays_wrong[ierr] = deltays[ierr]
@@ -108,12 +107,13 @@ displacement_max : None
 
             # import pdb; pdb.set_trace()
 
-            dxs, dys = smooth_clean(
+            dxs_smooth, dys_smooth = smooth_clean(
                 xs, ys, deltaxs, deltays, iyvecs, ixvecs, threshold)
-            piv_results.dxs_smooth_clean = dxs
-            piv_results.dys_smooth_clean = dys
+            piv_results.dxs_smooth_clean = dxs_smooth
+            piv_results.dys_smooth_clean = dys_smooth
 
-            differences = np.sqrt((dxs - deltaxs)**2 + (dys - deltays)**2)
+            differences = np.sqrt((dxs_smooth - deltaxs)**2 +
+                                  (dys_smooth - deltays)**2)
 
             with np.errstate(invalid='ignore'):
                 inds = (differences > threshold).nonzero()[0]
@@ -126,5 +126,52 @@ displacement_max : None
 
             piv_results.deltaxs_wrong = deltaxs_wrong
             piv_results.deltays_wrong = deltays_wrong
+
+        # condition check 2d peak
+        ratio_correl_peaks = 0.85
+
+        secondary_peaks = piv_results.secondary_peaks
+        for ind, other_peaks in enumerate(secondary_peaks):
+            if other_peaks is None or len(other_peaks) == 0:
+                continue
+
+            correl0 = piv_results.correls_max[ind]
+
+            other_peaks_good = []
+            for (dx, dy, corr) in other_peaks:
+                if corr/correl0 > ratio_correl_peaks and \
+                   corr > self.params.correl_min:
+                    other_peaks_good.append((dx, dy, corr))
+
+            if len(other_peaks_good) == 0:
+                continue
+
+            diff_neighbours = np.empty(len(other_peaks_good) + 1)
+            diff_neighbours[0] = differences[ind]
+
+            for i, (dx, dy, corr) in enumerate(other_peaks_good):
+                diff_neighbours[i+1] = np.sqrt(
+                    (dxs_smooth[ind] - dx)**2 +
+                    (dys_smooth[ind] - dy)**2)
+
+            argmin = diff_neighbours.argmin()
+
+            if argmin != 0:
+                print('replace peak')
+                dx, dy, corr = other_peaks_good[argmin-1]
+                other_peaks_good[argmin-1] = (
+                    piv_results.deltaxs[ind],
+                    piv_results.deltays[ind],
+                    piv_results.correls_max[ind])
+                piv_results.secondary_peaks[ind] = other_peaks_good
+
+                piv_results.deltaxs[ind] = dx
+                piv_results.deltays[ind] = dy
+                piv_results.correls_max[ind] = corr
+
+                if ind in piv_results.errors:
+                    del (piv_results.deltaxs_wrong[ind],
+                         piv_results.deltays_wrong[ind])
+                    print('!!!!! TO DO ind in piv_results.errors !!!!!')
 
         return piv_results

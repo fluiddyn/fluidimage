@@ -258,7 +258,8 @@ class DisplayPIV(object):
 
             ax2.imshow(correl, origin='lower', interpolation='none', vmin=0)
 
-            ax2.plot(*result.indices_no_displacement, 'or')
+            ax2.plot(result.indices_no_displacement[0],
+                     result.indices_no_displacement[1], 'or')
 
             try:
                 deltax -= result.deltaxs_approx0[ind_all]
@@ -270,6 +271,21 @@ class DisplayPIV(object):
                 deltax, deltay, result.indices_no_displacement)
 
             ax2.plot(i1, i0, 'xr')
+
+            if hasattr(result, 'deltaxs_final'):
+                deltax = result.deltaxs_final[ind_all]
+                deltay = result.deltays_final[ind_all]
+
+                try:
+                    deltax -= result.deltaxs_approx0[ind_all]
+                    deltay -= result.deltays_approx0[ind_all]
+                except AttributeError:
+                    pass
+
+                i1, i0 = compute_indices_from_displacement(
+                    deltax, deltay, result.indices_no_displacement)
+
+                ax2.plot(i1, i0, 'ow')
 
             params = self.piv_results.params
 
@@ -288,7 +304,7 @@ class DisplayPIV(object):
                     for (dx, dy, cmax) in other_peaks:
                         i1, i0 = compute_indices_from_displacement(
                             dx, dy, result.indices_no_displacement)
-                        ax2.plot(i1, i0, 'xm')
+                        ax2.plot(i1, i0, 'sr')
                         print(dx, dy, cmax)
 
             if params.piv0.displacement_max is not None:
