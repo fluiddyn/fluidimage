@@ -9,7 +9,7 @@ params.multipass.number = 2
 params.multipass.use_tps = True
 
 params.piv0.shape_crop_im0 = 32
-params.piv0.displacement_max = 10
+params.piv0.displacement_max = 5
 params.fix.correl_min = 0.2
 params.fix.threshold_diff_neighbour = 8
 
@@ -25,6 +25,6 @@ serie = series.get_serie_from_index(0)
 piv = work.calcul(serie)
 
 # piv.display(show_interp=True, scale=0.3, show_error=True)
-piv.display(show_interp=False, scale=0.3, show_error=True)
+piv.display(show_interp=False, scale=1, show_error=True)
 
 # result.save()

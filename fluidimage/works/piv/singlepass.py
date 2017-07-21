@@ -141,7 +141,8 @@ class BaseWorkPIV(BaseWork):
         if not hasattr(self, 'ixvecs_grid'):
             self._prepare_with_image(im0)
 
-        deltaxs, deltays, xs, ys, correls_max, correls, errors = \
+        (deltaxs, deltays, xs, ys,
+         correls_max, correls, errors, secondary_peaks) = \
             self._loop_vectors(im0, im1)
 
         xs, ys = self._xyoriginalimage_from_xymasked(xs, ys)
@@ -149,9 +150,17 @@ class BaseWorkPIV(BaseWork):
         result = HeavyPIVResults(
             deltaxs, deltays, xs, ys, errors,
             correls_max=correls_max, correls=correls,
-            couple=deepcopy(couple), params=self.params)
+            couple=deepcopy(couple), params=self.params,
+            secondary_peaks=secondary_peaks)
+
+        self._complete_result(result)
 
         return result
+
+    def _complete_result(self, result):
+        result.indices_no_displacement = \
+            self.correl.get_indices_no_displacement()
+        result.displacement_max = self.correl.displacement_max
 
     def _pad_images(self, im0, im1):
         """Pad images with zeros.
@@ -225,6 +234,7 @@ class BaseWorkPIV(BaseWork):
         deltaxs = np.empty(xs.shape, dtype='float32')
         deltays = np.empty_like(deltaxs)
         correls_max = np.empty_like(deltaxs)
+        secondary_peaks = [None]*nb_vec
 
         has_to_apply_subpix = \
             self.index_pass == self.params.multipass.number - 1
@@ -253,13 +263,16 @@ class BaseWorkPIV(BaseWork):
                 errors[ivec] = 'Bad im_crop shape.'
                 continue
 
+            # compute and store correlation map
             correl, norm = self.correl(im0crop, im1crop)
             if self.index_pass == 0 and \
                self.params.piv0.coef_correl_no_displ is not None:
-                correl[self.correl.inds0] *= \
+                correl[self.correl.get_indices_no_displacement()] *= \
                     self.params.piv0.coef_correl_no_displ
 
             correls[ivec] = correl
+
+            # compute displacements corresponding to peaks
             try:
                 deltax, deltay, correl_max, other_peaks = \
                     self.correl.compute_displacements_from_correl(
@@ -269,6 +282,7 @@ class BaseWorkPIV(BaseWork):
                 deltaxs[ivec], deltays[ivec], correls_max[ivec] = e.results
                 continue
 
+            # increase precision on the displacement
             if has_to_apply_subpix:
                 try:
                     deltax, deltay = self.correl.apply_subpix(
@@ -280,11 +294,14 @@ class BaseWorkPIV(BaseWork):
             deltays[ivec] = deltay
             correls_max[ivec] = correl_max
 
+            secondary_peaks[ivec] = other_peaks
+
         if deltaxs_approx is not None:
             deltaxs += deltaxs_approx
             deltays += deltays_approx
 
-        return deltaxs, deltays, xs, ys, correls_max, correls, errors
+        return (deltaxs, deltays, xs, ys,
+                correls_max, correls, errors, secondary_peaks)
 
     def _init_crop(self):
         """Initialize the cropping of the images."""
@@ -634,7 +651,8 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
         deltaxs_approx = np.round(deltaxs_approx).astype('int32')
         deltays_approx = np.round(deltays_approx).astype('int32')
 
-        deltaxs, deltays, xs, ys, correls_max, correls, errors = \
+        (deltaxs, deltays, xs, ys,
+         correls_max, correls, errors, secondary_peaks) = \
             self._loop_vectors(im0, im1,
                                deltaxs_approx=deltaxs_approx,
                                deltays_approx=deltays_approx)
@@ -644,7 +662,12 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
         result = HeavyPIVResults(
             deltaxs, deltays, xs, ys, errors,
             correls_max=correls_max, correls=correls,
-            couple=deepcopy(couple), params=self.params)
+            couple=deepcopy(couple), params=self.params,
+            secondary_peaks=secondary_peaks)
+
+        self._complete_result(result)
+        result.deltaxs_approx0 = deltaxs_approx
+        result.deltays_approx0 = deltays_approx
 
         return result
 

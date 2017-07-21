@@ -209,19 +209,21 @@ class ArrayCouple(DataObject):
 class HeavyPIVResults(DataObject):
     """Heavy PIV results containing displacements and correlation."""
 
+    _keys_to_be_saved = [
+        'xs', 'ys', 'deltaxs', 'deltays', 'correls_max',
+        'deltaxs_approx', 'deltays_approx',
+        'ixvecs_approx', 'iyvecs_approx',
+        'deltaxs_final', 'deltays_final',
+        'ixvecs_final', 'iyvecs_final']
+
+    _dict_to_be_saved = ['errors', 'deltaxs_wrong', 'deltays_wrong']
+
     def __init__(self, deltaxs=None, deltays=None,
                  xs=None, ys=None, errors=None,
                  correls_max=None, correls=None,
                  couple=None, params=None,
-                 str_path=None, hdf5_object=None):
-        self._keys_to_be_saved = [
-            'xs', 'ys', 'deltaxs', 'deltays', 'correls_max',
-            'deltaxs_approx', 'deltays_approx',
-            'ixvecs_approx', 'iyvecs_approx',
-            'deltaxs_final', 'deltays_final',
-            'ixvecs_final', 'iyvecs_final']
-
-        self._dict_to_be_saved = ['errors', 'deltaxs_wrong', 'deltays_wrong']
+                 str_path=None, hdf5_object=None, secondary_peaks=None,
+                 indices_no_displacement=None):
 
         if hdf5_object is not None:
             if couple is not None:
@@ -246,6 +248,8 @@ class HeavyPIVResults(DataObject):
         self.correls = correls
         self.couple = couple
         self.params = params
+        self.secondary_peaks = secondary_peaks
+        self.indices_no_displacement = indices_no_displacement
 
     def get_images(self):
         return self.couple.read_images()
@@ -571,14 +575,13 @@ class MultipassPIVResults(DataObject):
 
 
 class LightPIVResults(DataObject):
+    _keys_to_be_saved = ['ixvecs_final', 'iyvecs_final',
+                         'deltaxs_final', 'deltays_final']
 
     def __init__(self, deltaxs_approx=None, deltays_approx=None,
                  ixvecs_grid=None, iyvecs_grid=None,
                  correls_max=None, couple=None, params=None,
                  str_path=None, hdf5_object=None, file_name=None):
-
-        # self._keys_to_be_saved = ['xs', 'ys', 'deltaxs', 'deltays']
-        self._keys_to_be_saved = ['ixvecs_final', 'iyvecs_final', 'deltaxs_final', 'deltays_final']
 
         if file_name is not None:
             self.file_name = file_name

@@ -5,6 +5,9 @@ import matplotlib.pyplot as plt
 
 from fluiddyn.util import run_from_ipython
 
+from ..calcul.correl import compute_indices_from_displacement
+
+
 if run_from_ipython():
     plt.ion()
 
@@ -221,16 +224,25 @@ class DisplayPIV(object):
 
         self.ind = ind_all
 
+        result = self.piv_results
+
         ix = q.X[ind]
         iy = q.Y[ind]
+        deltax = result.deltaxs[ind_all]
+        deltay = result.deltays[ind_all]
+
+        if np.isnan(deltax):
+            deltax = result.deltaxs_wrong[ind_all]
+            deltay = result.deltays_wrong[ind_all]
+
         self.l.set_visible(True)
         self.l.set_data(ix, iy)
 
-        correl_max = self.piv_results.correls_max[ind_all]
+        correl_max = result.correls_max[ind_all]
         text = (
             'vector at ix = {} : iy = {} ; '
             'U = {:.3f} ; V = {:.3f}, C = {:.3f}').format(
-                ix, iy, q.U[ind], q.V[ind], correl_max)
+                ix, iy, deltax, deltay, correl_max)
 
         if ind_all in self.piv_results.errors:
             text += ', error: ' + self.piv_results.errors[ind_all]
@@ -240,14 +252,50 @@ class DisplayPIV(object):
         if self.show_correl:
             ax2 = self.ax2
             ax2.cla()
-            alphac = self.piv_results.correls[ind_all]
+            alphac = result.correls[ind_all]
             alphac_max = alphac.max()
             correl = correl_max/alphac_max * alphac
 
             ax2.imshow(correl, origin='lower', interpolation='none', vmin=0)
 
-            i0, i1 = np.unravel_index(correl.argmax(), correl.shape)
+            ax2.plot(*result.indices_no_displacement, 'or')
+
+            try:
+                deltax -= result.deltaxs_approx0[ind_all]
+                deltay -= result.deltays_approx0[ind_all]
+            except AttributeError:
+                pass
+
+            i1, i0 = compute_indices_from_displacement(
+                deltax, deltay, result.indices_no_displacement)
+
             ax2.plot(i1, i0, 'xr')
+
+            params = self.piv_results.params
+
+            if params.piv0.nb_peaks_to_search > 1:
+                other_peaks = result.secondary_peaks[ind_all]
+                if other_peaks is not None:
+                    if len(other_peaks) == 0:
+                        s = 'no other peak'
+                        ax2.set_title(s)
+                        print(s)
+                    else:
+                        s = '{} other peaks'.format(len(other_peaks))
+                        ax2.set_title(s)
+                        print(s)
+
+                    for (dx, dy, cmax) in other_peaks:
+                        i1, i0 = compute_indices_from_displacement(
+                            dx, dy, result.indices_no_displacement)
+                        ax2.plot(i1, i0, 'xm')
+                        print(dx, dy, cmax)
+
+            if params.piv0.displacement_max is not None:
+                circle = plt.Circle(
+                    result.indices_no_displacement, result.displacement_max,
+                    color='b', fill=False)
+                ax2.add_artist(circle)
 
             ax2.axis('scaled')
             ax2.set_xlim(-0.5, correl.shape[1]-0.5)

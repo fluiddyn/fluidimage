@@ -70,6 +70,17 @@ except ImportError:
     pass
 
 
+def compute_indices_from_displacement(dx, dy, indices_no_displ):
+    return indices_no_displ[1] - dx, indices_no_displ[0] - dy
+
+
+def parse_displacement_max(displ_max, im0_shape):
+    if isinstance(displ_max, string_types) and displ_max.endswith('%'):
+        return float(displ_max[:-1])/100 * max(im0_shape)
+    else:
+        return displ_max
+
+
 def _compute_indices_max(correl, norm):
     iy, ix = np.unravel_index(np.nanargmax(correl), correl.shape)
     correl_max = correl[iy, ix]/norm
@@ -80,7 +91,7 @@ def _compute_indices_max(correl, norm):
         error.results = (ix, iy, correl_max)
         raise error
 
-    if np.isnan(np.sum(correl[iy-1:iy+2:2, ix-1:iy+2:2])):
+    if np.isnan(np.sum(correl[iy-1:iy+2:2, ix-1:ix+2:2])):
         error = PIVError(explanation='Correlation peak touching nan.')
         error.results = (ix, iy, correl_max)
         raise error
@@ -104,11 +115,8 @@ class CorrelBase(object):
         self.im1_shape = im1_shape
         self.iy0, self.ix0 = (i//2 - 1 for i in im0_shape)
 
-        displ_max = displacement_max
-        if isinstance(displ_max, string_types) and displ_max.endswith('%'):
-            displacement_max = float(displ_max[:-1])/100 * max(im0_shape)
-
-        self.displacement_max = displacement_max
+        self.displacement_max = parse_displacement_max(
+            displacement_max, im0_shape)
 
         self.particle_radius = particle_radius
         self.nb_peaks_to_search = nb_peaks_to_search
@@ -125,6 +133,9 @@ class CorrelBase(object):
     def compute_indices_from_displacement(self, dx, dy):
         return self.ix0 - dx, self.iy0 - dy
 
+    def get_indices_no_displacement(self):
+        return self.iy0, self.ix0
+
     def compute_displacements_from_correl(self, correl, norm=1.):
         """Compute the displacement from a correlation."""
 
@@ -132,9 +143,18 @@ class CorrelBase(object):
             ix, iy, correl_max = _compute_indices_max(correl, norm)
         except PIVError as e:
             ix, iy, correl_max = e.results
-            dx, dy = self.compute_displacement_from_indices(ix, iy)
-            e.results = (dx, dy, correl_max)
-            raise e
+            # second chance to find a better peak...
+            correl[iy-self.particle_radius:iy+self.particle_radius+1,
+                   ix-self.particle_radius:ix+self.particle_radius+1] = \
+                np.nan
+            try:
+                ix2, iy2, correl_max2 = _compute_indices_max(correl, norm)
+            except PIVError as e2:
+                dx, dy = self.compute_displacement_from_indices(ix, iy)
+                e.results = (dx, dy, correl_max)
+                raise e
+            else:
+                ix, iy, correl_max = ix2, iy2, correl_max2
 
         dx, dy = self.compute_displacement_from_indices(ix, iy)
 
@@ -143,9 +163,8 @@ class CorrelBase(object):
         elif self.nb_peaks_to_search >= 1:
             other_peaks = []
             for ip in range(0, self.nb_peaks_to_search-1):
-                correl = correl.copy()
                 correl[iy-self.particle_radius:iy+self.particle_radius+1,
-                       ix-self.particle_radius:iy+self.particle_radius+1] = \
+                       ix-self.particle_radius:ix+self.particle_radius+1] = \
                     np.nan
                 try:
                     ix, iy, correl_max_other = _compute_indices_max(
@@ -194,7 +213,8 @@ class CorrelPythran(CorrelBase):
 
     def __call__(self, im0, im1):
         """Compute the correlation from images."""
-        return correl_pythran(im0, im1, self.displacement_max)
+        correl, norm = correl_pythran(im0, im1, self.displacement_max)
+        return correl, norm
 
 
 class CorrelPyCuda(CorrelBase):
@@ -223,7 +243,9 @@ class CorrelPyCuda(CorrelBase):
 
     def __call__(self, im0, im1):
         """Compute the correlation from images."""
-        return correl_pycuda(im0, im1, self.displacement_max)
+        correl, norm = correl_pycuda(im0, im1, self.displacement_max)
+        self._add_info_to_correl(correl)
+        return correl, norm
 
 
 class CorrelScipySignal(CorrelBase):
@@ -278,7 +300,9 @@ class CorrelScipyNdimage(CorrelBase):
     def __call__(self, im0, im1):
         """Compute the correlation from images."""
         norm = np.sum(im1**2)
-        return correlate(im0, im1, mode='constant', cval=im1.min()), norm
+        correl = correlate(im0, im1, mode='constant', cval=im1.min())
+
+        return correl, norm
 
 
 class CorrelTheano(CorrelBase):
@@ -420,6 +444,7 @@ class CorrelTheano(CorrelBase):
                             i00:i00+2*self.displacement_max+1]
         else:
             correl = correl.reshape(self.ny, self.nx)
+
         return correl, norm
 
 
@@ -470,7 +495,8 @@ class CorrelFFTNumpy(CorrelFFTBase):
         """Compute the correlation from images."""
         norm = np.sqrt(np.sum(im1**2) * np.sum(im0**2))
         corr = ifft2(fft2(im0).conj() * fft2(im1)).real
-        return np.fft.fftshift(corr[::-1, ::-1]), norm
+        correl = np.fft.fftshift(corr[::-1, ::-1])
+        return correl, norm
 
 
 class CorrelFFTW(CorrelFFTBase):
@@ -488,7 +514,8 @@ class CorrelFFTW(CorrelFFTBase):
         norm = np.sqrt(np.sum(im1**2) * np.sum(im0**2)) * im0.size
         op = self.op
         corr = op.ifft(op.fft(im0).conj() * op.fft(im1))
-        return np.fft.fftshift(corr[::-1, ::-1]), norm
+        correl = np.fft.fftshift(corr[::-1, ::-1])
+        return correl, norm
 
 
 class CorrelCuFFT(CorrelFFTBase):
@@ -506,7 +533,8 @@ class CorrelCuFFT(CorrelFFTBase):
         norm = np.sqrt(np.sum(im1**2) * np.sum(im0**2)) * im0.size
         op = self.op
         corr = op.ifft(op.fft(im0).conj() * op.fft(im1)).real * im0.size**2
-        return np.fft.fftshift(corr[::-1, ::-1]), norm
+        correl = np.fft.fftshift(corr[::-1, ::-1])
+        return correl, norm
 
 
 class CorrelSKCuFFT(CorrelFFTBase):
@@ -524,7 +552,8 @@ class CorrelSKCuFFT(CorrelFFTBase):
         norm = np.sqrt(np.sum(im1**2) * np.sum(im0**2)) * im0.size
         op = self.op
         corr = op.ifft(op.fft(im0).conj() * op.fft(im1))
-        return np.fft.fftshift(corr[::-1, ::-1]), norm
+        correl = np.fft.fftshift(corr[::-1, ::-1])
+        return correl, norm
 
 
 correlation_classes = {
