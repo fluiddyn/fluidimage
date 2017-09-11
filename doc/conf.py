@@ -21,9 +21,8 @@ if on_rtd:
     # this package comes from fluiddyn
     from fluidrtd import mock_modules
     mock_modules([
-        'h5py', 'h5netcdf', 'scipy', 'scipy.ndimage', 'scipy.signal',
-        'scipy.interpolate', 'pyfftw', 'theano', 'reikna.cluda', 'reikna.fft',
-        'reikna.transformations'])
+        'h5py', 'h5netcdf', 'pyfftw', 'theano',
+        'reikna.cluda', 'reikna.fft', 'reikna.transformations'])
 
 import fluidimage
 

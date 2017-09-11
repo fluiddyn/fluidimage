@@ -1,8 +1,8 @@
 Installation and advice
 =======================
 
-Dependencies
-------------
+Dependencies and useful packages
+--------------------------------
 
 - Python 2.7 or >3.4 (unless you have a good reason, use python >= 3.6!)
 
@@ -18,14 +18,20 @@ Dependencies
 
 - h5netcdf (only if you need netcdf files)
 
-- scikit-image (only for preprocessing)
+- scikit-image (only for preprocessing of images)
 
 - PyQt5 (only for GUI)
+
+- ipython (important to play interactively with parameters, images and results)
+
+- jupyter (to try the tutorials yourself)
 
 The simplest way to get a good environment for fluidimage is by using conda
 (with anaconda or miniconda). If you use conda, install the main packages with::
 
   conda install numpy scipy matplotlib h5py scikit-image pyqt
+
+  conda install ipython jupyter
 
 and the other packages with pip::
 
