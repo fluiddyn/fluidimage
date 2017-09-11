@@ -1,13 +1,35 @@
 Installation and advice
 =======================
 
-
 Dependencies
 ------------
 
-- Python 2.7
+- Python 2.7 or >3.4 (unless you have a good reason, use python >= 3.6!)
 
-- fftw (better to build with OpenMP enabled)
+- fftw
+
+- numpy, scipy, matplotlib, h5py
+
+- fluiddyn
+
+- pyfftw (simplest way to compute fft quite efficiently)
+
+- pythran (to be fast)
+
+- h5netcdf (only if you need netcdf files)
+
+- scikit-image (only for preprocessing)
+
+- PyQt5 (only for GUI)
+
+The simplest way to get a good environment for fluidimage is by using conda
+(with anaconda or miniconda). If you use conda, install the main packages with::
+
+  conda install numpy scipy matplotlib h5py scikit-image pyqt
+
+and the other packages with pip::
+
+  pip install pyfftw pythran h5netcdf colorlog fluiddyn
 
 
 Install in development mode (recommended)
@@ -19,7 +41,11 @@ control and the development mode of the Python installer.
 
 For FluidImage, we use the revision control software Mercurial and the main
 repository is hosted `here <https://bitbucket.org/fluiddyn/fluidimage>`_ in
-Bitbucket. I would advice to fork this repository (click on "Fork") and to
+Bitbucket, so you can get the source with the command::
+
+  hg clone https://bitbucket.org/fluiddyn/fluidimage
+
+I would advice to fork this repository (click on "Fork") and to
 clone your newly created repository to get the code on your computer (click on
 "Clone" and run the command that will be given). If you are new with Mercurial
 and Bitbucket, you can also read `this short tutorial
@@ -30,8 +56,9 @@ download the package from `the Bitbucket page
 <https://bitbucket.org/fluiddyn/fluidimage>`_ or from `the PyPI page
 <https://pypi.python.org/pypi/fluidimage>`_.
 
-To install in development mode (with a virtualenv)::
+To install in development mode (with a virtualenv or with conda)::
 
+  cd fluidimage
   python setup.py develop
 
 or (without virtualenv)::

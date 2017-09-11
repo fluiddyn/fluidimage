@@ -91,7 +91,9 @@ def make_pythran_extensions(modules):
 if use_pythran:
     ext_modules = make_pythran_extensions(
         ['fluidimage.calcul.correl_pythran',
-         'fluidimage.calcul.interpolate.tps_pythran'])
+         'fluidimage.calcul.interpolate.tps_pythran',
+         'fluidimage.calcul.subpix_pythran'
+     ])
 else:
     ext_modules = []
 
@@ -111,24 +113,18 @@ setup(
         # 3 - Alpha
         # 4 - Beta
         # 5 - Production/Stable
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Science/Research',
         'Intended Audience :: Education',
         'Topic :: Scientific/Engineering',
         'License :: OSI Approved :: GNU General Public License v2 (GPLv2)',
         # actually CeCILL License (GPL compatible license for French laws)
-        #
-        # Specify the Python versions you support here. In particular,
-        # ensure that you indicate whether you support Python 2,
-        # Python 3 or both.
         'Programming Language :: Python',
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
-        # 'Programming Language :: Python :: 3',
-        # 'Programming Language :: Python :: 3.3',
-        # 'Programming Language :: Python :: 3.4',
-        'Programming Language :: Cython',
-        'Programming Language :: C'],
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6'],
     packages=find_packages(exclude=[
         'doc', 'include', 'scripts']),
     install_requires=install_requires,

@@ -10,7 +10,7 @@ from __future__ import division
 
 import sys
 
-from matplotlib.backends.qt_compat import QtGui
+from matplotlib.backends.qt_compat import QtGui, QtWidgets
 
 from .mainwindow import Ui_MainWindow
 
@@ -21,21 +21,20 @@ from fluidimage.topologies.launcher import (
     TopologyPreprocLauncher,
     TopologyPIVLauncher)
 
-
-class Program(QtGui.QMainWindow, Ui_MainWindow):
+class Program(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def __init__(self):
         topologies = [TopologyPreprocLauncher, TopologyPIVLauncher]
         self.topologies = {cls.__name__: cls for cls in topologies}
 
-        QtGui.QMainWindow.__init__(self)
+        QtWidgets.QMainWindow.__init__(self)
         self.setupUi(self)
 
         topo_names = ['TopologyPreprocLauncher', 'TopologyPIVLauncher']
         self.actions = {}
 
         for topo_name in topo_names:
-            action = self.actions[topo_name] = QtGui.QAction(self)
+            action = self.actions[topo_name] = QtWidgets.QAction(self)
             self.menuTopologies.addAction(action)
             action.setText(topo_name)
 
@@ -50,7 +49,7 @@ class Program(QtGui.QMainWindow, Ui_MainWindow):
         pass
 
     def open_file(self):
-        path_file = QtGui.QFileDialog.getOpenFileName(
+        path_file = QtWidgets.QFileDialog.getOpenFileName(
             self.centralwidget, 'OpenFile')
 
         params = ParamContainer(path_file=path_file)
@@ -77,7 +76,7 @@ class Program(QtGui.QMainWindow, Ui_MainWindow):
 
 
 def main():
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     w = Program()
     w.show()
     sys.exit(app.exec_())

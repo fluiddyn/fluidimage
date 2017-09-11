@@ -20,7 +20,7 @@ params.multipass.coeff_zoom = [2]
 
 piv = WorkPIV(params=params)
 
-series = SeriesOfArrays('../image_samples/Oseen/Images', 'i+1:i+3')
+series = SeriesOfArrays('../../image_samples/Oseen/Images', 'i+1:i+3')
 serie = series.get_serie_from_index(0)
 
 
