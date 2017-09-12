@@ -9,6 +9,11 @@ def compute_subpix_2d_gaussian2(correl, ix, iy):
     # hoops, pythran crashes because of this line
     # correl_crop[correl_crop < 0] = 1e-6
 
+    # we write it like this to please pythran
+    tmp = np.where(correl_crop < 0)
+    for i0, i1 in zip(tmp[0], tmp[1]):
+        correl_crop[i0, i1] = 1e-6
+
     c10 = 0
     c01 = 0
     c11 = 0
