@@ -1,7 +1,7 @@
 
 .PHONY: clean clean_all develop build_ext_inplace
 
-develop:
+develop: clean
 	python setup.py develop
 
 build_ext_inplace:

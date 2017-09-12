@@ -82,6 +82,7 @@ def make_pythran_extensions(modules):
         bin_file = base_file + suffix
         if not develop or not os.path.exists(bin_file) or \
            modification_date(bin_file) < modification_date(py_file):
+            print('pythran extension "' + mod + '" needs to be built')
             pext = PythranExtension(mod, [py_file])
             pext.include_dirs.append(np.get_include())
             extensions.append(pext)
