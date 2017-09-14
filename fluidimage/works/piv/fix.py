@@ -59,7 +59,7 @@ displacement_max : None
         self.piv_work = piv_work
 
     def calcul(self, piv_results):
-        print('piv_results = ', piv_results)
+        # print('piv_results = ', piv_results)
         deltaxs_wrong = {}
         deltays_wrong = {}
 

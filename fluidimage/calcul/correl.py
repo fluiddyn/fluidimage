@@ -82,8 +82,14 @@ def parse_displacement_max(displ_max, im0_shape):
 
 
 def _compute_indices_max(correl, norm):
+
     iy, ix = np.unravel_index(np.nanargmax(correl), correl.shape)
-    correl_max = correl[iy, ix]/norm
+
+    if norm == 0:
+        # I hope it is ok (Pierre)
+        correl_max = 0.
+    else:
+        correl_max = correl[iy, ix]/norm
 
     if iy == 0 or iy == correl.shape[0] - 1 or \
        ix == 0 or ix == correl.shape[1] - 1:

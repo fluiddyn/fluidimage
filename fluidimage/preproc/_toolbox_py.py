@@ -266,7 +266,7 @@ def adaptive_threshold(img=None, window_size=5, offset=0):
         Constant to be subtracted from the mean.
 
     '''
-    img_out = filters.threshold_adaptive(img, window_size, offset=offset)
+    img_out = filters.threshold_local(img, window_size, offset=offset)
     return img_out
 
 
@@ -307,6 +307,9 @@ def rescale_intensity_tanh(img=None, threshold=None):
     '''
     if threshold is None:
         threshold = 2 * np.sqrt(np.mean(img**2))
+
+    if threshold == 0:
+        return img
 
     img_out = np.tanh(img / threshold)
     img_out = np.floor(np.max(img) / np.max(img_out) * img_out)

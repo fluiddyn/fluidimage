@@ -123,7 +123,7 @@ class TopologyBase(object):
             log = os.path.join(
                 path_output,
                 'log_' + time_as_str() + '_' + str(os.getpid()) + '.txt')
-            f = open(log, 'w')
+            self._log_file = open(log, 'w')
 
             stdout = sys.stdout
             if isinstance(stdout, MultiFile):
@@ -133,8 +133,8 @@ class TopologyBase(object):
             if isinstance(stderr, MultiFile):
                 stderr = _stderr_at_import
 
-            sys.stdout = MultiFile([stdout, f])
-            sys.stderr = MultiFile([stderr, f])
+            sys.stdout = MultiFile([stdout, self._log_file])
+            sys.stderr = MultiFile([stderr, self._log_file])
 
         if logging_level is not None:
             for handler in logger.handlers:
@@ -367,6 +367,7 @@ class TopologyBase(object):
     def _reset_std_as_default(self):
         sys.stdout = _stdout_at_import
         sys.stderr = _stderr_at_import
+        self._log_file.close()
 
     def _clear_save_queue(self, workers, sequential):
         """Clear the last queue (which is often saving) before stopping."""

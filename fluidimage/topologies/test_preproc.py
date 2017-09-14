@@ -34,7 +34,7 @@ class TestPreprocKarman(unittest.TestCase):
             name = os.path.split(path)[-1]
             im = imread(path)
             im = im[::6, ::6]
-            imsave(os.path.join(cls._work_dir, name), im)
+            imsave(os.path.join(cls._work_dir, name), im, as_int=True)
 
     @classmethod
     def tearDownClass(cls):

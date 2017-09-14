@@ -135,7 +135,14 @@ class ArrayCouple(DataObject):
             names = serie.get_name_files()
             if len(names) != 2:
                 raise ValueError('serie has to contain 2 arrays.')
+
             paths = serie.get_path_files()
+
+            if not serie.check_all_files_exist():
+                raise ValueError(
+                    'At least one file of this serie does not exists. \n' +
+                    str(paths))
+
             self.paths = tuple(os.path.abspath(p) for p in paths)
 
             if arrays is None:
