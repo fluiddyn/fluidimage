@@ -177,6 +177,7 @@ format : str
             path_dir = params.preproc.series.path
         else:
             path_dir = os.path.dirname(params.preproc.series.path)
+        self.path_dir_input = path_dir
         self.path_dir_result, self.how_saving = set_path_dir_result(
             path_dir, params.preproc.saving.path,
             params.preproc.saving.postfix, params.preproc.saving.how)
@@ -269,6 +270,29 @@ format : str
                       self.series.get_name_all_files()[indices[1]])
         return DisplayPreProc(
             im0, im1, im0p, im1p, hist=hist)
+
+    def _print_at_exit(self, time_since_start):
+        """Print information before exit."""
+        txt = 'Stop compute after t = {:.2f} s'.format(time_since_start)
+        try:
+            nb_results = len(self.results)
+        except AttributeError:
+            nb_results = None
+        if nb_results is not None and nb_results > 0:
+            txt += (' ({} results, {:.2f} s/result).'.format(
+                nb_results, time_since_start / nb_results))
+        else:
+            txt += '.'
+
+        if hasattr(self, 'path_dir_result'):
+            txt += """
+To display the inputs, you can use:
+fluidimviewer {} &
+To display the results, you can use:
+fluidimviewer {} &""".format(os.path.abspath(self.path_dir_input),
+                             os.path.abspath(self.path_dir_result))
+
+        print(txt)
 
 
 params = TopologyPreproc.create_default_params()

@@ -9,8 +9,8 @@ To find good parameters, execute the preprocessing topology (see `job_pre.py`)::
 
 and use the GUI tool `fluidimviewer` in the input and output directories::
 
-  fluidimviewer Images_png.pre/ &
-  fluidimviewer Images_png &
+  fluidimviewer ../../../image_samples/Jet/Images.pre &
+  fluidimviewer ../../../image_samples/Jet/Images &
 
 You can also try the piv computation with::
 

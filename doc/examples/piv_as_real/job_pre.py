@@ -7,6 +7,10 @@ To be launched in the terminal::
 
   ./job_pre.py 0 2
 
+or (to force the processing of already computed images)::
+
+  ./job_pre.py 0 2 -how recompute
+
 see also the help::
 
   ./job_pre.py -h
