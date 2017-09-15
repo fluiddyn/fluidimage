@@ -109,7 +109,7 @@ class BaseWorkPIV(BaseWork):
     def _prepare_with_image(self, im0):
         """Initialize the object with an image.
         """
-        self.imshape0 = len_y, len_x = im0.shape
+        self.imshape0 = (len_y, len_x) = im0.shape
         scim = self.shape_crop_im0
 
         stepy = scim[0] - int(np.round(self.overlap*scim[0]))
@@ -117,10 +117,22 @@ class BaseWorkPIV(BaseWork):
         assert stepy >= 1
         assert stepx >= 1
 
-        ixvecs = np.arange(self._start_for_crop0[1],
-                           len_x-self._stop_for_crop0[1], stepx, dtype=int)
-        iyvecs = np.arange(self._start_for_crop0[0],
-                           len_y-self._stop_for_crop0[0], stepy, dtype=int)
+        ixvec_max = len_x-self._stop_for_crop0[1]        
+        ixvecs = np.arange(
+            self._start_for_crop0[1], ixvec_max, stepx, dtype=int)
+
+        iyvec_max = len_y-self._stop_for_crop0[0]
+        iyvecs = np.arange(
+            self._start_for_crop0[0], iyvec_max, stepy, dtype=int)
+
+        # There are some cases for which it is worth to add the last points...
+        if ixvec_max - ixvecs[-1] > stepx//2.5:
+            # print('add another point (x)')
+            ixvecs = np.append(ixvecs, ixvec_max)
+        if iyvec_max - iyvecs[-1] > stepy//2.5:
+            # print('add another point (y)')
+            iyvecs = np.append(iyvecs, iyvec_max)
+
         self.ixvecs = ixvecs
         self.iyvecs = iyvecs
 

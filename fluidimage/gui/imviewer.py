@@ -32,9 +32,17 @@ except ImportError as error_import_textbox:
         raise
 
 from fluiddyn.io.image import imread
+from fluiddyn.util import time_as_str
 
 extensions = ['png', 'tif', 'tiff', 'jpg', 'jpeg', 'bmp']
 extensions = ['.' + ext for ext in extensions]
+
+debug = False
+
+
+def _print_debug(*args):
+    if debug:
+        print(*args)
 
 
 def check_image(path):
@@ -101,6 +109,8 @@ class ImageViewer(object):
         self._textboxes = {}
 
         fig = self.fig = plt.figure()
+        fig.canvas.set_window_title(
+            path_dir + ' (' + time_as_str()[-8:].replace('-', ':') + ')')
         self.ax = fig.add_axes([0.07, 0.15, 0.7, 0.78])
 
         self.maps = {}
@@ -114,6 +124,7 @@ class ImageViewer(object):
 
         im = imread(self.path_files[ifile])
         self.clim = [0, 0.99*im.max()]
+        self._updating_clim = False
 
         self.loadim(ifile, im)
         name_file = self.get_namefile()
@@ -142,11 +153,11 @@ class ImageViewer(object):
 
         self._create_text(
             fig, [0.87, 0.92, 1.5*size_button, size_button],
-            'cmax = ', self._change_cmax, '{:.3f}'.format(self.clim[1]))
+            'cmax = ', self._change_cmax, '{:.2f}'.format(self.clim[1]))
 
         self._create_text(
             fig, [0.87, 0.1, 1.5*size_button, size_button],
-            'cmin = ', self._change_cmin, '{:.3f}'.format(self.clim[0]))
+            'cmin = ', self._change_cmin, '{:.2f}'.format(self.clim[0]))
 
         self._create_button(
             fig, [0.65, 0.945, 1.2*size_button, 0.045], 'reload',
@@ -165,6 +176,7 @@ class ImageViewer(object):
         plt.show()
 
     def set_autoclim(self, event):
+        _print_debug('set_autoclim')
         im = imread(self.path_files[self.ifile])
         self.clim = [im.min(), 0.99*im.max()]
         self._update_clim()
@@ -173,8 +185,11 @@ class ImageViewer(object):
         self.loadim(self.ifile)
 
     def loadim(self, ifile, im=None):
+        _print_debug('loadim', ifile, im)
         if im is None:
             im = imread(self.path_files[ifile])
+            _print_debug(self.path_files[ifile])
+            _print_debug(im)
         self.mappable = self.ax.imshow(
             im, interpolation='nearest', cmap=self.cmap, origin='upper',
             extent=[0, im.shape[1], im.shape[0], 0],
@@ -192,10 +207,12 @@ class ImageViewer(object):
         ifile = self.ifile
         name_file = self.get_namefile()
         print('changing to file ' + name_file, end='...')
+        _print_debug('')
         map_old = self.mappable
 
         if ifile in self.maps:
             self.mappable = self.maps[ifile]
+            self.mappable.set_clim(self.clim)
             self.mappable.set_visible(True)
         else:
             self.loadim(ifile)
@@ -203,6 +220,7 @@ class ImageViewer(object):
         map_old.set_visible(False)
         self.ax.set_title(name_file)
         self.fig.canvas.draw()
+        _print_debug('')
         print('\rchanged to file ' + name_file + ' ' * 20)
         self._image_changing = False
 
@@ -251,23 +269,39 @@ class ImageViewer(object):
         print('n = ', self._n)
 
     def _change_cmax(self, text):
+        _print_debug('_change_cmax')
         cmax = eval(text, {}, {})
+        if cmax == self.clim[1]:
+            return
         self.clim[1] = cmax
         self._update_clim()
 
     def _change_cmin(self, text):
+        _print_debug('_change_cmin')
         cmin = eval(text, {}, {})
+
+        if cmin == self.clim[0]:
+            return
+        
         self.clim[0] = cmin
         self._update_clim()
 
     def _update_clim(self):
+        if self._updating_clim:
+            return
+        self._updating_clim = True
+        _print_debug('_update_clim:', self.clim)
         self.mappable.set_clim(self.clim)
         self.fig.canvas.draw()
+        self.cbar.set_clim(self.clim)
+        self.cbar.draw_all()
 
         txt_cmax = self._textboxes['cmax = ']
         txt_cmin = self._textboxes['cmin = ']
-        txt_cmin.set_val('{:.3f}'.format(self.clim[0]))
-        txt_cmax.set_val('{:.3f}'.format(self.clim[1]))
+        txt_cmin.set_val('{:.2f}'.format(self.clim[0]))
+        txt_cmax.set_val('{:.2f}'.format(self.clim[1]))
+        _print_debug('_update_clim end')
+        self._updating_clim = False
 
     def onclick(self, event):
         if event.key == 'alt+h':
@@ -279,7 +313,6 @@ class ImageViewer(object):
         if event.key == 'alt+s':
             self._switch()
 
-
-if __name__ == '__main__':
-    args = parse_args()
-    self = ImageViewer(args)
+# if debug and __name__ == '__main__':
+#     args = parse_args()
+#     self = ImageViewer(args)

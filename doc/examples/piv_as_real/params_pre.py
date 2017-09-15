@@ -3,8 +3,18 @@
 
 This can be run in ipython to explore the preprocessing parameters.
 
-To find good parameters, execute the preprocessing topology (see `job_pre.py`)
-and use the GUI tool `fluidimviewer` in the input and output directories.
+To find good parameters, execute the preprocessing topology (see `job_pre.py`)::
+
+  ./job_pre.py 0 2 -how recompute
+
+and use the GUI tool `fluidimviewer` in the input and output directories::
+
+  fluidimviewer Images_png.pre/ &
+  fluidimviewer Images_png &
+
+You can also try the piv computation with::
+
+  ./try_piv.py &
 
 """
 
@@ -47,6 +57,7 @@ def make_params_pre(iexp, savinghow='recompute',
     params.preproc.saving.postfix = postfix_out
 
     if double_frame:
+        # for 'b.png' images
         params2 = deepcopy(params)
         params2.preproc.series.strcouple = \
             params.preproc.series.strcouple[:-1] + '1'

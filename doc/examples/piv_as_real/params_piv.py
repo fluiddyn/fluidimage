@@ -3,6 +3,10 @@
 
 This can be run in ipython to explore the PIV parameters.
 
+To find good parameters, try the piv computation with::
+
+  ./try_piv.py &
+
 """
 from glob import iglob
 
