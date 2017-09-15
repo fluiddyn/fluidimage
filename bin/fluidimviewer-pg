@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 '''Opens a single image or multiple images in seperate docks.
-Usage: fluidimage_view.py [image1 image2] [pattern]
+Usage: fluidimviewer-pg [image1 image2] [pattern]
 
 Examples
 --------
-$ fluidimage_view.py im1.png im2.png
-$ fluidimage_view.py im???a.png
+$ fluidimviewer-pg im1.png im2.png
+$ fluidimviewer-pg im???a.png
 
 Features
 --------

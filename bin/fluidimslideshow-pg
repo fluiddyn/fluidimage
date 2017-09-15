@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 '''Opens multiple images as a slideshow.
-Usage: fluidimage_slideshow.py [image1 image2] [pattern]
+Usage: fluidimslideshow-pg [image1 image2] [pattern]
 
 Examples
 --------
-$ fluidimage_slideshow.py im1.png im2.png
-$ fluidimage_slideshow.py im???a.png
+$ fluidimslideshow-pg im1.png im2.png
+$ fluidimslideshow-pg im???a.png
 
 Keyboard interaction
 --------------------

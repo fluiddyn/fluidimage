@@ -2,7 +2,6 @@
 import os
 import subprocess
 import sys
-from glob import glob
 from datetime import datetime
 
 from runpy import run_path
@@ -97,12 +96,9 @@ if use_pythran:
         ['fluidimage.calcul.correl_pythran',
          'fluidimage.calcul.interpolate.tps_pythran',
          'fluidimage.calcul.subpix_pythran'
-     ])
+         ])
 else:
     ext_modules = []
-
-scripts = glob(os.path.join(here, 'scripts/fluidimage*'))
-scripts = [script for script in scripts if not script.endswith('~')]
 
 setup(
     name='fluidimage',
@@ -133,7 +129,8 @@ setup(
         'Programming Language :: Python :: 3.6'],
     packages=find_packages(exclude=[
         'doc', 'include', 'scripts']),
-    scripts=scripts,
     install_requires=install_requires,
-    scripts=['bin/fluidimviewer', 'bin/fluidimlauncher'],
+    scripts=['bin/fluidimviewer', 'bin/fluidimlauncher',
+             'bin/fluidimviewer-pg', 'bin/fluidimslideshow-pg',
+             ],
     ext_modules=ext_modules)
