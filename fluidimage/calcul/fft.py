@@ -43,11 +43,16 @@ except ImportError:
     pass
 
 try:
-    import pycuda.autoinit
-    import pycuda.gpuarray as gpuarray
-    import skcuda.fft as skfft
+    import pycuda._driver
 except ImportError:
     pass
+else:
+    try:
+        import pycuda.autoinit
+        import pycuda.gpuarray as gpuarray
+        import skcuda.fft as skfft
+    except (ImportError, pycuda._driver.RuntimeError):
+        pass
 
 # if 'OMP_NUM_THREADS' in os.environ:
 #     nthreads = int(os.environ['OMP_NUM_THREADS'])
@@ -170,8 +175,8 @@ class FFTW2DReal2Complex(object):
         self.shapeX = shapeX
         self.shapeK = shapeK
 
-        self.arrayX = pyfftw.n_byte_align_empty(shapeX, 16, self.type_real)
-        self.arrayK = pyfftw.n_byte_align_empty(shapeK, 16, self.type_complex)
+        self.arrayX = pyfftw.empty_aligned(shapeX, self.type_real)
+        self.arrayK = pyfftw.empty_aligned(shapeK, self.type_complex)
 
         self.fftplan = pyfftw.FFTW(input_array=self.arrayX,
                                    output_array=self.arrayK,

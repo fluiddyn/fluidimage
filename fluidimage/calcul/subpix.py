@@ -9,7 +9,9 @@
 
 import numpy as np
 
-from.errors import PIVError
+from .errors import PIVError
+
+from .subpix_pythran import compute_subpix_2d_gaussian2
 
 
 class SubPix(object):
@@ -19,12 +21,15 @@ class SubPix(object):
 
        - evaluate subpix methods.
 
-       - same subpix methods as in UVmat...
-
     """
-    methods = ['2d_gaussian', 'centroid', 'no_subpix']
+    methods = ['2d_gaussian', '2d_gaussian2', 'centroid', 'no_subpix']
 
     def __init__(self, method='centroid', nsubpix=None):
+        if method == '2d_gaussian2' and nsubpix is not None:
+                raise ValueError(
+                    "Subpixel method '2d_gaussian2' doesn't require nsubpix. "
+                    "In this case, nsubpix has to be equal to None.")
+
         self.prepare_subpix(method, nsubpix)
 
     def prepare_subpix(self, method, nsubpix):
@@ -71,6 +76,10 @@ class SubPix(object):
         using linalg.solve (buggy?)
 
         """
+        if method is None:
+            method = self.method
+        if nsubpix is None:
+            nsubpix = self.n
 
         if method != self.method or nsubpix != self.n:
             if method is None:
@@ -91,12 +100,13 @@ class SubPix(object):
 
         if method == '2d_gaussian':
 
-            correl2 = correl[iy-nsubpix:iy+nsubpix+1, ix-nsubpix:ix+nsubpix+1]
-            ny, nx = correl2.shape
+            correl_crop = correl[iy-nsubpix:iy+nsubpix+1,
+                                 ix-nsubpix:ix+nsubpix+1]
+            ny, nx = correl_crop.shape
 
             assert nx == ny == 2*nsubpix + 1
 
-            correl_map = correl2.ravel()
+            correl_map = correl_crop.ravel()
             correl_map[correl_map <= 0.] = 1e-6
 
             coef = np.dot(self.Minv_subpix, np.log(correl_map))
@@ -113,20 +123,30 @@ class SubPix(object):
                 return self.compute_subpix(
                     correl, ix, iy, method='centroid', nsubpix=nsubpix)
 
+        if method == '2d_gaussian2':
+            deplx, deply, correl_crop = compute_subpix_2d_gaussian2(
+                correl, int(ix), int(iy))
+
         elif method == 'centroid':
 
-            correl2 = correl[iy-nsubpix:iy+nsubpix+1, ix-nsubpix:ix+nsubpix+1]
-            ny, nx = correl2.shape
+            correl_crop = correl[iy-nsubpix:iy+nsubpix+1,
+                                 ix-nsubpix:ix+nsubpix+1]
+            ny, nx = correl_crop.shape
 
-            sum_correl = np.sum(correl2)
+            sum_correl = np.sum(correl_crop)
 
-            deplx = np.sum(self.X_centroid * correl2) / sum_correl
-            deply = np.sum(self.Y_centroid * correl2) / sum_correl
+            deplx = np.sum(self.X_centroid * correl_crop) / sum_correl
+            deply = np.sum(self.Y_centroid * correl_crop) / sum_correl
 
         elif method == 'no_subpix':
             deplx = deply = 0.
 
-        if abs(deplx) > 1 or abs(deply) > 1:
+        if deplx**2 + deply**2 > 2*(0.5+nsubpix)**2:
+            print(('Wrong subpix for one vector:'
+                   ' deplx**2 + deply**2 > (0.5+nsubpix)**2\n'
+                   'method: ' + method +
+                   '\ndeplx, deply = ({}, {})\n'
+                   'correl_subpix =\n{}').format(deplx, deply, correl_crop))
             raise PIVError(explanation='wrong subpix',
                            result_compute_subpix=(iy, ix))
 

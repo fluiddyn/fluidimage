@@ -24,6 +24,7 @@ from . import (
     config_logging, ParamContainer, SerieOfArraysFromFiles)
 
 from fluiddyn.util.paramcontainer import tidy_container
+from fluiddyn.util.util import import_class
 
 from fluidimage.topologies.piv import TopologyPIV
 
@@ -33,57 +34,53 @@ config_logging('info')
 logger = logging.getLogger('fluidimage')
 
 
-class InstructionsUVMAT(ParamContainer):
-    """
-    instructions = InstructionsUVMAT(path_file=(
-        '../image_samples/Oseen/Images.civ_uvmat/0_XML/Oseen_center_1.xml'))
+def tidy_uvmat_instructions(params):
+    params._set_internal_attr('_tag', 'instructions_uvmat')
 
+    # get nicer names and a simpler organization...
+    tidy_container(params)
 
-    """
+    params.input_table = input_table = params.input_table.split(' & ')
+    for i in range(1, len(input_table)):
+        if input_table[i].startswith('/'):
+            input_table[i] = input_table[i][1:]
 
-    def __init__(self, **kargs):
+    filename = ''.join(input_table[2:])
+    path_dir = os.path.join(*input_table[:2])
+    path_file_input = os.path.abspath(os.path.join(path_dir, filename))
+    path_dir_input = path_dir
+    params._set_attrib('path_dir_input', path_dir_input)
+    params._set_attrib('path_file_input', path_file_input)
 
-        if 'tag' not in kargs:
-            kargs['tag'] = 'instructions_uvmat'
+    params._set_attrib(
+        'path_dir_output',
+        path_dir_input + params.output_dir_ext)
 
-        super(InstructionsUVMAT, self).__init__(**kargs)
+    ir = params.index_range
+    if not hasattr(ir, 'incr_i'):
+        ir._set_attrib('incr_i', 1)
 
-        if kargs['tag'] == 'instructions_uvmat' and 'path_file' in kargs:
-            self._init_root()
+    if not hasattr(ir, 'first_i'):
+        print('Warning: no attribute first_i in xml UVmat file.')
+        ir._set_attrib('first_i', 1)
 
-    def _init_root(self):
+    if not hasattr(ir, 'last_i'):
+        print('Warning: no attribute last_i in xml UVmat file.')
+        ir._set_attrib('last_i', None)
 
-        # get nicer names and a simpler organization...
-        tidy_container(self)
+    if not hasattr(ir, 'first_j'):
+        strcouple = 'i+{}:i+{}:{}'.format(
+            ir.first_i, ir.first_i+ir.incr_i+1, ir.incr_i)
 
-        input_table = self.input_table.split(' & ')
-        self.input_table = '|'.join(input_table)
-        path_file_input = os.path.abspath(self.input_table.replace('|', ''))
-        path_dir_input = os.path.dirname(path_file_input)
-        self._set_attrib('path_dir_input', path_dir_input)
-        self._set_attrib('path_file_input', path_file_input)
-
-        self._set_attrib(
-            'path_dir_output',
-            path_dir_input + self.output_dir_ext)
-
-        ir = self.index_range
-        slice0 = [ir.first_i, ir.last_i+1, ir.incr_i]
-        try:
-            slice1 = [ir.first_j-1, ir.last_j, ir.incr_j]
-            slices = [slice0, slice1]
-        except AttributeError:
-            slices = [slice0]
-
-        self._set_attrib('index_slices', slices)
-
-        if len(slices) == 1:
-            strcouple = '{}+i: {}+i'.format(ir.first_i, ir.first_i+ir.incr_i+1)
-            ind_stop = 1 + ir.last_i - ir.first_i
+        if ir.last_i is None:
+            ind_stop = None
         else:
-            raise NotImplementedError
-        self._set_attrib('strcouple', strcouple)
-        self._set_attrib('ind_stop', ind_stop)
+            ind_stop = ir.last_i - ir.first_i + 1
+    else:
+        raise NotImplementedError
+
+    params._set_attrib('strcouple', strcouple)
+    params._set_attrib('ind_stop', ind_stop)
 
 
 class ActionBase(object):
@@ -130,7 +127,7 @@ class ActionAverage(ActionBase):
 def params_from_uvmat_xml(instructions):
     params = TopologyPIV.create_default_params()
 
-    params.series.path = instructions.input_table.replace('|', '')
+    params.series.path = instructions.path_file_input
 
     params.series.strcouple = instructions.strcouple
     params.series.ind_stop = instructions.ind_stop
@@ -143,8 +140,11 @@ def params_from_uvmat_xml(instructions):
 
     params.piv0.shape_crop_im0 = n0
 
-    params.multipass.subdom_size = \
-        instructions.action_input.patch2.sub_domain_size
+    if hasattr(instructions.action_input, 'patch2'):
+        params.multipass.subdom_size = \
+            instructions.action_input.patch2.sub_domain_size
+    else:
+        params.multipass.use_tps = False
 
     if hasattr(instructions.action_input, 'civ2'):
         params.multipass.number = 2
@@ -157,17 +157,21 @@ class ActionPIV(ActionBase):
     def __init__(self, instructions):
         self.instructions = instructions
         self.params = params_from_uvmat_xml(instructions)
+        logger.info('Initialize fluidimage computations with parameters:')
+        logger.info(self.params._make_xml_text())
         self.topology = TopologyPIV(self.params)
 
     def run(self):
         t = time()
         self.topology.compute(sequential=False)
         t = time() - t
-
         print('ellapsed time: {}s'.format(t))
+
 
 actions_classes = {'aver_stat': ActionAverage,
                    'civ_series': ActionPIV}
+
+programs = ['uvmat', 'fluidimage']
 
 
 def main():
@@ -179,18 +183,45 @@ def main():
     logger.info('\nFrom Python, start with instructions in xml file:\n%s',
                 path_instructions_xml)
 
-    instructions = InstructionsUVMAT(path_file=path_instructions_xml)
+    params = ParamContainer(path_file=path_instructions_xml)
 
-    action_name = instructions.action.action_name
-    logger.info('Check if the action "%s" is implemented by FluidImage',
-                action_name)
-    if action_name not in actions_classes.keys():
-        raise NotImplementedError(
-            'action "' + action_name + '" is not yet implemented.')
+    program = None
 
-    Action = actions_classes[action_name]
-    action = Action(instructions)
-    return action.run()
+    try:
+        params.Action.ActionName
+    except AttributeError:
+        pass
+    else:
+        program = 'uvmat'
+
+    try:
+        program = params._value_text['program']
+    except (AttributeError, KeyError):
+        pass
+
+    if program not in programs:
+        raise ValueError('Can not detect the program to launch.')
+
+    if program == 'uvmat':
+        tidy_uvmat_instructions(params)
+        action_name = params.action.action_name
+        logger.info('Check if the action "%s" is implemented by FluidImage',
+                    action_name)
+        if action_name not in actions_classes.keys():
+            raise NotImplementedError(
+                'action "' + action_name + '" is not yet implemented.')
+
+        Action = actions_classes[action_name]
+        action = Action(params)
+        return action.run()
+    elif program == 'fluidimage':
+        print(program)
+
+        cls = import_class(params._value_text['module'],
+                           params._value_text['class'])
+
+        obj = cls(params)
+        obj.compute()
 
 
 if __name__ == '__main__':

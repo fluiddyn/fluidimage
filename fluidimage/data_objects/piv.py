@@ -19,6 +19,7 @@
 
 """
 
+from builtins import str
 
 import os
 import h5py
@@ -108,10 +109,19 @@ class DataObject(object):
     pass
 
 
+def get_slices_from_strcrop(strcrop):
+    return tuple(slice(*(int(i) if i else None
+                         for i in part.strip().split(':')))
+                 for part in strcrop.split(','))
+
+
 class ArrayCouple(DataObject):
+    """Couple of arrays (images)."""
     def __init__(
             self, names=None, arrays=None, serie=None,
-            str_path=None, hdf5_parent=None):
+            str_path=None, hdf5_parent=None, params_mask=None):
+
+        self.params_mask = params_mask
 
         if str_path is not None:
             self._load(path=str_path)
@@ -122,22 +132,48 @@ class ArrayCouple(DataObject):
             return
 
         if serie is not None:
-            if serie.get_nb_files() != 2:
-                raise ValueError('serie has to contain 2 arrays.')
             names = serie.get_name_files()
+            if len(names) != 2:
+                raise ValueError('serie has to contain 2 arrays.')
+
             paths = serie.get_path_files()
+
+            if not serie.check_all_files_exist():
+                raise ValueError(
+                    'At least one file of this serie does not exists. \n' +
+                    str(paths))
+
             self.paths = tuple(os.path.abspath(p) for p in paths)
 
             if arrays is None:
-                arrays = serie.get_arrays()
+                arrays = self.read_images()
 
         self.names = tuple(names)
-        self.arrays = tuple(arrays)
+        self.name = '-'.join(self.names)
+        self.arrays = self._mask_arrays(arrays)
         self.serie = serie
+
+    def _read_image(self, index):
+        arr = imread(self.paths[index])
+        return arr
+
+    def read_images(self):
+        return tuple(self._read_image(i) for i in [0, 1])
+
+    def _mask_array(self, array):
+        if self.params_mask is None:
+            return array
+        if self.params_mask.strcrop is not None:
+            indices = get_slices_from_strcrop(self.params_mask.strcrop)
+            array = array[indices]
+        return array
+
+    def _mask_arrays(self, arrays):
+        return tuple(self._mask_array(arr) for arr in arrays)
 
     def get_arrays(self):
         if not hasattr(self, 'arrays'):
-            self.arrays = tuple(imread(path) for path in self.paths)
+            self.arrays = self._mask_arrays(self.read_images())
 
         return self.arrays
 
@@ -150,23 +186,27 @@ class ArrayCouple(DataObject):
 
         hdf5_parent.create_group('couple')
         group = hdf5_parent['couple']
-        group.attrs['names'] = self.names
-        group.attrs['paths'] = self.paths
+        group.attrs['names'] = repr(self.names).encode()
+        group.attrs['paths'] = repr(self.paths).encode()
 
         if not hasattr(self, 'arrays'):
-            im0 = imread(self.paths[0])
+            arr0 = self._mask_array(self._read_image(0))
         else:
-            im0 = self.arrays[0]
+            arr0 = self.arrays[0]
 
-        group.create_dataset('shape_images', data=im0.shape)
+        group.create_dataset('shape_images', data=arr0.shape)
 
     def _load(self, path=None, hdf5_object=None):
 
         if path is not None:
             raise NotImplementedError
 
-        self.names = tuple(hdf5_object.attrs['names'])
-        self.paths = tuple(hdf5_object.attrs['paths'])
+        names = hdf5_object.attrs['names'].decode()
+        paths = hdf5_object.attrs['paths'].decode()
+
+        self.names = eval(names)
+        self.paths = eval(paths)
+
         try:
             self.shape_images = hdf5_object['shape_images'].value
         except KeyError:
@@ -174,20 +214,23 @@ class ArrayCouple(DataObject):
 
 
 class HeavyPIVResults(DataObject):
+    """Heavy PIV results containing displacements and correlation."""
+
+    _keys_to_be_saved = [
+        'xs', 'ys', 'deltaxs', 'deltays', 'correls_max',
+        'deltaxs_approx', 'deltays_approx',
+        'ixvecs_approx', 'iyvecs_approx',
+        'deltaxs_final', 'deltays_final',
+        'ixvecs_final', 'iyvecs_final']
+
+    _dict_to_be_saved = ['errors', 'deltaxs_wrong', 'deltays_wrong']
 
     def __init__(self, deltaxs=None, deltays=None,
                  xs=None, ys=None, errors=None,
                  correls_max=None, correls=None,
                  couple=None, params=None,
-                 str_path=None, hdf5_object=None):
-        self._keys_to_be_saved = [
-            'xs', 'ys', 'deltaxs', 'deltays', 'correls_max',
-            'deltaxs_approx', 'deltays_approx',
-            'ixvecs_approx', 'iyvecs_approx',
-            'deltaxs_final', 'deltays_final',
-            'ixvecs_final', 'iyvecs_final']
-
-        self._dict_to_be_saved = ['errors', 'deltaxs_wrong', 'deltays_wrong']
+                 str_path=None, hdf5_object=None, secondary_peaks=None,
+                 indices_no_displacement=None):
 
         if hdf5_object is not None:
             if couple is not None:
@@ -212,19 +255,22 @@ class HeavyPIVResults(DataObject):
         self.correls = correls
         self.couple = couple
         self.params = params
+        self.secondary_peaks = secondary_peaks
+        self.indices_no_displacement = indices_no_displacement
 
     def get_images(self):
-        return self.couple.get_arrays()
+        return self.couple.read_images()
 
     def display(self, show_interp=False, scale=0.2, show_error=True,
-                pourcent_histo=99, hist=False):
+                pourcent_histo=99, hist=False, show_correl=True):
         try:
-            im0, im1 = self.couple.get_arrays()
+            im0, im1 = self.get_images()
         except IOError:
             im0, im1 = None, None
         return DisplayPIV(
             im0, im1, self, show_interp=show_interp, scale=scale,
-            show_error=show_error, pourcent_histo=pourcent_histo, hist=hist)
+            show_error=show_error, pourcent_histo=pourcent_histo, hist=hist,
+            show_correl=show_correl)
 
     def _get_name(self):
         serie = self.couple.serie
@@ -274,11 +320,25 @@ class HeavyPIVResults(DataObject):
         for name_dict in self._dict_to_be_saved:
             try:
                 d = self.__dict__[name_dict]
-                g = g_piv.create_group(name_dict)
-                g.create_dataset('keys', data=d.keys())
-                g.create_dataset('values', data=d.values())
             except KeyError:
                 pass
+            else:
+                g = g_piv.create_group(name_dict)
+                keys = list(d.keys())
+                values = list(d.values())
+                try:
+                    for i, k in enumerate(keys):
+                        keys[i] = k.encode()
+                except AttributeError:
+                    pass
+                try:
+                    for i, k in enumerate(values):
+                        values[i] = k.encode()
+                except AttributeError:
+                    pass
+
+                g.create_dataset('keys', data=keys)
+                g.create_dataset('values', data=values)
 
         if 'deltaxs_tps' in self.__dict__:
             g = g_piv.create_group('deltaxs_tps')
@@ -301,9 +361,13 @@ class HeavyPIVResults(DataObject):
 
         if not hasattr(self, 'params'):
             self.params = ParamContainer(hdf5_object=f['params'])
+            try:
+                params_mask = self.params.mask
+            except AttributeError:
+                params_mask = None
 
         if not hasattr(self, 'couple'):
-            self.couple = ArrayCouple(hdf5_parent=f)
+            self.couple = ArrayCouple(hdf5_parent=f, params_mask=params_mask)
 
         for k in self._keys_to_be_saved:
             if k in g_piv:
@@ -331,7 +395,7 @@ class HeavyPIVResults(DataObject):
 
 
 class MultipassPIVResults(DataObject):
-
+    """Result of a multipass PIV computation."""
     def __init__(self, str_path=None):
         self.passes = []
 
@@ -339,11 +403,12 @@ class MultipassPIVResults(DataObject):
             self._load(str_path)
 
     def display(self, i=-1, show_interp=False, scale=0.2, show_error=True,
-                pourcent_histo=99, hist=False):
+                pourcent_histo=99, hist=False, show_correl=True):
         r = self.passes[i]
         return r.display(show_interp=show_interp, scale=scale,
                          show_error=show_error,
-                         pourcent_histo=pourcent_histo, hist=hist)
+                         pourcent_histo=pourcent_histo, hist=hist,
+                         show_correl=show_correl)
 
     def __getitem__(self, key):
         return self.passes[key]
@@ -396,7 +461,13 @@ class MultipassPIVResults(DataObject):
         self.file_name = os.path.basename(path)
         with h5py.File(path, 'r') as f:
             self.params = ParamContainer(hdf5_object=f['params'])
-            self.couple = ArrayCouple(hdf5_parent=f)
+
+            try:
+                params_mask = self.params.mask
+            except AttributeError:
+                params_mask = None
+
+            self.couple = ArrayCouple(hdf5_parent=f, params_mask=params_mask)
 
             nb_passes = f.attrs['nb_passes']
 
@@ -511,14 +582,14 @@ class MultipassPIVResults(DataObject):
 
 
 class LightPIVResults(DataObject):
+    _keys_to_be_saved = ['ixvecs_final', 'iyvecs_final',
+                         'deltaxs_final', 'deltays_final']
 
     def __init__(self, deltaxs_approx=None, deltays_approx=None,
                  ixvecs_grid=None, iyvecs_grid=None,
-                 correls_max=None, correls=None,
-                 couple=None, params=None,
+                 correls_max=None, couple=None, params=None,
                  str_path=None, hdf5_object=None, file_name=None):
 
-        self._keys_to_be_saved = ['xs', 'ys', 'deltaxs', 'deltays']
         if file_name is not None:
             self.file_name = file_name
         if hdf5_object is not None:
@@ -594,10 +665,15 @@ class LightPIVResults(DataObject):
     def _load(self, path):
         with h5py.File(path, 'r') as f:
             self.params = ParamContainer(hdf5_object=f['params'])
-            self.couple = ArrayCouple(hdf5_parent=f)
+            try:
+                params_mask = self.params.mask
+            except AttributeError:
+                params_mask = None
+            self.couple = ArrayCouple(hdf5_parent=f, params_mask=params_mask)
 
         with h5py.File(path, 'r') as f:
-            self._load_from_hdf5_object(f['piv'])
+            keys = [(key) for key in f.keys() if 'piv' in key]
+            self._load_from_hdf5_object(f[max(keys)])
 
     def _load_from_hdf5_object(self, g_piv):
 
@@ -605,9 +681,13 @@ class LightPIVResults(DataObject):
 
         if not hasattr(self, 'params'):
             self.params = ParamContainer(hdf5_object=f['params'])
+            try:
+                params_mask = self.params.mask
+            except AttributeError:
+                params_mask = None
 
         if not hasattr(self, 'couple'):
-            self.couple = ArrayCouple(hdf5_parent=f)
+            self.couple = ArrayCouple(hdf5_parent=f, params_mask=params_mask)
 
         for k in self._keys_to_be_saved:
             dataset = g_piv[k]

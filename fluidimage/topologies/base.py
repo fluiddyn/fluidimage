@@ -1,5 +1,5 @@
-"""Topology base
-================
+"""Topology base (:mod:`fluidimage.topologies.base`)
+====================================================
 
 .. autoclass:: TopologyBase
    :members:
@@ -18,6 +18,12 @@ import gc
 # from copy import copy
 import threading
 
+try:
+    import queue
+except ImportError:
+    # python 2
+    import Queue as queue
+
 from fluiddyn.util import time_as_str
 from fluiddyn.util.tee import MultiFile
 from ..util.util import cstring, logger, log_memory_usage
@@ -25,6 +31,9 @@ from ..util.util import cstring, logger, log_memory_usage
 from ..config import get_config
 from .waiting_queues.base import WaitingQueueThreading
 from .. import config_logging
+
+_stdout_at_import = sys.stdout
+_stderr_at_import = sys.stderr
 
 config = get_config()
 
@@ -90,7 +99,20 @@ _nb_max_workers = nb_max_workers
 
 
 class TopologyBase(object):
-    """Base class for topologies of treatment."""
+    """Base class for topologies of treatment.
+
+    Parameters
+    ----------
+
+    queues : list
+
+    path_output : None
+
+    logging_level : 'info'
+
+    nb_max_workers : None
+
+    """
     def __init__(self, queues, path_output=None, logging_level='info',
                  nb_max_workers=None):
 
@@ -101,11 +123,23 @@ class TopologyBase(object):
             log = os.path.join(
                 path_output,
                 'log_' + time_as_str() + '_' + str(os.getpid()) + '.txt')
-            f = open(log, 'w')
-            sys.stdout = MultiFile([sys.stdout, f])
-            sys.stderr = MultiFile([sys.stderr, f])
+            self._log_file = open(log, 'w')
 
-        if logging_level:
+            stdout = sys.stdout
+            if isinstance(stdout, MultiFile):
+                stdout = _stdout_at_import
+
+            stderr = sys.stderr
+            if isinstance(stderr, MultiFile):
+                stderr = _stderr_at_import
+
+            sys.stdout = MultiFile([stdout, self._log_file])
+            sys.stderr = MultiFile([stderr, self._log_file])
+
+        if logging_level is not None:
+            for handler in logger.handlers:
+                logger.removeHandler(handler)
+
             config_logging(logging_level, file=sys.stdout)
 
         if nb_max_workers is None:
@@ -137,14 +171,38 @@ class TopologyBase(object):
             signal.signal(12, handler_signals)
 
     def compute(self, sequential=None, has_to_exit=True):
-        """Compute (run all works to be done)."""
+        """Compute (run all works to be done).
+
+        Parameters
+        ----------
+
+        sequential : None
+
+          If bool(sequential) is True, the computations are run in sequential
+          (useful for debugging).
+
+        has_to_exit : True
+
+          If bool(has_to_exit) is True and if the computation has to stop
+          because of a signal 12 (cluster), a signal 99 is sent at exit.
+
+        """
         if hasattr(self, 'path_output'):
             logger.info('path results:\n' + self.path_output)
             if hasattr(self, 'params'):
-                path_params = os.path.join(
+                tmp_path_params = os.path.join(
                     self.path_output,
                     'params_' + time_as_str() + '_' +
-                    str(os.getpid()) + '.xml')
+                    str(os.getpid()))
+
+                if not os.path.exists(tmp_path_params + '.xml'):
+                    path_params = tmp_path_params + '.xml'
+                else:
+                    i = 1
+                    while os.path.exists(
+                            tmp_path_params + '_' + str(i) + '.xml'):
+                        i += 1
+                    path_params = tmp_path_params + '_' + str(i) + '.xml'
                 self.params._save_as_xml(path_params)
 
         self.t_start = time()
@@ -164,20 +222,23 @@ class TopologyBase(object):
                 self.exitcode = None
                 self.daemon = True
 
+            def in_time_loop(self):
+                t_tmp = time()
+                for worker in workers:
+                    if isinstance(worker, self.cls_to_be_updated) and \
+                       worker.fill_destination():
+                        workers.remove(worker)
+                t_tmp = time() - t_tmp
+                if t_tmp > 0.2:
+                    logger.info(
+                        'update list of workers with fill_destination '
+                        'done in {:.3f} s'.format(t_tmp))
+                sleep(dt_update)
+
             def run(self):
                 try:
                     while not self.has_to_stop:
-                        t_tmp = time()
-                        for worker in workers:
-                            if isinstance(worker, self.cls_to_be_updated) and \
-                               worker.fill_destination():
-                                workers.remove(worker)
-                        t_tmp = time() - t_tmp
-                        if t_tmp > 0.2:
-                            logger.info(
-                                'update list of workers with fill_destination '
-                                'done in {:.3f} s'.format(t_tmp))
-                        sleep(dt_update)
+                        self.in_time_loop()
                 except Exception as e:
                     print('Exception in UpdateThread')
                     self.exitcode = 1
@@ -185,6 +246,32 @@ class TopologyBase(object):
 
         class CheckWorksProcess(CheckWorksThread):
             cls_to_be_updated = Process
+
+            def in_time_loop(self):
+                # weird bug subprocessing py3
+                for worker in workers:
+                    if not worker.really_started:
+                        # print('check if worker has really started.' +
+                        #       worker.key)
+                        try:
+                            worker.really_started = \
+                                worker.comm_started.get_nowait()
+                        except queue.Empty:
+                            pass
+                        if not worker.really_started and \
+                           time() - worker.t_start > 10:
+                            # bug! The worker does not work. We kill it! :-)
+                            logger.error(cstring(
+                                'Mysterious bug multiprocessing: '
+                                'a launched worker has not started. '
+                                'We kill it! ({}, key: {}).'.format(
+                                    worker.work_name, worker.key),
+                                color='FAIL'))
+                            # the case of this worker has been
+                            worker.really_started = True
+                            worker.terminate()
+
+                super(CheckWorksProcess, self).in_time_loop()
 
         self.thread_check_works_t = CheckWorksThread()
         self.thread_check_works_t.start()
@@ -195,6 +282,22 @@ class TopologyBase(object):
         while (not self._has_to_stop and
                (any([not q.is_empty() for q in self.queues]) or
                 len(workers) > 0)):
+
+            # debug
+            # if logger.level == 10 and \
+            #    all([q.is_empty() for q in self.queues]) and len(workers) == 1:
+            #     for worker in workers:
+            #         try:
+            #             is_alive = worker.is_alive()
+            #         except AttributeError:
+            #             is_alive = None
+
+            #         logger.debug(
+            #             str((worker, worker.key, worker.exitcode, is_alive)))
+
+            #         if time() - worker.t_start > 60:
+            #             from fluiddyn.debug import ipydebug
+            #             ipydebug()
 
             self.nb_workers = len(workers)
 
@@ -214,12 +317,17 @@ class TopologyBase(object):
                     try:
                         new_workers = q.check_and_act(sequential=sequential)
                     except OSError:
-                        logger.exception(cstring(
-                            'Memory full: Trying to clear workers',
+                        logger.error(cstring(
+                            'Memory full: to free some memory, no more '
+                            'computing job will be launched while the last '
+                            '(saving) waiting queue is not empty.',
                             color='FAIL'))
                         log_memory_usage(color='FAIL', mode='error')
-                        self._clear_save_queue(
-                            workers, sequential, has_to_exit)
+                        self._clear_save_queue(workers, sequential)
+                        logger.info(cstring(
+                            'The last waiting queue has been emptied.',
+                            color='FAIL'))
+                        log_memory_usage(color='FAIL', mode='info')
                         continue
 
                     if new_workers is not None:
@@ -228,24 +336,24 @@ class TopologyBase(object):
                     logger.debug('workers: ' + repr(workers))
 
             if self.thread_check_works_t.exitcode:
-                raise Exception(self.thread_check_works_t.exception)
+                raise self.thread_check_works_t.exception
 
             if self.thread_check_works_p.exitcode:
-                raise Exception(self.thread_check_works_p.exception)
+                raise self.thread_check_works_p.exception
 
             if len(workers) != self.nb_workers:
                 gc.collect()
-
-        self.thread_check_works_t.has_to_stop = True
-        self.thread_check_works_p.has_to_stop = True
-        self.thread_check_works_t.join()
-        self.thread_check_works_p.join()
 
         if self._has_to_stop:
             logger.info(cstring(
                 'Will exist because of signal 12.',
                 'Waiting for all workers to finish...', color='FAIL'))
-            self._clear_save_queue(workers, sequential, has_to_exit)
+            self._clear_save_queue(workers, sequential)
+
+        self.thread_check_works_t.has_to_stop = True
+        self.thread_check_works_p.has_to_stop = True
+        self.thread_check_works_t.join()
+        self.thread_check_works_p.join()
 
         self._print_at_exit(time() - self.t_start)
         log_memory_usage(time_as_str(2) + ': end of `compute`. mem usage')
@@ -254,17 +362,33 @@ class TopologyBase(object):
             logger.info(cstring('Exit with signal 99.', color='FAIL'))
             exit(99)
 
-    def _clear_save_queue(self, workers, sequential, has_to_exit):
+        self._reset_std_as_default()
+
+    def _reset_std_as_default(self):
+        sys.stdout = _stdout_at_import
+        sys.stderr = _stderr_at_import
+        self._log_file.close()
+
+    def _clear_save_queue(self, workers, sequential):
         """Clear the last queue (which is often saving) before stopping."""
         q = self.queues[-1]
 
+        idebug = 0
         # if the last queue is a WaitingQueueThreading (saving),
         # it is also emptied.
         while (len(workers) > 0 or
                (not q.is_empty() and
                 isinstance(q, WaitingQueueThreading))):
 
-            sleep(0.2)
+            sleep(0.5)
+
+            if len(workers) == 1 and q.is_empty():
+                idebug += 1
+                p = workers[0]
+                if idebug == 100:
+                    print('Issue:', p, p.exitcode)
+                    # from fluiddyn.debug import ipydebug
+                    # ipydebug()
 
             if not q.is_empty() and isinstance(q, WaitingQueueThreading):
                 new_workers = q.check_and_act(sequential=sequential)
@@ -272,8 +396,8 @@ class TopologyBase(object):
                     for worker in new_workers:
                         workers.append(worker)
 
-            workers[:] = [w for w in workers
-                          if not w.fill_destination()]
+            # workers[:] = [w for w in workers
+            #               if not w.fill_destination()]
 
     def _print_at_exit(self, time_since_start):
         """Print information before exit."""
@@ -303,20 +427,20 @@ class TopologyBase(object):
         txt_queue = '"{name}"\t[label="<f0> {name}|' + '|'.join(
             ['<f{}>'.format(i) for i in range(1, 5)]) + '"]\n'
 
-        for queue in self.queues:
-            code += txt_queue.format(name=queue.name)
+        for q in self.queues:
+            code += txt_queue.format(name=q.name)
 
         # works and links
         code += "\nnode [shape=\"ellipse\"]\n"
 
         txt_work = '"{name}"\t[label="{name}"]'
-        for queue in self.queues:
-            name_work = queue.work_name or str(queue.work)
+        for q in self.queues:
+            name_work = q.work_name or str(q.work)
             code += txt_work.format(name=name_work)
-            code += '"{}" -> "{}"'.format(queue.name, name_work)
-            if hasattr(queue.destination, 'name'):
+            code += '"{}" -> "{}"'.format(q.name, name_work)
+            if hasattr(q.destination, 'name'):
                 code += '"{}" -> "{}"'.format(
-                    name_work, queue.destination.name)
+                    name_work, q.destination.name)
 
         code += '}\n'
 

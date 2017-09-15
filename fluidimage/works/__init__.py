@@ -13,6 +13,7 @@ define input/output and computational works.
    :toctree:
 
    piv
+   preproc
 
 """
 from .. import imread

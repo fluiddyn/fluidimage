@@ -2,12 +2,17 @@ import os
 import numpy as np
 
 try:
-    import pycuda.autoinit
-    import pycuda.compiler
-    import pycuda.gpuarray
-    import pycuda.driver
+    import pycuda._driver
 except ImportError:
     pass
+else:
+    try:
+        import pycuda.autoinit
+        import pycuda.compiler
+        import pycuda.gpuarray
+        import pycuda.driver
+    except (ImportError, pycuda._driver.RuntimeError):
+        pass
 
 
 def nextpow2(i):

@@ -3,9 +3,6 @@ import os
 
 from path_images import get_path
 
-from fluidimage import config_logging
-config_logging('debug')
-
 from fluidimage.topologies.piv import TopologyPIV
 
 params = TopologyPIV.create_default_params()

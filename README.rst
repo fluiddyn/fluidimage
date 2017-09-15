@@ -1,7 +1,7 @@
 FluidImage
 ==========
 
-|release| |docs|
+|release| |docs| |coverage| |travis|
 
 .. |release| image:: https://img.shields.io/pypi/v/fluidimage.svg
    :target: https://pypi.python.org/pypi/fluidimage/
@@ -11,39 +11,36 @@ FluidImage
    :target: http://fluidimage.readthedocs.org
    :alt: Documentation status
 
-FluidImage is a Python framework for scientific treatments of large
-series of images.  Today, this package is in a very early stage of
-development and the only treatment available is Particle Image
-Velocimetry (PIV), i.e. computation of velocity fields by correlations
-of images.
+.. |coverage| image:: https://codecov.io/bb/fluiddyn/fluidimage/branch/default/graph/badge.svg
+   :target: https://codecov.io/bb/fluiddyn/fluidimage/branch/default/
+   :alt: Code coverage
 
-What do we want?
-----------------
+.. |travis| image:: https://travis-ci.org/fluiddyn/fluidimage.svg?branch=master
+    :target: https://travis-ci.org/fluiddyn/fluidimage
 
-There is still work to do, but we want:
+FluidImage is a libre Python framework for scientific treatments of large
+series of images. This package is very young but it is already mature enough to
+be used "in production" to
 
-- easy installation
+- pre-process images,
+- compute `Particle Image Velocimetry
+  <https://en.wikipedia.org/wiki/Particle_image_velocimetry (PIV)>`_ (PIV,
+  i.e. displacements of pattern obtained by correlations of cropped images),
+- analyze PIV fields.
 
-- cross-platform
+We want to make FluidImage easy (useful documentation, easy installation,
+usable with scripts and GUI in Qt), reliable (with good `unittests
+<https://codecov.io/bb/fluiddyn/fluidimage/>`_) and very efficient, in
+particular when the number of images to treat becomes large. Thus we want
+FluidImage to be able to run efficiently and easily on a personal computer and
+on big clusters. The efficiency is achieved by using
 
-- no need for Matlab
-
-- better written nearly all in Python (Cython or Pythran ok)
-
-- well tested
-
-- well documented
-  
-- efficient
-
-  * able to use GPU
-  
-  * parallel, asynchronous, distributed
-
-  * running on cluster
-
-- today, only a very minimal GUI (Qt)
-
-  * display images (zoom, colorbar, colormaps, info on a pixel)
-
-  * display vectors (and information on a selected vector)
+- an asynchronous framework (and in the long term we want to be able to plug
+  FluidImage to distributed computational systems like `Storm
+  <http://storm.apache.org/>`_),
+- the available cores of the central processing units (CPU) and the available
+  graphics processing units (GPU),
+- good profiling and efficient and specialized algorithms,
+- cutting-edge tools for fast computations with Python (in particular `Pythran
+  <https://pythonhosted.org/pythran/>`_ and `Theano
+  <http://deeplearning.net/software/theano>`_).

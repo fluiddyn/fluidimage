@@ -7,7 +7,10 @@ from datetime import datetime
 
 from runpy import run_path
 
+from distutils.sysconfig import get_config_var
 from setuptools import setup, find_packages
+
+import numpy as np
 
 try:
     from pythran.dist import PythranExtension
@@ -25,27 +28,43 @@ if sys.platform == 'win32':
 with open('README.rst') as f:
     long_description = f.read()
 lines = long_description.splitlines(True)
-long_description = ''.join(lines[13:])
+for i, line in enumerate(lines):
+    if line.endswith(':alt: Code coverage\n'):
+        iline_coverage = i
+        break
+
+long_description = ''.join(lines[iline_coverage + 2:])
 
 # Get the version from the relevant file
 d = run_path('fluidimage/_version.py')
 __version__ = d['__version__']
 
-try:
-    hg_rev = subprocess.check_output(['hg', 'id', '--id']).strip()
-except (OSError, subprocess.CalledProcessError):
-    pass
-else:
-    with open('fluidimage/_hg_rev.py', 'w') as f:
-        f.write('hg_rev = "{}"\n'.format(hg_rev))
 
-install_requires = ['fluiddyn >= 0.0.13b0']
+def write_rev(rev):
+    with open('fluidimage/_hg_rev.py', 'w') as f:
+        f.write('hg_rev = "{}"\n'.format(rev))
+
+
+try:
+    hg_rev = subprocess.check_output(
+        ['hg', 'id', '--id']).decode('utf-8').strip()
+    write_rev(hg_rev)
+except (OSError, subprocess.CalledProcessError):
+    try:
+        hg_rev = 'git:' + subprocess.check_output(
+            ['git', 'rev-parse', 'HEAD']).decode('utf-8').strip()
+        write_rev(hg_rev)
+    except (OSError, subprocess.CalledProcessError):
+        pass
+
+install_requires = ['fluiddyn >= 0.1.3']
 
 on_rtd = os.environ.get('READTHEDOCS')
 if not on_rtd:
     install_requires.extend([
         'scipy >= 0.14.1', 'numpy >= 1.8',
         'matplotlib >= 1.4.2',
+        'pyfftw >= 0.10.4',
         # 'scikit-image >= 0.12.3',
         'h5py', 'h5netcdf'])
 
@@ -62,16 +81,23 @@ def make_pythran_extensions(modules):
         base_file = mod.replace('.', os.path.sep)
         py_file = base_file + '.py'
         # warning: does not work on Windows
-        bin_file = base_file + '.so'
+        suffix = get_config_var('EXT_SUFFIX') or '.so'
+        bin_file = base_file + suffix
         if not develop or not os.path.exists(bin_file) or \
            modification_date(bin_file) < modification_date(py_file):
-            extensions.append(PythranExtension(mod, [py_file]))
+            print('pythran extension "' + mod + '" needs to be built')
+            pext = PythranExtension(mod, [py_file])
+            pext.include_dirs.append(np.get_include())
+            extensions.append(pext)
     return extensions
+
 
 if use_pythran:
     ext_modules = make_pythran_extensions(
         ['fluidimage.calcul.correl_pythran',
-         'fluidimage.calcul.interpolate.tps_pythran'])
+         'fluidimage.calcul.interpolate.tps_pythran',
+         'fluidimage.calcul.subpix_pythran'
+     ])
 else:
     ext_modules = []
 
@@ -93,26 +119,21 @@ setup(
         # 3 - Alpha
         # 4 - Beta
         # 5 - Production/Stable
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Science/Research',
         'Intended Audience :: Education',
         'Topic :: Scientific/Engineering',
         'License :: OSI Approved :: GNU General Public License v2 (GPLv2)',
         # actually CeCILL License (GPL compatible license for French laws)
-        #
-        # Specify the Python versions you support here. In particular,
-        # ensure that you indicate whether you support Python 2,
-        # Python 3 or both.
         'Programming Language :: Python',
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
-        # 'Programming Language :: Python :: 3',
-        # 'Programming Language :: Python :: 3.3',
-        # 'Programming Language :: Python :: 3.4',
-        'Programming Language :: Cython',
-        'Programming Language :: C'],
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6'],
     packages=find_packages(exclude=[
         'doc', 'include', 'scripts']),
     scripts=scripts,
     install_requires=install_requires,
+    scripts=['bin/fluidimviewer', 'bin/fluidimlauncher'],
     ext_modules=ext_modules)

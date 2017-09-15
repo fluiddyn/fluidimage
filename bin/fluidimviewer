@@ -1,0 +1,11 @@
+#! /usr/bin/env python
+"""
+Minimalist image viewer for PIV
+===============================
+
+"""
+
+from fluidimage.gui.imviewer import parse_args, ImageViewer
+
+args = parse_args()
+self = ImageViewer(args)

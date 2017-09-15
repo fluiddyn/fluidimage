@@ -12,6 +12,7 @@ libcusolver = ctypes.cdll.LoadLibrary('libcusolver.so')
 libcusolver.cusolverDnCreate.restype = int
 libcusolver.cusolverDnCreate.argtypes = [ctypes.c_void_p]
 
+
 def cusolverDnCreate():
     handle = ctypes.c_void_p()
     status = libcusolver.cusolverDnCreate(ctypes.byref(handle))
@@ -21,6 +22,7 @@ def cusolverDnCreate():
 
 libcusolver.cusolverDnDestroy.restype = int
 libcusolver.cusolverDnDestroy.argtypes = [ctypes.c_void_p]
+
 
 def cusolverDnDestroy(handle):
     status = libcusolver.cusolverDnDestroy(handle)
@@ -34,6 +36,7 @@ libcusolver.cusolverDnSgetrf_bufferSize.argtypes = [ctypes.c_void_p,
                                                     ctypes.c_void_p,
                                                     ctypes.c_int,
                                                     ctypes.c_void_p]
+
 
 def cusolverDnSgetrf_bufferSize(handle, m, n, A, lda, Lwork):
     status = libcusolver.cusolverDnSgetrf_bufferSize(handle, m, n,
@@ -51,6 +54,7 @@ libcusolver.cusolverDnSgetrf.argtypes = [ctypes.c_void_p,
                                          ctypes.c_void_p,
                                          ctypes.c_void_p,
                                          ctypes.c_void_p]
+
 
 def cusolverDnSgetrf(handle, m, n, A, lda, Workspace, devIpiv, devInfo):
     status = libcusolver.cusolverDnSgetrf(handle, m, n, int(A.gpudata),
@@ -73,6 +77,7 @@ libcusolver.cusolverDnSgetrs.argtypes = [ctypes.c_void_p,
                                          ctypes.c_int,
                                          ctypes.c_void_p]
 
+
 def cusolverDnSgetrs(handle, trans, n, nrhs, A, lda, devIpiv, B, ldb, devInfo):
     status = libcusolver.cusolverDnSgetrs(handle, trans, n, nrhs,
                                           int(A.gpudata), lda,
@@ -82,6 +87,7 @@ def cusolverDnSgetrs(handle, trans, n, nrhs, A, lda, devIpiv, B, ldb, devInfo):
         raise RuntimeError('error!')
 
 if __name__ == '__main__':
+    import numpy as np
     m = 6400
     n = 6400
     a = np.asarray(np.random.rand(m, n), np.float32)
@@ -106,15 +112,16 @@ if __name__ == '__main__':
     CUBLAS_OP_N = 0
     nrhs = n
     devInfo = gpuarray.zeros(1, dtype=np.int32)
-    cusolverDnSgetrs(handle, CUBLAS_OP_N, n, nrhs, a_gpu, lda, devIpiv, b_gpu, ldb, devInfo)
+    cusolverDnSgetrs(
+        handle, CUBLAS_OP_N, n, nrhs, a_gpu, lda, devIpiv, b_gpu, ldb, devInfo)
 
     x_cusolver = b_gpu.get().T
     cusolverDnDestroy(handle)
     cusolve_time = time.time()-init_time
-    print ("cusolve time = %.6f" % cusolve_time)
+    print("cusolve time = %.6f" % cusolve_time)
     x_numpy = np.linalg.solve(a, b)
     numpy_time = time.time()-init_time-cusolve_time
     speedup = numpy_time/cusolve_time
-    print ("np.linalg.solve time = %.6f" % numpy_time)
-    print ("GPU speedup = %f" % speedup)
-    print np.allclose(x_numpy, x_cusolver, rtol=1e-02, atol=1e-04)
+    print("np.linalg.solve time = %.6f" % numpy_time)
+    print("GPU speedup = %f" % speedup)
+    print(np.allclose(x_numpy, x_cusolver, rtol=1e-02, atol=1e-04))

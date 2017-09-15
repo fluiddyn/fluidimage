@@ -7,18 +7,19 @@ import logging
 import numpy as np
 
 from fluidimage.synthetic import make_synthetic_images
-from fluidimage.calcul.correl import correlation_classes
-from fluidimage.calcul.correl import CorrelScipySignal
-from fluidimage.calcul.correl import CorrelTheano, CorrelPythran, CorrelPyCuda
+from fluidimage.calcul.correl import (
+    correlation_classes,
+    CorrelScipySignal, CorrelTheano, CorrelPythran, CorrelPyCuda,
+    CorrelFFTBase, CorrelBase)
 
 # config_logging('debug')
 logger = logging.getLogger('fluidimage')
 
 classes = {k.replace('.', '_'): v for k, v in correlation_classes.items()}
 classes2 = {'sig': CorrelScipySignal,
-           'theano': CorrelTheano,
-           'pycuda': CorrelPyCuda,
-           'pythran': CorrelPythran}
+            'theano': CorrelTheano,
+            'pycuda': CorrelPyCuda,
+            'pythran': CorrelPythran}
 
 try:
     from reikna.cluda import any_api
@@ -66,13 +67,20 @@ class TestCorrel(unittest.TestCase):
 
 for k, cls in classes.items():
     def test(self, cls=cls, k=k):
-        correl = cls(self.im0.shape, self.im1.shape)
+
+        if issubclass(cls, CorrelFFTBase):
+            displacement_max = '50%'
+        else:
+            displacement_max = None
+
+        correl = cls(self.im0.shape, self.im1.shape,
+                     displacement_max=displacement_max)
 
         # first, no displacement
         c, norm = correl(self.im0, self.im0)
-        dx, dy, correl_max = correl.compute_displacement_from_correl(
-            c, coef_norm=norm,
-            method_subpix='2d_gaussian')
+        dx, dy, correl_max, other_peaks = \
+            correl.compute_displacements_from_correl(
+                c, norm=norm)
         displacement_computed = np.array([dx, dy])
 
         logger.debug(
@@ -85,9 +93,8 @@ for k, cls in classes.items():
 
         # then, with the 2 figures with displacements
         c, norm = correl(self.im0, self.im1)
-        dx, dy, correl_max = correl.compute_displacement_from_correl(
-            c, coef_norm=norm,
-            method_subpix='2d_gaussian')
+        dx, dy, correl_max, _ = correl.compute_displacements_from_correl(
+            c, norm=norm)
 
         displacement_computed = np.array([dx, dy])
 
@@ -130,9 +137,8 @@ for k, cls in classes.items():
 
         # first, no displacement
         c, norm = correl(self.im0, self.im0)
-        dx, dy, correl_max = correl.compute_displacement_from_correl(
-            c, coef_norm=norm,
-            method_subpix='2d_gaussian')
+        dx, dy, correl_max, _ = correl.compute_displacements_from_correl(
+            c, norm=norm)
         displacement_computed = np.array([dx, dy])
 
         logger.debug(
@@ -145,9 +151,8 @@ for k, cls in classes.items():
 
         # then, with the 2 figures with displacements
         c, norm = correl(self.im0, self.im1)
-        dx, dy, correl_max = correl.compute_displacement_from_correl(
-            c, coef_norm=norm,
-            method_subpix='2d_gaussian')
+        dx, dy, correl_max, _ = correl.compute_displacements_from_correl(
+            c, norm=norm)
 
         displacement_computed = np.array([dx, dy])
 
@@ -187,7 +192,7 @@ class TestCorrel2(unittest.TestCase):
             cls.displacements, nb_particles, shape_im0=(ny0, nx0),
             shape_im1=(ny1, nx1), epsilon=0.)
 
-	cls.im1 = cls.im1.astype('float32')
+        cls.im1 = cls.im1.astype('float32')
 
 for k, cls in classes2.items():
     def test2(self, cls=cls, k=k):
@@ -195,9 +200,8 @@ for k, cls in classes2.items():
 
         # with the 2 figures with displacements
         c, norm = correl(self.im0, self.im1)
-        dx, dy, correl_max = correl.compute_displacement_from_correl(
-            c, coef_norm=norm,
-            method_subpix='2d_gaussian')
+        dx, dy, correl_max, _ = correl.compute_displacements_from_correl(
+            c, norm=norm)
 
         displacement_computed = np.array([dx, dy])
 

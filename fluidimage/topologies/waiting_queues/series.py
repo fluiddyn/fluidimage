@@ -1,5 +1,6 @@
-"""Waiting queues for series
-============================
+"""
+Waiting queues for series (:mod:`fluidimage.topologies.waiting_queues.series`)
+==============================================================================
 
 .. autoclass:: WaitingQueueLoadImageSeries
    :members:
@@ -20,7 +21,7 @@ from ...util.util import logger
 from .base import (
     WaitingQueueLoadImage, WaitingQueueBase, WaitingQueueMultiprocessing)
 
-from ...data_objects.pre_proc import ArraySerie
+from ...data_objects.preproc import ArraySerie
 
 
 class WaitingQueueLoadImageSeries(WaitingQueueLoadImage):
@@ -36,6 +37,7 @@ class WaitingQueueLoadImageSeries(WaitingQueueLoadImage):
                            self.topology.nb_items_per_serie)
 
         cond_nb_items = len(self.destination) >= buffer_limit
+
         return (cond_instance and cond_nb_items)
 
     def add_name_files(self, names):
@@ -84,7 +86,7 @@ class WaitingQueueMakeSerie(WaitingQueueBase):
         serie_set = [serie.get_name_files() for serie in series]
         self.serie_set.update(serie_set)
         self.nb_series = len(serie_set)
-        self.ind_series = range(self.nb_series)
+        self.ind_series = list(range(self.nb_series))
         nb = self.nb_serie_to_create
 
         for names in serie_set:
@@ -95,6 +97,7 @@ class WaitingQueueMakeSerie(WaitingQueueBase):
                     nb[name] = 1
 
     def is_destination_full(self):
+
         cond_instance = isinstance(
             self.destination, WaitingQueueMultiprocessing)
 
@@ -104,8 +107,6 @@ class WaitingQueueMakeSerie(WaitingQueueBase):
         return (cond_instance and cond_nb_items)
 
     def check_and_act(self, sequential=None):
-        if self.is_destination_full():
-            return
 
         for names in copy(self.serie_set):
             if self.is_destination_full():

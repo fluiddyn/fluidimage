@@ -9,7 +9,9 @@ params.series.ind_step = 2
 
 params.piv0.shape_crop_im0 = 32
 params.multipass.number = 2
-params.multipass.use_tps = True
+params.multipass.use_tps = False
+
+params.mask.strcrop = ':, 50:500'
 
 # params.saving.how = 'complete'
 params.saving.postfix = 'piv_example'

@@ -1,5 +1,5 @@
-"""Waiting queues classes
-=========================
+"""Waiting queues classes (:mod:`fluidimage.topologies.waiting_queues.base`)
+============================================================================
 
 .. autoclass:: WaitingQueueBase
    :members:
@@ -66,6 +66,14 @@ class WaitingQueueBase(dict):
             elif hasattr(work, 'func_name'):
                 work_name = work.__module__ + '.' + work.func_name
 
+            else:
+                try:
+                    cls = work.__class__
+                    work_name = (cls.__module__ + '.' + cls.__name__ + '.' +
+                                 work.__name__)
+                except AttributeError:
+                    work_name = work.__module__ + '.' + work.__name__
+
         self.work_name = work_name
         self.topology = topology
         self._keys = []
@@ -75,14 +83,16 @@ class WaitingQueueBase(dict):
         length = len(self._keys)
         if length == 0:
             keys = []
+        elif length < 5:
+            keys = self._keys
         else:
             index = range(min(length, 3))
             keys = [self._keys[i] for i in index]
-            keys.extend(['...',  self._keys[-1]])
+            keys.extend(['...', self._keys[-1]])
 
         length = str(length)
         return cstring('WaitingQueue', repr(self.name),
-                       'with keys', repr(keys), length, 'items')
+                       'with keys', repr(keys), '(' + length + ' items)')
 
     def __setitem__(self, key, value):
         if key in self._keys:
@@ -94,6 +104,9 @@ class WaitingQueueBase(dict):
         return not bool(self)
 
     def check_and_act(self, sequential=None):
+        if self.is_empty() or self.is_destination_full():
+            return
+
         k, o = self.popitem()
         log_memory_usage(
             '{:.2f} s. '.format(time() - self.topology.t_start) +
@@ -130,8 +143,15 @@ class WaitingQueueBase(dict):
                 self.topology.nb_items_lim)
 
 
-def exec_work_and_comm(work, o, comm):
+def exec_work_and_comm(work, o, comm, comm_started):
+    # try:
+    #     name = o.name
+    # except AttributeError:
+    #     name = repr(o)
+    # print('start', work, name)
+    comm_started.put(True)
     result = work(o)
+    # print('work finished, communication.', work, name)
     comm.put(result)
 
 
@@ -150,7 +170,6 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
         return self.topology.nb_workers_cpu >= self.topology.nb_max_workers
 
     def check_and_act(self, sequential=False):
-
         if sequential:
             return WaitingQueueBase.check_and_act(self, sequential=sequential)
 
@@ -166,21 +185,21 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
         if i_launch >= self.topology.nb_max_launch:
             logger.debug('stop launching because nb_max_launch.')
 
-        if self.is_empty():
+        elif self.is_empty():
             logger.debug('stop launching because the queue is empty.')
 
-        if self.is_destination_full():
+        elif self.is_destination_full():
             logger.debug('stop launching because the destination is full.')
 
-        if self.enough_workers():
+        elif self.enough_workers():
             logger.debug('stop launching because the workers are saturated.')
 
         return workers
 
     def _launch_worker(self):
 
-        k = self._keys.pop(0)
-        o = self.pop(k)
+        k = self._keys[0]
+        o = self[k]
 
         log_memory_usage(
             '{:.2f} s. '.format(time() - self.topology.t_start) +
@@ -188,9 +207,24 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
             ' ({}). mem usage'.format(k))
 
         comm = self._Queue()
-        p = self._Process(target=exec_work_and_comm, args=(self.work, o, comm))
-        t_start = time()
+        comm_started = self._Queue()
+        p = self._Process(target=exec_work_and_comm,
+                          args=(self.work, o, comm, comm_started))
+        p.t_start = t_start = time()
+        p.comm = comm
+        p.key = k
+        p.work_name = self.work_name
+
+        # to handle a bug py3 multiprocessing
+        p.comm_started = comm_started
+        p.really_started = False
+
         p.start()
+
+        # we do this after p.start() because an error can be raised here
+        assert k == self._keys.pop(0)
+        assert o == self.pop(k)
+
         self._nb_workers += 1
         if self.do_use_cpu:
             self.topology.nb_workers_cpu += 1
@@ -202,25 +236,34 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
             if isinstance(p, multiprocessing.Process):
                 if p.exitcode:
                     logger.error(cstring(
-                        'Error in work (process): '
+                        'Error in work (Process): '
                         'work_name = {}; key = {}; exitcode = {}'.format(
                             self.work_name, k, p.exitcode),
                         color='FAIL'))
                     self._nb_workers -= 1
                     self.topology.nb_workers_cpu -= 1
                     return True
-
                 try:
                     result = comm.get_nowait()
                     is_done = True
                 except queue.Empty:
+                    # strange bug
+                    if not p.is_alive():
+                        logger.exception(cstring(
+                            'not p.is_alive() but nothing in the communication'
+                            ' queue. Result (' + k + ') has been lost :-(',
+                            color='FAIL'))
+                        self.topology.nb_workers_cpu -= 1
+                        self._nb_workers -= 1
+                        return True
                     return False
             else:
                 if p.exitcode:
-                    logger.info(
+                    logger.error(cstring(
                         'Error in work (thread): '
                         'work_name = {}; key = {}; exitcode = {}'.format(
-                            self.work_name, k, p.exitcode))
+                            self.work_name, k, p.exitcode),
+                        color='FAIL'))
                     raise p.exception
 
                 is_done = not p.is_alive()
@@ -338,8 +381,8 @@ class WaitingQueueMakeCouple(WaitingQueueBase):
         if self.is_destination_full():
             return
 
-        for k0 in self.keys():
-            for k1 in self.keys():
+        for k0 in list(self.keys()):
+            for k1 in list(self.keys()):
                 if (k1, k0) in self.couples:
                     k0, k1 = k1, k0
 
@@ -367,4 +410,5 @@ class WaitingQueueMakeCouple(WaitingQueueBase):
                             self.nb_couples_to_create[k1] - 1
 
                     self.destination[newk] = ArrayCouple(
-                        (k0, k1), (v0, v1), serie)
+                        (k0, k1), (v0, v1), serie,
+                        params_mask=self.topology.params.mask)

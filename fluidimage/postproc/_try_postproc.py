@@ -145,8 +145,8 @@ pylab.loglog(omega, psd)
 psd2 = postp.fft.time.psdU+postp.fft.time.psdV
 psd2 = np.sum(psd2, (1, 2))*1.0*(dx*dy)/(Lx*Ly)
 pylab.loglog(omega, psd2, 'r+')
-print np.mean(((psd2-psd)**2)/psd)
-print np.max(((psd2-psd)**2)/psd)
+print(np.mean(((psd2-psd)**2)/psd))
+print(np.max(((psd2-psd)**2)/psd))
 
 # moyenne temporelle de fft spatiotemp vs fft spatial
 psd = np.sum(postp.fft.spatiotemp.psdU+postp.fft.spatiotemp.psdV,
@@ -156,5 +156,5 @@ psd2 = postp.fft.spatial.psdU + postp.fft.spatial.psdV
 psd2 = np.sum(psd2, 0)*1.0*dt/Lt
 pylab.pcolor(Kx, Ky, psd2)
 pylab.pcolor(Kx, Ky, psd2-psd)
-print np.mean(((psd2-psd)**2)/psd)
-print np.max(((psd2-psd)**2)/psd)
+print(np.mean(((psd2-psd)**2)/psd))
+print(np.max(((psd2-psd)**2)/psd))

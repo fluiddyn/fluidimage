@@ -17,11 +17,12 @@ import os
 # to be able to build the doc without h5py with Read the docs
 on_rtd = os.environ.get('READTHEDOCS')
 if on_rtd:
+    print('Mock modules to build the documentation on READTHEDOCS.')
     # this package comes from fluiddyn
     from fluidrtd import mock_modules
     mock_modules([
-        'h5py', 'h5netcdf', 'scipy', 'scipy.ndimage', 'scipy.signal',
-        'pyfftw', 'theano'])
+        'h5py', 'h5netcdf', 'pyfftw', 'theano',
+        'reikna.cluda', 'reikna.fft', 'reikna.transformations'])
 
 import fluidimage
 
@@ -92,7 +93,7 @@ version = '{}.{}'.format(version[0], version[1])
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ['_build']
+exclude_patterns = ['_build', '**.ipynb_checkpoints']
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.

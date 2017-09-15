@@ -1,5 +1,5 @@
-"""Topology for PIV computation
-===============================
+"""Topology for PIV computation (:mod:`fluidimage.topologies.piv`)
+==================================================================
 
 .. autoclass:: TopologyPIV
    :members:
@@ -7,6 +7,7 @@
 
 """
 import os
+import json
 
 from .. import ParamContainer, SerieOfArraysFromFiles, SeriesOfArrays
 
@@ -17,12 +18,29 @@ from .waiting_queues.base import (
     WaitingQueueMakeCouple, WaitingQueueLoadImage)
 
 from ..works.piv import WorkPIV
-from ..data_objects.piv import get_name_piv, set_path_dir_result
+from ..data_objects.piv import get_name_piv, set_path_dir_result, ArrayCouple
 from ..util.util import logger
 
 
 class TopologyPIV(TopologyBase):
     """Topology for PIV.
+
+    Parameters
+    ----------
+
+    params : None
+
+      A ParamContainer containing the parameters for the computation.
+
+    logging_level : str, {'warning', 'info', 'debug', ...}
+
+      Logging level.
+
+    nb_max_workers : None, int
+
+      Maximum numbers of "workers". If None, a number is computed from the
+      number of cores detected. If there are memory errors, you can try to
+      decrease the number of workers.
 
     """
 
@@ -41,14 +59,90 @@ class TopologyPIV(TopologyBase):
                                              'ind_stop': None,
                                              'ind_step': 1})
 
+        params.series._set_doc("""
+Parameters indicating the input series of images.
+
+path : str, {''}
+
+    String indicating the input images (can be a full path towards an image
+    file or a string given to `glob`).
+
+strcouple : 'i:i+2'
+
+    String indicating as a Python slicing how couples of images are formed.
+    There is one couple per value of `i`. The values of `i` are set with the
+    other parameters `ind_start`, `ind_step` and `ind_stop` approximately with
+    the function range (`range(ind_start, ind_stop, ind_step)`).
+
+    Python slicing is a very powerful notation to define subset from a
+    (possibly multidimensional) set of images. For a user, an alternative is to
+    understand how Python slicing works. See for example this page:
+    http://stackoverflow.com/questions/509211/explain-pythons-slice-notation.
+
+    Another possibility is to follow simple examples:
+
+    For single-frame images (im0, im1, im2, im3, ...), we keep the default
+    value 'i:i+2' to form the couples (im0, im1), (im1, im2), ...
+
+    To see what it gives, one can use ipython and range:
+
+    >>> i = 0
+    >>> list(range(10))[i:i+2]
+    [0, 1]
+
+    >>> list(range(10))[i:i+4:2]
+    [0, 2]
+
+    We see that we can also use the value 'i:i+4:2' to form the couples (im0,
+    im2), (im1, im3), ...
+
+    For double-frame images (im1a, im1b, im2a, im2b, ...) you can write
+
+    >>> params.series.strcouple = 'i, 0:2'
+
+    In this case, the first couple will be (im1a, im1b).
+
+    To get the first couple (im1a, im1a), we would have to write
+
+    >>> params.series.strcouple = 'i:i+2, 0'
+
+ind_start : int, {0}
+
+ind_step : int, {1}
+
+int_stop : None
+
+""")
+
         params._set_child('saving', attribs={'path': None,
                                              'how': 'ask',
                                              'postfix': 'piv'})
 
         params.saving._set_doc(
-            "`how` can be 'ask', 'new_dir', 'complete' or 'recompute'.")
+            """Saving of the results.
+
+path : None or str
+
+    Path of the directory where the data will be saved. If None, the path is
+    obtained from the input path and the parameter `postfix`.
+
+how : str {'ask'}
+
+    'ask', 'new_dir', 'complete' or 'recompute'.
+
+postfix : str
+
+    Postfix from which the output file is computed.
+""")
 
         WorkPIV._complete_params_with_default(params)
+
+        params._set_internal_attr(
+            '_value_text',
+            json.dumps({'program': 'fluidimage',
+                        'module': 'fluidimage.topologies.piv',
+                        'class': 'TopologyPIV'}))
+
         return params
 
     def __init__(self, params=None, logging_level='info', nb_max_workers=None):
@@ -145,6 +239,16 @@ class TopologyPIV(TopologyBase):
         im = self.wq0.work(o)
         self.wq0.fill_destination(k, im)
 
+        # a little bit strange, to apply mask...
+        try:
+            params_mask = self.params.mask
+        except AttributeError:
+            params_mask = None
+
+        couple = ArrayCouple(
+            names=('', ''), arrays=(im, im), params_mask=params_mask)
+        im, _ = couple.get_arrays()
+
         self.piv_work._prepare_with_image(im)
 
     def _print_at_exit(self, time_since_start):
@@ -163,3 +267,7 @@ class TopologyPIV(TopologyBase):
         txt += '\npath results:\n' + self.path_dir_result
 
         print(txt)
+
+params = TopologyPIV.create_default_params()
+
+__doc__ += params._get_formatted_docs()
