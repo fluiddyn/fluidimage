@@ -21,11 +21,11 @@ class Calibration(object):
         """
 
         Xphys, Yphys, Zphys = self.pix2phys(X, Y, index_level=index_level,
-                                            nbypix=nbypix, angle=True)
+                                            nbypix=nbypix, angle=angle)
         dxb, dyb, dzb = self.pix2phys(X + dx/2.0, Y + dy/2.0, index_level,
-                                      nbypix=nbypix, angle=True)
+                                      nbypix=nbypix, angle=angle)
         dxa, dya, dza = self.pix2phys(X - dx/2.0, Y - dy/2.0, index_level,
-                                      nbypix=nbypix, angle=True)
+                                      nbypix=nbypix, angle=angle)
         dxphys = dxb - dxa
         dyphys = dyb - dya
         dzphys = dzb - dza
@@ -74,7 +74,7 @@ class Calibration(object):
             params.kc = 0
 
         if hasattr(params, 'R'):
-            R = params.R
+            R = copy.deepcopy(params.R)
             # R[0]= params.R[4]
             # R[1]= params.R[3]
             # R[2]= params.R[5]
@@ -87,22 +87,25 @@ class Calibration(object):
             # R[3]= params.R[1]
             # R[2]= params.R[6]
             # R[6]= params.R[2]
-            # R[5]= params.R[5]
-            # R[7]= params.R[7]
+            # R[5]= params.R[7]
+            # R[7]= params.R[5]
 
+            # R[1] = -R[1]
+            # R[3] = -R[3]
+            
             if testangle:
                 a = -norm_plane[0]/norm_plane[2]
                 b = -norm_plane[1]/norm_plane[2]
                 if test_refraction:
-                    a /= params.refraction_index
-                    b /= params.refraction_index
+                    atmp = a/params.refraction_index
+                    btmp = b/params.refraction_index
 
-                    R[0] += a*R[2]
-                    R[1] += b*R[2]
-                    R[3] += a*R[5]
-                    R[4] += b*R[5]
-                    R[6] += a*R[8]
-                    R[7] += b*R[8]
+                    R[0] += atmp*R[2]
+                    R[1] += btmp*R[2]
+                    R[3] += atmp*R[5]
+                    R[4] += btmp*R[5]
+                    R[6] += atmp*R[8]
+                    R[7] += btmp*R[8]
 
             Tx = params.T[0]
             Ty = params.T[1]
