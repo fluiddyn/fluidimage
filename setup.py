@@ -17,6 +17,8 @@ try:
 except ImportError:
     use_pythran = False
 
+here = os.path.abspath(os.path.dirname(__file__))
+
 # I have not yet manage to use Pythran on Windows...
 if sys.platform == 'win32':
     use_pythran = False
@@ -94,10 +96,9 @@ if use_pythran:
         ['fluidimage.calcul.correl_pythran',
          'fluidimage.calcul.interpolate.tps_pythran',
          'fluidimage.calcul.subpix_pythran'
-     ])
+         ])
 else:
     ext_modules = []
-
 
 setup(
     name='fluidimage',
@@ -129,5 +130,7 @@ setup(
     packages=find_packages(exclude=[
         'doc', 'include', 'scripts']),
     install_requires=install_requires,
-    scripts=['bin/fluidimviewer', 'bin/fluidimlauncher'],
+    scripts=['bin/fluidimviewer', 'bin/fluidimlauncher',
+             'bin/fluidimviewer-pg', 'bin/fluidimslideshow-pg',
+             ],
     ext_modules=ext_modules)

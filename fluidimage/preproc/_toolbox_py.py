@@ -1,4 +1,4 @@
-"""Preprocess toolbox (:mod:`fluidimage.pre_proc._toolbox_py`)
+"""Preprocess toolbox (:mod:`fluidimage.preproc._toolbox_py`)
 ==========================================================
 A toolbox for preprocessing images.
 Utilizes functions available from `scipy.ndimage` and `skimage` packages.
@@ -15,12 +15,12 @@ import scipy.ndimage as ndi
 try:
     import skimage
     from skimage import exposure, filters, morphology
-    if skimage.__version__ < '0.12.3':
+    if skimage.__version__ < '0.13.0':
         print('Warning: to use fluidimage.preproc, '
-              'first upgrade scikit-image to a version >= 0.12.3.')
+              'first upgrade scikit-image to a version >= 0.13.0.')
 except ImportError:
     print('Warning: ImportError, to use fluidimage.preproc, '
-          'first install scikit-image >= 0.12.3.')
+          'first install scikit-image >= 0.13.0')
 
 from .io import iterate_multiple_imgs, multiple_imgs_as_ndarray
 

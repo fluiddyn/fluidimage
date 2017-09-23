@@ -28,6 +28,7 @@ from copy import deepcopy
 from glob import glob
 from warnings import warn
 from fluidimage.topologies.preproc import TopologyPreproc
+from fluidimage.topologies.piv import TopologyPIV
 
 
 class ParamListBase(list):
@@ -53,7 +54,7 @@ class ParamListBase(list):
         '''Detects if it is single (series) or double (burst) frame expt.'''
 
         if 'PCO' in self.camera:
-            pattern = os.path.join(self.path, '*scan_piv*')
+            pattern = os.path.join(self.path, '*frame*piv*')
             scan_piv_file = glob(pattern)[0]
             if 'single_frame' in scan_piv_file:
                 return 1
@@ -83,12 +84,12 @@ class ParamListBase(list):
         levels = [os.path.basename(subdir) for subdir in glob(pattern)]
         return levels
 
-    def fill_params(self, level):
+    def fill_params(self, level, **kwargs):
         '''
         Initialize parameters for a particular experiment, camera and level.
 
         '''
-        params = self.TopologyClass.create_default_params()
+        params = self.TopologyClass.create_default_params(**kwargs)
         params = self._set_complete_path(params, level)
 
         get_params = self.camera_specific_params[self.camera]
@@ -130,3 +131,17 @@ class ParamListPreproc(ParamListBase):
 
     def _get_complete_path(self, params):
         return params.preproc.series.path
+
+
+class ParamListPIV(ParamListBase):
+    def __init__(self, *args, **kwargs):
+        super(ParamListPreproc, self).__init__(*args, **kwargs)
+        self.TopologyClass = TopologyPIV
+
+    def _set_complete_path(self, params, level):
+        params.series.path = os.path.join(
+            self.path, self.camera, level)
+        return params
+
+    def _get_complete_path(self, params):
+        return params.series.path

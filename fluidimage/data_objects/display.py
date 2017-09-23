@@ -136,22 +136,21 @@ class DisplayPIV(object):
                     picker=10, color='r', scale_units='xy', scale=scale)
 
         if hist:
-            fig2 = plt.figure()
-            ax3 = plt.gca()
+            fig2, axes = plt.subplots(ncols=2)
+            ax3, ax4 = axes.ravel()
             ind = (np.isnan(deltaxs) + np.isnan(deltays) + np.isinf(deltaxs) +
                    np.isinf(deltays))
             deltaxs2 = deltaxs[~ind]
             deltays2 = deltays[~ind]
-            # histx = np.histogram(deltaxs2, bins='fd')
-            # histy = np.histogram(deltays2, bins='fd')
-            # incr = 1
-            # ax3.plot(histx[1][0:-1:incr], histx[0][0::incr],'b+')
-            # ax3.plot(histy[1][0:-1:incr], histy[0][0::incr],'r+')
-            ax3.hist(deltaxs2, 'fd', color='b')
-            ax3.hist(deltays2, 'fd', color='r')
-
+            ax3.hist(deltaxs2, 'fd', color='b', label='$\Delta x_s$')
+            ax3.hist(deltays2, 'fd', color='r', label='$\Delta y_s$')
             ax3.set_xlabel('displacement x (blue) and y (red) (pixels)')
             ax3.set_ylabel('histogram')
+            ax3.legend()
+
+            ax4.hist(piv_results.correls_max, 'fd', color='g')
+            ax4.set_xlabel('Maximum pixel correlation')
+            ax4.set_ylabel('histogram')
             fig2.show()
 
         self.ind = 0
