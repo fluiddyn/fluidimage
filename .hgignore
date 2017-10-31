@@ -49,6 +49,8 @@ doc/ipynb/*.rst
 doc/ipynb/.ipynb_checkpoints/*
 
 */.ipynb_checkpoints/*
+doc/ipynb/*.nbconvert.ipynb
+doc/ipynb/tuto_piv_files/tuto_piv_20_0.png
 
 doc/examples/oar_launcher*
 

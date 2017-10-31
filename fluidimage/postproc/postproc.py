@@ -14,9 +14,6 @@ from .util import (
     compute_norm, oneD_fourier_transform, twoD_fourier_transform)
 
 
-
-
-
 class DataObject(object):
     pass
 

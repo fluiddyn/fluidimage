@@ -10,15 +10,20 @@
    :private-members:
 
 """
-import numpy as np
 import glob
+from math import sqrt
+
+import numpy as np
 import pylab
-# from mpl_toolkits.mplot3d import Axes3D
+
+try:
+    from mpl_toolkits.mplot3d import Axes3D
+except ImportError:
+    pass
 from scipy.interpolate import griddata
 # from scipy.interpolate import CloughTocher2DInterpolator
 from scipy.interpolate import LinearNDInterpolator, RegularGridInterpolator
 import matplotlib.pyplot as plt
-from math import sqrt
 
 from fluiddyn.util.paramcontainer import ParamContainer, tidy_container
 
@@ -29,6 +34,37 @@ class Interpolent():
     pass
 
 
+def get_points(points_file):
+    """Get grid points extracted from calibration images
+    """
+    imgpts = ParamContainer(path_file=points_file)
+    tidy_container(imgpts)
+    imgpts = imgpts.geometry_calib.source_calib.__dict__
+    points = [x for x in imgpts.keys() if 'point_' in x or 'Point' in x]
+    points.sort()
+
+    # [X, Y, Z, x, y]
+    results = [[], [], [], [], []]
+    # X, Y and Z are coordinate in real space (physical unit)
+    # x and y are the indices of the pixel in the image
+    for point in points:
+        numbers = get_number_from_string2(imgpts[point])
+
+        for i, result in enumerate(results):
+            result.append(numbers[i])
+
+    results = [np.array(result) for result in results]
+
+    # particularity for Z
+    results[2] = results[2][0]
+
+    # particularity for X, Y, Z
+    for i in range(3):
+        results[i] /= 100.
+
+    return results
+
+
 class CalibDirect():
     """Class for direct Calibration
     This calibration determine the equations of optical paths for "each" pixels
@@ -36,94 +72,91 @@ class CalibDirect():
     Parameters
     ----------
 
-    pathimg: None
+    glob_str_xml: None
       Path for grid points extracted from calibration images
       This files are given by UVMAT.
       example: 'Images/img*.xml'
 
-    nb_pixel: (None, None)
+    nb_pixels: (None, None)
       Number of pixels in the images
 
     pth_file: None
       Path of calibration file
 
     """
-    def __init__(self, pathimg=None, nb_pixel=(None, None),
-                 pth_file=None):
+    def __init__(self, glob_str_xml=None, shape_img=(None, None),
+                 path_file=None):
 
-        if pth_file:
-            self.load(pth_file)
+        if path_file:
+            self.load(path_file)
         else:
-            self.pathimg = glob.glob(pathimg)
-            self.nb_pixelx = nb_pixel[0]
-            self.nb_pixely = nb_pixel[1]
-
-    def get_points(self, img):
-        """ Get grid points extracted from calibration images
-        """
-        imgpts = ParamContainer(path_file=img)
-        tidy_container(imgpts)
-        imgpts = imgpts.geometry_calib.source_calib.__dict__
-        pts = ([x for x in imgpts.keys() if 'point_' in x or 'Point' in x])
-
-        # coord in real space
-        X = np.array(
-            [get_number_from_string2(imgpts[tmp])[0] for tmp in pts])/100.
-        Y = np.array(
-            [get_number_from_string2(imgpts[tmp])[1] for tmp in pts])/100.
-        Z = np.array(
-            [get_number_from_string2(imgpts[tmp])[2] for tmp in pts])[0]/100.
-        # coord in image
-        x = np.array(
-            [get_number_from_string2(imgpts[tmp])[3] for tmp in pts])
-        y = np.array([get_number_from_string2(imgpts[tmp])[4] for tmp in pts])
-        # difference of convention with calibration done with uvmat for Y!
-        return X, Y, Z, x, y
+            self.paths_xml = glob.glob(glob_str_xml)
+            if len(self.paths_xml) == 0:
+                raise ValueError(
+                    'No xml file found. \n'
+                    'glob_str_xml = "{}"'.format(glob_str_xml))
+            self.nb_pixels_x = shape_img[1]
+            self.nb_pixels_y = shape_img[0]
 
     def compute_interpolents(self, interpolator=LinearNDInterpolator):
-        """ Compute interpolents (self.interp_levels) from camera coordinates to
-        real coordinates for each plane z=?
+        """Compute interpolents
+
+        Create an object Interpolent (self.interp_levels) containing
+        interpolents to switch from indices of pixels to physical coordinates.
+
+        - indices_pixel2xphys
+        - indices_pixel2yphys
+        - phys2index_x_pixel
+        - phys2index_y_pixel
+        - zphys
+
+        There are as many interpolents of each sort as numbers of planes (z
+        values).
+
         """
-        imgs = self.pathimg
         interp = Interpolent()
-        interp.cam2X = []
-        interp.cam2Y = []
-        interp.real2x = []
-        interp.real2y = []
+        interp.indices_pixel2xphys = []
+        interp.indices_pixel2yphys = []
+        interp.phys2index_x_pixel = []
+        interp.phys2index_y_pixel = []
         interp.Z = []
 
-        for i, img in enumerate(imgs):
-            X, Y, Z, x, y = self.get_points(img)
+        for i, path in enumerate(self.paths_xml):
+            # naming convention:
+            # X, Y and Z are coordinate in real space (physical unit)
+            # x and y are the indices of the pixel in the image
+            X, Y, Z, x, y = get_points(path)
             interp.Z.append(Z)
 
-            interp.cam2X.append(interpolator((x, y), X))
-            interp.cam2Y.append(interpolator((x, y), Y))
-            interp.real2x.append(interpolator((X, Y), x))
-            interp.real2y.append(interpolator((X, Y), y))
+            interp.indices_pixel2xphys.append(interpolator((x, y), X))
+            interp.indices_pixel2yphys.append(interpolator((x, y), Y))
+            interp.phys2index_x_pixel.append(interpolator((X, Y), x))
+            interp.phys2index_y_pixel.append(interpolator((X, Y), y))
 
         self.interp_levels = interp
 
-    def compute_interppixel2line(self, nbline,
-                                 test=False):
-        """ Compute interpolents for parameters for each optical path
-        (number of optical path is given by nbline=(nbline_x, nbline_y)
-        optical paths are defined with
-        a point x0, y0, z0 and a vector dx, dy, dz
-        """
-        nbline_x = nbline[0]
-        nbline_y = nbline[1]
+    def compute_interpolents_pixel2line(self, nb_lines_x, nb_lines_y,
+                                        test=False):
+        """Compute interpolents for parameters for each optical path.
 
-        xtmp = np.unique(np.floor(np.linspace(0, self.nb_pixelx, nbline_x)))
-        ytmp = np.unique(np.floor(np.linspace(0, self.nb_pixely, nbline_y)))
+        The number of optical paths is given by nb_lines_x * nb_lines_y.
+
+        Optical paths are defined with a point x0, y0, z0 and a vector dx, dy,
+        dz.
+
+        """
+
+        xtmp = np.unique(np.floor(np.linspace(0, self.nb_pixels_x, nb_lines_x)))
+        ytmp = np.unique(np.floor(np.linspace(0, self.nb_pixels_y, nb_lines_y)))
 
         x, y = np.meshgrid(xtmp, ytmp)
         x = x.transpose()
         y = y.transpose()
         V = np.zeros((x.shape[0], x.shape[1], 6))
-
+        
         xtrue = []
         ytrue = []
-        Vtrue = []
+        vtrue = []
         xfalse = []
         yfalse = []
         indi = []
@@ -141,14 +174,7 @@ class CalibDirect():
                     V[i, j, :] = tmp
                     xtrue.append(x[i, j])
                     ytrue.append(y[i, j])
-                    Vtrue.append(tmp)
-
-        # for j in range(6):
-        #     indfalse = np.where(isnan(V[:, :, j]))
-        #     indtrue = np.where(isnan(V[:, :, j]) == False)
-        #     V[indfalse[0], indfalse[1], j]  = griddata((X[indfalse], Y[indfalse]),
-        #                     V[indtrue[0], indtrue[1], j],
-        #                     (X[indtrue], Y[indtrue]))
+                    vtrue.append(tmp)
 
         if test:
             titles = ['X0', 'Y0', 'Z0', 'dx', 'dy', 'dz']
@@ -169,10 +195,10 @@ class CalibDirect():
             pylab.colorbar()
             plt.show()
 
-        Vtrue = np.array(Vtrue)
+        vtrue = np.array(vtrue)
         for j in range(6):
             V[indi, indj, j] = griddata(
-                (xtrue, ytrue), Vtrue[:, j], (xfalse, yfalse))
+                (xtrue, ytrue), vtrue[:, j], (xfalse, yfalse))
 
         interp = []
         for i in range(6):
@@ -181,17 +207,19 @@ class CalibDirect():
         self.interp_lines = interp
 
     def pixel2line(self, indx, indy):
-        """ Compute parameters of the optical path for a pixel
-        optical path is defined with
-        a point x0, y0, z0 and a vector dx, dy, dz
+        """Compute parameters of the optical path for a pixel
+        
+        An optical path is defined with a point x0, y0, z0 and a vector dx, dy,
+        dz.
+
         """
         interp = self.interp_levels
         X = []
         Y = []
         Z = interp.Z
         for i in range(len(Z)):
-            X.append((interp.cam2X[i]((indx, indy))))
-            Y.append((interp.cam2Y[i]((indx, indy))))
+            X.append((interp.indices_pixel2xphys[i]((indx, indy))))
+            Y.append((interp.indices_pixel2yphys[i]((indx, indy))))
         X = np.array(X)
         Y = np.array(Y)
         XYZ = np.vstack([X, Y, Z]).transpose()
@@ -211,53 +239,49 @@ class CalibDirect():
             return np.hstack([np.nan]*6)
 
     def save(self, pth_file):
-        """ Save calibration
+        """Save calibration
         """
         np.save(pth_file,
-                [self.interp_lines, self.pathimg, self.nb_pixelx,
-                 self.nb_pixely])
+                [self.interp_lines, self.paths_xml,
+                 self.nb_pixels_x, self.nb_pixels_y])
 
     def load(self, pth_file):
-        """ Load calibration
+        """Load calibration
         """
         tmp = np.load(pth_file)
         self.interp_lines = tmp[0]
-        self.pathimg = tmp[1]
-        self.nb_pixelx = tmp[2]
-        self.nb_pixely = tmp[3]
+        self.paths_xml = tmp[1]
+        self.nb_pixels_x = tmp[2]
+        self.nb_pixels_y = tmp[3]
 
     def intersect_with_plane(self, indx, indy, a, b, c, d):
-        """ Find intersection with the line associated to the pixel  indx, indy
-        and a plane defined by ax + by + cz + d =0
+        """Find intersection with the line associated to the pixel  indx, indy
+        and a plane defined by ax + by + cz + d = 0
         """
-        def get_coord(ix, iy):
-            x0 = self.interp_lines[0]((ix, iy))
-            y0 = self.interp_lines[1]((ix, iy))
-            z0 = self.interp_lines[2]((ix, iy))
-            dx = self.interp_lines[3]((ix, iy))
-            dy = self.interp_lines[4]((ix, iy))
-            dz = self.interp_lines[5]((ix, iy))
-            t = -(a * x0 + b * y0 + c * z0 + d) / (a * dx + b * dy + c * dz)
-            return np.array([x0 + t * dx, y0 + t * dy, z0 + t * dz])
-        X = get_coord(indx, indy).transpose()
-
-        return X
+        x0 = self.interp_lines[0]((indx, indy))
+        y0 = self.interp_lines[1]((indx, indy))
+        z0 = self.interp_lines[2]((indx, indy))
+        dx = self.interp_lines[3]((indx, indy))
+        dy = self.interp_lines[4]((indx, indy))
+        dz = self.interp_lines[5]((indx, indy))
+        t = -(a * x0 + b * y0 + c * z0 + d) / (a * dx + b * dy + c * dz)
+        physical_coords = np.array([x0 + t * dx, y0 + t * dy, z0 + t * dz])
+        return physical_coords.transpose()
 
     def apply_calib(self, indx, indy, dx, dy, a, b, c, d):
-            """ Gives the projection of the real displacement projected on each
-            camera plane and then projected on the laser plane
-            """
-            dX = self.intersect_with_plane(
-                indx+dx/2., indy+dy/2., a, b, c, d) - self.intersect_with_plane(
-                    indx-dx/2., indy-dy/2., a, b, c, d)
-            return dX
+        """Gives the projection of the real displacement projected on each
+        camera plane and then projected on the laser plane
+        """
+        displacements = self.intersect_with_plane(indx+dx/2., indy+dy/2., a, b, c, d) - \
+             self.intersect_with_plane(indx-dx/2., indy-dy/2., a, b, c, d)
+        return displacements
 
     def get_base_camera_plane(self, indx=None, indy=None):
-        """ Matrix of base change from camera plane to fixed plane
+        """Matrix of base change from camera plane to fixed plane
         """
         if indx is None:
-            indx = range(self.nb_pixelx//2-20, self.nb_pixelx//2+20)
-            indy = range(self.nb_pixely//2-20, self.nb_pixely//2+20)
+            indx = range(self.nb_pixels_x//2-20, self.nb_pixels_x//2+20)
+            indy = range(self.nb_pixels_y//2-20, self.nb_pixels_y//2+20)
             indx, indy = np.meshgrid(indx, indy)
         dx = np.nanmean(self.interp_lines[3]((indx, indy)))
         dy = np.nanmean(self.interp_lines[4]((indx, indy)))
@@ -266,16 +290,16 @@ class CalibDirect():
         return A, B
 
     def check_interp_levels(self):
-        """ Plot to check interp_levels
+        """Plot to check interp_levels
         """
         interp = self.interp_levels
-        indx = range(0, self.nb_pixelx, self.nb_pixelx//100)
-        indy = range(0, self.nb_pixely, self.nb_pixely//100)
+        indx = range(0, self.nb_pixels_x, self.nb_pixels_x//100)
+        indy = range(0, self.nb_pixels_y, self.nb_pixels_y//100)
         indx, indy = np.meshgrid(indx, indy)
         Z = interp.Z
         for i in range(len(Z)):
-            X = interp.cam2X[i]((indx, indy))
-            Y = interp.cam2Y[i]((indx, indy))
+            X = interp.indices_pixel2xphys[i]((indx, indy))
+            Y = interp.indices_pixel2yphys[i]((indx, indy))
             pylab.figure()
             pylab.pcolor(indx, indy, X)
             pylab.title('Level {}, X'.format(i))
@@ -293,23 +317,16 @@ class CalibDirect():
         plt.show()
 
     def check_interp_lines(self):
-        """ Plot to check interp_lines
+        """Plot to check interp_lines
         """
-        imgs = self.pathimg
-        interp = Interpolent()
-        interp.cam2X = []
-        interp.cam2Y = []
-        interp.real2x = []
-        interp.real2y = []
-        interp.Z = []
         fig = pylab.figure()
         ax = Axes3D(fig)
-        for i, img in enumerate(imgs):
-            X, Y, Z, x, y = self.get_points(img)
+        for i, path in enumerate(self.paths_xml):
+            X, Y, Z, x, y = get_points(path)
             ax.scatter(X, Y, Z, marker='.', color='blue')
 
-        x = range(0, self.nb_pixelx, self.nb_pixelx/10)
-        y = range(0, self.nb_pixely, self.nb_pixely/10)
+        x = range(0, self.nb_pixels_x, self.nb_pixels_x//10)
+        y = range(0, self.nb_pixels_y, self.nb_pixels_y//10)
         x, y = np.meshgrid(x, y)
         x = x.flatten()
         y = y.flatten()
@@ -330,10 +347,10 @@ class CalibDirect():
         plt.show()
 
     def check_interp_lines_coeffs(self):
-        """ Plot to check interp_lines coefficients
+        """Plot to check interp_lines coefficients
         """
-        x = range(0, self.nb_pixelx, self.nb_pixelx/100)
-        y = range(0, self.nb_pixely, self.nb_pixely/100)
+        x = range(0, self.nb_pixels_x, self.nb_pixels_x//100)
+        y = range(0, self.nb_pixels_y, self.nb_pixels_y//100)
         x, y = np.meshgrid(x, y)
         X0 = np.zeros(x.shape)
         Y0 = np.zeros(x.shape)
@@ -410,9 +427,9 @@ class DirectStereoReconstruction():
     path_file1:
        Path of the file of the second camera
     """
-    def __init__(self, pth_file0, pth_file1):
-        self.calib0 = CalibDirect(pth_file=pth_file0)
-        self.calib1 = CalibDirect(pth_file=pth_file1)
+    def __init__(self, path_file0, path_file1):
+        self.calib0 = CalibDirect(path_file=path_file0)
+        self.calib1 = CalibDirect(path_file=path_file1)
         # matrices from camera planes to fixed plane and inverse
         self.A0, self.B0 = self.calib0.get_base_camera_plane()
         self.A1, self.B1 = self.calib1.get_base_camera_plane()
@@ -432,7 +449,7 @@ class DirectStereoReconstruction():
 
     def project2cam(self, indx0, indy0, dx0, dy0, indx1, indy1, dx1, dy1,
                     a, b, c, d, check=False):
-        """ Project displacements of each cameras dx0, dy0, dx1 and dy1
+        """Project displacements of each cameras dx0, dy0, dx1 and dy1
         in their respective planes.
         """
 
@@ -477,7 +494,7 @@ class DirectStereoReconstruction():
         return X0, X1, d0cam, d1cam
 
     def find_common_grid(self, X0, X1, a, b, c, d):
-        """ Find a common grid for the 2 cameras
+        """Find a common grid for the 2 cameras
         """
         xmin0 = np.nanmin(X0[:, 0])
         xmax0 = np.nanmax(X0[:, 0])
@@ -521,7 +538,7 @@ class DirectStereoReconstruction():
 
     def interp_on_common_grid(
             self, X0, X1, d0cam, d1cam, grid_x, grid_y):
-        """ Interpolate displacements of the 2 cameras d0cam, d1cam on the
+        """Interpolate displacements of the 2 cameras d0cam, d1cam on the
         common grid grid_x, grid_y
         """
         # if not hasattr(self, 'grid_x'):
@@ -543,7 +560,7 @@ class DirectStereoReconstruction():
 
     def reconstruction(self, X0, X1, d0cam, d1cam, a, b, c, d, grid_x, grid_y,
                        check=False):
-        """ Reconstruction of the 3 components of the velocity in the plane
+        """Reconstruction of the 3 components of the velocity in the plane
         defined by a, b, c, d on the grid defined by grid_x, grid_y
         from the displacements of the 2 cameras d0cam, d1cam in their respective
         planes d0cam, d1cam
@@ -665,7 +682,7 @@ if __name__ == "__main__":
     pathimg = path_cam + '1/img*'
     calib = CalibDirect(pathimg, (nb_pixelx, nb_pixely))
     calib.compute_interpolents()
-    calib.compute_interppixel2line((nbline_x, nbline_y), test=False)
+    calib.compute_interp_pixel2line((nbline_x, nbline_y), test=False)
     calib.save(path_cam + '1/calib1.npy')
 
     # calib.check_interp_lines_coeffs()
@@ -674,7 +691,7 @@ if __name__ == "__main__":
     pathimg = path_cam + '3/img*'
     calib3 = CalibDirect(pathimg, (nb_pixelx, nb_pixely))
     calib3.compute_interpolents()
-    calib3.compute_interppixel2line((nbline_x, nbline_y), test=False)
+    calib3.compute_interp_pixel2line((nbline_x, nbline_y), test=False)
     calib3.save(path_cam + '3/calib3.npy')
 
     stereo = DirectStereoReconstruction(

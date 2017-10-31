@@ -1,9 +1,6 @@
 """Utilities for calibration (:mod:`fluidimage.calibration.util`)
 =================================================================
 
-
-
-
 """
 
 import re

@@ -26,6 +26,9 @@ if on_rtd:
 
 import fluidimage
 
+# We have to modify fluidrtd.ipynb_maker using
+# jupyter-nbconvert --ExecutePreprocessor.timeout=200 --to notebook --execute nfile.ipynb
+# remark: another useful command: nbstripout ipynb/*.ipynb
 from fluidrtd.ipynb_maker import ipynb_to_rst
 ipynb_to_rst()
 
