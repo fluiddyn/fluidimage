@@ -6,6 +6,8 @@ syntax: glob
 *tmp
 *.html
 
+fluidimage/_path_image_samples.py
+
 *.swp
 *.swo
 
