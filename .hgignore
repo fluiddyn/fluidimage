@@ -33,8 +33,6 @@ dist*
 
 *OAR.*
 
-doc/generated/*
-
 */profile.pstats
 */profile*.png
 
@@ -45,12 +43,15 @@ image_samples/*/Images.piv*/*.h5
 fluidimage/works/piv/*.h5
 fluidimage/**.dot
 
+doc/generated/*
+
 doc/ipynb/*.rst
 doc/ipynb/.ipynb_checkpoints/*
 
+
 */.ipynb_checkpoints/*
 doc/ipynb/*.nbconvert.ipynb
-doc/ipynb/tuto_piv_files/tuto_piv_20_0.png
+doc/ipynb/**.png
 
 doc/examples/oar_launcher*
 

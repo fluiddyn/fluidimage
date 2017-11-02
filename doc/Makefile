@@ -56,6 +56,9 @@ clean:
 cleanall: clean
 	rm -rf generated html.zip
 
+cleannbconvert.ipynb:
+	rm -f ipynb/*.nbconvert.ipynb
+
 dirhtml:
 	$(SPHINXBUILD) -b dirhtml $(ALLSPHINXOPTS) $(BUILDDIR)/dirhtml
 	@echo

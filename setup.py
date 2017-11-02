@@ -56,7 +56,7 @@ except (OSError, subprocess.CalledProcessError):
     except (OSError, subprocess.CalledProcessError):
         pass
 
-install_requires = ['fluiddyn >= 0.1.3']
+install_requires = ['fluiddyn >= 0.1.6']
 
 on_rtd = os.environ.get('READTHEDOCS')
 if not on_rtd:

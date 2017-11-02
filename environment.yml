@@ -3,7 +3,7 @@ channels:
   - conda-forge
 
 dependencies:
-  - python=3.5
+  - python=3.6
   - numpy
   - scipy
   - cython
@@ -13,3 +13,5 @@ dependencies:
   - numpydoc
   - jupyter
   - matplotlib
+  - fftw
+  - pyfftw

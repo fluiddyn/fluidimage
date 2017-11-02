@@ -75,6 +75,7 @@ def get_name_preproc(serie, name_files, ind_serie, nb_series, out_format):
         fname += '.' + out_format
         return fname
 
+
 class ArraySerie(ArrayCouple):
     def __init__(
             self, names=None, arrays=None, serie=None,
