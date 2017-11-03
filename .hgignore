@@ -7,6 +7,7 @@ syntax: glob
 *.html
 
 fluidimage/_path_image_samples.py
+fluidimage/_hg_rev.py
 
 *.swp
 *.swo
@@ -22,8 +23,6 @@ fluidimage/_path_image_samples.py
 *_cy.c
 *_wrap.cxx
 *.out
-
-fluidimage/_hg_rev.py
 
 src_cy/fft*_cy.pyx
 src_cy/fft*_pxd.pxd
@@ -46,16 +45,12 @@ fluidimage/works/piv/*.h5
 fluidimage/**.dot
 
 doc/generated/*
-
 doc/ipynb/*.rst
 doc/ipynb/.ipynb_checkpoints/*
-
-
-*/.ipynb_checkpoints/*
 doc/ipynb/*.nbconvert.ipynb
 doc/ipynb/**.png
-
 doc/examples/oar_launcher*
+*/.ipynb_checkpoints/*
 
 fluidimage/post_proc/*.h5
 
@@ -64,9 +59,8 @@ image_samples/*/*.pre*
 image_samples/*/*.piv
 image_samples/*/*/log_*.txt
 image_samples/*/*/params_*.xml
+image_samples/4th_PIV-Challenge_Case_E/E_Calibration_Images/Camera_0*/calib*.npy
 
 .coverage/*
 
 */test_fluidimage*
-
-image_samples/4th_PIV-Challenge_Case_E/E_Calibration_Images/Camera_0*/calib*.npy
