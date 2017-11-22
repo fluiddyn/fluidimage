@@ -206,7 +206,7 @@ postfix : str
                 if os.path.exists(os.path.join(
                         self.path_dir_result, name_piv)):
                     continue
-                for name in serie.get_name_files():
+                for name in serie.get_name_arrays():
                     if name not in names:
                         names.append(name)
 
@@ -220,9 +220,9 @@ postfix : str
             series.set_index_series(index_series)
 
             logger.debug(repr(names))
-            logger.debug(repr([serie.get_name_files() for serie in series]))
+            logger.debug(repr([serie.get_name_arrays() for serie in series]))
         else:
-            names = series.get_name_all_files()
+            names = series.get_name_all_arrays()
 
         nb_series = len(series)
         print('Add {} PIV fields to compute.'.format(nb_series))
@@ -230,7 +230,7 @@ postfix : str
         for i, serie in enumerate(series):
             if i > 1:
                 break
-            print('Files of serie {}: {}'.format(i, serie.get_name_files()))
+            print('Files of serie {}: {}'.format(i, serie.get_name_arrays()))
 
         self.wq0.add_name_files(names)
         self.wq_images.add_series(series)

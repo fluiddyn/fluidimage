@@ -35,6 +35,8 @@ from .._hg_rev import hg_rev
 
 
 def get_str_index(serie, i, index):
+    if serie._from_movies and i == serie.nb_indices - 1:
+        return str(index)
     if serie._index_types[i] == 'digit':
         code_format = '{:0' + str(serie._index_lens[i]) + 'd}'
         str_index = code_format.format(index)
@@ -132,11 +134,11 @@ class ArrayCouple(DataObject):
             return
 
         if serie is not None:
-            names = serie.get_name_files()
+            names = serie.get_name_arrays()
             if len(names) != 2:
                 raise ValueError('serie has to contain 2 arrays.')
 
-            paths = serie.get_path_files()
+            paths = serie.get_path_arrays()
 
             if not serie.check_all_files_exist():
                 raise ValueError(

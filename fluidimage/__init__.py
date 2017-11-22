@@ -31,4 +31,5 @@ __all__ = [
     '__version__', 'create_object_from_file', 'get_memory_usage',
     'imread', 'imsave',
     'logger', 'log_memory_usage', 'print_memory_usage',
-    'ParamContainer', 'LogTopology', 'path_image_samples']
+    'ParamContainer', 'LogTopology', 'path_image_samples',
+    'SeriesOfArrays', 'SerieOfArraysFromFiles']

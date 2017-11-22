@@ -55,7 +55,7 @@ class TestCalib(unittest.TestCase):
         calib = CalibDirect(os.path.join(path_cam1, 'img*'),
                             (nb_pixelx, nb_pixely))
         calib.compute_interpolents()
-        calib.compute_interppixel2line((nbline_x, nbline_y), test=False)
+        calib.compute_interpolents_pixel2line(nbline_x, nbline_y, test=False)
         calib.save(path_calib1)
 
         if long_test:
@@ -67,7 +67,7 @@ class TestCalib(unittest.TestCase):
                              (nb_pixelx, nb_pixely))
 
         calib3.compute_interpolents()
-        calib3.compute_interppixel2line((nbline_x, nbline_y), test=False)
+        calib3.compute_interpolents_pixel2line(nbline_x, nbline_y, test=False)
         calib3.save(path_calib3)
 
         postfix = '.piv'

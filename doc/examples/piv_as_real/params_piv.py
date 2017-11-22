@@ -8,9 +8,8 @@ To find good parameters, try the piv computation with::
   ./try_piv.py &
 
 """
-from glob import iglob
+from glob import glob
 
-from fluidcoriolis.milestone17.piv import get_path_level
 from fluidimage.topologies.piv import TopologyPIV
 
 
@@ -30,9 +29,14 @@ def make_params_piv(iexp, savinghow='recompute',
     params = TopologyPIV.create_default_params()
     params.series.path = path
 
-    it = iglob(path + '/c*.png')
     print(path)
-    pathim = next(it)
+    str_glob = path + '/c*.png'
+    paths = glob(str_glob)
+    if len(paths) == 0:
+        raise ValueError(
+            'No images detected from the string "' + str_glob + '"')
+
+    pathim = paths[0]
     if pathim.endswith('a.png') or pathim.endswith('b.png'):
         params.series.strcouple = 'i, 0:2'
     else:

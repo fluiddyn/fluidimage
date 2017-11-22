@@ -358,10 +358,10 @@ class WaitingQueueMakeCouple(WaitingQueueBase):
 
     def add_series(self, series):
 
-        self.series.update({serie.get_name_files(): deepcopy(serie)
+        self.series.update({serie.get_name_arrays(): deepcopy(serie)
                             for serie in series})
 
-        couples = [serie.get_name_files() for serie in series]
+        couples = [serie.get_name_arrays() for serie in series]
 
         if len(couples) > 0 and len(couples[0]) != 2:
             raise ValueError(
