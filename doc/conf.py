@@ -15,21 +15,18 @@ import sys
 import os
 
 # to be able to build the doc without h5py with Read the docs
-on_rtd = os.environ.get('READTHEDOCS')
-if on_rtd:
+
+import fluiddoc
+if fluiddoc.on_rtd:
     print('Mock modules to build the documentation on READTHEDOCS.')
     # this package comes from fluiddyn
-    from fluidrtd import mock_modules
-    mock_modules([
+    fluiddoc.mock_modules([
         'h5py', 'h5netcdf', 'pyfftw', 'theano',
         'reikna.cluda', 'reikna.fft', 'reikna.transformations'])
 
 import fluidimage
 
-# We have to modify fluidrtd.ipynb_maker using
-# jupyter-nbconvert --ExecutePreprocessor.timeout=200 --to notebook --execute nfile.ipynb
-# remark: another useful command: nbstripout ipynb/*.ipynb
-from fluidrtd.ipynb_maker import ipynb_to_rst
+from fluiddoc.ipynb_maker import ipynb_to_rst
 ipynb_to_rst()
 
 # If extensions (or modules to document with autodoc) are in another directory,
