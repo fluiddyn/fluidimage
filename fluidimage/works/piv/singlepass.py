@@ -49,6 +49,10 @@ class InterpError(ValueError):
     pass
 
 
+def _isint(obj):
+    return isinstance(obj, (int, np.integer))
+
+
 class BaseWorkPIV(BaseWork):
     """Base class for PIV.
 
@@ -61,10 +65,11 @@ class BaseWorkPIV(BaseWork):
         pass
 
     def _init_shape_crop(self, shape_crop_im0, shape_crop_im1):
+
         if shape_crop_im1 is None:
             shape_crop_im1 = shape_crop_im0
 
-        if isinstance(shape_crop_im0, int):
+        if _isint(shape_crop_im0):
             shape_crop_im0 = (shape_crop_im0, shape_crop_im0)
         elif (isinstance(shape_crop_im0, (tuple, list)) and
               len(shape_crop_im0) == 2):
@@ -73,7 +78,7 @@ class BaseWorkPIV(BaseWork):
             raise NotImplementedError(
                 'For now, shape_crop_im0 has to be one or two integer!')
 
-        if isinstance(shape_crop_im1, int):
+        if _isint(shape_crop_im1):
             shape_crop_im1 = (shape_crop_im1, shape_crop_im1)
         elif (isinstance(shape_crop_im1, (tuple, list)) and
               len(shape_crop_im1) == 2):
@@ -106,10 +111,13 @@ class BaseWorkPIV(BaseWork):
             particle_radius=self.params.piv0.particle_radius,
             nb_peaks_to_search=self.params.piv0.nb_peaks_to_search)
 
-    def _prepare_with_image(self, im0):
+    def _prepare_with_image(self, im0=None, imshape=None):
         """Initialize the object with an image.
         """
-        self.imshape0 = (len_y, len_x) = im0.shape
+        if imshape is None:
+            imshape = im0.shape
+
+        self.imshape0 = (len_y, len_x) = imshape
         scim = self.shape_crop_im0
 
         stepy = scim[0] - int(np.round(self.overlap*scim[0]))

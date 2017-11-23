@@ -183,10 +183,13 @@ threshold_tps :  float
 
         return results
 
-    def _prepare_with_image(self, im):
+    def _prepare_with_image(self, im=None, imshape=None):
         """Prepare the works PIV with an image."""
+        if imshape is None:
+            imshape = im.shape
+
         for work_piv in self.works_piv:
-            work_piv._prepare_with_image(im)
+            work_piv._prepare_with_image(imshape=imshape)
 
 
 params = WorkPIV.create_default_params()
