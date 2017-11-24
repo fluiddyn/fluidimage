@@ -11,23 +11,24 @@ NotImplementedError!
 import os
 import json
 
-from .. import ParamContainer, SerieOfArraysFromFiles, SeriesOfArrays
+from .. import ParamContainer, SeriesOfArrays
 
 from .base import TopologyBase
 
-# todo WaitingQueueMakeCoupleBOS
 from .waiting_queues.base import (
     WaitingQueueMultiprocessing, WaitingQueueThreading,
     WaitingQueueMakeCoupleBOS, WaitingQueueLoadImage)
 
 from ..works.piv import WorkPIV
-# todo warning get_name_piv -> get_name_bos
-from ..data_objects.piv import get_name_piv, set_path_dir_result, ArrayCouple
-from ..util.util import logger
+
+from ..data_objects.piv import get_name_bos, set_path_dir_result, ArrayCouple
+from ..util.util import logger, imread
 
 
 class TopologyBOS(TopologyBase):
-    """Topology for PIV.
+    """Topology for BOS.
+
+    See https://en.wikipedia.org/wiki/Background-oriented_schlieren_technique
 
     Parameters
     ----------
@@ -56,6 +57,17 @@ class TopologyBOS(TopologyBase):
 
         """
         params = ParamContainer(tag='params')
+
+        params._set_attrib('reference', 0)
+
+        params._set_doc("""
+reference : str or int, {0}
+
+    Reference file (from which the displacements will be computed). Can be an
+    absolute file path, a file name or the index in the list of files found
+    from the parameters in ``params.series``.
+
+""")
 
         params._set_child('series', attribs={'path': '',
                                              'strslice': None,
@@ -136,10 +148,28 @@ postfix : str
 
         self.path_dir_result = path_dir_result
 
+        reference = params.reference
+
+        if isinstance(reference, int):
+            names = self.series.get_name_all_arrays()
+            names.sort()
+            path_reference = os.path.join(
+                path_dir, names[reference])
+        elif os.path.isfile(reference):
+            path_reference
+        else:
+            path_reference = os.path.join(
+                path_dir_result, reference)
+            if not os.path.isfile(path_reference):
+                raise ValueError('Bad value of params.reference')
+
+        self.path_reference = path_reference
+        self.image_reference = imread(path_reference)
+
         self.results = {}
 
         def save_piv_object(o):
-            ret = o.save(path_dir_result)
+            ret = o.save(path_dir_result, kind='bos')
             return ret
 
         self.wq_piv = WaitingQueueThreading(
@@ -147,8 +177,11 @@ postfix : str
         self.wq_couples = WaitingQueueMultiprocessing(
             'couple', self.piv_work.calcul, self.wq_piv,
             topology=self)
-        self.wq_images = WaitingQueueMakeCouple(
-            'array image', self.wq_couples, topology=self)
+        self.wq_images = WaitingQueueMakeCoupleBOS(
+            'array image', self.wq_couples, topology=self,
+            image_reference=self.image_reference,
+            path_reference=self.path_reference,
+            serie=self.series.serie)
         self.wq0 = WaitingQueueLoadImage(
             destination=self.wq_images,
             path_dir=path_dir, topology=self)
@@ -168,54 +201,36 @@ postfix : str
 
         names = series.get_name_all_arrays()
 
-        raise NotImplementedError
-        
         if self.how_saving == 'complete':
-            names = []
-            index_series = []
-            for i, serie in enumerate(series):
-                name_bos = get_name_bos(serie, prefix='bos')
-                if os.path.exists(os.path.join(
+            names_to_compute = []
+            for name in names:
+                name_bos = get_name_bos(name, series.serie)
+                if not os.path.exists(os.path.join(
                         self.path_dir_result, name_bos)):
-                    continue
-                for name in serie.get_name_arrays():
-                    if name not in names:
-                        names.append(name)
+                    names_to_compute.append(name)
 
-                index_series.append(i * series.ind_step + series.ind_start)
-
-            if len(index_series) == 0:
+            names = names_to_compute
+            if len(names) == 0:
                 logger.warning(
                     'topology in mode "complete" and work already done.')
                 return
 
-            series.set_index_series(index_series)
+        nb_names = len(names)
+        print('Add {} BOS fields to compute.'.format(nb_names))
 
-            logger.debug(repr(names))
-            logger.debug(repr([serie.get_name_arrays() for serie in series]))
-        else:
-            names = series.get_name_all_arrays()
+        logger.debug(repr(names))
 
-        nb_series = len(series)
-        print('Add {} PIV fields to compute.'.format(nb_series))
-
-        for i, serie in enumerate(series):
-            if i > 1:
-                break
-            print('Files of serie {}: {}'.format(i, serie.get_name_arrays()))
+        print('First files to treat:', names[:4])
 
         self.wq0.add_name_files(names)
-        self.wq_images.add_series(series)
-
-        k, o = self.wq0.popitem()
-        im = self.wq0.work(o)
-        self.wq0.fill_destination(k, im)
 
         # a little bit strange, to apply mask...
         try:
             params_mask = self.params.mask
         except AttributeError:
             params_mask = None
+
+        im = self.image_reference
 
         couple = ArrayCouple(
             names=('', ''), arrays=(im, im), params_mask=params_mask)

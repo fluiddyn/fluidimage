@@ -46,7 +46,7 @@ except ImportError:
     # python 2
     import Queue as queue
 
-from ...data_objects.piv import ArrayCouple
+from ...data_objects.piv import ArrayCouple, ArrayCoupleBOS
 from ...works import load_image
 from ...util.util import logger, log_memory_usage, cstring
 
@@ -412,3 +412,42 @@ class WaitingQueueMakeCouple(WaitingQueueBase):
                     self.destination[newk] = ArrayCouple(
                         (k0, k1), (v0, v1), serie,
                         params_mask=self.topology.params.mask)
+
+
+class WaitingQueueMakeCoupleBOS(WaitingQueueBase):
+
+    def __init__(self, name, destination,
+                 work_name='make couples', topology=None,
+                 image_reference=None, path_reference=None,
+                 serie=None):
+
+        self.topology = topology
+        work = 'make_couples'
+
+        self.image_reference = image_reference
+        self.path_reference = path_reference
+        self.serie = serie
+
+        super(WaitingQueueMakeCoupleBOS, self).__init__(
+            name, work, destination, work_name, topology)
+
+    def check_and_act(self, sequential=None):
+        if self.is_destination_full():
+            return
+
+        nb_images_per_check = 100
+        ind_image = 0
+        for k in list(self.keys()):
+            v = self.pop(k)
+
+            paths=(self.path_reference,
+                   os.path.join(self.serie.path_dir, k))
+
+            self.destination[k] = ArrayCoupleBOS(
+                ('ref', k), (self.image_reference, v), self.serie,
+                paths=paths,
+                params_mask=self.topology.params.mask,)
+
+            ind_image += 1
+            if ind_image > nb_images_per_check:
+                break

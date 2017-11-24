@@ -17,6 +17,7 @@ Users are particularly concerned with the PIV and preprocessing topologies:
    :toctree:
 
    piv
+   bos
    preproc
 
 These others modules defined classes and functions useful for developers.

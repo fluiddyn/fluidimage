@@ -64,6 +64,13 @@ def get_name_piv(serie, prefix='piv'):
     return name
 
 
+def get_name_bos(name, serie):
+    name = name[len(serie.base_name):]
+    if serie.extension_file is not None:
+        name = name[:-len(serie.extension_file)-1]
+    return 'bos' + name + '.h5'
+
+
 def set_path_dir_result(path_dir_input, path_saving,
                         postfix_saving, how_saving):
     """Makes new directory for results, if required, and returns its path."""
@@ -215,6 +222,31 @@ class ArrayCouple(DataObject):
             pass
 
 
+class ArrayCoupleBOS(ArrayCouple):
+    """Couple of arrays (images)."""
+    def __init__(
+            self, names=None, arrays=None, serie=None, paths=None,
+            str_path=None, hdf5_parent=None, params_mask=None):
+
+        self.params_mask = params_mask
+
+        if str_path is not None:
+            self._load(path=str_path)
+            return
+
+        if hdf5_parent is not None:
+            self._load(hdf5_object=hdf5_parent['couple'])
+            return
+
+        if paths is not None:
+            self.paths = tuple(os.path.abspath(p) for p in paths)
+
+        self.serie = serie
+        self.names = tuple(names)
+        self.name = self.names[-1]
+        self.arrays = self._mask_arrays(arrays)
+
+
 class HeavyPIVResults(DataObject):
     """Heavy PIV results containing displacements and correlation."""
 
@@ -274,13 +306,17 @@ class HeavyPIVResults(DataObject):
             show_error=show_error, pourcent_histo=pourcent_histo, hist=hist,
             show_correl=show_correl)
 
-    def _get_name(self):
+    def _get_name(self, kind):
         serie = self.couple.serie
-        return get_name_piv(serie, prefix='piv')
 
-    def save(self, path=None, out_format='uvmat'):
+        if kind is None:
+            return get_name_piv(serie, prefix='piv')
+        elif kind == 'bos':
+            return get_name_bos(self.couple.name, serie)
 
-        name = self._get_name()
+    def save(self, path=None, out_format='uvmat', kind=None):
+
+        name = self._get_name(kind)
 
         if path is not None:
             path_file = os.path.join(path, name)
@@ -420,16 +456,16 @@ class MultipassPIVResults(DataObject):
         self.passes.append(results)
         self.__dict__['piv{}'.format(i)] = results
 
-    def _get_name(self):
+    def _get_name(self, kind):
 
         if hasattr(self, 'file_name'):
             return self.file_name
         r = self.passes[0]
-        return r._get_name()
+        return r._get_name(kind)
 
-    def save(self, path=None, out_format=None):
+    def save(self, path=None, out_format=None, kind=None):
 
-        name = self._get_name()
+        name = self._get_name(kind)
 
         if path is not None:
             root, ext = os.path.splitext(path)
@@ -615,7 +651,7 @@ class LightPIVResults(DataObject):
         self.xs = ixvecs_grid
         self.ys = iyvecs_grid
 
-    def _get_name(self):
+    def _get_name(self, kind):
         if hasattr(self, 'file_name'):
             return self.file_name[:-3] + '_light.h5'
 
@@ -631,8 +667,8 @@ class LightPIVResults(DataObject):
                 '_light.h5')
         return name
 
-    def save(self, path=None, out_format='uvmat'):
-        name = self._get_name()
+    def save(self, path=None, out_format='uvmat', kind=None):
+        name = self._get_name(kind)
 
         if path is not None:
             path_file = os.path.join(path, name)

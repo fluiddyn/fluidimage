@@ -38,6 +38,7 @@ dist*
 */profile*.png
 
 image_samples/*/Images.piv*/*.h5
+image_samples/*/Images.bos*/*.h5
 
 *_pythran.cpp
 
