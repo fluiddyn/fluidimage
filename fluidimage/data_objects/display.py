@@ -46,6 +46,9 @@ class DisplayPIV(object):
                 np.reshape(im1, (1, np.product(im1.shape))).transpose(),
                 pourcent_histo)
 
+            im0 = im0.copy()
+            im1 = im1.copy()
+
             im0[im0 > p0] = p0
             im1[im1 > p1] = p1
 
