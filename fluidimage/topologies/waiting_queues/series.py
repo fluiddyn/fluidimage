@@ -80,10 +80,10 @@ class WaitingQueueMakeSerie(WaitingQueueBase):
 
     def add_series(self, series):
 
-        self.series.update({serie.get_name_files(): deepcopy(serie)
+        self.series.update({serie.get_name_arrays(): deepcopy(serie)
                             for serie in series})
 
-        serie_set = [serie.get_name_files() for serie in series]
+        serie_set = [serie.get_name_arrays() for serie in series]
         self.serie_set.update(serie_set)
         self.nb_series = len(serie_set)
         self.ind_series = list(range(self.nb_series))

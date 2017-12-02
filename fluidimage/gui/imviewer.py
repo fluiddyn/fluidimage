@@ -23,7 +23,7 @@ except ImportError as error_import_textbox:
     str_error_import_textbox = (
         str(error_import_textbox) +
         '\nfluidimviewer needs matplotlib.widgets.TextBox '
-        'which will be included in matplotlib 2.1.')
+        'which is included in matplotlib 2.1.')
 
     import matplotlib
     if matplotlib.__version__ < '2.1':
@@ -33,8 +33,9 @@ except ImportError as error_import_textbox:
 
 from fluiddyn.io.image import imread
 from fluiddyn.util import time_as_str
+from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
 
-extensions = ['png', 'tif', 'tiff', 'jpg', 'jpeg', 'bmp']
+extensions = ['png', 'tif', 'tiff', 'jpg', 'jpeg', 'bmp', 'cine']
 extensions = ['.' + ext for ext in extensions]
 
 debug = False
@@ -100,9 +101,13 @@ class ImageViewer(object):
         if len(self.path_files) == 0:
             raise ValueError('No image files detected.')
 
+        if len(self.path_files) == 1 and self.path_files[0].endswith('.cine'):
+            serie = SerieOfArraysFromFiles(self.path_files[0])
+            self.path_files = serie.get_path_arrays()
+
         path_dir = os.path.split(self.path_files[0])[0]
         self.nb_images = len(self.path_files)
-        print('Will use {} files in the dir {}'.format(
+        print('Will use {} images in the dir {}'.format(
             self.nb_images, path_dir))
 
         self._buttons = {}

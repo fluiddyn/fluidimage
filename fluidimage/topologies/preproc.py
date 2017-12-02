@@ -216,7 +216,7 @@ postfix : str
             ind_step=params.preproc.series.ind_step)
 
         serie = self.series.get_serie_from_index(0)
-        self.nb_items_per_serie = serie.get_nb_files()
+        self.nb_items_per_serie = serie.get_nb_arrays()
 
         if os.path.isdir(params.preproc.series.path):
             path_dir = params.preproc.series.path
@@ -267,7 +267,7 @@ postfix : str
             names = []
             index_series = []
             for i, serie in enumerate(series):
-                names_serie = serie.get_name_files()
+                names_serie = serie.get_name_arrays()
                 name_preproc = get_name_preproc(
                     serie, names_serie, i, series.nb_series,
                     self.params.saving.format)
@@ -289,9 +289,9 @@ postfix : str
             series.set_index_series(index_series)
 
             logger.debug(repr(names))
-            logger.debug(repr([serie.get_name_files() for serie in series]))
+            logger.debug(repr([serie.get_name_arrays() for serie in series]))
         else:
-            names = series.get_name_all_files()
+            names = series.get_name_all_arrays()
 
         logger.info('Add {} image serie(s) to compute.'.format(len(series)))
 
@@ -307,12 +307,11 @@ postfix : str
             suffix = '.' + self.params.saving.postfix
         pathbase = self.params.series.path + '/'
 
-        im0 = imread(pathbase + self.series.get_name_all_files()[indices[0]])
-        im1 = imread(pathbase + self.series.get_name_all_files()[indices[1]])
-        im0p = imread(pathbase[:-1] + suffix + '/' +
-                      self.series.get_name_all_files()[indices[0]])
-        im1p = imread(pathbase[:-1] + suffix + '/' +
-                      self.series.get_name_all_files()[indices[1]])
+        names = self.series.get_name_all_arrays()
+        im0 = imread(pathbase + names[indices[0]])
+        im1 = imread(pathbase + names[indices[1]])
+        im0p = imread(pathbase[:-1] + suffix + '/' + names[indices[0]])
+        im1p = imread(pathbase[:-1] + suffix + '/' + names[indices[1]])
         return DisplayPreProc(
             im0, im1, im0p, im1p, hist=hist)
 

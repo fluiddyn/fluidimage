@@ -91,8 +91,8 @@ class ArraySerie(ArrayCouple):
             return
 
         if serie is not None:
-            names = serie.get_name_files()
-            paths = serie.get_path_files()
+            names = serie.get_name_arrays()
+            paths = serie.get_path_arrays()
             self.paths = tuple(os.path.abspath(p) for p in paths)
 
             if arrays is None:

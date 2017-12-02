@@ -48,7 +48,7 @@ def imread(path):
 
     """
     try:
-        array = _imread(path, flatten=True)
+        array = _imread(path)
     except IOError as e:
         raise_exception(e, path)
 
