@@ -19,7 +19,7 @@ from fluiddyn.io.image import imread
 
 from ..works.preproc import WorkPreproc
 
-from ..data_objects.piv import set_path_dir_result
+from . import prepare_path_dir_result
 from ..data_objects.display import DisplayPreProc
 from ..data_objects.preproc import get_name_preproc
 
@@ -223,7 +223,7 @@ postfix : str
         else:
             path_dir = os.path.dirname(params.preproc.series.path)
         self.path_dir_input = path_dir
-        self.path_dir_result, self.how_saving = set_path_dir_result(
+        self.path_dir_result, self.how_saving = prepare_path_dir_result(
             path_dir, params.preproc.saving.path,
             params.preproc.saving.postfix, params.preproc.saving.how)
 

@@ -17,8 +17,9 @@ from .waiting_queues.base import (
     WaitingQueueMultiprocessing, WaitingQueueThreading,
     WaitingQueueMakeCouple, WaitingQueueLoadImage)
 
+from . import prepare_path_dir_result
 from ..works.piv import WorkPIV
-from ..data_objects.piv import get_name_piv, set_path_dir_result, ArrayCouple
+from ..data_objects.piv import get_name_piv, ArrayCouple
 from ..util.util import logger
 
 
@@ -162,7 +163,7 @@ postfix : str
             ind_step=params.series.ind_step)
 
         path_dir = self.series.serie.path_dir
-        path_dir_result, self.how_saving = set_path_dir_result(
+        path_dir_result, self.how_saving = prepare_path_dir_result(
             path_dir, params.saving.path,
             params.saving.postfix, params.saving.how)
 

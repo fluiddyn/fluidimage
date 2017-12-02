@@ -18,11 +18,11 @@ cleanall: clean clean_so
 tests:
 	python -m unittest discover
 
-tests_coverage:
+_tests_coverage:
 	mkdir -p .coverage
 	coverage run -p -m unittest discover
 
-report_coverage:
+_report_coverage:
 	coverage combine
 	coverage report
 	coverage html
@@ -30,4 +30,4 @@ report_coverage:
 	@echo "Code coverage analysis complete. View detailed report:"
 	@echo "file://${PWD}/.coverage/index.html"
 
-coverage: tests_coverage report_coverage
+coverage: _tests_coverage _report_coverage

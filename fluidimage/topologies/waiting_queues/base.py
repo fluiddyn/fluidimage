@@ -339,6 +339,18 @@ class WaitingQueueLoadImage(WaitingQueueLoadFile):
         self.work_name = __name__ + '.load_image'
 
 
+def load_image_path(path):
+    im = load_image(path)
+    return im, path
+
+
+class WaitingQueueLoadImagePath(WaitingQueueLoadFile):
+    def __init__(self, *args, **kwargs):
+        super(WaitingQueueLoadImagePath, self).__init__(
+            'image file', load_image_path, *args, **kwargs)
+        self.work_name = __name__ + '.load_image'
+
+
 class WaitingQueueMakeCouple(WaitingQueueBase):
 
     def __init__(self, name, destination,

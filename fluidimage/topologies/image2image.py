@@ -1,9 +1,12 @@
-"""Topology for BOS computation (:mod:`fluidimage.topologies.bos`)
-==================================================================
+"""Topology for image processing (:mod:`fluidimage.topologies.image2image`)
+===========================================================================
 
-NotImplementedError!
+.. autofunction:: im2im_func_example
 
-.. autoclass:: TopologyBOS
+.. autoclass:: Im2ImExample
+   :members:
+
+.. autoclass:: TopologyImage2Image
    :members:
    :private-members:
 
@@ -11,26 +14,59 @@ NotImplementedError!
 import os
 import json
 
+import numpy as np
+
 from .. import ParamContainer, SeriesOfArrays
+
+from fluiddyn.util.util import import_class
+from fluiddyn.io.image import imsave
+
+from . import prepare_path_dir_result
 
 from .base import TopologyBase
 
 from .waiting_queues.base import (
     WaitingQueueMultiprocessing, WaitingQueueThreading,
-    WaitingQueueMakeCoupleBOS, WaitingQueueLoadImage)
+    WaitingQueueLoadImagePath)
 
-from ..works.piv import WorkPIV
-
-from . import prepare_path_dir_result
-
-from ..data_objects.piv import get_name_bos, ArrayCouple
-from ..util.util import logger, imread
+from ..util.util import logger
 
 
-class TopologyBOS(TopologyBase):
-    """Topology for BOS.
+def im2im_func_example(tuple_image_path):
+    """Process one image
 
-    See https://en.wikipedia.org/wiki/Background-oriented_schlieren_technique
+    This is just an example to show how to write functions which can be plugged
+    to the class
+    :class:`fluidimage.topologies.image2image.TopologyImage2Image`.
+
+    """
+    image, path = tuple_image_path
+    # the treatment can be adjusted depending on the value of the path.
+    print('treat file:\n' + path)
+    image_out = np.round(image*(255/image.max())).astype(np.uint8)
+    return image_out, path
+
+
+class Im2ImExample(object):
+    """Process one image
+
+    This is just an example to show how to write classes which can be plugged
+    to the class
+    :class:`fluidimage.topologies.image2image.TopologyImage2Image`.
+
+    """
+    def __init__(self, arguments):
+        self.arguments = arguments
+        # time consuming tasks can be done here
+
+    def calcul(self, tuple_image_path):
+        """Method processing one image"""
+        print('self.arguments', self.arguments)
+        return im2im_func_example(tuple_image_path)
+
+
+class TopologyImage2Image(TopologyBase):
+    """Topology for images processing with a user-defined function
 
     Parameters
     ----------
@@ -60,14 +96,18 @@ class TopologyBOS(TopologyBase):
         """
         params = ParamContainer(tag='params')
 
-        params._set_attrib('reference', 0)
+        params._set_attrib('im2im', None)
+        params._set_attrib('argument_init', None)
 
         params._set_doc("""
-reference : str or int, {0}
+im2im : str {None}
 
-    Reference file (from which the displacements will be computed). Can be an
-    absolute file path, a file name or the index in the list of files found
-    from the parameters in ``params.series``.
+    Function or class to be used to process the images.
+
+argument_init : object {None}
+
+    An argument given to the init function of the class used to process the
+    images.
 
 """)
 
@@ -100,7 +140,7 @@ int_stop : None
 
         params._set_child('saving', attribs={'path': None,
                                              'how': 'ask',
-                                             'postfix': 'piv'})
+                                             'postfix': 'pre'})
 
         params.saving._set_doc(
             """Saving of the results.
@@ -119,13 +159,11 @@ postfix : str
     Postfix from which the output file is computed.
 """)
 
-        WorkPIV._complete_params_with_default(params)
-
         params._set_internal_attr(
             '_value_text',
             json.dumps({'program': 'fluidimage',
-                        'module': 'fluidimage.topologies.bos',
-                        'class': 'TopologyBOS'}))
+                        'module': 'fluidimage.topologies.image2image',
+                        'class': 'TopologyImage2Image'}))
 
         return params
 
@@ -135,7 +173,23 @@ postfix : str
             params = self.__class__.create_default_params()
 
         self.params = params
-        self.piv_work = WorkPIV(params)
+
+        if params.im2im is None:
+            raise ValueError('params.im2im has to be set.')
+
+        str_package, str_obj = params.im2im.rsplit('.', 1)
+
+        im2im = import_class(str_package, str_obj)
+
+        def tmp_func():
+            return 1
+
+        if isinstance(im2im, tmp_func.__class__):
+            self.im2im_func = im2im
+        elif isinstance(im2im, type):
+            # todo: arguments of the class...
+            self.im2im_obj = obj = im2im(params.argument_init)
+            self.im2im_func = obj.calcul
 
         self.series = SeriesOfArrays(
             params.series.path, params.series.strslice,
@@ -150,46 +204,25 @@ postfix : str
 
         self.path_dir_result = path_dir_result
 
-        reference = params.reference
-
-        if isinstance(reference, int):
-            names = self.series.get_name_all_arrays()
-            names.sort()
-            path_reference = os.path.join(
-                path_dir, names[reference])
-        elif os.path.isfile(reference):
-            path_reference
-        else:
-            path_reference = os.path.join(
-                path_dir_result, reference)
-            if not os.path.isfile(path_reference):
-                raise ValueError('Bad value of params.reference')
-
-        self.path_reference = path_reference
-        self.image_reference = imread(path_reference)
+        def save_image(tuple_image_path):
+            image, path = tuple_image_path
+            nfile = os.path.split(path)[-1]
+            path_out = os.path.join(path_dir_result, nfile)
+            imsave(path_out, image)
 
         self.results = {}
 
-        def save_piv_object(o):
-            ret = o.save(path_dir_result, kind='bos')
-            return ret
-
-        self.wq_piv = WaitingQueueThreading(
-            'delta', save_piv_object, self.results, topology=self)
-        self.wq_couples = WaitingQueueMultiprocessing(
-            'couple', self.piv_work.calcul, self.wq_piv,
+        self.wq_images_out = WaitingQueueThreading(
+            'image output', save_image, self.results, topology=self)
+        self.wq_images_in = WaitingQueueMultiprocessing(
+            'image input', self.im2im_func, self.wq_images_out,
             topology=self)
-        self.wq_images = WaitingQueueMakeCoupleBOS(
-            'array image', self.wq_couples, topology=self,
-            image_reference=self.image_reference,
-            path_reference=self.path_reference,
-            serie=self.series.serie)
-        self.wq0 = WaitingQueueLoadImage(
-            destination=self.wq_images,
+        self.wq0 = WaitingQueueLoadImagePath(
+            destination=self.wq_images_in,
             path_dir=path_dir, topology=self)
 
-        super(TopologyBOS, self).__init__(
-            [self.wq0, self.wq_images, self.wq_couples, self.wq_piv],
+        super(TopologyImage2Image, self).__init__(
+            [self.wq0, self.wq_images_in, self.wq_images_out],
             path_output=path_dir_result, logging_level=logging_level,
             nb_max_workers=nb_max_workers)
 
@@ -198,7 +231,7 @@ postfix : str
     def add_series(self, series):
 
         if len(series) == 0:
-            logger.warning('add 0 image. No BOS to compute.')
+            logger.warning('add 0 image. No image to treat.')
             return
 
         names = series.get_name_all_arrays()
@@ -206,9 +239,8 @@ postfix : str
         if self.how_saving == 'complete':
             names_to_compute = []
             for name in names:
-                name_bos = get_name_bos(name, series.serie)
                 if not os.path.exists(os.path.join(
-                        self.path_dir_result, name_bos)):
+                        self.path_dir_result, name)):
                     names_to_compute.append(name)
 
             names = names_to_compute
@@ -218,27 +250,13 @@ postfix : str
                 return
 
         nb_names = len(names)
-        print('Add {} BOS fields to compute.'.format(nb_names))
+        print('Add {} images to compute.'.format(nb_names))
 
         logger.debug(repr(names))
 
         print('First files to treat:', names[:4])
 
         self.wq0.add_name_files(names)
-
-        # a little bit strange, to apply mask...
-        try:
-            params_mask = self.params.mask
-        except AttributeError:
-            params_mask = None
-
-        im = self.image_reference
-
-        couple = ArrayCouple(
-            names=('', ''), arrays=(im, im), params_mask=params_mask)
-        im, _ = couple.get_arrays()
-
-        self.piv_work._prepare_with_image(im)
 
     def _print_at_exit(self, time_since_start):
 
@@ -248,7 +266,7 @@ postfix : str
         except AttributeError:
             nb_results = None
         if nb_results is not None and nb_results > 0:
-            txt += (' ({} bos fields, {:.2f} s/field).'.format(
+            txt += (' ({} images, {:.2f} s/field).'.format(
                 nb_results, time_since_start / nb_results))
         else:
             txt += '.'
@@ -257,6 +275,6 @@ postfix : str
 
         print(txt)
 
-params = TopologyBOS.create_default_params()
+params = TopologyImage2Image.create_default_params()
 
 __doc__ += params._get_formatted_docs()

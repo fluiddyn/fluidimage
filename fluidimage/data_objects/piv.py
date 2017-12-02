@@ -26,8 +26,6 @@ import h5py
 import h5netcdf
 import numpy as np
 
-from fluiddyn.util.query import query
-
 from .display import DisplayPIV
 from .. import imread, ParamContainer
 from .. import __version__ as fluidimage_version
@@ -69,49 +67,6 @@ def get_name_bos(name, serie):
     if serie.extension_file is not None:
         name = name[:-len(serie.extension_file)-1]
     return 'bos' + name + '.h5'
-
-
-def set_path_dir_result(path_dir_input, path_saving,
-                        postfix_saving, how_saving):
-    """Makes new directory for results, if required, and returns its path."""
-
-    if path_saving is not None:
-        path_dir_result = path_saving
-    else:
-        path_dir_result = path_dir_input + '.' + postfix_saving
-
-    how = how_saving
-    if os.path.exists(path_dir_result):
-        if how == 'ask':
-            answer = query(
-                'The directory {} '.format(path_dir_result) +
-                'already exists. What do you want to do?\n'
-                'New dir, Complete, Recompute or Stop?\n')
-
-            while answer.lower() not in ['n', 'c', 'r', 's']:
-                answer = query(
-                    "The answer should be in ['n', 'c', 'r', 's']\n"
-                    "Please type your answer again...\n")
-
-            if answer == 's':
-                raise ValueError('Stopped by the user.')
-            elif answer == 'n':
-                how = 'new_dir'
-            elif answer == 'c':
-                how = 'complete'
-            elif answer == 'r':
-                how = 'recompute'
-
-        if how == 'new_dir':
-            i = 0
-            while os.path.exists(path_dir_result + str(i)):
-                i += 1
-            path_dir_result += str(i)
-
-    if not os.path.exists(path_dir_result):
-        os.mkdir(path_dir_result)
-
-    return path_dir_result, how
 
 
 class DataObject(object):
