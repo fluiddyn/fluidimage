@@ -56,7 +56,9 @@ def get_name_piv(serie, prefix='piv'):
         if len(inds) > 1:
             str_index += '-' + get_str_index(serie, i, inds[1]-1)
 
-        str_indices += str_index + serie._index_separators[i]
+        if i > 1:
+            str_indices += serie._index_separators[i-1]
+        str_indices += str_index
 
     name = prefix + '_' + str_indices + '.h5'
     return name
