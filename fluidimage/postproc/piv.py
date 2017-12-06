@@ -235,13 +235,15 @@ class PIV2d(object):
     def __truediv__(self, other):
         return self.__div__(other)
 
-    def display(self, scale=1, background=None):
+    def display(self, scale=1, background=None, ax=None):
 
         if background is not None:
             raise NotImplementedError
 
-        fig = plt.figure()
-        ax = plt.gca()
+        if ax is None:
+            fig, ax = plt.subplots()
+        else:
+            fig = ax.figure
 
         pcm = ax.pcolormesh(self.x, self.y, self.compute_norm())
 
@@ -275,7 +277,8 @@ class PIV2d(object):
         ax.set_xlim([xmin - lx/n, xmax + lx/n])
         ax.set_ylim([ymin - ly/n, ymax + ly/n])
         ax.set_aspect('equal')
-        plt.show()
+
+        return ax
 
     def median_filter(self, size, niter=1, valid=True):
         if np.isscalar(size):
