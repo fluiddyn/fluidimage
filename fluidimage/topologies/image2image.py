@@ -18,7 +18,7 @@ import numpy as np
 
 from .. import ParamContainer, SeriesOfArrays
 
-from fluiddyn.util.util import import_class
+from fluiddyn.util import import_class
 from fluiddyn.io.image import imsave
 
 from . import prepare_path_dir_result

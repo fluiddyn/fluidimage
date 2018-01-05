@@ -26,7 +26,7 @@ import six
 import psutil
 
 from logging import getLogger
-from fluiddyn.util.util import get_memory_usage
+from fluiddyn.util import get_memory_usage
 from fluiddyn.io.image import (imread as _imread,
                                imsave as _imsave, imsave_h5)
 

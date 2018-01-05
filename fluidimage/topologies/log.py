@@ -16,9 +16,9 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 
-from fluiddyn.util import run_from_ipython
+from fluiddyn.util import is_run_from_ipython
 
-if run_from_ipython():
+if is_run_from_ipython():
     plt.ion()
 
 colors = ['r', 'b', 'y', 'g']

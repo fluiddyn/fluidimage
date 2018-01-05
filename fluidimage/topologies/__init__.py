@@ -35,7 +35,7 @@ These others modules defined classes and functions useful for developers.
 
 import os
 
-from fluiddyn.util.query import query
+from fluiddyn.io.query import query
 
 
 def prepare_path_dir_result(path_dir_input, path_saving,

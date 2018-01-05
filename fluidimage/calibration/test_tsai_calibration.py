@@ -38,23 +38,19 @@ def get_piv_field(path):
 class TestCalib(unittest.TestCase):
     """Test fluidimage.calibration DirectStereoReconstruction, CalibDirect."""
 
-    # def test(self):
-    #     path_calib = os.path.join(pathbase, 'PCO_top.xml')
-    #     path_v = os.path.join(pathbase, 'piv_0000a-b.h5')
-    #     nbypix = 2160
+    def test(self):
+        path_calib = os.path.join(pathbase, 'PCO_top.xml')
+        path_v = os.path.join(pathbase, 'piv_0000a-b.h5')
+        nbypix = 2160
 
-    #     calib = Calibration(path_calib)
+        calib = Calibration(path_calib)
 
-    #     X, Y, dx, dy = get_piv_field(path_v)
+        X, Y, dx, dy = get_piv_field(path_v)
 
-    #     Xphys, Yphys, Zphys, dxphys, dyphys, dzphys = calib.pix2phys_UV(
-    #         X, Y, dx, dy, index_level=0, nbypix=nbypix)
-    #     X, Y = calib.phys2pix(Xphys, Yphys, np.nanmean(Zphys))
+        Xphys, Yphys, Zphys, dxphys, dyphys, dzphys = calib.pix2phys_UV(
+            X, Y, dx, dy, index_level=0, nbypix=nbypix)
+        X, Y = calib.phys2pix(Xphys, Yphys, np.nanmean(Zphys))
 
 
 if __name__ == "__main__":
-    # There was a bug with fluiddyn, python 3 and literal_eval. We need
-    # fluiddyn 0.1.4 for this test in python 3.  Has soon as fluiddyn 0.1.4 is
-    # available on pypi, we can replug this test.
-    pass
-    # unittest.main()
+    unittest.main()

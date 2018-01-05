@@ -24,7 +24,7 @@ from . import (
     config_logging, ParamContainer, SerieOfArraysFromFiles)
 
 from fluiddyn.util.paramcontainer import tidy_container
-from fluiddyn.util.util import import_class
+from fluiddyn.util import import_class
 
 from fluidimage.topologies.piv import TopologyPIV
 

@@ -5,7 +5,8 @@ import numpy as np
 
 from matplotlib import mlab
 from scipy import interpolate
-from fluiddyn.debug import ipydebug
+# from fluiddyn import ipydebug
+
 
 def griddata(centers, values, new_positions, using='matplotlib'):
     xnew = new_positions[1]

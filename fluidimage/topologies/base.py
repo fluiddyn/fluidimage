@@ -24,10 +24,10 @@ except ImportError:
     # python 2
     import Queue as queue
 
-from fluiddyn.util import time_as_str
-from fluiddyn.util.tee import MultiFile
-from ..util.util import cstring, logger, log_memory_usage
+from fluiddyn import time_as_str
+from fluiddyn.io.tee import MultiFile
 
+from ..util.util import cstring, logger, log_memory_usage
 from ..config import get_config
 from .waiting_queues.base import WaitingQueueThreading
 from .. import config_logging
@@ -296,7 +296,7 @@ class TopologyBase(object):
             #             str((worker, worker.key, worker.exitcode, is_alive)))
 
             #         if time() - worker.t_start > 60:
-            #             from fluiddyn.debug import ipydebug
+            #             from fluiddyn import ipydebug
             #             ipydebug()
 
             self.nb_workers = len(workers)
@@ -387,7 +387,7 @@ class TopologyBase(object):
                 p = workers[0]
                 if idebug == 100:
                     print('Issue:', p, p.exitcode)
-                    # from fluiddyn.debug import ipydebug
+                    # from fluiddyn import ipydebug
                     # ipydebug()
 
             if not q.is_empty() and isinstance(q, WaitingQueueThreading):

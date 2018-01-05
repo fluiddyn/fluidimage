@@ -62,7 +62,7 @@ except (OSError, subprocess.CalledProcessError):
     except (OSError, subprocess.CalledProcessError):
         pass
 
-install_requires = ['fluiddyn >= 0.1.6']
+install_requires = ['fluiddyn >= 0.2.0']
 
 
 install_requires.extend([

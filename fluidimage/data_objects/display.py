@@ -3,12 +3,12 @@ from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
 
-from fluiddyn.util import run_from_ipython
+from fluiddyn.util import is_run_from_ipython
 
 from ..calcul.correl import compute_indices_from_displacement
 
 
-if run_from_ipython():
+if is_run_from_ipython():
     plt.ion()
 
 
