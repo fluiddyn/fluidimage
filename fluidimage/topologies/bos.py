@@ -158,7 +158,7 @@ postfix : str
             path_reference = os.path.join(
                 path_dir, names[reference])
         elif os.path.isfile(reference):
-            path_reference
+            path_reference = reference
         else:
             path_reference = os.path.join(
                 path_dir_result, reference)
