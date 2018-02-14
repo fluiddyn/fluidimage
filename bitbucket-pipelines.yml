@@ -14,11 +14,13 @@ pipelines:
             - pip
           script:
             - pip install -U tox --user
-            - tox -e py36-pythran,codecov -vv
+            - tox -e py36,codecov -vv
+            # - tox -e py36,py36-pythran,codecov -vv
       - step:
           image: fluiddyn/python2-stable
           caches:
             - pip
           script:
             - pip install -U tox --user
-            - tox -e py27-pythran,codecov -vv
+            - tox -e py27,codecov -vv
+            # - tox -e py27,py27-pythran,codecov -vv

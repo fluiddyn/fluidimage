@@ -1,27 +1,18 @@
-sudo: false
 language: python
 
-matrix:
-  include:
-    - python: 3.6
-      env: TOXENV=py,codecov-travis
-    - python: 3.5
-      env: TOXENV=py,codecov-travis
-    - python: 3.4
-      env: TOXENV=py,codecov-travis
-    - python: 2.7
-      env: TOXENV=py,codecov-travis
-    - python: 3.6
-      env: TOXENV=py-pythran,codecov-travis
-    - python: 2.7
-      env: TOXENV=py-pythran,codecov-travis
+python:
+  - 3.6
+  - 3.5
+  - 2.7
 
+env:
+  - TOXENV=py,codecov-travis CC=gcc-6 CXX=g++-6
+  - TOXENV=py-pythran,codecov-travis CC=gcc-6 CXX=g++-6
 
 before_cache:
   - |
       coverage erase
       rm -f $HOME/.cache/pip/log/debug.log
-
 
 cache:
     directories:
@@ -33,12 +24,14 @@ addons:
         sources:
             - ubuntu-toolchain-r-test
         packages:
-            - gcc-4.9
-            - g++-4.9
+            - gcc-6
+            - g++-6
             - libfftw3-dev
             - libhdf5-openmpi-dev
             - openmpi-bin
             - libopenblas-dev
+            # - gcc-4.9
+            # - g++-4.9
 
 install:
     - pip install -U pip setuptools wheel six colorlog
@@ -48,11 +41,13 @@ before_script:
     - |
       mkdir -p $HOME/.config/matplotlib
       echo 'backend      : agg' > $HOME/.config/matplotlib/matplotlibrc
-      export CC=gcc-4.9 && export CXX=g++-4.9
 
 script:
-    - tox
+    - tox -vv
+
+after_failure:
+    - cat $TRAVIS_BUILD_DIR/.tox/log/*.log
 
 notifications:
   email: false
-  irc: "chat.freenode.net#fluiddyn"
+  irc: "chat.freenode.net#fluiddyn-dev"
