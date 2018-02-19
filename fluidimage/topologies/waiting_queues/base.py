@@ -223,7 +223,7 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
 
         # we do this after p.start() because an error can be raised here
         assert k == self._keys.pop(0)
-        assert o == self.pop(k)
+        assert o is self.pop(k)
 
         self._nb_workers += 1
         if self.do_use_cpu:

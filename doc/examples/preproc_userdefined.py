@@ -15,9 +15,9 @@ params = Topo.create_default_params()
 
 # for a class (with one argument for the function init):
 params.im2im = 'fluidimage.topologies.image2image.Im2ImExample'
-params.argument_init = ((1024, 2048), 'clip')
+params.args_init = ((1024, 2048), 'clip')
 
-params.series.path = 'image_samples/Jet/Images/c*'
+params.series.path = '../../image_samples/Jet/Images/c*'
 params.series.ind_start = 60
 
 params.saving.how = 'recompute'

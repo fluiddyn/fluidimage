@@ -21,6 +21,7 @@ from . import prepare_path_dir_result
 from ..works.piv import WorkPIV
 from ..data_objects.piv import get_name_piv, ArrayCouple
 from ..util.util import logger
+from . import image2image
 
 
 class TopologyPIV(TopologyBase):
@@ -144,6 +145,9 @@ postfix : str
                         'module': 'fluidimage.topologies.piv',
                         'class': 'TopologyPIV'}))
 
+        params._set_child('preproc')
+        image2image.complete_params_with_default(params.preproc)
+
         return params
 
     def __init__(self, params=None, logging_level='info', nb_max_workers=None):
@@ -180,14 +184,35 @@ postfix : str
         self.wq_couples = WaitingQueueMultiprocessing(
             'couple', self.piv_work.calcul, self.wq_piv,
             topology=self)
+
         self.wq_images = WaitingQueueMakeCouple(
             'array image', self.wq_couples, topology=self)
+
+        if params.preproc.im2im is not None:
+            self.im2im_func = image2image.TopologyImage2Image.init_im2im(
+                self, params.preproc.im2im)
+
+            self.wq_images0 = WaitingQueueMultiprocessing(
+                'image ', self.im2im_func, self.wq_images,
+                topology=self)
+            wq_after_load = self.wq_images0
+        else:
+            wq_after_load = self.wq_images
+
         self.wq0 = WaitingQueueLoadImage(
-            destination=self.wq_images,
+            destination=wq_after_load,
             path_dir=path_dir, topology=self)
 
+        if params.preproc.im2im is not None:
+            waiting_queues = [
+                self.wq0, self.wq_images0, self.wq_images,
+                self.wq_couples, self.wq_piv]
+        else:
+            waiting_queues = [
+                self.wq0, self.wq_images, self.wq_couples, self.wq_piv]
+
         super(TopologyPIV, self).__init__(
-            [self.wq0, self.wq_images, self.wq_couples, self.wq_piv],
+            waiting_queues,
             path_output=path_dir_result, logging_level=logging_level,
             nb_max_workers=nb_max_workers)
 

@@ -55,14 +55,35 @@ class Im2ImExample(object):
     :class:`fluidimage.topologies.image2image.TopologyImage2Image`.
 
     """
-    def __init__(self, arguments):
-        self.arguments = arguments
+    def __init__(self, arg0, arg1):
+        print('init with arguments:', arg0, arg1)
+        self.arg0 = arg0
+        self.arg1 = arg1
         # time consuming tasks can be done here
 
     def calcul(self, tuple_image_path):
         """Method processing one image"""
-        print('self.arguments', self.arguments)
+        print('calcul with arguments (unused in the example):',
+              self.arg0, self.arg1)
         return im2im_func_example(tuple_image_path)
+
+
+def complete_params_with_default(params):
+
+    params._set_attrib('im2im', None)
+    params._set_attrib('args_init', tuple())
+
+    params._set_doc("""
+im2im : str {None}
+
+    Function or class to be used to process the images.
+
+args_init : object {None}
+
+    An argument given to the init function of the class used to process the
+    images.
+
+""")
 
 
 class TopologyImage2Image(TopologyBase):
@@ -95,21 +116,7 @@ class TopologyImage2Image(TopologyBase):
 
         """
         params = ParamContainer(tag='params')
-
-        params._set_attrib('im2im', None)
-        params._set_attrib('argument_init', None)
-
-        params._set_doc("""
-im2im : str {None}
-
-    Function or class to be used to process the images.
-
-argument_init : object {None}
-
-    An argument given to the init function of the class used to process the
-    images.
-
-""")
+        complete_params_with_default(params)
 
         params._set_child('series', attribs={'path': '',
                                              'strslice': None,
@@ -177,20 +184,6 @@ postfix : str
         if params.im2im is None:
             raise ValueError('params.im2im has to be set.')
 
-        str_package, str_obj = params.im2im.rsplit('.', 1)
-
-        im2im = import_class(str_package, str_obj)
-
-        def tmp_func():
-            return 1
-
-        if isinstance(im2im, tmp_func.__class__):
-            self.im2im_func = im2im
-        elif isinstance(im2im, type):
-            # todo: arguments of the class...
-            self.im2im_obj = obj = im2im(params.argument_init)
-            self.im2im_func = obj.calcul
-
         self.series = SeriesOfArrays(
             params.series.path, params.series.strslice,
             ind_start=params.series.ind_start,
@@ -214,9 +207,13 @@ postfix : str
 
         self.wq_images_out = WaitingQueueThreading(
             'image output', save_image, self.results, topology=self)
+
+        self.im2im_func = self.init_im2im(params.im2im)
+
         self.wq_images_in = WaitingQueueMultiprocessing(
             'image input', self.im2im_func, self.wq_images_out,
             topology=self)
+
         self.wq0 = WaitingQueueLoadImagePath(
             destination=self.wq_images_in,
             path_dir=path_dir, topology=self)
@@ -227,6 +224,23 @@ postfix : str
             nb_max_workers=nb_max_workers)
 
         self.add_series(self.series)
+
+    def init_im2im(self, params_im2im):
+        str_package, str_obj = params_im2im.rsplit('.', 1)
+
+        im2im = import_class(str_package, str_obj)
+
+        def tmp_func():
+            return 1
+
+        if isinstance(im2im, tmp_func.__class__):
+            self.im2im_func = im2im
+        elif isinstance(im2im, type):
+            print('in init_im2im', self.params.args_init)
+            self.im2im_obj = obj = im2im(*self.params.args_init)
+            self.im2im_func = obj.calcul
+
+        return self.im2im_func
 
     def add_series(self, series):
 
@@ -275,6 +289,6 @@ postfix : str
 
         print(txt)
 
-params = TopologyImage2Image.create_default_params()
+params_doc = TopologyImage2Image.create_default_params()
 
-__doc__ += params._get_formatted_docs()
+__doc__ += params_doc._get_formatted_docs()

@@ -19,7 +19,7 @@ class TestPIV(unittest.TestCase):
         params.series.ind_start = 1
 
         params.im2im = 'fluidimage.topologies.image2image.Im2ImExample'
-        params.argument_init = ((1024, 2048), 'clip')
+        params.args_init = ((1024, 2048), 'clip')
 
         params.saving.how = 'recompute'
         params.saving.postfix = 'pre_test'
