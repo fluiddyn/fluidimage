@@ -17,7 +17,9 @@ params.saving.how = 'recompute'
 params.saving.postfix = 'piv_example'
 
 # we use the light versatile preprocessing feature:
-params.preproc.im2im = 'my_example_im2im.im2im'
+params.preproc.im2im = 'my_example_im2im_class.Im2Im'
+# currently, it is not recommended to use unicode strings (h5py issue)
+params.preproc.args_init = ('arg0', 'arg1')
 
 topology = TopologyPIV(params, logging_level='info')
 

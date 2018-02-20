@@ -208,7 +208,7 @@ postfix : str
         self.wq_images_out = WaitingQueueThreading(
             'image output', save_image, self.results, topology=self)
 
-        self.im2im_func = self.init_im2im(params.im2im)
+        self.im2im_func = self.init_im2im(params)
 
         self.wq_images_in = WaitingQueueMultiprocessing(
             'image input', self.im2im_func, self.wq_images_out,
@@ -226,7 +226,7 @@ postfix : str
         self.add_series(self.series)
 
     def init_im2im(self, params_im2im):
-        str_package, str_obj = params_im2im.rsplit('.', 1)
+        str_package, str_obj = params_im2im.im2im.rsplit('.', 1)
 
         im2im = import_class(str_package, str_obj)
 
@@ -236,8 +236,8 @@ postfix : str
         if isinstance(im2im, tmp_func.__class__):
             self.im2im_func = im2im
         elif isinstance(im2im, type):
-            print('in init_im2im', self.params.args_init)
-            self.im2im_obj = obj = im2im(*self.params.args_init)
+            print('in init_im2im', params_im2im.args_init)
+            self.im2im_obj = obj = im2im(*params_im2im.args_init)
             self.im2im_func = obj.calcul
 
         return self.im2im_func

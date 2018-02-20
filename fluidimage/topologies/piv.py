@@ -190,7 +190,7 @@ postfix : str
 
         if params.preproc.im2im is not None:
             self.im2im_func = image2image.TopologyImage2Image.init_im2im(
-                self, params.preproc.im2im)
+                self, params.preproc)
 
             self.wq_images0 = WaitingQueueMultiprocessing(
                 'image ', self.im2im_func, self.wq_images,
