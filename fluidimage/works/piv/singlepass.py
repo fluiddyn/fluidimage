@@ -152,10 +152,12 @@ class BaseWorkPIV(BaseWork):
     def calcul(self, couple):
         """Calcul the PIV (one pass) from a couple of images."""
         if isinstance(couple, SerieOfArraysFromFiles):
-            couple = ArrayCouple(serie=couple, params_mask=self.params.mask)
+            couple = ArrayCouple(serie=couple)
 
         if not isinstance(couple, ArrayCouple):
             raise ValueError
+
+        couple.apply_mask(self.params.mask)
 
         im0, im1 = couple.get_arrays()
         if not hasattr(self, 'ixvecs_grid'):

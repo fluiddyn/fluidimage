@@ -21,7 +21,8 @@ FluidImage to be able to run efficiently and easily on a personal computer and
 on big clusters. The efficiency is achieved by using
 
 - an asynchronous framework (and in the long term we want to be able to plug
-  FluidImage to distributed computational systems like `Storm
+  FluidImage to distributed computational systems like `Dask
+  <http://dask.pydata.org>`_, `Spark <https://spark.apache.org/>`_ or `Storm
   <http://storm.apache.org/>`_),
 - the available cores of the central processing units (CPU) and the available
   graphics processing units (GPU),

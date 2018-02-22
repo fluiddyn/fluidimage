@@ -8,7 +8,11 @@ dependencies:
   - scipy
   - mpi4py
   - h5py
+  - sphinx
+  - numpydoc
   - jupyter
   - matplotlib
   - fftw
   - pyfftw
+  - pip:
+    sphinx_rtd_theme

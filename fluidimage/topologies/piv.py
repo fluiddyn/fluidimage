@@ -146,7 +146,7 @@ postfix : str
                         'class': 'TopologyPIV'}))
 
         params._set_child('preproc')
-        image2image.complete_params_with_default(params.preproc)
+        image2image.complete_im2im_params_with_default(params.preproc)
 
         return params
 

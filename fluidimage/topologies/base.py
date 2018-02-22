@@ -17,6 +17,7 @@ import os
 import gc
 # from copy import copy
 import threading
+from warnings import warn
 
 try:
     import queue
@@ -40,6 +41,16 @@ config = get_config()
 dt = 0.25  # s
 dt_small = 0.02
 dt_update = 0.1
+
+
+if 'OMP_NUM_THREADS' not in os.environ:
+    warn('The environment variable OMP_NUM_THREADS '
+         'should be defined to 1 to run fluidimage topologies.')
+
+OMP_NUM_THREADS = int(os.environ.get('OMP_NUM_THREADS', 1))
+
+if OMP_NUM_THREADS > 1:
+    warn('OMP_NUM_THREADS is greater than 1!')
 
 nb_cores = cpu_count()
 

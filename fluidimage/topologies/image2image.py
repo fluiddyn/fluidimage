@@ -1,11 +1,6 @@
 """Topology for image processing (:mod:`fluidimage.topologies.image2image`)
 ===========================================================================
 
-.. autofunction:: im2im_func_example
-
-.. autoclass:: Im2ImExample
-   :members:
-
 .. autoclass:: TopologyImage2Image
    :members:
    :private-members:
@@ -14,12 +9,7 @@
 import os
 import json
 
-import numpy as np
-
 from .. import ParamContainer, SeriesOfArrays
-
-from fluiddyn.util import import_class
-from fluiddyn.io.image import imsave
 
 from . import prepare_path_dir_result
 
@@ -31,59 +21,12 @@ from .waiting_queues.base import (
 
 from ..util.util import logger
 
-
-def im2im_func_example(tuple_image_path):
-    """Process one image
-
-    This is just an example to show how to write functions which can be plugged
-    to the class
-    :class:`fluidimage.topologies.image2image.TopologyImage2Image`.
-
-    """
-    image, path = tuple_image_path
-    # the treatment can be adjusted depending on the value of the path.
-    print('treat file:\n' + path)
-    image_out = np.round(image*(255/image.max())).astype(np.uint8)
-    return image_out, path
+from ..preproc.image2image import (
+    complete_im2im_params_with_default, init_im2im_function)
 
 
-class Im2ImExample(object):
-    """Process one image
-
-    This is just an example to show how to write classes which can be plugged
-    to the class
-    :class:`fluidimage.topologies.image2image.TopologyImage2Image`.
-
-    """
-    def __init__(self, arg0, arg1):
-        print('init with arguments:', arg0, arg1)
-        self.arg0 = arg0
-        self.arg1 = arg1
-        # time consuming tasks can be done here
-
-    def calcul(self, tuple_image_path):
-        """Method processing one image"""
-        print('calcul with arguments (unused in the example):',
-              self.arg0, self.arg1)
-        return im2im_func_example(tuple_image_path)
-
-
-def complete_params_with_default(params):
-
-    params._set_attrib('im2im', None)
-    params._set_attrib('args_init', tuple())
-
-    params._set_doc("""
-im2im : str {None}
-
-    Function or class to be used to process the images.
-
-args_init : object {None}
-
-    An argument given to the init function of the class used to process the
-    images.
-
-""")
+from fluiddyn.util import import_class
+from fluiddyn.io.image import imsave
 
 
 class TopologyImage2Image(TopologyBase):
@@ -116,7 +59,7 @@ class TopologyImage2Image(TopologyBase):
 
         """
         params = ParamContainer(tag='params')
-        complete_params_with_default(params)
+        complete_im2im_params_with_default(params)
 
         params._set_child('series', attribs={'path': '',
                                              'strslice': None,
@@ -226,20 +169,8 @@ postfix : str
         self.add_series(self.series)
 
     def init_im2im(self, params_im2im):
-        str_package, str_obj = params_im2im.im2im.rsplit('.', 1)
-
-        im2im = import_class(str_package, str_obj)
-
-        def tmp_func():
-            return 1
-
-        if isinstance(im2im, tmp_func.__class__):
-            self.im2im_func = im2im
-        elif isinstance(im2im, type):
-            print('in init_im2im', params_im2im.args_init)
-            self.im2im_obj = obj = im2im(*params_im2im.args_init)
-            self.im2im_func = obj.calcul
-
+        self.im2im_obj, self.im2im_func = init_im2im_function(
+            im2im=params_im2im.im2im, args_init=params_im2im.args_init)
         return self.im2im_func
 
     def add_series(self, series):

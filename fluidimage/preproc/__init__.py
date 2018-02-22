@@ -12,5 +12,6 @@ Provides:
 
    base
    toolbox
+   image2image
 
 """

@@ -126,6 +126,19 @@ class ArrayCouple(DataObject):
     def read_images(self):
         return tuple(self._read_image(i) for i in [0, 1])
 
+    def apply_mask(self, params_mask):
+        if self.params_mask is not None and params_mask is None:
+            raise NotImplementedError
+
+        if self.params_mask is not None and params_mask == self.params_mask:
+            return
+
+        if self.params_mask is not None:
+            raise NotImplementedError
+
+        self.params_mask = params_mask
+        self.arrays = self._mask_arrays(self.arrays)
+
     def _mask_array(self, array):
         if self.params_mask is None:
             return array
