@@ -15,4 +15,4 @@ dependencies:
   - fftw
   - pyfftw
   - pip:
-    sphinx_rtd_theme
+    - sphinx_rtd_theme
