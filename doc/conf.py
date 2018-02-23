@@ -66,8 +66,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'FluidDyn'
-copyright = u'2014, Pierre Augier'
+project = u'FluidImage'
+copyright = u'2016, Pierre Augier'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
