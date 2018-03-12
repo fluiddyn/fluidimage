@@ -32,8 +32,8 @@ def im2im_func_example(tuple_image_path):
 
     """
     image, path = tuple_image_path
-    # the treatment can be adjusted depending on the value of the path.
-    print('treat file:\n' + path)
+    # the processing can be adjusted depending on the value of the path.
+    print('process file:\n' + path)
     image_out = np.round(image*(255/image.max())).astype(np.uint8)
     return image_out, path
 

@@ -4,7 +4,7 @@ Installation and advice
 Dependencies and useful packages
 --------------------------------
 
-- Python 2.7 or >3.4 (unless you have a good reason, use python >= 3.6!)
+- Python >= 3.6
 
 - fftw
 
@@ -14,7 +14,36 @@ Dependencies and useful packages
 
 - pyfftw (simplest way to compute fft quite efficiently)
 
-- pythran (to be fast)
+- `Pythran <https://github.com/serge-sans-paille/pythran>`_
+
+  We choose to use the new static Python compiler `Pythran
+  <https://github.com/serge-sans-paille/pythran>`_ for some functions of the
+  operators. Our microbenchmarks show that the performances are as good as what
+  we are able to get with Fortran or C++!
+
+  .. warning::
+
+     To reach good performance, we advice to try to put in the file
+     `~/.pythranrc` the lines (it seems to work well on Linux, see the `Pythran
+     documentation <https://pythonhosted.org/pythran/MANUAL.html>`_):
+
+     .. code:: bash
+
+        [pythran]
+        complex_hook = True
+
+  .. warning::
+
+     The compilation of C++ files produced by Pythran can be long and can
+     consume a lot of memory. If you encounter any problems, you can try to use
+     clang (for example with ``conda install clangdev``) and to enable its use
+     in the file `~/.pythranrc` with:
+
+     .. code:: bash
+
+        [compiler]
+        CXX = clang++
+        CC = clang
 
 - h5netcdf (only if you need netcdf files)
 
@@ -29,9 +58,14 @@ Dependencies and useful packages
 The simplest way to get a good environment for fluidimage is by using conda
 (with anaconda or miniconda). If you use conda, install the main packages with::
 
-  conda install numpy scipy matplotlib h5py scikit-image pyqt
+  conda config --add channels conda-forge
 
-  conda install ipython jupyter
+  conda install numpy scipy matplotlib h5py imageio scikit-image pyqt
+
+  conda install ipython jupyterlab
+
+  # to use clang to compile C++ files produced by Pythran
+  conda install clangdev
 
 and the other packages with pip::
 

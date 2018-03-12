@@ -1,7 +1,7 @@
-"""Works - treatments
+"""Works - processing
 =====================
 
-This subpackage defines some works. A work does a treatment. It has
+This subpackage defines some works. A work does a processing. It has
 initialization parameters and after initialization is able to produce an output
 object from an input object. It can also take more than one input objects
 and/or return more than one output objects.

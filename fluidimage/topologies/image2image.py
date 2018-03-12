@@ -176,7 +176,7 @@ postfix : str
     def add_series(self, series):
 
         if len(series) == 0:
-            logger.warning('add 0 image. No image to treat.')
+            logger.warning('add 0 image. No image to process.')
             return
 
         names = series.get_name_all_arrays()
@@ -199,7 +199,7 @@ postfix : str
 
         logger.debug(repr(names))
 
-        print('First files to treat:', names[:4])
+        print('First files to process:', names[:4])
 
         self.wq0.add_name_files(names)
 

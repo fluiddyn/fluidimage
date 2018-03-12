@@ -29,7 +29,7 @@ def make_params_piv(iexp, savinghow='recompute',
     params = TopologyPIV.create_default_params()
     params.series.path = path
 
-    print(path)
+    print('path', path)
     str_glob = path + '/c*.png'
     paths = glob(str_glob)
     if len(paths) == 0:

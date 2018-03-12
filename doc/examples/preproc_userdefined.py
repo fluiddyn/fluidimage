@@ -1,8 +1,8 @@
 """This example shows how to plug user-defined functions or classes that
 process an image with a fluidimage topology (which process several images).
 
-The user has to write an importable function (or class) treating one image (see
-:mod:`fluidimage.topologies.image2image`).
+The user has to write an importable function (or class) processing one image
+(see :mod:`fluidimage.topologies.image2image`).
 
 """
 

@@ -401,6 +401,33 @@ class HeavyPIVResults(DataObject):
             for arr in g.keys():
                 self.deltays_tps.append(g[arr].value)
 
+    def get_grid_pixel(self, index_pass):
+        """Recompute 1d arrays containing the approximate positions of the vectors
+
+        Useful to compute a grid on which we can interpolate the displacement fields.
+
+        Parameters
+        ----------
+
+        index_pass: int
+
+          Index of the pass
+
+        Returns
+        -------
+
+        xs1d: np.ndarray
+
+          Indices (2nd, direction "x") of the pixel in the image
+
+        ys1d: np.ndarray
+
+          Indices (1st, direction "y") of the pixel in the image
+
+        """
+        from ..postproc.piv import get_grid_pixel
+        return get_grid_pixel(self.params, self.couple.shape_images, index_pass)
+
 
 class MultipassPIVResults(DataObject):
     """Result of a multipass PIV computation."""
@@ -587,6 +614,33 @@ class MultipassPIVResults(DataObject):
             couple=piv.couple,
             params=piv.params,
             file_name=file_name)
+
+    def get_grid_pixel(self, index_pass=-1):
+        """Recompute 1d arrays containing the approximate positions of the vectors
+
+        Useful to compute a grid on which we can interpolate the displacement fields.
+
+        Parameters
+        ----------
+
+        index_pass: int
+
+          Index of the pass
+
+        Returns
+        -------
+
+        xs1d: np.ndarray
+
+          Indices (2nd, direction "x") of the pixel in the image
+
+        ys1d: np.ndarray
+
+          Indices (1st, direction "y") of the pixel in the image
+
+        """
+        piv = self.passes[index_pass]
+        return piv.get_grid_pixel(index_pass)
 
 
 class LightPIVResults(DataObject):

@@ -19,7 +19,7 @@ You can also try the piv computation with::
 """
 
 from copy import deepcopy
-from glob import iglob
+from glob import glob
 
 from fluidimage.topologies.preproc import TopologyPreproc
 
@@ -33,8 +33,14 @@ def make_params_pre(iexp, savinghow='recompute',
     params = TopologyPreproc.create_default_params()
     params.preproc.series.path = path
 
-    it = iglob(path + '/c*.png')
-    pathim = next(it)
+    print('path', path)
+    str_glob = path + '/c*.png'
+    paths = glob(str_glob)
+    if len(paths) == 0:
+        raise ValueError(
+            'No images detected from the string "' + str_glob + '"')
+    
+    pathim = paths[0]
     double_frame = pathim.endswith('a.png') or pathim.endswith('b.png')
     if double_frame:
         params.preproc.series.strcouple = 'i:i+1, 0'

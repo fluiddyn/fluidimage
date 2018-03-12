@@ -1,5 +1,5 @@
-"""Utilities for treatments
-===========================
+"""Utilities for numerical computation
+======================================
 
 This subpackage contains specialized functions and classes for efficient
 calculations.

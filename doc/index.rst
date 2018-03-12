@@ -3,7 +3,7 @@
 FluidImage documentation
 ========================
 
-FluidImage is a libre Python framework for scientific treatments of large
+FluidImage is a libre Python framework for scientific processing of large
 series of images. This package is very young but it is already mature enough to
 be used "in production" to
 
@@ -16,7 +16,7 @@ be used "in production" to
 We want to make FluidImage easy (useful documentation, easy installation,
 usable with scripts and GUI in Qt), reliable (with good `unittests
 <https://codecov.io/bb/fluiddyn/fluidimage/>`_) and very efficient, in
-particular when the number of images to treat becomes large. Thus we want
+particular when the number of images to process becomes large. Thus we want
 FluidImage to be able to run efficiently and easily on a personal computer and
 on big clusters. The efficiency is achieved by using
 

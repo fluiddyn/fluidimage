@@ -36,7 +36,7 @@ class WorkFIX(BaseWork):
             'displacement_max': None})
 
         params.fix._set_doc("""
-Parameters indicating how are detected and treated false vectors.
+Parameters indicating how are detected and processed false vectors.
 
 correl_min : 0.2
 

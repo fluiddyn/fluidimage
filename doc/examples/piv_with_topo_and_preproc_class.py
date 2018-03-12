@@ -18,8 +18,10 @@ params.saving.postfix = 'piv_example'
 
 # we use the light versatile preprocessing feature:
 params.preproc.im2im = 'my_example_im2im_class.Im2Im'
-# currently, it is not recommended to use unicode strings (h5py issue)
 params.preproc.args_init = ('arg0', 'arg1')
+
+# Here, the class will be imported with the statement
+# `from my_example_im2im_class import Im2Im`
 
 topology = TopologyPIV(params, logging_level='info')
 

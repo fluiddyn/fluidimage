@@ -19,6 +19,9 @@ params.saving.postfix = 'piv_example'
 # we use the light versatile preprocessing feature:
 params.preproc.im2im = 'my_example_im2im.im2im'
 
+# Here the "image to image" function will be imported with the statement
+# `from my_example_im2im import im2im`
+
 topology = TopologyPIV(params, logging_level='info')
 
 # To produce a graph of the topology

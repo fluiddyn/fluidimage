@@ -222,7 +222,7 @@ postfix : str
 
         logger.debug(repr(names))
 
-        print('First files to treat:', names[:4])
+        print('First files to process:', names[:4])
 
         self.wq0.add_name_files(names)
 

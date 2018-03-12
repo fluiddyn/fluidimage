@@ -110,7 +110,7 @@ _nb_max_workers = nb_max_workers
 
 
 class TopologyBase(object):
-    """Base class for topologies of treatment.
+    """Base class for topologies of processing.
 
     Parameters
     ----------

@@ -1,11 +1,11 @@
 """Topologies representing asynchronous computations
 ====================================================
 
-A topology is responsible for the organization of the treatment of a succession
-of input "unit" objects. It contains the description as a "topology" of the
-treatment of one "unit" object (for example the production of 1 PIV field from
-a couple of images). A topology is formed of a set of unit processes linked by
-waiting queues.
+A topology is responsible for the organization of the processing of a
+succession of input "unit" objects. It contains the description as a "topology"
+of the processing of one "unit" object (for example the production of 1 PIV
+field from a couple of images). A topology is formed of a set of unit processes
+linked by waiting queues.
 
 The Topology object also organizes the "loop" over the input set. It organizes
 the asynchronous (parallel) calls of the work units of the topology with the
