@@ -669,6 +669,8 @@ class DirectStereoReconstruction():
 
 
 if __name__ == "__main__":
+    import os
+
     def clf():
         pylab.close('all')
 
@@ -676,13 +678,15 @@ if __name__ == "__main__":
 
     nbline_x, nbline_y = 32, 32
 
-    path_cam = ('../../image_samples/4th_PIV-Challenge_Case_E/'
-                'E_Calibration_Images/Camera_0')
+    here = os.path.dirname(__file__)
+    path_cam = os.path.join(
+        here, ('../../image_samples/4th_PIV-Challenge_Case_E/'
+               'E_Calibration_Images/Camera_0'))
 
     pathimg = path_cam + '1/img*'
     calib = CalibDirect(pathimg, (nb_pixelx, nb_pixely))
     calib.compute_interpolents()
-    calib.compute_interp_pixel2line((nbline_x, nbline_y), test=False)
+    calib.compute_interpolents_pixel2line(nbline_x, nbline_y, test=False)
     calib.save(path_cam + '1/calib1.npy')
 
     # calib.check_interp_lines_coeffs()
@@ -691,7 +695,7 @@ if __name__ == "__main__":
     pathimg = path_cam + '3/img*'
     calib3 = CalibDirect(pathimg, (nb_pixelx, nb_pixely))
     calib3.compute_interpolents()
-    calib3.compute_interp_pixel2line((nbline_x, nbline_y), test=False)
+    calib3.compute_interpolents_pixel2line(nbline_x, nbline_y, test=False)
     calib3.save(path_cam + '3/calib3.npy')
 
     stereo = DirectStereoReconstruction(
