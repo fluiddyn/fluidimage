@@ -7,6 +7,7 @@ Usage: python -m fluidimage.util.stats image1 image2 [x1 y1 x2 y2 ..]
 import scipy.ndimage as nd
 import numpy as np
 import matplotlib.pyplot as plt
+
 try:
     from ..pre_proc._toolbox_cv import adaptive_threshold
 except ImportError:
@@ -18,8 +19,7 @@ def particle_count(img):
     return count
 
 
-def particle_density(img, center_indices=[], window_size=11,
-                     di_range=(10, 100)):
+def particle_density(img, center_indices=[], window_size=11, di_range=(10, 100)):
     """Plots particle density in the image array about a centre versus
     a range of possible interrogation window sizes.
 
@@ -40,9 +40,9 @@ def particle_density(img, center_indices=[], window_size=11,
     fig = plt.figure()
     ax = fig.add_axes([0.1, 0.1, 0.8, 0.8])
     # ax = fig.add_subplot(1, 1, 1)
-    ax.set_title('Particle density ($N_I$) vs interrogation window size ($D_I$)')
-    ax.set_xlabel('$D_I$')
-    ax.set_ylabel('$N_I$')
+    ax.set_title("Particle density ($N_I$) vs interrogation window size ($D_I$)")
+    ax.set_xlabel("$D_I$")
+    ax.set_ylabel("$N_I$")
 
     di_range = np.arange(*di_range, step=2)
     if len(center_indices) == 0:
@@ -56,14 +56,15 @@ def particle_density(img, center_indices=[], window_size=11,
             slice1 = slice(i1 - di2, i1 + di2)
             ni[i] = particle_count(img[slice0, slice1])
 
-        ax.plot(di_range, ni, label='centre: {},{}'.format(i0, i1))
+        ax.plot(di_range, ni, label="centre: {},{}".format(i0, i1))
         ax.legend()
 
     plt.show()
 
 
-def particle_motion_factor(img1, img2, center_indices=[], window_size=11,
-                           di_range=(10, 100)):
+def particle_motion_factor(
+    img1, img2, center_indices=[], window_size=11, di_range=(10, 100)
+):
     """Plots particle factor due to in- and out-of-plane motion versus
     a range of possible interrogation window sizes.
 
@@ -84,10 +85,11 @@ def particle_motion_factor(img1, img2, center_indices=[], window_size=11,
 
     fig = plt.figure()
     ax = fig.add_axes([0.1, 0.1, 0.8, 0.8])
-    ax.set_title('Particle motion factor ($F_{IO}$)'
-                 'vs interrogation window size ($D_I$)')
-    ax.set_xlabel('$D_I$')
-    ax.set_ylabel('$F_{I0}$')
+    ax.set_title(
+        "Particle motion factor ($F_{IO}$)" "vs interrogation window size ($D_I$)"
+    )
+    ax.set_xlabel("$D_I$")
+    ax.set_ylabel("$F_{I0}$")
 
     di_range = np.arange(*di_range, step=2)
     if len(center_indices) == 0:
@@ -104,15 +106,16 @@ def particle_motion_factor(img1, img2, center_indices=[], window_size=11,
             ni2[i] = particle_count(img2[slice0, slice1])
 
         fio = ni2.astype(float) / ni1
-        ax.plot(di_range, fio, label='centre: {},{}'.format(i0, i1))
+        ax.plot(di_range, fio, label="centre: {},{}".format(i0, i1))
         ax.legend()
 
     plt.show()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import sys
     from fluiddyn.io.image import imread
+
     img1 = imread(sys.argv[1])
     img2 = imread(sys.argv[2])
 

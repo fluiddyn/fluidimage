@@ -11,8 +11,9 @@ from decorator import decorator
 
 
 def _get_img_arg(*args, **kwargs):
-    if 'img' in kwargs:
-        return kwargs['img']
+    if "img" in kwargs:
+        return kwargs["img"]
+
     else:
         return args[0]
 
@@ -21,8 +22,8 @@ def _replace_img_arg(new_img, *args, **kwargs):
     if not isinstance(args, list):
         args = list(args)
 
-    if 'img' in kwargs:
-        kwargs['img'] = new_img
+    if "img" in kwargs:
+        kwargs["img"] = new_img
     else:
         args[0] = new_img
 
@@ -37,6 +38,7 @@ def _get_array_like_type(array_like, convert_to_ndarray=False):
 
     if convert_to_ndarray:
         return np.array(array_like), ArrayLike
+
     else:
         return ArrayLike
 

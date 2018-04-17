@@ -23,19 +23,24 @@ class WorkFIX(BaseWork):
 
     @classmethod
     def create_default_params(cls):
-        params = ParamContainer(tag='params')
+        params = ParamContainer(tag="params")
         cls._complete_params_with_default(params)
         return params
 
     @classmethod
-    def _complete_params_with_default(cls, params, tag='fix'):
+    def _complete_params_with_default(cls, params, tag="fix"):
 
-        params._set_child(tag, attribs={
-            'correl_min': 0.2,
-            'threshold_diff_neighbour': 10,
-            'displacement_max': None})
+        params._set_child(
+            tag,
+            attribs={
+                "correl_min": 0.2,
+                "threshold_diff_neighbour": 10,
+                "displacement_max": None,
+            },
+        )
 
-        params.fix._set_doc("""
+        params.fix._set_doc(
+            """
 Parameters indicating how are detected and processed false vectors.
 
 correl_min : 0.2
@@ -52,7 +57,8 @@ displacement_max : None
 
     Vectors larger than `displacement_max` are considered as false vectors.
 
-""")
+"""
+        )
 
     def __init__(self, params, piv_work):
         self.params = params
@@ -83,19 +89,19 @@ displacement_max : None
                     deltays[ind] = np.nan
                     piv_results.errors[ind] = explanation
                 else:
-                    piv_results.errors[ind] += ' + ' + explanation
+                    piv_results.errors[ind] += " + " + explanation
 
         # condition correl < correl_min
         inds = (piv_results.correls_max < self.params.correl_min).nonzero()[0]
-        put_to_nan(inds, 'correl < correl_min')
+        put_to_nan(inds, "correl < correl_min")
 
         # condition delta2 < displacement_max2
         if self.params.displacement_max:
-            displacement_max2 = self.params.displacement_max**2
-            delta2s = deltaxs**2 + deltays**2
-            with np.errstate(invalid='ignore'):
+            displacement_max2 = self.params.displacement_max ** 2
+            delta2s = deltaxs ** 2 + deltays ** 2
+            with np.errstate(invalid="ignore"):
                 inds = (delta2s > displacement_max2).nonzero()[0]
-            put_to_nan(inds, 'delta2 < displacement_max2')
+            put_to_nan(inds, "delta2 < displacement_max2")
 
         # warning condition neighbour not implemented...
         if self.params.threshold_diff_neighbour is not None:
@@ -108,21 +114,24 @@ displacement_max : None
             # import pdb; pdb.set_trace()
 
             dxs_smooth, dys_smooth = smooth_clean(
-                xs, ys, deltaxs, deltays, iyvecs, ixvecs, threshold)
+                xs, ys, deltaxs, deltays, iyvecs, ixvecs, threshold
+            )
             piv_results.dxs_smooth_clean = dxs_smooth
             piv_results.dys_smooth_clean = dys_smooth
 
-            differences = np.sqrt((dxs_smooth - deltaxs)**2 +
-                                  (dys_smooth - deltays)**2)
+            differences = np.sqrt(
+                (dxs_smooth - deltaxs) ** 2 + (dys_smooth - deltays) ** 2
+            )
 
-            with np.errstate(invalid='ignore'):
+            with np.errstate(invalid="ignore"):
                 inds = (differences > threshold).nonzero()[0]
 
-            put_to_nan(inds, 'diff neighbour too large')
+            put_to_nan(inds, "diff neighbour too large")
 
             for ind in inds:
-                piv_results.errors[ind] += ' (diff = {:.2f})'.format(
-                    differences[ind])
+                piv_results.errors[ind] += " (diff = {:.2f})".format(
+                    differences[ind]
+                )
 
             piv_results.deltaxs_wrong = deltaxs_wrong
             piv_results.deltays_wrong = deltays_wrong
@@ -139,8 +148,10 @@ displacement_max : None
 
             other_peaks_good = []
             for (dx, dy, corr) in other_peaks:
-                if corr/correl0 > ratio_correl_peaks and \
-                   corr > self.params.correl_min:
+                if (
+                    corr / correl0 > ratio_correl_peaks
+                    and corr > self.params.correl_min
+                ):
                     other_peaks_good.append((dx, dy, corr))
 
             if len(other_peaks_good) == 0:
@@ -150,19 +161,20 @@ displacement_max : None
             diff_neighbours[0] = differences[ind]
 
             for i, (dx, dy, corr) in enumerate(other_peaks_good):
-                diff_neighbours[i+1] = np.sqrt(
-                    (dxs_smooth[ind] - dx)**2 +
-                    (dys_smooth[ind] - dy)**2)
+                diff_neighbours[i + 1] = np.sqrt(
+                    (dxs_smooth[ind] - dx) ** 2 + (dys_smooth[ind] - dy) ** 2
+                )
 
             argmin = diff_neighbours.argmin()
 
             if argmin != 0:
-                print('replace peak')
-                dx, dy, corr = other_peaks_good[argmin-1]
-                other_peaks_good[argmin-1] = (
+                print("replace peak")
+                dx, dy, corr = other_peaks_good[argmin - 1]
+                other_peaks_good[argmin - 1] = (
                     piv_results.deltaxs[ind],
                     piv_results.deltays[ind],
-                    piv_results.correls_max[ind])
+                    piv_results.correls_max[ind],
+                )
                 piv_results.secondary_peaks[ind] = other_peaks_good
 
                 piv_results.deltaxs[ind] = dx
@@ -170,8 +182,10 @@ displacement_max : None
                 piv_results.correls_max[ind] = corr
 
                 if ind in piv_results.errors:
-                    del (piv_results.deltaxs_wrong[ind],
-                         piv_results.deltays_wrong[ind])
-                    print('!!!!! TO DO ind in piv_results.errors !!!!!')
+                    del (
+                        piv_results.deltaxs_wrong[ind],
+                        piv_results.deltays_wrong[ind],
+                    )
+                    print("!!!!! TO DO ind in piv_results.errors !!!!!")
 
         return piv_results

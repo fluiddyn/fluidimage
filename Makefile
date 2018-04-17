@@ -15,6 +15,9 @@ clean_so:
 
 cleanall: clean clean_so
 
+black:
+	black -l 82 fluidimage
+
 tests:
 	python -m unittest discover
 

@@ -18,8 +18,9 @@ from fluiddyn.util.paramcontainer_gui import QtParamContainer
 from fluiddyn.util.paramcontainer import ParamContainer
 
 from fluidimage.topologies.launcher import (
-    TopologyPreprocLauncher,
-    TopologyPIVLauncher)
+    TopologyPreprocLauncher, TopologyPIVLauncher
+)
+
 
 class Program(QtWidgets.QMainWindow, Ui_MainWindow):
 
@@ -30,7 +31,7 @@ class Program(QtWidgets.QMainWindow, Ui_MainWindow):
         QtWidgets.QMainWindow.__init__(self)
         self.setupUi(self)
 
-        topo_names = ['TopologyPreprocLauncher', 'TopologyPIVLauncher']
+        topo_names = ["TopologyPreprocLauncher", "TopologyPIVLauncher"]
         self.actions = {}
 
         for topo_name in topo_names:
@@ -50,7 +51,8 @@ class Program(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def open_file(self):
         path_file = QtWidgets.QFileDialog.getOpenFileName(
-            self.centralwidget, 'OpenFile')
+            self.centralwidget, "OpenFile"
+        )
 
         params = ParamContainer(path_file=path_file)
         print(params)
@@ -61,7 +63,8 @@ class Program(QtWidgets.QMainWindow, Ui_MainWindow):
         params = Topology.create_default_params()
 
         self.qt_params = QtParamContainer(
-            params, top=True, module_run_from_xml='fluidimage.run_from_xml')
+            params, top=True, module_run_from_xml="fluidimage.run_from_xml"
+        )
 
         # first remove all widgets from verticalLayout_2
         layout = self.verticalLayout_2
@@ -82,5 +85,5 @@ def main():
     sys.exit(app.exec_())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

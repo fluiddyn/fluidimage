@@ -14,8 +14,11 @@ from .. import ParamContainer, SerieOfArraysFromFiles, SeriesOfArrays
 from .base import TopologyBase
 
 from .waiting_queues.base import (
-    WaitingQueueMultiprocessing, WaitingQueueThreading,
-    WaitingQueueMakeCouple, WaitingQueueLoadImage)
+    WaitingQueueMultiprocessing,
+    WaitingQueueThreading,
+    WaitingQueueMakeCouple,
+    WaitingQueueLoadImage,
+)
 
 from . import prepare_path_dir_result
 from ..works.piv import WorkPIV
@@ -53,15 +56,21 @@ class TopologyPIV(TopologyBase):
         For developers: cf. fluidsim.base.params
 
         """
-        params = ParamContainer(tag='params')
+        params = ParamContainer(tag="params")
 
-        params._set_child('series', attribs={'path': '',
-                                             'strcouple': 'i:i+2',
-                                             'ind_start': 0,
-                                             'ind_stop': None,
-                                             'ind_step': 1})
+        params._set_child(
+            "series",
+            attribs={
+                "path": "",
+                "strcouple": "i:i+2",
+                "ind_start": 0,
+                "ind_stop": None,
+                "ind_step": 1,
+            },
+        )
 
-        params.series._set_doc("""
+        params.series._set_doc(
+            """
 Parameters indicating the input series of images.
 
 path : str, {''}
@@ -114,11 +123,12 @@ ind_step : int, {1}
 
 int_stop : None
 
-""")
+"""
+        )
 
-        params._set_child('saving', attribs={'path': None,
-                                             'how': 'ask',
-                                             'postfix': 'piv'})
+        params._set_child(
+            "saving", attribs={"path": None, "how": "ask", "postfix": "piv"}
+        )
 
         params.saving._set_doc(
             """Saving of the results.
@@ -135,22 +145,28 @@ how : str {'ask'}
 postfix : str
 
     Postfix from which the output file is computed.
-""")
+"""
+        )
 
         WorkPIV._complete_params_with_default(params)
 
         params._set_internal_attr(
-            '_value_text',
-            json.dumps({'program': 'fluidimage',
-                        'module': 'fluidimage.topologies.piv',
-                        'class': 'TopologyPIV'}))
+            "_value_text",
+            json.dumps(
+                {
+                    "program": "fluidimage",
+                    "module": "fluidimage.topologies.piv",
+                    "class": "TopologyPIV",
+                }
+            ),
+        )
 
-        params._set_child('preproc')
+        params._set_child("preproc")
         image2image.complete_im2im_params_with_default(params.preproc)
 
         return params
 
-    def __init__(self, params=None, logging_level='info', nb_max_workers=None):
+    def __init__(self, params=None, logging_level="info", nb_max_workers=None):
 
         if params is None:
             params = self.__class__.create_default_params()
@@ -161,15 +177,17 @@ postfix : str
         serie_arrays = SerieOfArraysFromFiles(params.series.path)
 
         self.series = SeriesOfArrays(
-            serie_arrays, params.series.strcouple,
+            serie_arrays,
+            params.series.strcouple,
             ind_start=params.series.ind_start,
             ind_stop=params.series.ind_stop,
-            ind_step=params.series.ind_step)
+            ind_step=params.series.ind_step,
+        )
 
         path_dir = self.series.serie.path_dir
         path_dir_result, self.how_saving = prepare_path_dir_result(
-            path_dir, params.saving.path,
-            params.saving.postfix, params.saving.how)
+            path_dir, params.saving.path, params.saving.postfix, params.saving.how
+        )
 
         self.path_dir_result = path_dir_result
 
@@ -180,58 +198,68 @@ postfix : str
             return ret
 
         self.wq_piv = WaitingQueueThreading(
-            'delta', save_piv_object, self.results, topology=self)
+            "delta", save_piv_object, self.results, topology=self
+        )
         self.wq_couples = WaitingQueueMultiprocessing(
-            'couple', self.piv_work.calcul, self.wq_piv,
-            topology=self)
+            "couple", self.piv_work.calcul, self.wq_piv, topology=self
+        )
 
         self.wq_images = WaitingQueueMakeCouple(
-            'array image', self.wq_couples, topology=self)
+            "array image", self.wq_couples, topology=self
+        )
 
         if params.preproc.im2im is not None:
             self.im2im_func = image2image.TopologyImage2Image.init_im2im(
-                self, params.preproc)
+                self, params.preproc
+            )
 
             self.wq_images0 = WaitingQueueMultiprocessing(
-                'image ', self.im2im_func, self.wq_images,
-                topology=self)
+                "image ", self.im2im_func, self.wq_images, topology=self
+            )
             wq_after_load = self.wq_images0
         else:
             wq_after_load = self.wq_images
 
         self.wq0 = WaitingQueueLoadImage(
-            destination=wq_after_load,
-            path_dir=path_dir, topology=self)
+            destination=wq_after_load, path_dir=path_dir, topology=self
+        )
 
         if params.preproc.im2im is not None:
             waiting_queues = [
-                self.wq0, self.wq_images0, self.wq_images,
-                self.wq_couples, self.wq_piv]
+                self.wq0,
+                self.wq_images0,
+                self.wq_images,
+                self.wq_couples,
+                self.wq_piv,
+            ]
         else:
             waiting_queues = [
-                self.wq0, self.wq_images, self.wq_couples, self.wq_piv]
+                self.wq0, self.wq_images, self.wq_couples, self.wq_piv
+            ]
 
         super(TopologyPIV, self).__init__(
             waiting_queues,
-            path_output=path_dir_result, logging_level=logging_level,
-            nb_max_workers=nb_max_workers)
+            path_output=path_dir_result,
+            logging_level=logging_level,
+            nb_max_workers=nb_max_workers,
+        )
 
         self.add_series(self.series)
 
     def add_series(self, series):
 
         if len(series) == 0:
-            logger.warning('add 0 couple. No PIV to compute.')
+            logger.warning("add 0 couple. No PIV to compute.")
             return
 
-        if self.how_saving == 'complete':
+        if self.how_saving == "complete":
             names = []
             index_series = []
             for i, serie in enumerate(series):
-                name_piv = get_name_piv(serie, prefix='piv')
-                if os.path.exists(os.path.join(
-                        self.path_dir_result, name_piv)):
+                name_piv = get_name_piv(serie, prefix="piv")
+                if os.path.exists(os.path.join(self.path_dir_result, name_piv)):
                     continue
+
                 for name in serie.get_name_arrays():
                     if name not in names:
                         names.append(name)
@@ -240,7 +268,8 @@ postfix : str
 
             if len(index_series) == 0:
                 logger.warning(
-                    'topology in mode "complete" and work already done.')
+                    'topology in mode "complete" and work already done.'
+                )
                 return
 
             series.set_index_series(index_series)
@@ -251,12 +280,13 @@ postfix : str
             names = series.get_name_all_arrays()
 
         nb_series = len(series)
-        print('Add {} PIV fields to compute.'.format(nb_series))
+        print("Add {} PIV fields to compute.".format(nb_series))
 
         for i, serie in enumerate(series):
             if i > 1:
                 break
-            print('Files of serie {}: {}'.format(i, serie.get_name_arrays()))
+
+            print("Files of serie {}: {}".format(i, serie.get_name_arrays()))
 
         self.wq0.add_name_files(names)
         self.wq_images.add_series(series)
@@ -272,27 +302,32 @@ postfix : str
             params_mask = None
 
         couple = ArrayCouple(
-            names=('', ''), arrays=(im, im), params_mask=params_mask)
+            names=("", ""), arrays=(im, im), params_mask=params_mask
+        )
         im, _ = couple.get_arrays()
 
         self.piv_work._prepare_with_image(im)
 
     def _print_at_exit(self, time_since_start):
 
-        txt = 'Stop compute after t = {:.2f} s'.format(time_since_start)
+        txt = "Stop compute after t = {:.2f} s".format(time_since_start)
         try:
             nb_results = len(self.results)
         except AttributeError:
             nb_results = None
         if nb_results is not None and nb_results > 0:
-            txt += (' ({} piv fields, {:.2f} s/field).'.format(
-                nb_results, time_since_start / nb_results))
+            txt += (
+                " ({} piv fields, {:.2f} s/field).".format(
+                    nb_results, time_since_start / nb_results
+                )
+            )
         else:
-            txt += '.'
+            txt += "."
 
-        txt += '\npath results:\n' + self.path_dir_result
+        txt += "\npath results:\n" + self.path_dir_result
 
         print(txt)
+
 
 params = TopologyPIV.create_default_params()
 

@@ -19,7 +19,7 @@ class PreprocBase(object):
     """Preprocess series of images with various tools. """
 
     @classmethod
-    def create_default_params(cls, backend='python'):
+    def create_default_params(cls, backend="python"):
         """Class method returning the default parameters.
 
         Parameters
@@ -30,25 +30,29 @@ class PreprocBase(object):
             Specifies which backend to use.
 
         """
-        params = ParamContainer(tag='params')
-        params._set_child('preproc')
-        params.preproc._set_child('series', attribs={'path': ''})
-        params.preproc.series._set_doc("""
+        params = ParamContainer(tag="params")
+        params._set_child("preproc")
+        params.preproc._set_child("series", attribs={"path": ""})
+        params.preproc.series._set_doc(
+            """
 Parameters indicating the input series of images.
 
 path : str, {''}
 
     String indicating the input images (can be a full path towards an image
     file or a string given to `glob`).
-""")
-        if backend == 'python':
+"""
+        )
+        if backend == "python":
             from .toolbox import PreprocToolsPy
+
             cls._Tools = PreprocToolsPy
-        elif backend == 'opencv':
+        elif backend == "opencv":
             from .toolbox import PreprocToolsCV
+
             cls._Tools = PreprocToolsCV
         else:
-            raise ImportError('Unknown backend: %s' % backend)
+            raise ImportError("Unknown backend: %s" % backend)
 
         cls._Tools.create_default_params(params)
         return params
@@ -93,6 +97,9 @@ path : str, {''}
             results = self.results
 
         return DisplayPreProc(
-            before[name_files[0]], before[name_files[1]],
-            results[name_files[0]], results[name_files[1]],
-            hist=hist)
+            before[name_files[0]],
+            before[name_files[1]],
+            results[name_files[0]],
+            results[name_files[1]],
+            hist=hist,
+        )

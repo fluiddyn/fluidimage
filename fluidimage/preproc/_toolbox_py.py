@@ -12,25 +12,42 @@ Provides:
 
 import numpy as np
 import scipy.ndimage as ndi
+
 try:
     import skimage
     from skimage import exposure, filters, morphology
-    if skimage.__version__ < '0.13.0':
-        print('Warning: to use fluidimage.preproc, '
-              'first upgrade scikit-image to a version >= 0.13.0.')
+
+    if skimage.__version__ < "0.13.0":
+        print(
+            "Warning: to use fluidimage.preproc, "
+            "first upgrade scikit-image to a version >= 0.13.0."
+        )
 except ImportError:
-    print('Warning: ImportError, to use fluidimage.preproc, '
-          'first install scikit-image >= 0.13.0')
+    print(
+        "Warning: ImportError, to use fluidimage.preproc, "
+        "first install scikit-image >= 0.13.0"
+    )
 
 from .io import iterate_multiple_imgs, multiple_imgs_as_ndarray
 
 
-__all__ = ['sliding_median', 'sliding_minima', 'sliding_percentile',
-           'temporal_median', 'temporal_minima', 'temporal_percentile',
-           'global_threshold', 'adaptive_threshold', 'rescale_intensity',
-           'equalize_hist_global', 'equalize_hist_local',
-           'equalize_hist_adapt',
-           'gamma_correction', 'sharpen', 'rescale_intensity_tanh']
+__all__ = [
+    "sliding_median",
+    "sliding_minima",
+    "sliding_percentile",
+    "temporal_median",
+    "temporal_minima",
+    "temporal_percentile",
+    "global_threshold",
+    "adaptive_threshold",
+    "rescale_intensity",
+    "equalize_hist_global",
+    "equalize_hist_local",
+    "equalize_hist_adapt",
+    "gamma_correction",
+    "sharpen",
+    "rescale_intensity_tanh",
+]
 
 
 def imstats(img, hist_bins=256):
@@ -42,10 +59,12 @@ def imstats(img, hist_bins=256):
 #   SPATIAL FILTERS
 # ----------------------------------------------------
 
+
 @iterate_multiple_imgs
-def sliding_median(img=None, weight=1., window_size=30,
-                   boundary_condition='reflect'):
-    '''
+def sliding_median(
+    img=None, weight=1., window_size=30, boundary_condition="reflect"
+):
+    """
     Subtracts the median calculated within a sliding window from the centre of
     the window.
 
@@ -62,18 +81,23 @@ def sliding_median(img=None, weight=1., window_size=30,
     boundary_condition : {'reflect', 'constant', 'nearest', 'mirror', 'wrap'}
         Mode of handling array borders.
 
-    '''
-    img_out = img - weight * ndi.median_filter(img,
-                                               size=window_size,
-                                               mode=boundary_condition)
+    """
+    img_out = img - weight * ndi.median_filter(
+        img, size=window_size, mode=boundary_condition
+    )
     img_out[img_out < 0] = 0
     return img_out
 
 
 @iterate_multiple_imgs
-def sliding_percentile(img=None, percentile=10., weight=1., window_size=30,
-                       boundary_condition='reflect'):
-    '''
+def sliding_percentile(
+    img=None,
+    percentile=10.,
+    weight=1.,
+    window_size=30,
+    boundary_condition="reflect",
+):
+    """
     Flexible version of median filter. Low percentile values work well
     for dense images.
 
@@ -92,19 +116,19 @@ def sliding_percentile(img=None, percentile=10., weight=1., window_size=30,
     boundary_condition : {'reflect', 'constant', 'nearest', 'mirror', 'wrap'}
         Mode of handling array borders.
 
-    '''
-    img_out = img - weight * ndi.percentile_filter(img,
-                                                   percentile,
-                                                   size=window_size,
-                                                   mode=boundary_condition)
+    """
+    img_out = img - weight * ndi.percentile_filter(
+        img, percentile, size=window_size, mode=boundary_condition
+    )
     img_out[img_out < 0] = 0
     return img_out
 
 
 @iterate_multiple_imgs
-def sliding_minima(img=None, weight=1., window_size=30,
-                   boundary_condition='reflect'):
-    '''
+def sliding_minima(
+    img=None, weight=1., window_size=30, boundary_condition="reflect"
+):
+    """
     Subtracts the minimum calculated within a sliding window from the centre of
     the window.
 
@@ -121,10 +145,10 @@ def sliding_minima(img=None, weight=1., window_size=30,
     boundary_condition : {'reflect', 'constant', 'nearest', 'mirror', 'wrap'}
         Mode of handling array borders.
 
-    '''
-    img_out = img - weight * ndi.minimum_filter(img,
-                                                size=window_size,
-                                                mode=boundary_condition)
+    """
+    img_out = img - weight * ndi.minimum_filter(
+        img, size=window_size, mode=boundary_condition
+    )
     img_out[img_out < 0] = 0
     return img_out
 
@@ -133,30 +157,35 @@ def sliding_minima(img=None, weight=1., window_size=30,
 #   SPATIO-TEMPORAL FILTERS
 # ----------------------------------------------------
 
+
 def _calcul_windowshape(arr_shape, window_shape):
     nb_imgs = arr_shape[0]
     if len(arr_shape) <= 2 or nb_imgs <= 1:
         raise ValueError(
-            'Need more than one image to apply temporal filtering '
-            '(use sliding filter?).')
+            "Need more than one image to apply temporal filtering "
+            "(use sliding filter?)."
+        )
 
     if window_shape is None:
         window_shape = (nb_imgs, 1, 1)
     elif isinstance(window_shape, int):
         window_shape = (window_shape, 1, 1)
     elif not isinstance(window_shape, (tuple, list)):
-        raise ValueError('window_shape must be a tuple or a list.')
+        raise ValueError("window_shape must be a tuple or a list.")
+
     elif len(window_shape) == 2:
         window_shape = (nb_imgs,) + window_shape
     elif window_shape[0] <= 1:
         raise ValueError(
-            'Cannot perform temporal filtering, try spatial filtering.')
+            "Cannot perform temporal filtering, try spatial filtering."
+        )
+
     return window_shape
 
 
 @multiple_imgs_as_ndarray
 def temporal_median(img=None, weight=1., window_shape=None):
-    '''
+    """
     Subtracts the median calculated in time and space, for each pixel.
     Median filter works well for sparse images.
 
@@ -170,18 +199,16 @@ def temporal_median(img=None, weight=1., window_shape=None):
     window_shape : tuple of integers
         Specifies the shape of the window as follows (nt, ny, nx) or (ny, nx).
 
-    '''
+    """
     window_shape = _calcul_windowshape(img.shape, window_shape)
 
-    img_out = img - weight * ndi.median_filter(
-        img, size=window_shape)
+    img_out = img - weight * ndi.median_filter(img, size=window_shape)
     return img_out
 
 
 @multiple_imgs_as_ndarray
-def temporal_percentile(img=None, percentile=10., weight=1.,
-                        window_shape=None):
-    '''
+def temporal_percentile(img=None, percentile=10., weight=1., window_shape=None):
+    """
     Flexible version of median filter. Low percentile values work well
     for dense images.
 
@@ -198,17 +225,18 @@ def temporal_percentile(img=None, percentile=10., weight=1.,
     window_shape : tuple of integers
         Specifies the shape of the window as follows (nt, ny, nx) or (ny, nx).
 
-    '''
+    """
     window_shape = _calcul_windowshape(img.shape, window_shape)
 
     img_out = img - weight * ndi.percentile_filter(
-        img, percentile, size=window_shape)
+        img, percentile, size=window_shape
+    )
     return img_out
 
 
 @multiple_imgs_as_ndarray
 def temporal_minima(img=None, weight=1., window_shape=None):
-    '''Subtracts the minima calculated in time and space, for each pixel.
+    """Subtracts the minima calculated in time and space, for each pixel.
 
     Parameters
     ----------
@@ -220,7 +248,7 @@ def temporal_minima(img=None, weight=1., window_shape=None):
     window_shape : tuple of integers
         Specifies the shape of the window as follows (nt, ny, nx) or (ny, nx).
 
-    '''
+    """
     window_shape = _calcul_windowshape(img.shape, window_shape)
     img_out = img - weight * ndi.minimum_filter(img, size=window_shape)
     return img_out
@@ -230,9 +258,10 @@ def temporal_minima(img=None, weight=1., window_shape=None):
 #   BRIGHTNESS / CONTRAST TOOLS
 # ----------------------------------------------------
 
+
 @iterate_multiple_imgs
 def global_threshold(img=None, minima=0., maxima=65535.):
-    '''
+    """
     Trims pixel intensities which are outside the interval (minima, maxima).
 
     Parameters
@@ -243,7 +272,7 @@ def global_threshold(img=None, minima=0., maxima=65535.):
     minima, maxima : float
         Sets the threshold
 
-    '''
+    """
     img_out = img.copy()
     img_out[img_out < minima] = minima
     img_out[img_out > maxima] = maxima
@@ -252,7 +281,7 @@ def global_threshold(img=None, minima=0., maxima=65535.):
 
 @iterate_multiple_imgs
 def adaptive_threshold(img=None, window_size=5, offset=0):
-    '''
+    """
     Adaptive threshold transforms a grayscale image to a binary image.
     Useful in identifying particles.
 
@@ -265,14 +294,14 @@ def adaptive_threshold(img=None, window_size=5, offset=0):
     offset : scalar
         Constant to be subtracted from the mean.
 
-    '''
+    """
     img_out = filters.threshold_local(img, window_size, offset=offset)
     return img_out
 
 
 @iterate_multiple_imgs
 def rescale_intensity(img=None, minima=0., maxima=4096):
-    '''
+    """
     Rescale image intensities, between the specified minima and maxima,
     by using a multiplicative factor.
 
@@ -283,7 +312,7 @@ def rescale_intensity(img=None, minima=0., maxima=4096):
     minima, maxima : float
         Sets the range to which current intensities have to be rescaled.
 
-    '''
+    """
     out_range = (minima, maxima)
     img_out = exposure.rescale_intensity(img, out_range=out_range)
     return img_out
@@ -291,7 +320,7 @@ def rescale_intensity(img=None, minima=0., maxima=4096):
 
 @iterate_multiple_imgs
 def rescale_intensity_tanh(img=None, threshold=None):
-    '''
+    """
     Rescale image intensities, using a tanh fit. The maximum intensity of the
     output is set by the threshold parameter.
 
@@ -304,9 +333,9 @@ def rescale_intensity_tanh(img=None, threshold=None):
         img_out = max(img) * tanh( img / threshold)
         If threshold is None: threshold = 2 * np.sqrt(np.mean(img**2))
 
-    '''
+    """
     if threshold is None:
-        threshold = 2 * np.sqrt(np.mean(img**2))
+        threshold = 2 * np.sqrt(np.mean(img ** 2))
 
     if threshold == 0:
         return img
@@ -318,7 +347,7 @@ def rescale_intensity_tanh(img=None, threshold=None):
 
 @iterate_multiple_imgs
 def equalize_hist_global(img=None, nbins=256):
-    '''Increases global contrast of the image. Equalized image would have a
+    """Increases global contrast of the image. Equalized image would have a
     roughly linear cumulative distribution function for each pixel
     neighborhood. It works well when pixel intensities are nearly uniform
     [1,2].
@@ -335,14 +364,14 @@ def equalize_hist_global(img=None, nbins=256):
     - http://scikit-image.org/docs/dev/auto_examples/color_exposure/plot_local_equalize.html
     - https://en.wikipedia.org/wiki/Histogram_equalization
 
-    '''
+    """
     img_out = exposure.equalize_hist(img, nbins=nbins, mask=None)
     return img_out
 
 
 @iterate_multiple_imgs
 def equalize_hist_adapt(img=None, window_shape=(10, 10), nbins=256):
-    '''
+    """
     Contrast Limited Adaptive Histogram Equalization (CLAHE).
     Increases local contrast.
 
@@ -360,19 +389,18 @@ def equalize_hist_adapt(img=None, window_shape=(10, 10), nbins=256):
     - http://scikit-image.org/docs/dev/auto_examples/color_exposure/plot_local_equalize.html
     - https://en.wikipedia.org/wiki/Histogram_equalization
 
-    '''
+    """
     minimum = img.min()
     maximum = img.max()
     img = rescale_intensity(img, 0, 1)
-    img = exposure.equalize_adapthist(img, kernel_size=window_shape,
-                                      nbins=nbins)
+    img = exposure.equalize_adapthist(img, kernel_size=window_shape, nbins=nbins)
     img_out = rescale_intensity(img, minimum, maximum)
     return img_out
 
 
 @iterate_multiple_imgs
 def equalize_hist_local(img=None, radius=10):
-    '''
+    """
     Adaptive histogram equalization (AHE) emphasizes every local graylevel variations [1].
     Caution: It has a tendency to overamplify noise in homogenous regions [2].
 
@@ -388,7 +416,7 @@ def equalize_hist_local(img=None, radius=10):
     - http://scikit-image.org/docs/dev/auto_examples/color_exposure/plot_local_equalize.html
     - https://en.wikipedia.org/wiki/Adaptive_histogram_equalization
 
-    '''
+    """
     selem = morphology.disk(radius)
     minimum = img.min()
     maximum = img.max()
@@ -400,7 +428,7 @@ def equalize_hist_local(img=None, radius=10):
 
 @iterate_multiple_imgs
 def gamma_correction(img=None, gamma=1., gain=1.):
-    r'''
+    r"""
     Gamma correction or power law transform. It can be expressed as:
 
     .. math::
@@ -424,14 +452,14 @@ def gamma_correction(img=None, gamma=1., gain=1.):
     - http://scikit-image.org/docs/dev/auto_examples/color_exposure/plot_log_gamma.html
     - http://en.wikipedia.org/wiki/Gamma_correction
 
-    '''
+    """
     img_out = exposure.adjust_gamma(img, gamma, gain)
     return img_out
 
 
 @iterate_multiple_imgs
 def sharpen(img=None, sigma1=3., sigma2=1., alpha=30.):
-    '''
+    """
     Sharpen image edges.
 
     Parameters
@@ -443,7 +471,7 @@ def sharpen(img=None, sigma1=3., sigma2=1., alpha=30.):
     alpha : float
         Factor by which the image will be sharpened
 
-    '''
+    """
     blurred = ndi.gaussian_filter(img, sigma1)
     filter_blurred = ndi.gaussian_filter(blurred, sigma2)
 

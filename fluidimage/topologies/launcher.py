@@ -44,7 +44,7 @@ class TopologyLauncher(object):
 
         key_args, defaults = _get_args_bound_method(cls.Topology.__init__)
 
-        params._set_child('topology')
+        params._set_child("topology")
 
         for key, value in zip(key_args, defaults):
             params.topology._set_attrib(key, value)
@@ -52,7 +52,7 @@ class TopologyLauncher(object):
         params.topology._set_doc(cls.Topology.__doc__)
 
         key_args, defaults = _get_args_bound_method(cls.Topology.compute)
-        params.topology._set_child('compute')
+        params.topology._set_child("compute")
 
         for key, value in zip(key_args, defaults):
             params.topology.compute._set_attrib(key, value)
@@ -60,10 +60,15 @@ class TopologyLauncher(object):
         params.topology.compute._set_doc(cls.Topology.compute.__doc__)
 
         params._set_internal_attr(
-            '_value_text',
-            json.dumps({'program': 'fluidimage',
-                        'module': cls.__module__,
-                        'class': cls.__name__}))
+            "_value_text",
+            json.dumps(
+                {
+                    "program": "fluidimage",
+                    "module": cls.__module__,
+                    "class": cls.__name__,
+                }
+            ),
+        )
 
         return params
 

@@ -10,10 +10,10 @@ weights = np.ones([3, 3])
 
 
 def _smooth(a, for_norm):
-    norm = convolve(for_norm, weights, mode='nearest')
+    norm = convolve(for_norm, weights, mode="nearest")
     ind = np.where(norm == 0)
     norm[ind] = 1
-    return convolve(a, weights, mode='nearest') / norm
+    return convolve(a, weights, mode="nearest") / norm
 
 
 def smooth_clean(xs, ys, deltaxs, deltays, iyvecs, ixvecs, threshold):
@@ -45,8 +45,8 @@ def smooth_clean(xs, ys, deltaxs, deltays, iyvecs, ixvecs, threshold):
         dys_smooth = _smooth(dys, for_norm)
 
         # come back to the unstructured grid
-        fxs = interp2d(ixvecs, iyvecs, dxs_smooth, kind='linear')
-        fys = interp2d(ixvecs, iyvecs, dys_smooth, kind='linear')
+        fxs = interp2d(ixvecs, iyvecs, dxs_smooth, kind="linear")
+        fys = interp2d(ixvecs, iyvecs, dys_smooth, kind="linear")
 
         out_dxs = np.empty_like(deltaxs)
         out_dys = np.empty_like(deltays)
@@ -55,10 +55,10 @@ def smooth_clean(xs, ys, deltaxs, deltays, iyvecs, ixvecs, threshold):
             out_dxs[i] = fxs(x, y)[0]
             out_dys[i] = fys(x, y)[0]
 
-        # from fluiddyn import ipydebug
-        # import matplotlib.pylab as plt
-        # plt.ion()
-        # ipydebug()
+    # from fluiddyn import ipydebug
+    # import matplotlib.pylab as plt
+    # plt.ion()
+    # ipydebug()
     else:
         out_dxs, out_dys = deltaxs, deltays
     return out_dxs, out_dys

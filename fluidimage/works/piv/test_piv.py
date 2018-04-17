@@ -5,6 +5,7 @@ from fluidimage import SeriesOfArrays
 from fluidimage.works.piv import WorkPIV
 
 import os
+
 here = os.path.abspath(os.path.dirname(__file__))
 
 
@@ -14,9 +15,17 @@ class TestPIV(unittest.TestCase):
     def setUpClass(cls):
         series = SeriesOfArrays(
             os.path.join(
-                here, '..', '..', '..',
-                'image_samples', 'Oseen', 'Images', 'Oseen*'),
-            'i+1:i+3')
+                here,
+                "..",
+                "..",
+                "..",
+                "image_samples",
+                "Oseen",
+                "Images",
+                "Oseen*",
+            ),
+            "i+1:i+3",
+        )
         cls.serie = series.get_serie_from_index(0)
 
     def test_minimal_piv(self):
@@ -47,5 +56,6 @@ class TestPIV(unittest.TestCase):
 
         piv.calcul(self.serie)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

@@ -21,6 +21,7 @@ try:
 except ImportError:
     pass
 from scipy.interpolate import griddata
+
 # from scipy.interpolate import CloughTocher2DInterpolator
 from scipy.interpolate import LinearNDInterpolator, RegularGridInterpolator
 import matplotlib.pyplot as plt
@@ -40,7 +41,7 @@ def get_points(points_file):
     imgpts = ParamContainer(path_file=points_file)
     tidy_container(imgpts)
     imgpts = imgpts.geometry_calib.source_calib.__dict__
-    points = [x for x in imgpts.keys() if 'point_' in x or 'Point' in x]
+    points = [x for x in imgpts.keys() if "point_" in x or "Point" in x]
     points.sort()
 
     # [X, Y, Z, x, y]
@@ -84,8 +85,8 @@ class CalibDirect():
       Path of calibration file
 
     """
-    def __init__(self, glob_str_xml=None, shape_img=(None, None),
-                 path_file=None):
+
+    def __init__(self, glob_str_xml=None, shape_img=(None, None), path_file=None):
 
         if path_file:
             self.load(path_file)
@@ -93,8 +94,10 @@ class CalibDirect():
             self.paths_xml = glob.glob(glob_str_xml)
             if len(self.paths_xml) == 0:
                 raise ValueError(
-                    'No xml file found. \n'
-                    'glob_str_xml = "{}"'.format(glob_str_xml))
+                    "No xml file found. \n"
+                    'glob_str_xml = "{}"'.format(glob_str_xml)
+                )
+
             self.nb_pixels_x = shape_img[1]
             self.nb_pixels_y = shape_img[0]
 
@@ -135,8 +138,7 @@ class CalibDirect():
 
         self.interp_levels = interp
 
-    def compute_interpolents_pixel2line(self, nb_lines_x, nb_lines_y,
-                                        test=False):
+    def compute_interpolents_pixel2line(self, nb_lines_x, nb_lines_y, test=False):
         """Compute interpolents for parameters for each optical path.
 
         The number of optical paths is given by nb_lines_x * nb_lines_y.
@@ -153,7 +155,7 @@ class CalibDirect():
         x = x.transpose()
         y = y.transpose()
         V = np.zeros((x.shape[0], x.shape[1], 6))
-        
+
         xtrue = []
         ytrue = []
         vtrue = []
@@ -177,28 +179,30 @@ class CalibDirect():
                     vtrue.append(tmp)
 
         if test:
-            titles = ['X0', 'Y0', 'Z0', 'dx', 'dy', 'dz']
+            titles = ["X0", "Y0", "Z0", "dx", "dy", "dz"]
             for j in range(6):
                 pylab.figure()
                 pylab.pcolor(x, y, V[:, :, j])
                 pylab.title(titles[j])
-                pylab.xlabel('x (pix)')
-                pylab.ylabel('y (pix)')
+                pylab.xlabel("x (pix)")
+                pylab.ylabel("y (pix)")
                 pylab.colorbar()
 
             pylab.figure()
-            pylab.pcolor(x, y, np.sqrt(
-                V[:, :, 3]**2+V[:, :, 4]**2+V[:, :, 5]**2))
-            pylab.title('norm(d)')
-            pylab.xlabel('x (pix)')
-            pylab.ylabel('y (pix)')
+            pylab.pcolor(
+                x, y, np.sqrt(V[:, :, 3] ** 2 + V[:, :, 4] ** 2 + V[:, :, 5] ** 2)
+            )
+            pylab.title("norm(d)")
+            pylab.xlabel("x (pix)")
+            pylab.ylabel("y (pix)")
             pylab.colorbar()
             plt.show()
 
         vtrue = np.array(vtrue)
         for j in range(6):
             V[indi, indj, j] = griddata(
-                (xtrue, ytrue), vtrue[:, j], (xfalse, yfalse))
+                (xtrue, ytrue), vtrue[:, j], (xfalse, yfalse)
+            )
 
         interp = []
         for i in range(6):
@@ -225,7 +229,7 @@ class CalibDirect():
         XYZ = np.vstack([X, Y, Z]).transpose()
         XYZ0 = np.nanmean(XYZ, 0)
         XYZ -= XYZ0
-        ind = ~np.isnan(X+Y)
+        ind = ~np.isnan(X + Y)
         XYZ = XYZ[ind, :]
         if XYZ.shape[0] > 1:
             arg = np.argsort(XYZ[:, 2])
@@ -235,15 +239,22 @@ class CalibDirect():
             if direction[2] < 0:
                 direction = -direction
             return np.hstack([XYZ0, direction])
+
         else:
-            return np.hstack([np.nan]*6)
+            return np.hstack([np.nan] * 6)
 
     def save(self, pth_file):
         """Save calibration
         """
-        np.save(pth_file,
-                [self.interp_lines, self.paths_xml,
-                 self.nb_pixels_x, self.nb_pixels_y])
+        np.save(
+            pth_file,
+            [
+                self.interp_lines,
+                self.paths_xml,
+                self.nb_pixels_x,
+                self.nb_pixels_y,
+            ],
+        )
 
     def load(self, pth_file):
         """Load calibration
@@ -272,16 +283,19 @@ class CalibDirect():
         """Gives the projection of the real displacement projected on each
         camera plane and then projected on the laser plane
         """
-        displacements = self.intersect_with_plane(indx+dx/2., indy+dy/2., a, b, c, d) - \
-             self.intersect_with_plane(indx-dx/2., indy-dy/2., a, b, c, d)
+        displacements = self.intersect_with_plane(
+            indx + dx / 2., indy + dy / 2., a, b, c, d
+        ) - self.intersect_with_plane(
+            indx - dx / 2., indy - dy / 2., a, b, c, d
+        )
         return displacements
 
     def get_base_camera_plane(self, indx=None, indy=None):
         """Matrix of base change from camera plane to fixed plane
         """
         if indx is None:
-            indx = range(self.nb_pixels_x//2-20, self.nb_pixels_x//2+20)
-            indy = range(self.nb_pixels_y//2-20, self.nb_pixels_y//2+20)
+            indx = range(self.nb_pixels_x // 2 - 20, self.nb_pixels_x // 2 + 20)
+            indy = range(self.nb_pixels_y // 2 - 20, self.nb_pixels_y // 2 + 20)
             indx, indy = np.meshgrid(indx, indy)
         dx = np.nanmean(self.interp_lines[3]((indx, indy)))
         dy = np.nanmean(self.interp_lines[4]((indx, indy)))
@@ -293,8 +307,8 @@ class CalibDirect():
         """Plot to check interp_levels
         """
         interp = self.interp_levels
-        indx = range(0, self.nb_pixels_x, self.nb_pixels_x//100)
-        indy = range(0, self.nb_pixels_y, self.nb_pixels_y//100)
+        indx = range(0, self.nb_pixels_x, self.nb_pixels_x // 100)
+        indy = range(0, self.nb_pixels_y, self.nb_pixels_y // 100)
         indx, indy = np.meshgrid(indx, indy)
         Z = interp.Z
         for i in range(len(Z)):
@@ -302,16 +316,16 @@ class CalibDirect():
             Y = interp.indices_pixel2yphys[i]((indx, indy))
             pylab.figure()
             pylab.pcolor(indx, indy, X)
-            pylab.title('Level {}, X'.format(i))
-            pylab.xlabel('x (pix)')
-            pylab.ylabel('y (pix)')
+            pylab.title("Level {}, X".format(i))
+            pylab.xlabel("x (pix)")
+            pylab.ylabel("y (pix)")
             pylab.colorbar()
 
             pylab.figure()
             pylab.pcolor(indx, indy, Y)
-            pylab.title('Level {}, Y'.format(i))
-            pylab.xlabel('x (pix)')
-            pylab.ylabel('y (pix)')
+            pylab.title("Level {}, Y".format(i))
+            pylab.xlabel("x (pix)")
+            pylab.ylabel("y (pix)")
             pylab.colorbar()
 
         plt.show()
@@ -323,10 +337,10 @@ class CalibDirect():
         ax = Axes3D(fig)
         for i, path in enumerate(self.paths_xml):
             X, Y, Z, x, y = get_points(path)
-            ax.scatter(X, Y, Z, marker='.', color='blue')
+            ax.scatter(X, Y, Z, marker=".", color="blue")
 
-        x = range(0, self.nb_pixels_x, self.nb_pixels_x//10)
-        y = range(0, self.nb_pixels_y, self.nb_pixels_y//10)
+        x = range(0, self.nb_pixels_x, self.nb_pixels_x // 10)
+        y = range(0, self.nb_pixels_y, self.nb_pixels_y // 10)
         x, y = np.meshgrid(x, y)
         x = x.flatten()
         y = y.flatten()
@@ -337,20 +351,20 @@ class CalibDirect():
             dx = self.interp_lines[3]((x[i], y[i]))
             dy = self.interp_lines[4]((x[i], y[i]))
             dz = self.interp_lines[5]((x[i], y[i]))
-            X = (np.arange(10)-5)/20. * dx + X0
-            Y = (np.arange(10)-5)/20. * dy + Y0
-            Z = (np.arange(10)-5)/20. * dz + Z0
-            ax.plot(X, Y, Z, 'r')
-        ax.set_xlabel('x (m)')
-        ax.set_ylabel('y (m)')
-        ax.set_zlabel('z (m)')
+            X = (np.arange(10) - 5) / 20. * dx + X0
+            Y = (np.arange(10) - 5) / 20. * dy + Y0
+            Z = (np.arange(10) - 5) / 20. * dz + Z0
+            ax.plot(X, Y, Z, "r")
+        ax.set_xlabel("x (m)")
+        ax.set_ylabel("y (m)")
+        ax.set_zlabel("z (m)")
         plt.show()
 
     def check_interp_lines_coeffs(self):
         """Plot to check interp_lines coefficients
         """
-        x = range(0, self.nb_pixels_x, self.nb_pixels_x//100)
-        y = range(0, self.nb_pixels_y, self.nb_pixels_y//100)
+        x = range(0, self.nb_pixels_x, self.nb_pixels_x // 100)
+        y = range(0, self.nb_pixels_y, self.nb_pixels_y // 100)
         x, y = np.meshgrid(x, y)
         X0 = np.zeros(x.shape)
         Y0 = np.zeros(x.shape)
@@ -370,45 +384,45 @@ class CalibDirect():
 
         pylab.figure()
         pylab.pcolor(x, y, X0)
-        pylab.title('X0')
-        pylab.xlabel('x (pix)')
-        pylab.ylabel('y (pix)')
+        pylab.title("X0")
+        pylab.xlabel("x (pix)")
+        pylab.ylabel("y (pix)")
         pylab.colorbar()
         pylab.figure()
         pylab.pcolor(x, y, Y0)
-        pylab.title('Y0')
-        pylab.xlabel('x (pix)')
-        pylab.ylabel('y (pix)')
+        pylab.title("Y0")
+        pylab.xlabel("x (pix)")
+        pylab.ylabel("y (pix)")
         pylab.colorbar()
         pylab.figure()
         pylab.pcolor(x, y, Z0)
-        pylab.title('Z0')
-        pylab.xlabel('x (pix)')
-        pylab.ylabel('y (pix)')
+        pylab.title("Z0")
+        pylab.xlabel("x (pix)")
+        pylab.ylabel("y (pix)")
         pylab.colorbar()
         pylab.figure()
         pylab.pcolor(x, y, dx)
-        pylab.title('dx')
-        pylab.xlabel('x (pix)')
-        pylab.ylabel('y (pix)')
+        pylab.title("dx")
+        pylab.xlabel("x (pix)")
+        pylab.ylabel("y (pix)")
         pylab.colorbar()
         pylab.figure()
         pylab.pcolor(x, y, dy)
-        pylab.title('dy')
-        pylab.xlabel('x (pix)')
-        pylab.ylabel('y (pix)')
+        pylab.title("dy")
+        pylab.xlabel("x (pix)")
+        pylab.ylabel("y (pix)")
         pylab.colorbar()
         pylab.figure()
         pylab.pcolor(x, y, dz)
-        pylab.title('dz')
-        pylab.xlabel('x (pix)')
-        pylab.ylabel('y (pix)')
+        pylab.title("dz")
+        pylab.xlabel("x (pix)")
+        pylab.ylabel("y (pix)")
         pylab.colorbar()
         pylab.figure()
-        pylab.pcolor(x, y, np.sqrt(dx**2 + dy**2 + dz**2))
-        pylab.title('norm(d)')
-        pylab.xlabel('x (pix)')
-        pylab.ylabel('y (pix)')
+        pylab.pcolor(x, y, np.sqrt(dx ** 2 + dy ** 2 + dz ** 2))
+        pylab.title("norm(d)")
+        pylab.xlabel("x (pix)")
+        pylab.ylabel("y (pix)")
         pylab.colorbar()
 
         plt.show()
@@ -427,6 +441,7 @@ class DirectStereoReconstruction():
     path_file1:
        Path of the file of the second camera
     """
+
     def __init__(self, path_file0, path_file1):
         self.calib0 = CalibDirect(path_file=path_file0)
         self.calib1 = CalibDirect(path_file=path_file1)
@@ -435,20 +450,30 @@ class DirectStereoReconstruction():
         self.A1, self.B1 = self.calib1.get_base_camera_plane()
 
         if np.allclose(self.A0, self.A1):
-            raise ValueError('The two calibrations have to be different.')
+            raise ValueError("The two calibrations have to be different.")
 
         # M1, M2: see reconstruction function
-        self.invM0 = np.linalg.inv(
-            np.vstack([self.B0[0:2, :], self.B1[0:1, :]]))
-        self.invM1 = np.linalg.inv(
-            np.vstack([self.B0[0:1, :], self.B1[0:2, :]]))
-        self.invM2 = np.linalg.inv(
-            np.vstack([self.B0[0:2, :], self.B1[1:2, :]]))
-        self.invM3 = np.linalg.inv(
-            np.vstack([self.B0[1:2, :], self.B1[0:2, :]]))
+        self.invM0 = np.linalg.inv(np.vstack([self.B0[0:2, :], self.B1[0:1, :]]))
+        self.invM1 = np.linalg.inv(np.vstack([self.B0[0:1, :], self.B1[0:2, :]]))
+        self.invM2 = np.linalg.inv(np.vstack([self.B0[0:2, :], self.B1[1:2, :]]))
+        self.invM3 = np.linalg.inv(np.vstack([self.B0[1:2, :], self.B1[0:2, :]]))
 
-    def project2cam(self, indx0, indy0, dx0, dy0, indx1, indy1, dx1, dy1,
-                    a, b, c, d, check=False):
+    def project2cam(
+        self,
+        indx0,
+        indy0,
+        dx0,
+        dy0,
+        indx1,
+        indy1,
+        dx1,
+        dy1,
+        a,
+        b,
+        c,
+        d,
+        check=False,
+    ):
         """Project displacements of each cameras dx0, dy0, dx1 and dy1
         in their respective planes.
         """
@@ -459,36 +484,38 @@ class DirectStereoReconstruction():
         X1 = self.calib1.intersect_with_plane(indx1, indy1, a, b, c, d)
         dX1 = self.calib1.apply_calib(indx1, indy1, dx1, dy1, a, b, c, d)
 
-        d0cam = np.tensordot(
-            self.B0, dX0.swapaxes(0, 1), axes=1)[:2, :].transpose()
-        d1cam = np.tensordot(
-            self.B1, dX1.swapaxes(0, 1), axes=1)[:2, :].transpose()
+        d0cam = np.tensordot(self.B0, dX0.swapaxes(0, 1), axes=1)[
+            :2, :
+        ].transpose()
+        d1cam = np.tensordot(self.B1, dX1.swapaxes(0, 1), axes=1)[
+            :2, :
+        ].transpose()
 
         if check:
             plt.figure()
             plt.quiver(indx0, indy0, dx0, dy0)
-            plt.axis('equal')
-            pylab.xlabel('x (pix)')
-            pylab.ylabel('y (pix)')
-            plt.title('Cam 0 in pixel')
+            plt.axis("equal")
+            pylab.xlabel("x (pix)")
+            pylab.ylabel("y (pix)")
+            plt.title("Cam 0 in pixel")
             plt.figure()
             plt.quiver(X0[:, 0], X0[:, 1], dX0[:, 0], dX0[:, 1])
-            pylab.xlabel('x (pix)')
-            pylab.ylabel('y (pix)')
-            plt.axis('equal')
-            plt.title('Cam 0 in m')
+            pylab.xlabel("x (pix)")
+            pylab.ylabel("y (pix)")
+            plt.axis("equal")
+            plt.title("Cam 0 in m")
             plt.figure()
             plt.quiver(indx1, indy1, dx1, dy1)
-            pylab.xlabel('x (pix)')
-            pylab.ylabel('y (pix)')
-            plt.axis('equal')
-            plt.title('Cam 1 in pixel')
+            pylab.xlabel("x (pix)")
+            pylab.ylabel("y (pix)")
+            plt.axis("equal")
+            plt.title("Cam 1 in pixel")
             plt.figure()
             plt.quiver(X1[:, 0], X1[:, 1], dX1[:, 0], dX1[:, 1])
-            pylab.xlabel('x (pix)')
-            pylab.ylabel('y (pix)')
-            plt.axis('equal')
-            plt.title('Cam 1 in m')
+            pylab.xlabel("x (pix)")
+            pylab.ylabel("y (pix)")
+            plt.axis("equal")
+            plt.title("Cam 1 in m")
             plt.show()
 
         return X0, X1, d0cam, d1cam
@@ -515,9 +542,9 @@ class DirectStereoReconstruction():
         Lx1 = xmax1 - xmin1
         Ly1 = ymax1 - ymin1
 
-        Nx0 = sqrt(X0[~np.isnan(X0[:, 0]), 0].size) * sqrt(Lx0/Ly0)
+        Nx0 = sqrt(X0[~np.isnan(X0[:, 0]), 0].size) * sqrt(Lx0 / Ly0)
         Ny0 = X0[~np.isnan(X0[:, 1]), 1].size / Nx0
-        Nx1 = sqrt(X1[~np.isnan(X1[:, 0]), 0].size) * sqrt(Lx1/Ly1)
+        Nx1 = sqrt(X1[~np.isnan(X1[:, 0]), 0].size) * sqrt(Lx1 / Ly1)
         Ny1 = X1[~np.isnan(X1[:, 1]), 1].size / Nx1
 
         dx0 = Lx0 / Nx0
@@ -528,38 +555,48 @@ class DirectStereoReconstruction():
         dx = max([dx0, dx1])
         dy = max([dy0, dy1])
 
-        x = np.linspace(xmin, xmax, int((xmax-xmin)/dx))
-        y = np.linspace(ymin, ymax, int((ymax-ymin)/dy))
+        x = np.linspace(xmin, xmax, int((xmax - xmin) / dx))
+        y = np.linspace(ymin, ymax, int((ymax - ymin) / dy))
         x, y = np.meshgrid(x, y)
         self.grid_x = x.transpose()
         self.grid_y = y.transpose()
-        self.grid_z = -(a*self.grid_x + b*self.grid_y+d)/c
+        self.grid_z = -(a * self.grid_x + b * self.grid_y + d) / c
         return self.grid_x, self.grid_y, self.grid_z
 
-    def interp_on_common_grid(
-            self, X0, X1, d0cam, d1cam, grid_x, grid_y):
+    def interp_on_common_grid(self, X0, X1, d0cam, d1cam, grid_x, grid_y):
         """Interpolate displacements of the 2 cameras d0cam, d1cam on the
         common grid grid_x, grid_y
         """
         # if not hasattr(self, 'grid_x'):
         #     self.find_common_grid(X0, X1, a, b, c, d)
-        ind0 = (~np.isnan(X0[:, 0])) * (~np.isnan(X0[:, 1])) *\
-               (~np.isnan(d0cam[:, 0])) * (~np.isnan(d0cam[:, 1]))
-        ind1 = (~np.isnan(X1[:, 0])) * (~np.isnan(X1[:, 1])) *\
-               (~np.isnan(d1cam[:, 0])) * (~np.isnan(d1cam[:, 1]))
+        ind0 = (~np.isnan(X0[:, 0])) * (~np.isnan(X0[:, 1])) * (
+            ~np.isnan(d0cam[:, 0])
+        ) * (
+            ~np.isnan(d0cam[:, 1])
+        )
+        ind1 = (~np.isnan(X1[:, 0])) * (~np.isnan(X1[:, 1])) * (
+            ~np.isnan(d1cam[:, 0])
+        ) * (
+            ~np.isnan(d1cam[:, 1])
+        )
 
-        d0xcam = griddata((X0[ind0, 0], X0[ind0, 1]), d0cam[ind0, 0],
-                          (grid_x, grid_y))
-        d0ycam = griddata((X0[ind0, 0], X0[ind0, 1]), d0cam[ind0, 1],
-                          (grid_x, grid_y))
-        d1xcam = griddata((X1[ind1, 0], X1[ind1, 1]), d1cam[ind1, 0],
-                          (grid_x, grid_y))
-        d1ycam = griddata((X1[ind1, 0], X1[ind1, 1]), d1cam[ind1, 1],
-                          (grid_x, grid_y))
+        d0xcam = griddata(
+            (X0[ind0, 0], X0[ind0, 1]), d0cam[ind0, 0], (grid_x, grid_y)
+        )
+        d0ycam = griddata(
+            (X0[ind0, 0], X0[ind0, 1]), d0cam[ind0, 1], (grid_x, grid_y)
+        )
+        d1xcam = griddata(
+            (X1[ind1, 0], X1[ind1, 1]), d1cam[ind1, 0], (grid_x, grid_y)
+        )
+        d1ycam = griddata(
+            (X1[ind1, 0], X1[ind1, 1]), d1cam[ind1, 1], (grid_x, grid_y)
+        )
         return d0xcam, d0ycam, d1xcam, d1ycam
 
-    def reconstruction(self, X0, X1, d0cam, d1cam, a, b, c, d, grid_x, grid_y,
-                       check=False):
+    def reconstruction(
+        self, X0, X1, d0cam, d1cam, a, b, c, d, grid_x, grid_y, check=False
+    ):
         """Reconstruction of the 3 components of the velocity in the plane
         defined by a, b, c, d on the grid defined by grid_x, grid_y
         from the displacements of the 2 cameras d0cam, d1cam in their respective
@@ -569,7 +606,8 @@ class DirectStereoReconstruction():
         # MX = dcam
 
         d0xcam, d0ycam, d1xcam, d1ycam = self.interp_on_common_grid(
-            X0, X1, d0cam, d1cam, grid_x, grid_y)
+            X0, X1, d0cam, d1cam, grid_x, grid_y
+        )
 
         # in the case where 2 vectors from different cameras are approximately
         # the same, they don't have to be used both in the computation
@@ -578,7 +616,7 @@ class DirectStereoReconstruction():
         n3 = np.abs(np.inner(self.A0[1], self.A1[0]))
         n4 = np.abs(np.inner(self.A0[0], self.A1[1]))
         # I suppose that 5deg between vectors is sufficient
-        threshold = np.cos(5*2*np.pi/180.)
+        threshold = np.cos(5 * 2 * np.pi / 180.)
 
         tmp = []
         dcam = np.zeros((3, d0xcam.shape[0], d0xcam.shape[1]))
@@ -637,32 +675,32 @@ class DirectStereoReconstruction():
         #             tmp.append(np.dot(self.invM3, dcam))
         #         tmp = np.array(tmp)
 
-                # dXx[i, j] = np.nanmean(tmp, 0)[0]
-                # Errorx[i, j] = np.nanstd(tmp, 0)[0]
-                # dXy[i, j] = np.nanmean(tmp, 0)[1]
-                # Errory[i, j] = np.nanstd(tmp, 0)[1]
-                # dXz[i, j] = np.nanmean(tmp, 0)[2]
-                # Errorz[i, j] = np.nanstd(tmp, 0)[2]
+        # dXx[i, j] = np.nanmean(tmp, 0)[0]
+        # Errorx[i, j] = np.nanstd(tmp, 0)[0]
+        # dXy[i, j] = np.nanmean(tmp, 0)[1]
+        # Errory[i, j] = np.nanstd(tmp, 0)[1]
+        # dXz[i, j] = np.nanmean(tmp, 0)[2]
+        # Errorz[i, j] = np.nanstd(tmp, 0)[2]
 
         if check:
             plt.figure()
             plt.quiver(self.grid_x, self.grid_y, d0xcam, d0ycam)
-            pylab.xlabel('X')
-            pylab.ylabel('Y')
-            plt.axis('equal')
-            plt.title('Cam 0 plane projection')
+            pylab.xlabel("X")
+            pylab.ylabel("Y")
+            plt.axis("equal")
+            plt.title("Cam 0 plane projection")
             plt.figure()
             plt.quiver(self.grid_x, self.grid_y, d1xcam, d1ycam)
-            pylab.xlabel('X')
-            pylab.ylabel('Y')
-            plt.axis('equal')
-            plt.title('Cam 1 plane projection')
+            pylab.xlabel("X")
+            pylab.ylabel("Y")
+            plt.axis("equal")
+            plt.title("Cam 1 plane projection")
             plt.figure()
             plt.quiver(self.grid_x, self.grid_y, dX, dY)
-            pylab.xlabel('X')
-            pylab.ylabel('Y')
-            plt.axis('equal')
-            plt.title('Reconstruction on laser plane')
+            pylab.xlabel("X")
+            pylab.ylabel("Y")
+            plt.axis("equal")
+            plt.title("Reconstruction on laser plane")
             plt.show()
 
         return dX, dY, dZ, Errorx, Errory, Errorz
@@ -672,7 +710,7 @@ if __name__ == "__main__":
     import os
 
     def clf():
-        pylab.close('all')
+        pylab.close("all")
 
     nb_pixelx, nb_pixely = 1024, 1024
 
@@ -680,23 +718,28 @@ if __name__ == "__main__":
 
     here = os.path.dirname(__file__)
     path_cam = os.path.join(
-        here, ('../../image_samples/4th_PIV-Challenge_Case_E/'
-               'E_Calibration_Images/Camera_0'))
+        here,
+        (
+            "../../image_samples/4th_PIV-Challenge_Case_E/"
+            "E_Calibration_Images/Camera_0"
+        ),
+    )
 
-    pathimg = path_cam + '1/img*'
+    pathimg = path_cam + "1/img*"
     calib = CalibDirect(pathimg, (nb_pixelx, nb_pixely))
     calib.compute_interpolents()
     calib.compute_interpolents_pixel2line(nbline_x, nbline_y, test=False)
-    calib.save(path_cam + '1/calib1.npy')
+    calib.save(path_cam + "1/calib1.npy")
 
     # calib.check_interp_lines_coeffs()
     # calib.check_interp_lines()
     # calib.check_interp_levels()
-    pathimg = path_cam + '3/img*'
+    pathimg = path_cam + "3/img*"
     calib3 = CalibDirect(pathimg, (nb_pixelx, nb_pixely))
     calib3.compute_interpolents()
     calib3.compute_interpolents_pixel2line(nbline_x, nbline_y, test=False)
-    calib3.save(path_cam + '3/calib3.npy')
+    calib3.save(path_cam + "3/calib3.npy")
 
     stereo = DirectStereoReconstruction(
-        path_cam + '1/calib1.npy', path_cam + '3/calib3.npy')
+        path_cam + "1/calib1.npy", path_cam + "3/calib3.npy"
+    )

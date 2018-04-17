@@ -8,7 +8,9 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+
 class Ui_MainWindow(object):
+
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(775, 901)
@@ -52,5 +54,6 @@ class Ui_MainWindow(object):
         self.menuComputations.setTitle(_translate("MainWindow", "Computations"))
         self.actionOpen.setText(_translate("MainWindow", "Open"))
         self.actionTopologyPIV.setText(_translate("MainWindow", "TopologyPIV"))
-        self.actionTopologyPreproc.setText(_translate("MainWindow", "TopologyPreproc"))
-
+        self.actionTopologyPreproc.setText(
+            _translate("MainWindow", "TopologyPreproc")
+        )

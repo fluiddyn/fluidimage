@@ -4,6 +4,7 @@ import numpy as np
 
 # pythran export compute_tps_matrix(float64[][], float64[][])
 
+
 def compute_tps_matrix(new_pos, centers):
     """calculate the thin plate spline (tps) interpolation at a set of points
 
@@ -49,7 +50,7 @@ def compute_tps_matrix(new_pos, centers):
     for ind_d in range(d):
         for ic, center in enumerate(centers[ind_d]):
             for inp, npos in enumerate(new_pos[ind_d]):
-                EM[ic, inp] += (npos - center)**2
+                EM[ic, inp] += (npos - center) ** 2
 
     # Pythran does not like that!
     # nb_p = np.where(EM != 0)
@@ -67,6 +68,6 @@ def compute_tps_matrix(new_pos, centers):
     EM_ret = np.empty((nb_centers + 1 + d, nb_new_pos))
     EM_ret[:nb_centers, :] = EM
     EM_ret[nb_centers, :] = np.ones(nb_new_pos)
-    EM_ret[nb_centers+1:nb_centers+1+d, :] = new_pos
+    EM_ret[nb_centers + 1:nb_centers + 1 + d, :] = new_pos
 
     return EM_ret

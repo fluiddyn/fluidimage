@@ -2,13 +2,14 @@
 from fluidimage.topologies.piv import TopologyPIV
 
 from fluidimage import config_logging
-config_logging('info')
+
+config_logging("info")
 
 
 params = TopologyPIV.create_default_params()
 
 # path = '../../image_samples/Oseen/Images/Oseen_center*'
-path = '../../image_samples/Karman/Images'
+path = "../../image_samples/Karman/Images"
 
 # path = '../../image_samples/Jet/Images/c*'
 # params.series.strcouple = 'i+60, 0:2'

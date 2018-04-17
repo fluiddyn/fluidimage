@@ -19,7 +19,8 @@ from copy import deepcopy, copy
 
 from ...util.util import logger
 from .base import (
-    WaitingQueueLoadImage, WaitingQueueBase, WaitingQueueMultiprocessing)
+    WaitingQueueLoadImage, WaitingQueueBase, WaitingQueueMultiprocessing
+)
 
 from ...data_objects.preproc import ArraySerie
 
@@ -28,26 +29,27 @@ class WaitingQueueLoadImageSeries(WaitingQueueLoadImage):
     """Waiting queue for loading series of images."""
 
     def __init__(self, *args, **kwargs):
-        self.sequential = kwargs.pop('sequential')
+        self.sequential = kwargs.pop("sequential")
         super(WaitingQueueLoadImageSeries, self).__init__(*args, **kwargs)
 
     def is_destination_full(self):
         cond_instance = isinstance(self.destination, WaitingQueueBase)
-        buffer_limit = max(self.topology.nb_items_lim,
-                           self.topology.nb_items_per_serie)
+        buffer_limit = max(
+            self.topology.nb_items_lim, self.topology.nb_items_per_serie
+        )
 
         cond_nb_items = len(self.destination) >= buffer_limit
 
         return (cond_instance and cond_nb_items)
 
     def add_name_files(self, names):
-        self.update({name: os.path.join(self.path_dir, name)
-                     for name in names}, names)
+        self.update(
+            {name: os.path.join(self.path_dir, name) for name in names}, names
+        )
 
     def check_and_act(self, *args, **kwargs):
-        kwargs['sequential'] = self.sequential
-        super(WaitingQueueLoadImageSeries, self).check_and_act(
-            *args, **kwargs)
+        kwargs["sequential"] = self.sequential
+        super(WaitingQueueLoadImageSeries, self).check_and_act(*args, **kwargs)
 
 
 class WaitingQueueMakeSerie(WaitingQueueBase):
@@ -62,8 +64,8 @@ class WaitingQueueMakeSerie(WaitingQueueBase):
     and not just a couple (2 images).
 
     """
-    def __init__(self, name, destination,
-                 work_name='make serie', topology=None):
+
+    def __init__(self, name, destination, work_name="make serie", topology=None):
 
         self.nb_series = 0
         self.ind_series = []
@@ -71,17 +73,19 @@ class WaitingQueueMakeSerie(WaitingQueueBase):
         self.serie_set = set()
         self.series = {}
         self.topology = topology
-        work = 'make_serie'
+        work = "make_serie"
         super(WaitingQueueMakeSerie, self).__init__(
-            name, work, destination, work_name, topology)
+            name, work, destination, work_name, topology
+        )
 
     def is_empty(self):
         return len(self.serie_set) == 0
 
     def add_series(self, series):
 
-        self.series.update({serie.get_name_arrays(): deepcopy(serie)
-                            for serie in series})
+        self.series.update(
+            {serie.get_name_arrays(): deepcopy(serie) for serie in series}
+        )
 
         serie_set = [serie.get_name_arrays() for serie in series]
         self.serie_set.update(serie_set)
@@ -98,11 +102,9 @@ class WaitingQueueMakeSerie(WaitingQueueBase):
 
     def is_destination_full(self):
 
-        cond_instance = isinstance(
-            self.destination, WaitingQueueMultiprocessing)
+        cond_instance = isinstance(self.destination, WaitingQueueMultiprocessing)
 
-        cond_nb_items = (
-            len(self.destination) >= self.topology.nb_items_lim)
+        cond_nb_items = (len(self.destination) >= self.topology.nb_items_lim)
 
         return (cond_instance and cond_nb_items)
 
@@ -115,16 +117,15 @@ class WaitingQueueMakeSerie(WaitingQueueBase):
             if all([name in self for name in names]):
                 k0 = names[0]
                 k1 = names[-1]
-                newk = k0 + '-' + k1
-                logger.info('launch work %s with %s',
-                            self.work_name, newk)
+                newk = k0 + "-" + k1
+                logger.info("launch work %s with %s", self.work_name, newk)
 
                 self.serie_set.remove(names)
                 serie = self.series.pop(names)
                 ind_serie = self.ind_series.pop(0)
 
                 values = []
-                logger.debug('Creating a serie for ' + repr(names))
+                logger.debug("Creating a serie for " + repr(names))
                 for name in names:
                     if self.nb_serie_to_create[name] == 1:
                         values.append(self.pop(name))
@@ -135,4 +136,5 @@ class WaitingQueueMakeSerie(WaitingQueueBase):
                         self.nb_serie_to_create[name] -= 1
 
                 self.destination[newk] = ArraySerie(
-                    names, values, serie, ind_serie, self.nb_series)
+                    names, values, serie, ind_serie, self.nb_series
+                )

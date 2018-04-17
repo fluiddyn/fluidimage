@@ -33,9 +33,15 @@ import numpy as np
 from . import tps_pythran
 
 
-def compute_tps_coeff_subdom(centers, U, smoothing_coef, subdom_size,
-                             new_positions, threshold=None,
-                             percent_buffer_area=0.25):
+def compute_tps_coeff_subdom(
+    centers,
+    U,
+    smoothing_coef,
+    subdom_size,
+    new_positions,
+    threshold=None,
+    percent_buffer_area=0.25,
+):
 
     max_coord = np.max(centers, 1)
     min_coord = np.min(centers, 1)
@@ -52,9 +58,13 @@ def compute_tps_coeff_subdom(centers, U, smoothing_coef, subdom_size,
     y_dom = np.arange(min_coord[0], max_coord[0], range_coord[0] / nb_subdomy)
     y_dom = np.unique(np.append(y_dom, max_coord[0]))
 
-    buffer_area_x = x_dom*0 + range_coord[1]/(nb_subdomx) * percent_buffer_area
+    buffer_area_x = x_dom * 0 + range_coord[1] / (
+        nb_subdomx
+    ) * percent_buffer_area
     # buffer_area_x[0], buffer_area_x[-1] = 0, 0
-    buffer_area_y = y_dom*0 + range_coord[0]/(nb_subdomy) * percent_buffer_area
+    buffer_area_y = y_dom * 0 + range_coord[0] / (
+        nb_subdomy
+    ) * percent_buffer_area
     # buffer_area_y[0], buffer_area_y[-1] = 0, 0
 
     ind_subdom = np.zeros([nb_subdom, 2])
@@ -66,18 +76,23 @@ def compute_tps_coeff_subdom(centers, U, smoothing_coef, subdom_size,
         for j in range(nb_subdomx):
             ind_subdom[count, :] = [i, j]
 
-            ind_v_subdom.append(np.argwhere(
-                (centers[1, :] >= x_dom[j] - buffer_area_x[j]) &
-                (centers[1, :] < x_dom[j+1] + buffer_area_x[j+1]) &
-                (centers[0, :] >= y_dom[i] - buffer_area_y[i]) &
-                (centers[0, :] < y_dom[i+1] + buffer_area_y[i+1])).flatten())
+            ind_v_subdom.append(
+                np.argwhere(
+                    (centers[1, :] >= x_dom[j] - buffer_area_x[j])
+                    & (centers[1, :] < x_dom[j + 1] + buffer_area_x[j + 1])
+                    & (centers[0, :] >= y_dom[i] - buffer_area_y[i])
+                    & (centers[0, :] < y_dom[i + 1] + buffer_area_y[i + 1])
+                ).flatten()
+            )
 
-            ind_new_positions_subdom.append(np.argwhere(
-                (new_positions[1, :] >= x_dom[j] - buffer_area_x[j]) &
-                (new_positions[1, :] < x_dom[j+1] + buffer_area_x[j+1]) &
-                (new_positions[0, :] >= y_dom[i] - buffer_area_y[i]) &
-                (new_positions[0, :] < y_dom[i+1] + buffer_area_y[i+1])
-            ).flatten())
+            ind_new_positions_subdom.append(
+                np.argwhere(
+                    (new_positions[1, :] >= x_dom[j] - buffer_area_x[j])
+                    & (new_positions[1, :] < x_dom[j + 1] + buffer_area_x[j + 1])
+                    & (new_positions[0, :] >= y_dom[i] - buffer_area_y[i])
+                    & (new_positions[0, :] < y_dom[i + 1] + buffer_area_y[i + 1])
+                ).flatten()
+            )
 
             count += 1
 
@@ -88,15 +103,20 @@ def compute_tps_coeff_subdom(centers, U, smoothing_coef, subdom_size,
     U_smooth = [None] * nb_subdom
 
     for i in range(nb_subdom):
-        centerstemp = np.vstack([centers[1][ind_v_subdom[i]],
-                                 centers[0][ind_v_subdom[i]]])
+        centerstemp = np.vstack(
+            [centers[1][ind_v_subdom[i]], centers[0][ind_v_subdom[i]]]
+        )
         Utemp = U[ind_v_subdom[i]]
         U_smooth[i], U_tps[i] = compute_tps_coeff_iter(
-            centerstemp, Utemp, smoothing_coef, threshold)
+            centerstemp, Utemp, smoothing_coef, threshold
+        )
 
-        centers_newposition_temp = np.vstack([
-            new_positions[1][ind_new_positions_subdom[i]],
-            new_positions[0][ind_new_positions_subdom[i]]])
+        centers_newposition_temp = np.vstack(
+            [
+                new_positions[1][ind_new_positions_subdom[i]],
+                new_positions[0][ind_new_positions_subdom[i]],
+            ]
+        )
 
         EM = compute_tps_matrix(centers_newposition_temp, centerstemp)
 
@@ -119,7 +139,7 @@ def compute_tps_coeff_iter(centers, U, smoothing_coef, threshold=None):
     U_smooth, U_tps = compute_tps_coeff(centers, U, smoothing_coef)
 
     if threshold is not None:
-        Udiff = np.sqrt((U_smooth-U)**2)
+        Udiff = np.sqrt((U_smooth - U) ** 2)
         ind_erratic_vector = np.argwhere(Udiff > threshold)
 
         count = 1
@@ -127,15 +147,16 @@ def compute_tps_coeff_iter(centers, U, smoothing_coef, threshold=None):
             U[ind_erratic_vector] = U_smooth[ind_erratic_vector]
             U_smooth, U_tps = compute_tps_coeff(centers, U, smoothing_coef)
 
-            Udiff = np.sqrt((U_smooth-U)**2)
+            Udiff = np.sqrt((U_smooth - U) ** 2)
             ind_erratic_vector = np.argwhere(Udiff > threshold)
             count += 1
 
             if count > 10:
-                print('tps stopped after 10 iterations')
+                print("tps stopped after 10 iterations")
                 break
+
     if count > 1:
-        print('tps done after ', count, ' attempt(s)')
+        print("tps done after ", count, " attempt(s)")
     return U_smooth, U_tps
 
 
@@ -178,8 +199,12 @@ def compute_tps_coeff(centers, U, smoothing_coef):
     smoothing_mat = smoothing_coef * np.eye(N, N)
     smoothing_mat = np.hstack([smoothing_mat, np.zeros([N, nb_dim + 1])])
     PM = np.hstack([np.ones([N, 1]), centers.T])
-    IM = np.vstack([EM + smoothing_mat,
-                    np.hstack([PM.T, np.zeros([nb_dim + 1, nb_dim + 1])])])
+    IM = np.vstack(
+        [
+            EM + smoothing_mat,
+            np.hstack([PM.T, np.zeros([nb_dim + 1, nb_dim + 1])]),
+        ]
+    )
 
     # print('det(IM)', np.linalg.det(IM))
     # print('cond(IM)', np.linalg.cond(IM))
@@ -237,13 +262,16 @@ def compute_tps_matrix_numpy(dsites, centers):
     return EM
 
 
-if hasattr(tps_pythran, '__pythran__'):
+if hasattr(tps_pythran, "__pythran__"):
+
     def compute_tps_matrix(newcenters, centers):
         return tps_pythran.compute_tps_matrix(
-            newcenters.astype(np.float64),
-            centers.astype(np.float64))
+            newcenters.astype(np.float64), centers.astype(np.float64)
+        )
+
+
 else:
-    print('Warning: function compute_tps_matrix_numpy not pythranized.')
+    print("Warning: function compute_tps_matrix_numpy not pythranized.")
     compute_tps_matrix = compute_tps_matrix_numpy
 
 

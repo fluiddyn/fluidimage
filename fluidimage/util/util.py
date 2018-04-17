@@ -27,19 +27,20 @@ import psutil
 
 from logging import getLogger
 from fluiddyn.util import get_memory_usage
-from fluiddyn.io.image import (imread as _imread,
-                               imsave as _imsave, imsave_h5)
+from fluiddyn.io.image import imread as _imread, imsave as _imsave, imsave_h5
 
 from fluiddyn.util import terminal_colors as term
 
 
-logger = getLogger('fluidimage')
-color_dict = {'HEADER': term.HEADER,
-              'OKBLUE': term.OKBLUE,
-              'OKGREEN': term.OKGREEN,
-              'WARNING': term.WARNING,
-              'FAIL': term.FAIL,
-              'ENDC': term.ENDC}
+logger = getLogger("fluidimage")
+color_dict = {
+    "HEADER": term.HEADER,
+    "OKBLUE": term.OKBLUE,
+    "OKGREEN": term.OKGREEN,
+    "WARNING": term.WARNING,
+    "FAIL": term.FAIL,
+    "ENDC": term.ENDC,
+}
 
 
 def imread(path):
@@ -60,24 +61,27 @@ def imread(path):
 
 def imsave(path, array, **kwargs):
     _imsave(path, array, **kwargs)
-    # fname = os.path.basename(path)
-    # logger.info('Save %s with intensity range (%d, %d) and type %s',
-    #             fname, array.min(), array.max(), array.dtype)
 
 
-def _get_txt_memory_usage(string='Memory usage', color='OKGREEN'):
+# fname = os.path.basename(path)
+# logger.info('Save %s with intensity range (%d, %d) and type %s',
+#             fname, array.min(), array.max(), array.dtype)
+
+
+def _get_txt_memory_usage(string="Memory usage", color="OKGREEN"):
     mem = get_memory_usage()
-    cstr = cstring((string + ': ').ljust(30) + '{:.3f} Mb'.format(mem),
-                   color=color)
+    cstr = cstring(
+        (string + ": ").ljust(30) + "{:.3f} Mb".format(mem), color=color
+    )
     return cstr
 
 
-def log_memory_usage(string='Memory usage', color='OKGREEN', mode='info'):
+def log_memory_usage(string="Memory usage", color="OKGREEN", mode="info"):
     """Log the memory usage."""
 
-    if mode == 'debug':
+    if mode == "debug":
         log = logger.debug
-    elif mode == 'error':
+    elif mode == "error":
         log = logger.error
     else:
         log = logger.info
@@ -85,7 +89,7 @@ def log_memory_usage(string='Memory usage', color='OKGREEN', mode='info'):
     log(_get_txt_memory_usage(string, color))
 
 
-def print_memory_usage(string='Memory usage', color='OKGREEN'):
+def print_memory_usage(string="Memory usage", color="OKGREEN"):
     """Print the memory usage."""
     print(_get_txt_memory_usage(string, color))
 
@@ -93,13 +97,13 @@ def print_memory_usage(string='Memory usage', color='OKGREEN'):
 def cstring(*args, **kwargs):
     """Return a coloured string."""
 
-    if 'color' in kwargs:
-        color = kwargs['color']
+    if "color" in kwargs:
+        color = kwargs["color"]
     else:
-        color = 'OKBLUE'
+        color = "OKBLUE"
 
-    cstr = ' '.join(args)
-    return color_dict[color] + cstr + color_dict['ENDC']
+    cstr = " ".join(args)
+    return color_dict[color] + cstr + color_dict["ENDC"]
 
 
 def cprint(*args, **kwargs):
@@ -120,17 +124,18 @@ def is_memory_full():
     """
     mem = psutil.virtual_memory()
 
-    if (mem.percent > 90 or mem.available < 500 * 1024 ** 2):
-        log_memory_usage('Memory full! Current process using', mode='info')
+    if mem.percent > 90 or mem.available < 500 * 1024 ** 2:
+        log_memory_usage("Memory full! Current process using", mode="info")
         return True
+
     else:
         return False
 
 
-def raise_exception(exc, msg=''):
-    '''Raise an exception with a custom message
+def raise_exception(exc, msg=""):
+    """Raise an exception with a custom message
     cf. http://python-future.org/compatible_idioms.html
 
-    '''
+    """
     traceback = sys.exc_info()[2]
     six.reraise(type(exc), msg, traceback)

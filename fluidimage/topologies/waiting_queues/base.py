@@ -40,6 +40,7 @@ from time import time
 
 import multiprocessing
 import threading
+
 try:
     import queue
 except ImportError:
@@ -52,27 +53,31 @@ from ...util.util import logger, log_memory_usage, cstring
 
 
 class WaitingQueueBase(dict):
-    def __init__(self, name, work, destination=None, work_name=None,
-                 topology=None):
+
+    def __init__(
+        self, name, work, destination=None, work_name=None, topology=None
+    ):
         self.name = name
         self.work = work
         self.destination = destination
 
         if work_name is None:
-            if hasattr(work, 'im_class') and hasattr(work, 'func_name'):
+            if hasattr(work, "im_class") and hasattr(work, "func_name"):
                 cls = work.im_class
-                work_name = (cls.__module__ + '.' + cls.__name__ + '.' +
-                             work.func_name)
-            elif hasattr(work, 'func_name'):
-                work_name = work.__module__ + '.' + work.func_name
+                work_name = (
+                    cls.__module__ + "." + cls.__name__ + "." + work.func_name
+                )
+            elif hasattr(work, "func_name"):
+                work_name = work.__module__ + "." + work.func_name
 
             else:
                 try:
                     cls = work.__class__
-                    work_name = (cls.__module__ + '.' + cls.__name__ + '.' +
-                                 work.__name__)
+                    work_name = (
+                        cls.__module__ + "." + cls.__name__ + "." + work.__name__
+                    )
                 except AttributeError:
-                    work_name = work.__module__ + '.' + work.__name__
+                    work_name = work.__module__ + "." + work.__name__
 
         self.work_name = work_name
         self.topology = topology
@@ -88,11 +93,16 @@ class WaitingQueueBase(dict):
         else:
             index = range(min(length, 3))
             keys = [self._keys[i] for i in index]
-            keys.extend(['...', self._keys[-1]])
+            keys.extend(["...", self._keys[-1]])
 
         length = str(length)
-        return cstring('WaitingQueue', repr(self.name),
-                       'with keys', repr(keys), '(' + length + ' items)')
+        return cstring(
+            "WaitingQueue",
+            repr(self.name),
+            "with keys",
+            repr(keys),
+            "(" + length + " items)",
+        )
 
     def __setitem__(self, key, value):
         if key in self._keys:
@@ -109,15 +119,19 @@ class WaitingQueueBase(dict):
 
         k, o = self.popitem()
         log_memory_usage(
-            '{:.2f} s. '.format(time() - self.topology.t_start) +
-            'Launch work ' + self.work_name +
-            ' ({}). mem usage'.format(k))
+            "{:.2f} s. ".format(time() - self.topology.t_start)
+            + "Launch work "
+            + self.work_name
+            + " ({}). mem usage".format(k)
+        )
 
         t_start = time()
         result = self.work(o)
         logger.info(
-            'work {} ({}) done in {:.2f} s'.format(
-                self.work_name, k, time() - t_start))
+            "work {} ({}) done in {:.2f} s".format(
+                self.work_name, k, time() - t_start
+            )
+        )
         self.fill_destination(k, result)
 
     def fill_destination(self, k, result):
@@ -129,6 +143,7 @@ class WaitingQueueBase(dict):
             keys = list(d.keys())
         if not set(d.keys()) == set(keys):
             raise ValueError
+
         self._keys += keys
         super(WaitingQueueBase, self).update(d)
 
@@ -138,9 +153,11 @@ class WaitingQueueBase(dict):
         return k, o
 
     def is_destination_full(self):
-        return (isinstance(self.destination, WaitingQueueBase) and
-                len(self.destination) + self._nb_workers >=
-                self.topology.nb_items_lim)
+        return (
+            isinstance(self.destination, WaitingQueueBase)
+            and len(self.destination) + self._nb_workers
+            >= self.topology.nb_items_lim
+        )
 
 
 def exec_work_and_comm(work, o, comm, comm_started):
@@ -175,24 +192,26 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
 
         workers = []
         i_launch = 0
-        while (i_launch < self.topology.nb_max_launch and
-               not self.is_empty() and
-               not self.is_destination_full() and
-               not self.enough_workers()):
+        while (
+            i_launch < self.topology.nb_max_launch
+            and not self.is_empty()
+            and not self.is_destination_full()
+            and not self.enough_workers()
+        ):
             workers.append(self._launch_worker())
             i_launch += 1
 
         if i_launch >= self.topology.nb_max_launch:
-            logger.debug('stop launching because nb_max_launch.')
+            logger.debug("stop launching because nb_max_launch.")
 
         elif self.is_empty():
-            logger.debug('stop launching because the queue is empty.')
+            logger.debug("stop launching because the queue is empty.")
 
         elif self.is_destination_full():
-            logger.debug('stop launching because the destination is full.')
+            logger.debug("stop launching because the destination is full.")
 
         elif self.enough_workers():
-            logger.debug('stop launching because the workers are saturated.')
+            logger.debug("stop launching because the workers are saturated.")
 
         return workers
 
@@ -202,14 +221,17 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
         o = self[k]
 
         log_memory_usage(
-            '{:.2f} s. '.format(time() - self.topology.t_start) +
-            'Launch work ' + self.work_name +
-            ' ({}). mem usage'.format(k))
+            "{:.2f} s. ".format(time() - self.topology.t_start)
+            + "Launch work "
+            + self.work_name
+            + " ({}). mem usage".format(k)
+        )
 
         comm = self._Queue()
         comm_started = self._Queue()
-        p = self._Process(target=exec_work_and_comm,
-                          args=(self.work, o, comm, comm_started))
+        p = self._Process(
+            target=exec_work_and_comm, args=(self.work, o, comm, comm_started)
+        )
         p.t_start = t_start = time()
         p.comm = comm
         p.key = k
@@ -235,41 +257,56 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
         def fill_destination():
             if isinstance(p, multiprocessing.Process):
                 if p.exitcode:
-                    logger.error(cstring(
-                        'Error in work (Process): '
-                        'work_name = {}; key = {}; exitcode = {}'.format(
-                            self.work_name, k, p.exitcode),
-                        color='FAIL'))
+                    logger.error(
+                        cstring(
+                            "Error in work (Process): "
+                            "work_name = {}; key = {}; exitcode = {}".format(
+                                self.work_name, k, p.exitcode
+                            ),
+                            color="FAIL",
+                        )
+                    )
                     self._nb_workers -= 1
                     self.topology.nb_workers_cpu -= 1
                     return True
+
                 try:
                     result = comm.get_nowait()
                     is_done = True
                 except queue.Empty:
                     # strange bug
                     if not p.is_alive():
-                        logger.exception(cstring(
-                            'not p.is_alive() but nothing in the communication'
-                            ' queue. Result (' + k + ') has been lost :-(',
-                            color='FAIL'))
+                        logger.exception(
+                            cstring(
+                                "not p.is_alive() but nothing in the communication"
+                                " queue. Result (" + k + ") has been lost :-(",
+                                color="FAIL",
+                            )
+                        )
                         self.topology.nb_workers_cpu -= 1
                         self._nb_workers -= 1
                         return True
+
                     return False
+
             else:
                 if p.exitcode:
-                    logger.error(cstring(
-                        'Error in work (thread): '
-                        'work_name = {}; key = {}; exitcode = {}'.format(
-                            self.work_name, k, p.exitcode),
-                        color='FAIL'))
+                    logger.error(
+                        cstring(
+                            "Error in work (thread): "
+                            "work_name = {}; key = {}; exitcode = {}".format(
+                                self.work_name, k, p.exitcode
+                            ),
+                            color="FAIL",
+                        )
+                    )
                     raise p.exception
 
                 is_done = not p.is_alive()
 
             if not is_done:
                 return False
+
             else:
                 if not isinstance(p, multiprocessing.Process):
                     result = comm.get()
@@ -277,8 +314,10 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
                 else:
                     self.topology.nb_workers_cpu -= 1
                 logger.info(
-                    'work {} ({}) done in {:.2f} s'.format(
-                        self.work_name, k, time() - t_start))
+                    "work {} ({}) done in {:.2f} s".format(
+                        self.work_name, k, time() - t_start
+                    )
+                )
                 self.fill_destination(k, result)
                 self._nb_workers -= 1
                 return True
@@ -292,7 +331,8 @@ class ThreadWork(threading.Thread):
     def __init__(self, *args, **kwargs):
         self.exitcode = None
         super(ThreadWork, self).__init__(*args, **kwargs)
-        # self.daemon = True
+
+    # self.daemon = True
 
     def run(self):
         try:
@@ -315,28 +355,30 @@ class WaitingQueueThreading(WaitingQueueMultiprocessing):
         return ThreadWork(*args, **kwargs)
 
     def enough_workers(self):
-        return self._nb_workers >= self.nb_max_workers or \
-            self.topology.nb_workers_io >= self.topology.nb_max_workers_io
+        return self._nb_workers >= self.nb_max_workers or self.topology.nb_workers_io >= self.topology.nb_max_workers_io
 
 
 class WaitingQueueLoadFile(WaitingQueueThreading):
     nb_max_workers = 8
 
     def __init__(self, *args, **kwargs):
-        self.path_dir = kwargs.pop('path_dir')
+        self.path_dir = kwargs.pop("path_dir")
         super(WaitingQueueLoadFile, self).__init__(*args, **kwargs)
-        self.work_name = __name__ + '.load'
+        self.work_name = __name__ + ".load"
 
     def add_name_files(self, names):
-        self.update({name: os.path.join(self.path_dir, name)
-                     for name in names}, names)
+        self.update(
+            {name: os.path.join(self.path_dir, name) for name in names}, names
+        )
 
 
 class WaitingQueueLoadImage(WaitingQueueLoadFile):
+
     def __init__(self, *args, **kwargs):
         super(WaitingQueueLoadImage, self).__init__(
-            'image file', load_image, *args, **kwargs)
-        self.work_name = __name__ + '.load_image'
+            "image file", load_image, *args, **kwargs
+        )
+        self.work_name = __name__ + ".load_image"
 
 
 def load_image_path(path):
@@ -345,39 +387,43 @@ def load_image_path(path):
 
 
 class WaitingQueueLoadImagePath(WaitingQueueLoadFile):
+
     def __init__(self, *args, **kwargs):
         super(WaitingQueueLoadImagePath, self).__init__(
-            'image file', load_image_path, *args, **kwargs)
-        self.work_name = __name__ + '.load_image'
+            "image file", load_image_path, *args, **kwargs
+        )
+        self.work_name = __name__ + ".load_image"
 
 
 class WaitingQueueMakeCouple(WaitingQueueBase):
 
-    def __init__(self, name, destination,
-                 work_name='make couples', topology=None):
+    def __init__(
+        self, name, destination, work_name="make couples", topology=None
+    ):
 
         self.nb_couples_to_create = {}
         self.couples = set()
         self.series = {}
         self.topology = topology
-        work = 'make_couples'
+        work = "make_couples"
 
         super(WaitingQueueMakeCouple, self).__init__(
-            name, work, destination, work_name, topology)
+            name, work, destination, work_name, topology
+        )
 
     def is_empty(self):
         return len(self.couples) == 0
 
     def add_series(self, series):
 
-        self.series.update({serie.get_name_arrays(): deepcopy(serie)
-                            for serie in series})
+        self.series.update(
+            {serie.get_name_arrays(): deepcopy(serie) for serie in series}
+        )
 
         couples = [serie.get_name_arrays() for serie in series]
 
         if len(couples) > 0 and len(couples[0]) != 2:
-            raise ValueError(
-                'A couple has to be of length 2.')
+            raise ValueError("A couple has to be of length 2.")
 
         self.couples.update(couples)
         nb = self.nb_couples_to_create
@@ -399,7 +445,7 @@ class WaitingQueueMakeCouple(WaitingQueueBase):
                     k0, k1 = k1, k0
 
                 if (k0, k1) in self.couples:
-                    newk = k0 + '-' + k1
+                    newk = k0 + "-" + k1
                     self.couples.remove((k0, k1))
                     serie = self.series.pop((k0, k1))
 
@@ -409,8 +455,9 @@ class WaitingQueueMakeCouple(WaitingQueueBase):
                         self._keys.remove(k0)
                     else:
                         v0 = self[k0]
-                        self.nb_couples_to_create[k0] = \
-                            self.nb_couples_to_create[k0] - 1
+                        self.nb_couples_to_create[k0] = self.nb_couples_to_create[
+                            k0
+                        ] - 1
 
                     if self.nb_couples_to_create[k1] == 1:
                         v1 = self.pop(k1)
@@ -418,30 +465,41 @@ class WaitingQueueMakeCouple(WaitingQueueBase):
                         self._keys.remove(k1)
                     else:
                         v1 = self[k1]
-                        self.nb_couples_to_create[k1] = \
-                            self.nb_couples_to_create[k1] - 1
+                        self.nb_couples_to_create[k1] = self.nb_couples_to_create[
+                            k1
+                        ] - 1
 
                     self.destination[newk] = ArrayCouple(
-                        (k0, k1), (v0, v1), serie,
-                        params_mask=self.topology.params.mask)
+                        (k0, k1),
+                        (v0, v1),
+                        serie,
+                        params_mask=self.topology.params.mask,
+                    )
 
 
 class WaitingQueueMakeCoupleBOS(WaitingQueueBase):
 
-    def __init__(self, name, destination,
-                 work_name='make couples', topology=None,
-                 image_reference=None, path_reference=None,
-                 serie=None):
+    def __init__(
+        self,
+        name,
+        destination,
+        work_name="make couples",
+        topology=None,
+        image_reference=None,
+        path_reference=None,
+        serie=None,
+    ):
 
         self.topology = topology
-        work = 'make_couples'
+        work = "make_couples"
 
         self.image_reference = image_reference
         self.path_reference = path_reference
         self.serie = serie
 
         super(WaitingQueueMakeCoupleBOS, self).__init__(
-            name, work, destination, work_name, topology)
+            name, work, destination, work_name, topology
+        )
 
     def check_and_act(self, sequential=None):
         if self.is_destination_full():
@@ -452,13 +510,15 @@ class WaitingQueueMakeCoupleBOS(WaitingQueueBase):
         for k in list(self.keys()):
             v = self.pop(k)
 
-            paths=(self.path_reference,
-                   os.path.join(self.serie.path_dir, k))
+            paths = (self.path_reference, os.path.join(self.serie.path_dir, k))
 
             self.destination[k] = ArrayCoupleBOS(
-                ('ref', k), (self.image_reference, v), self.serie,
+                ("ref", k),
+                (self.image_reference, v),
+                self.serie,
                 paths=paths,
-                params_mask=self.topology.params.mask,)
+                params_mask=self.topology.params.mask,
+            )
 
             ind_image += 1
             if ind_image > nb_images_per_check:

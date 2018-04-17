@@ -11,7 +11,7 @@ def get_config():
     config = ConfigParser()
 
     home = os.path.expanduser("~")
-    path_config = os.path.join(home, '.fluidimagerc')
+    path_config = os.path.join(home, ".fluidimagerc")
 
     if os.path.exists(path_config):
         config.read(path_config)
@@ -21,8 +21,8 @@ def get_config():
         section_dict = {}
         for option in config.options(section):
             value = config.get(section, option)
-            if value.lower in ['true', 'false']:
-                value = value == 'true'
+            if value.lower in ["true", "false"]:
+                value = value == "true"
             section_dict[option] = value
         config_dict[section] = section_dict
 

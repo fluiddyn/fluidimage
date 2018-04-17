@@ -66,8 +66,8 @@ nthreads = 1
 
 class CUFFT2DReal2Complex(object):
     """A class to use cufft with float32."""
-    type_real = 'float32'
-    type_complex = 'complex64'
+    type_real = "float32"
+    type_complex = "complex64"
 
     def __init__(self, nx, ny):
 
@@ -85,15 +85,16 @@ class CUFFT2DReal2Complex(object):
         self.thr = api.Thread.create(dev)
         fft = FFT(self.arrayK, axes=(0, 1))
         scale = mul_param(self.arrayK, np.float)
-        fft.parameter.input.connect(scale, scale.output,
-                                    input_prime=scale.input, param=scale.param)
+        fft.parameter.input.connect(
+            scale, scale.output, input_prime=scale.input, param=scale.param
+        )
         self.fftplan = fft.compile(self.thr, fast_math=True)
 
         self.coef_norm = nx * ny
 
     def fft(self, ff):
         arr_dev = self.thr.to_device(ff.astype(self.type_complex))
-        self.fftplan(arr_dev, arr_dev, 1./self.coef_norm)
+        self.fftplan(arr_dev, arr_dev, 1. / self.coef_norm)
         return arr_dev.get()
 
     def ifft(self, ff_fft):
@@ -102,10 +103,10 @@ class CUFFT2DReal2Complex(object):
         return arr_dev.get()
 
     def compute_energy_from_Fourier(self, ff_fft):
-        return np.sum(abs(ff_fft)**2)/2
+        return np.sum(abs(ff_fft) ** 2) / 2
 
     def compute_energy_from_spatial(self, ff):
-        return np.mean(abs(ff)**2)/2
+        return np.mean(abs(ff) ** 2) / 2
 
     def project_fft_on_realX(self, ff_fft):
         return self.fft(self.ifft(ff_fft))
@@ -113,19 +114,19 @@ class CUFFT2DReal2Complex(object):
 
 class CUFFT2DReal2ComplexFloat64(CUFFT2DReal2Complex):
     """A class to use cufft with float64."""
-    type_real = 'float64'
-    type_complex = 'complex128'
+    type_real = "float64"
+    type_complex = "complex128"
 
 
 class SKCUFFT2DReal2Complex(object):
     """A class to use skcuda-cufft with float32."""
-    type_real = 'float32'
-    type_complex = 'complex64'
+    type_real = "float32"
+    type_complex = "complex64"
 
     def __init__(self, nx, ny):
 
         shapeX = [ny, nx]
-        shapeK = [ny, nx//2 + 1]
+        shapeK = [ny, nx // 2 + 1]
 
         self.shapeX = shapeX
         self.shapeK = shapeK
@@ -148,11 +149,14 @@ class SKCUFFT2DReal2Complex(object):
         return x_gpu.get()
 
     def compute_energy_from_Fourier(self, ff_fft):
-        return (np.sum(abs(ff_fft[:, 0])**2 + abs(ff_fft[:, -1])**2) +
-                2*np.sum(abs(ff_fft[:, 1:-1])**2))/2
+        return (
+            np.sum(abs(ff_fft[:, 0]) ** 2 + abs(ff_fft[:, -1]) ** 2)
+            + 2
+            * np.sum(abs(ff_fft[:, 1:-1]) ** 2)
+        ) / 2
 
     def compute_energy_from_spatial(self, ff):
-        return np.mean(abs(ff)**2)/2
+        return np.mean(abs(ff) ** 2) / 2
 
     def project_fft_on_realX(self, ff_fft):
         return self.fft(self.ifft(ff_fft))
@@ -164,13 +168,13 @@ class FFTW2DReal2Complex(object):
     These ffts are NOT normalized (faster)!
 
     """
-    type_real = 'float32'
-    type_complex = 'complex64'
+    type_real = "float32"
+    type_complex = "complex64"
 
     def __init__(self, nx, ny):
 
         shapeX = [ny, nx]
-        shapeK = [ny, nx//2 + 1]
+        shapeK = [ny, nx // 2 + 1]
 
         self.shapeX = shapeX
         self.shapeK = shapeK
@@ -178,18 +182,22 @@ class FFTW2DReal2Complex(object):
         self.arrayX = pyfftw.empty_aligned(shapeX, self.type_real)
         self.arrayK = pyfftw.empty_aligned(shapeK, self.type_complex)
 
-        self.fftplan = pyfftw.FFTW(input_array=self.arrayX,
-                                   output_array=self.arrayK,
-                                   axes=(0, 1),
-                                   direction='FFTW_FORWARD',
-                                   threads=nthreads)
-        self.ifftplan = pyfftw.FFTW(input_array=self.arrayK,
-                                    output_array=self.arrayX,
-                                    axes=(0, 1),
-                                    direction='FFTW_BACKWARD',
-                                    threads=nthreads)
+        self.fftplan = pyfftw.FFTW(
+            input_array=self.arrayX,
+            output_array=self.arrayK,
+            axes=(0, 1),
+            direction="FFTW_FORWARD",
+            threads=nthreads,
+        )
+        self.ifftplan = pyfftw.FFTW(
+            input_array=self.arrayK,
+            output_array=self.arrayX,
+            axes=(0, 1),
+            direction="FFTW_BACKWARD",
+            threads=nthreads,
+        )
 
-        self.coef_norm = nx*ny
+        self.coef_norm = nx * ny
 
     def fft(self, ff):
         self.arrayX[:] = ff
@@ -202,11 +210,14 @@ class FFTW2DReal2Complex(object):
         return self.arrayX.copy()
 
     def compute_energy_from_Fourier(self, ff_fft):
-        return (np.sum(abs(ff_fft[:, 0])**2 + abs(ff_fft[:, -1])**2) +
-                2*np.sum(abs(ff_fft[:, 1:-1])**2))/2
+        return (
+            np.sum(abs(ff_fft[:, 0]) ** 2 + abs(ff_fft[:, -1]) ** 2)
+            + 2
+            * np.sum(abs(ff_fft[:, 1:-1]) ** 2)
+        ) / 2
 
     def compute_energy_from_spatial(self, ff):
-        return np.mean(abs(ff)**2)/2
+        return np.mean(abs(ff) ** 2) / 2
 
     def project_fft_on_realX(self, ff_fft):
         return self.fft(self.ifft(ff_fft))
@@ -214,5 +225,5 @@ class FFTW2DReal2Complex(object):
 
 class FFTW2DReal2ComplexFloat64(FFTW2DReal2Complex):
     """A class to use fftw with float64."""
-    type_real = 'float64'
-    type_complex = 'complex128'
+    type_real = "float64"
+    type_complex = "complex128"

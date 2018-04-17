@@ -53,7 +53,7 @@ class WorkPIV(BaseWork):
     @classmethod
     def create_default_params(cls):
         "Create an object containing the default parameters (class method)."
-        params = ParamContainer(tag='params')
+        params = ParamContainer(tag="params")
         cls._complete_params_with_default(params)
         return params
 
@@ -64,13 +64,16 @@ class WorkPIV(BaseWork):
         WorkFIX._complete_params_with_default(params)
 
         params._set_child(
-            'multipass',
-            attribs={'number': 1,
-                     'coeff_zoom': 2,
-                     'use_tps': 'last',
-                     'subdom_size': 200,
-                     'smoothing_coef': 0.5,
-                     'threshold_tps': 1.})
+            "multipass",
+            attribs={
+                "number": 1,
+                "coeff_zoom": 2,
+                "use_tps": "last",
+                "subdom_size": 200,
+                "smoothing_coef": 0.5,
+                "threshold_tps": 1.,
+            },
+        )
 
         params.multipass._set_doc(
             """Multipass PIV parameters:
@@ -104,7 +107,8 @@ threshold_tps :  float
     Allowed difference of displacement (in pixels) between smoothed and input
     field for TPS filter.
 
-""")
+"""
+        )
 
     def __init__(self, params=None):
 
@@ -125,8 +129,9 @@ threshold_tps :  float
             coeffs_zoom = coeff_zoom
         else:
             raise ValueError(
-                'params.multipass.coeff_zoom has to be an integer or '
-                'an iterable of length params.multipass.number - 1')
+                "params.multipass.coeff_zoom has to be an integer or "
+                "an iterable of length params.multipass.number - 1"
+            )
 
         shape_crop_im0 = copy(params.piv0.shape_crop_im0)
         shape_crop_im1 = copy(params.piv0.shape_crop_im1)
@@ -135,30 +140,42 @@ threshold_tps :  float
 
         if isinstance(shape_crop_im0, int):
             shape_crop_im0 = (shape_crop_im0, shape_crop_im0)
-        elif (isinstance(shape_crop_im0, (list, tuple)) and
-              len(shape_crop_im0) == 2):
+        elif (
+            isinstance(shape_crop_im0, (list, tuple)) and len(shape_crop_im0) == 2
+        ):
             shape_crop_im0 = tuple(shape_crop_im0)
         else:
             raise NotImplementedError(
-                'For now, shape_crop_im0 has to be one or two integer!')
+                "For now, shape_crop_im0 has to be one or two integer!"
+            )
+
         if isinstance(shape_crop_im1, int):
             shape_crop_im1 = (shape_crop_im1, shape_crop_im1)
-        elif (isinstance(shape_crop_im1, (list, tuple)) and
-              len(shape_crop_im1) == 2):
+        elif (
+            isinstance(shape_crop_im1, (list, tuple)) and len(shape_crop_im1) == 2
+        ):
             shape_crop_im1 = tuple(shape_crop_im1)
         else:
             raise NotImplementedError(
-                'For now, shape_crop_im1 has to be one or two integer!')
+                "For now, shape_crop_im1 has to be one or two integer!"
+            )
 
         for i in range(1, params.multipass.number):
-            shape_crop_im0 = (copy(shape_crop_im0[0]/coeffs_zoom[i-1]),
-                              copy(shape_crop_im0[1]/coeffs_zoom[i-1]))
-            shape_crop_im1 = (copy(shape_crop_im1[0]/coeffs_zoom[i-1]),
-                              copy(shape_crop_im1[1]/coeffs_zoom[i-1]))
+            shape_crop_im0 = (
+                copy(shape_crop_im0[0] / coeffs_zoom[i - 1]),
+                copy(shape_crop_im0[1] / coeffs_zoom[i - 1]),
+            )
+            shape_crop_im1 = (
+                copy(shape_crop_im1[0] / coeffs_zoom[i - 1]),
+                copy(shape_crop_im1[1] / coeffs_zoom[i - 1]),
+            )
 
             work_piv = WorkPIVFromDisplacement(
-                params, index_pass=i, shape_crop_im0=shape_crop_im0,
-                shape_crop_im1=shape_crop_im1)
+                params,
+                index_pass=i,
+                shape_crop_im0=shape_crop_im0,
+                shape_crop_im1=shape_crop_im1,
+            )
             self.works_piv.append(work_piv)
             self.works_fix.append(WorkFIX(params.fix, work_piv))
 
@@ -179,7 +196,7 @@ threshold_tps :  float
         try:
             work_piv.apply_interp(piv_result, last=True)
         except InterpError as e:
-            print('Warning: InterpError at the end of the last piv pass:', e)
+            print("Warning: InterpError at the end of the last piv pass:", e)
 
         return results
 

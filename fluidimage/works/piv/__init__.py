@@ -12,4 +12,4 @@
 
 from .multipass import WorkPIV
 
-__all__ = ['WorkPIV']
+__all__ = ["WorkPIV"]

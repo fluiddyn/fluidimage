@@ -8,17 +8,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from fluidimage.calcul.interpolate.thin_plate_spline import (
-    compute_tps_coeff, ThinPlateSpline)
+    compute_tps_coeff, ThinPlateSpline
+)
 
 
 def get_memory_usage():
-    return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1000.
+    return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1000.
 
 
 def bench(n0, n1):
     # set of random x coordinates from 0 to 2pi
-    x = 2*np.pi*np.random.rand(n0)
-    y = 2*np.pi*np.random.rand(n0)
+    x = 2 * np.pi * np.random.rand(n0)
+    y = 2 * np.pi * np.random.rand(n0)
 
     U = x
 
@@ -30,7 +31,7 @@ def bench(n0, n1):
     t_tps_coeff = clock() - t
 
     # interpolation grid
-    xI = yI = np.linspace(0, 2*np.pi, n1)
+    xI = yI = np.linspace(0, 2 * np.pi, n1)
     XI, YI = np.meshgrid(xI, yI)
     XI = XI.ravel()
     YI = YI.ravel()
@@ -75,17 +76,17 @@ for i, n1 in enumerate(ns):
 plt.figure()
 ax = plt.gca()
 
-ax.plot(ns, t_tps_coeff/ns, 'b')
-ax.plot(ns, t_init/ns, 'r')
-ax.plot(ns, t_eval/ns, 'g')
-ax.plot(ns, t_eval_grad/ns, 'y')
+ax.plot(ns, t_tps_coeff / ns, "b")
+ax.plot(ns, t_init / ns, "r")
+ax.plot(ns, t_eval / ns, "g")
+ax.plot(ns, t_eval_grad / ns, "y")
 
 
 plt.figure()
 ax = plt.gca()
 
-ax.plot(ns, memory, 'r')
+ax.plot(ns, memory, "r")
 
-ax.set_ylabel('memory (Mo)')
+ax.set_ylabel("memory (Mo)")
 
 plt.show()

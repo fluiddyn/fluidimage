@@ -23,6 +23,7 @@ from ..util.util import logger
 
 class PreprocToolsBase(object):
     """Base class for wrapping preprocessing functions into a class."""
+
     @classmethod
     def _get_backend(cls):
         raise NotImplementedError
@@ -35,10 +36,9 @@ class PreprocToolsBase(object):
         tools = cls._get_backend()
         available_tools = tools.__all__
 
-        params.preproc._set_child('tools')
+        params.preproc._set_child("tools")
         params = params.preproc.tools
-        params._set_attribs({'available_tools': tools.__all__,
-                             'sequence': None})
+        params._set_attribs({"available_tools": tools.__all__, "sequence": None})
 
         for tool in available_tools:
             func = tools.__dict__[tool]
@@ -46,11 +46,11 @@ class PreprocToolsBase(object):
             # TODO: Replace with inspect.getfullargspec (Python >= 3).
             func_args = inspect.getcallargs(func)
             for arg in list(func_args.keys()):
-                if arg in ['img']:
+                if arg in ["img"]:
                     # Remove arguments which are not parameters
-                    del(func_args[arg])
+                    del (func_args[arg])
 
-            func_args.update({'enable': False})
+            func_args.update({"enable": False})
 
             # New parameter child for each tool and parameter attributes
             # from its function arguments and default values
@@ -63,8 +63,7 @@ class PreprocToolsBase(object):
                 func_doc = func.__doc__
 
             if func_doc is not None:
-                enable_doc = 'enable : bool\n' + \
-                             '        Set as `True` to enable the tool'
+                enable_doc = "enable : bool\n" + "        Set as `True` to enable the tool"
                 params[tool]._set_doc(func_doc + enable_doc)
 
     @classmethod
@@ -104,10 +103,10 @@ class PreprocToolsBase(object):
         for tool in sequence:
             tool_params = self.params[tool]
             if tool_params.enable:
-                logger.debug('Apply ' + tool)
+                logger.debug("Apply " + tool)
                 kwargs = tool_params._make_dict_attribs()
                 for k in list(kwargs.keys()):
-                    if k == 'enable':
+                    if k == "enable":
                         kwargs.pop(k)
 
                 cls = self.__class__
@@ -118,6 +117,7 @@ class PreprocToolsBase(object):
 
 class PreprocToolsPy(PreprocToolsBase):
     """Wrapper class for functions in _toolbox_py module."""
+
     @classmethod
     def _get_backend(cls):
         from . import _toolbox_py as tools
@@ -129,6 +129,7 @@ PreprocToolsPy._complete_class_with_tools()
 
 class PreprocToolsCV(PreprocToolsBase):
     """Wrapper class for functions in _toolbox_cv module."""
+
     @classmethod
     def _get_backend(cls):
         from . import _toolbox_cv as tools

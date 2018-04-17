@@ -71,10 +71,10 @@ class TestFFTW2DReal2Complex(unittest.TestCase):
         self.assertTrue(np.allclose(func_fft, back_fft, rtol=rtol, atol=atol))
         self.assertTrue(np.allclose(func, back, rtol=rtol, atol=atol))
 
-        self.assertAlmostEqual(energyX/energyK, 1., places=3)
+        self.assertAlmostEqual(energyX / energyK, 1., places=3)
 
         energyKback = op.compute_energy_from_Fourier(back_fft)
-        self.assertAlmostEqual(energyK/energyKback, 1., places=3)
+        self.assertAlmostEqual(energyK / energyKback, 1., places=3)
 
     def compute_and_check2(self, func, op):
 
@@ -87,8 +87,7 @@ class TestFFTW2DReal2Complex(unittest.TestCase):
         energyKback = op.compute_energy_from_Fourier(func_fft_2)
         rtol = 8e-05
         atol = 1e-04
-        self.assertTrue(np.allclose(func_fft, func_fft_2,
-                                    rtol=rtol, atol=atol))
+        self.assertTrue(np.allclose(func_fft, func_fft_2, rtol=rtol, atol=atol))
 
         # tmp = np.absolute(func - back) - atol - rtol*np.abs(back)
 
@@ -96,13 +95,13 @@ class TestFFTW2DReal2Complex(unittest.TestCase):
 
         self.assertTrue(np.allclose(func, back, rtol=rtol, atol=atol))
 
-        self.assertAlmostEqual(energyX/energyK, 1., places=3)
-        self.assertAlmostEqual(energyK/energyKback, 1., places=3)
+        self.assertAlmostEqual(energyX / energyK, 1., places=3)
+        self.assertAlmostEqual(energyK / energyKback, 1., places=3)
 
     def bench_fft_random(self):
         """random"""
-        nx = 128*16
-        ny = 64*4*8
+        nx = 128 * 16
+        ny = 64 * 4 * 8
 
         rtime, ntime = 0., 0.
         Nloops = 2
@@ -130,8 +129,10 @@ class TestFFTW2DReal2Complex(unittest.TestCase):
             self.compute_and_check2(func1, op)
             rtime += time() - t0
 
-        print('array size = %5d x %5d : gpu speedup = %g' % (nx,
-                                                             ny, ntime / rtime))
+        print(
+            "array size = %5d x %5d : gpu speedup = %g" % (nx, ny, ntime / rtime)
+        )
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

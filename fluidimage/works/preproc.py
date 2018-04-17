@@ -30,7 +30,7 @@ class WorkPreproc(PreprocBase):
             serie = ArraySerie(serie=serie)
 
         if not isinstance(serie, ArraySerie):
-            raise ValueError('serie must be an instance of class ArraySerie')
+            raise ValueError("serie must be an instance of class ArraySerie")
 
         result = PreprocResults(self.params)
         images = np.array(serie.get_arrays())
@@ -39,8 +39,10 @@ class WorkPreproc(PreprocBase):
         dico = self._make_dict_to_save(serie, images)
         result.data.update(dico)
         print_memory_usage(
-            'Memory usage after preprocessing {}/{} series'.format(
-                serie.ind_serie + 1, serie.nb_series))
+            "Memory usage after preprocessing {}/{} series".format(
+                serie.ind_serie + 1, serie.nb_series
+            )
+        )
         return result
 
     def _make_dict_to_save(self, array_serie, images):
@@ -65,7 +67,9 @@ class WorkPreproc(PreprocBase):
         name_files = self.serie_arrays.get_name_files()[ind:ind + nb_images]
 
         results_series = SerieOfArraysFromFiles(self.params.saving.path)
-        results = {name: results_series.get_array_from_name(name)
-                   for name in name_files[ind:ind + nb_images]}
+        results = {
+            name: results_series.get_array_from_name(name)
+            for name in name_files[ind:ind + nb_images]
+        }
 
         return super(WorkPreproc, self).display(ind, hist, results)

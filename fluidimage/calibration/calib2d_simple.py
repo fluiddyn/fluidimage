@@ -51,9 +51,17 @@ class Calibration2DSimple(object):
 
     """
 
-    def __init__(self, point0, point1, distance, aspect_ratio_pixel=1.,
-                 shape_image=None, path_image=None,
-                 point_origin=(0, 0), orig_phys=(0., 0.)):
+    def __init__(
+        self,
+        point0,
+        point1,
+        distance,
+        aspect_ratio_pixel=1.,
+        shape_image=None,
+        path_image=None,
+        point_origin=(0, 0),
+        orig_phys=(0., 0.),
+    ):
 
         self.point0 = np.array(point0)
         self.point1 = np.array(point1)
@@ -64,8 +72,9 @@ class Calibration2DSimple(object):
         self.aspect_ratio_pixel = aspect_ratio_pixel
 
         self.xphys1pixel = distance / np.sqrt(
-            delta_point[0]**2 + (aspect_ratio_pixel*delta_point[1])**2)
-        self.yphys1pixel = aspect_ratio_pixel*self.xphys1pixel
+            delta_point[0] ** 2 + (aspect_ratio_pixel * delta_point[1]) ** 2
+        )
+        self.yphys1pixel = aspect_ratio_pixel * self.xphys1pixel
 
         if shape_image is None:
             arr = imread(path_image)

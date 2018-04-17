@@ -59,8 +59,8 @@ def get_grid_pixel_from_piv_file(path, index_pass=-1):
 
     """
     with h5py.File(path) as f:
-        params = ParamContainer(hdf5_object=f['params'])
-        shape_images = f['couple/shape_images'].value
+        params = ParamContainer(hdf5_object=f["params"])
+        shape_images = f["couple/shape_images"].value
 
     return get_grid_pixel(params, shape_images, index_pass)
 
@@ -99,7 +99,7 @@ def get_grid_pixel(params, shape_images, index_pass=-1):
 
     """
 
-    params_default = WorkPIV.create_default_params()    
+    params_default = WorkPIV.create_default_params()
     params_default._modif_from_other_params(params)
 
     work_multi = WorkPIV(params_default)
@@ -147,11 +147,28 @@ class PIV2d(object):
     unitz : str, '?'
 
     """
-    def __init__(self, x, y, z, vx, vy, vz=np.nan,
-                 namevx='vx', namevy='vy', namevz='vz',
-                 unitvx='?', unitvy='?', unitvz='?',
-                 namex='x', namey='y', namez='z',
-                 unitx='?', unity='?', unitz='?'):
+
+    def __init__(
+        self,
+        x,
+        y,
+        z,
+        vx,
+        vy,
+        vz=np.nan,
+        namevx="vx",
+        namevy="vy",
+        namevz="vz",
+        unitvx="?",
+        unitvy="?",
+        unitvz="?",
+        namex="x",
+        namey="y",
+        namez="z",
+        unitx="?",
+        unity="?",
+        unitz="?",
+    ):
 
         self.x = x
         self.y = y
@@ -172,10 +189,10 @@ class PIV2d(object):
         self.unitz = unitz
         self.namez = namez
 
-        self.name = 'Fluidimage_field'
-        self.history = ['fluidimage']
-        self.setname = '??'
-        self.ysign = 'ysign'
+        self.name = "Fluidimage_field"
+        self.history = ["fluidimage"]
+        self.setname = "??"
+        self.ysign = "ysign"
 
     def __add__(self, other):
         if isinstance(other, Number):
@@ -192,6 +209,7 @@ class PIV2d(object):
     def __radd__(self, other):
         if other == 0:
             return self
+
         else:
             return self.__add__(other)
 
@@ -247,24 +265,25 @@ class PIV2d(object):
 
         pcm = ax.pcolormesh(self.x, self.y, self.compute_norm())
 
-        q = ax.quiver(self.x, self.y, self.vx, self.vy,
-                      scale_units='xy', scale=scale)
-        ax.set_xlabel(self.namex + ' [' + self.unitx + ']')
-        ax.set_ylabel(self.namey + ' [' + self.unity + ']')
+        q = ax.quiver(
+            self.x, self.y, self.vx, self.vy, scale_units="xy", scale=scale
+        )
+        ax.set_xlabel(self.namex + " [" + self.unitx + "]")
+        ax.set_ylabel(self.namey + " [" + self.unity + "]")
 
         def onclick(event):
             key = event.key
-            if key == 'ctrl++':
+            if key == "ctrl++":
                 q.scale *= 2.
-                print(key + ': multiply q.scale by 2.', end='')
-            elif key == 'ctrl+-':
+                print(key + ": multiply q.scale by 2.", end="")
+            elif key == "ctrl+-":
                 q.scale /= 2.
-                print(key + ': divide q.scale by 2.', end='')
-            if event.key in ['ctrl++', 'ctrl+-']:
-                print(' q.scale = {}'.format(q.scale))
+                print(key + ": divide q.scale by 2.", end="")
+            if event.key in ["ctrl++", "ctrl+-"]:
+                print(" q.scale = {}".format(q.scale))
                 fig.canvas.draw()
 
-        fig.canvas.mpl_connect('key_press_event', onclick)
+        fig.canvas.mpl_connect("key_press_event", onclick)
         plt.colorbar(pcm, ax=ax)
 
         xmin = self.x.min()
@@ -274,9 +293,9 @@ class PIV2d(object):
         ymax = self.y.max()
         ly = ymax - ymin
         n = 20
-        ax.set_xlim([xmin - lx/n, xmax + lx/n])
-        ax.set_ylim([ymin - ly/n, ymax + ly/n])
-        ax.set_aspect('equal')
+        ax.set_xlim([xmin - lx / n, xmax + lx / n])
+        ax.set_ylim([ymin - ly / n, ymax + ly / n])
+        ax.set_aspect("equal")
 
         return ax
 
@@ -293,17 +312,19 @@ class PIV2d(object):
         ret.vx = _medianf(self.vx)
         ret.vy = _medianf(self.vy)
 
-        if hasattr(self, 'vz'):
+        if hasattr(self, "vz"):
             ret.vz = _medianf(self.vz)
 
         if valid:
-            mf = int(np.floor(max(size)/2))
+            mf = int(np.floor(max(size) / 2))
             ny, nx = self.vx.shape
-            ret = ret.extract(mf, ny-mf, mf, nx-mf)
+            ret = ret.extract(mf, ny - mf, mf, nx - mf)
 
         ret.history.append(
-            'median_filter(size={}, niter={}, valid ={})'.format(
-                size, niter, valid))
+            "median_filter(size={}, niter={}, valid ={})".format(
+                size, niter, valid
+            )
+        )
 
         return ret
 
@@ -320,18 +341,20 @@ class PIV2d(object):
         ret.vx = _gaussianf(self.vx)
         ret.vy = _gaussianf(self.vy)
 
-        if hasattr(self, 'vz'):
+        if hasattr(self, "vz"):
             # ret.vz = _gaussianf(self.vz)
             pass
 
         if valid:
-            mf = int(np.floor((2*int(truncate*max(sigma) + 0.5) + 1)/2))
+            mf = int(np.floor((2 * int(truncate * max(sigma) + 0.5) + 1) / 2))
             ny, nx = self.vx.shape
-            ret = ret.extract(mf, ny-mf, mf, nx-mf)
+            ret = ret.extract(mf, ny - mf, mf, nx - mf)
 
         ret.history.append(
-            'gaussian_filter(sigma={}, niter={}, valid={})'.format(
-                sigma, niter, valid))
+            "gaussian_filter(sigma={}, niter={}, valid={})".format(
+                sigma, niter, valid
+            )
+        )
 
         return ret
 
@@ -342,9 +365,9 @@ class PIV2d(object):
             indy = ((ret.y >= start0) & (ret.y <= stop0))
             indx = ((ret.x >= start1) & (ret.x <= stop1))
             start0 = np.argwhere(ret.y == ret.y[indy].min())[0][0]
-            stop0 = np.argwhere(ret.y == ret.y[indy].max())[0][0]+1
+            stop0 = np.argwhere(ret.y == ret.y[indy].max())[0][0] + 1
             start1 = np.argwhere(ret.x == ret.x[indx].min())[0][0]
-            stop1 = np.argwhere(ret.x == ret.x[indx].max())[0][0]+1
+            stop1 = np.argwhere(ret.x == ret.x[indx].max())[0][0] + 1
 
         def _extract2d(f):
             return f[start0:stop0, start1:stop1]
@@ -353,26 +376,30 @@ class PIV2d(object):
         ret.y = ret.y[start0:stop0]
         ret.vx = _extract2d(ret.vx)
         ret.vy = _extract2d(ret.vy)
-        if hasattr(self, 'vz') and np.size(self.vz) > 1:
+        if hasattr(self, "vz") and np.size(self.vz) > 1:
             ret.vz = _extract2d(ret.vz)
 
         ret.history.append(
-            ('extract(start0={}, stop0={}, '
-             'start1={}, stop1={}, phys={})').format(
-                start0, stop0, start1, stop1, phys))
+            (
+                "extract(start0={}, stop0={}, " "start1={}, stop1={}, phys={})"
+            ).format(
+                start0, stop0, start1, stop1, phys
+            )
+        )
 
         return ret
 
     def truncate(self, cut=1, phys=False):
         if phys:
             raise NotImplementedError
+
         ny, nx = self.vx.shape
-        return self.extract(cut, ny-cut, cut, nx-cut)
+        return self.extract(cut, ny - cut, cut, nx - cut)
 
     def extract_square(self, cut=0, force_even=True):
         n1 = self.x.size
         n0 = self.y.size
-        n = min(n0, n1) - 2*cut
+        n = min(n0, n1) - 2 * cut
 
         if force_even and n % 2 == 1:
             n -= 1
@@ -380,27 +407,29 @@ class PIV2d(object):
         if n1 > n0:
             start0 = cut
             stop0 = cut + n
-            start1 = (n1 - n)//2
+            start1 = (n1 - n) // 2
             stop1 = start1 + n
         else:
             start1 = cut
             stop1 = cut + n
-            start0 = (n0 - n)//2
+            start0 = (n0 - n) // 2
             stop0 = start1 + n
 
         return self.extract(start0, stop0, start1, stop1)
 
     def compute_norm(self):
-        return np.sqrt(self.vx**2 + self.vy**2)
+        return np.sqrt(self.vx ** 2 + self.vy ** 2)
 
 
 class ArrayPIV(object):
     """Array of PIV fields on a regular grid."""
+
     def __init__(self, l=None):
         if l is None:
             l = []
         elif not isinstance(l, list):
             raise TypeError
+
         self._list = l
 
     def append(self, v):
@@ -418,6 +447,7 @@ class ArrayPIV(object):
     def __radd__(self, other):
         if other == 0:
             return self
+
         else:
             return self.__add__(other)
 
@@ -455,8 +485,9 @@ class ArrayPIV(object):
         self._list.__detitem__(key)
 
     def __repr__(self):
-        return 'ArrayPIV containing {} fields:\n'.format(len(self)) + \
-            self._list.__repr__()
+        return "ArrayPIV containing {} fields:\n".format(
+            len(self)
+        ) + self._list.__repr__()
 
     def __len__(self):
         return self._list.__len__()
@@ -470,8 +501,11 @@ class ArrayPIV(object):
     def gaussian_filter(self, sigma, niter=1, truncate=3, valid=True):
         result = type(self)()
         for v in self:
-            result.append(v.gaussian_filter(
-                sigma, niter=niter, truncate=truncate, valid=valid))
+            result.append(
+                v.gaussian_filter(
+                    sigma, niter=niter, truncate=truncate, valid=valid
+                )
+            )
         return result
 
     def extract(self, start0, stop0, start1, stop1, phys=False):
