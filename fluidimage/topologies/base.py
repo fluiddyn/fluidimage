@@ -47,8 +47,10 @@ dt_update = 0.1
 if "OMP_NUM_THREADS" not in os.environ:
     warn(
         "The environment variable OMP_NUM_THREADS "
-        "should be defined to 1 to run fluidimage topologies."
+        'was not set so we fix it to "1", '
+        "which is needed for fluidimage topologies."
     )
+    os.environ["OMP_NUM_THREADS"] = "1"
 
 OMP_NUM_THREADS = int(os.environ.get("OMP_NUM_THREADS", 1))
 

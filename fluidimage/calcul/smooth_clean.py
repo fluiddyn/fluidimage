@@ -1,4 +1,8 @@
+"""Smooth 2d fields (:mod:`fluidimage.calcul.smooth_clean`)
+===========================================================
 
+
+"""
 import numpy as np
 
 from scipy.ndimage import convolve

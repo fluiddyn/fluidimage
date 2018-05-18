@@ -1,3 +1,9 @@
+"""Errors (:mod:`fluidimage.calcul.errors`)
+===========================================
+
+
+"""
+
 class PIVError(Exception):
     """No peak"""
 
