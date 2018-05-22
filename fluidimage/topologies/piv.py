@@ -167,7 +167,7 @@ postfix : str
         return params
 
     def __init__(self, params=None, logging_level="info", nb_max_workers=None):
-
+        
         if params is None:
             params = self.__class__.create_default_params()
 

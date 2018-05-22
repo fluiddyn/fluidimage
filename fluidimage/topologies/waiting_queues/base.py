@@ -212,7 +212,6 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
 
         elif self.enough_workers():
             logger.debug("stop launching because the workers are saturated.")
-
         return workers
 
     def _launch_worker(self):
@@ -240,7 +239,6 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
         # to handle a bug py3 multiprocessing
         p.comm_started = comm_started
         p.really_started = False
-
         p.start()
 
         # we do this after p.start() because an error can be raised here
@@ -334,7 +332,10 @@ class ThreadWork(threading.Thread):
 
     # self.daemon = True
 
+
+        
     def run(self):
+        print("### pid thread "+str(self.getName()))
         try:
             super(ThreadWork, self).run()
         except Exception as e:

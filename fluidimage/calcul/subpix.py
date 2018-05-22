@@ -146,7 +146,6 @@ class SubPix(object):
             ny, nx = correl_crop.shape
 
             sum_correl = np.sum(correl_crop)
-
             deplx = np.sum(self.X_centroid * correl_crop) / sum_correl
             deply = np.sum(self.Y_centroid * correl_crop) / sum_correl
 
@@ -154,16 +153,16 @@ class SubPix(object):
             deplx = deply = 0.
 
         if deplx ** 2 + deply ** 2 > 2 * (0.5 + nsubpix) ** 2:
-            print(
-                (
-                    "Wrong subpix for one vector:"
-                    " deplx**2 + deply**2 > (0.5+nsubpix)**2\n"
-                    "method: " + method + "\ndeplx, deply = ({}, {})\n"
-                    "correl_subpix =\n{}"
-                ).format(
-                    deplx, deply, correl_crop
-                )
-            )
+#            print(
+#                (
+#                    "Wrong subpix for one vector:"
+#                    " deplx**2 + deply**2 > (0.5+nsubpix)**2\n"
+#                    "method: " + method + "\ndeplx, deply = ({}, {})\n"
+#                    "correl_subpix =\n{}"
+#                ).format(
+#                    deplx, deply, correl_crop
+#                )
+#            )
             raise PIVError(
                 explanation="wrong subpix", result_compute_subpix=(iy, ix)
             )

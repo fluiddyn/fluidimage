@@ -1,4 +1,5 @@
 from fluidimage.topologies.piv import TopologyPIV
+import os
 
 params = TopologyPIV.create_default_params()
 
@@ -15,5 +16,6 @@ params.saving.how = 'complete'
 params.saving.postfix = 'piv_complete'
 
 topology = TopologyPIV(params, logging_level='info')
+#topology.make_code_graphviz('topo.dot')
 
 topology.compute()

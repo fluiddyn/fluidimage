@@ -132,6 +132,7 @@ class TopologyBase(object):
         self, queues, path_output=None, logging_level="info", nb_max_workers=None
     ):
 
+
         if path_output is not None:
             if not os.path.exists(path_output):
                 os.makedirs(path_output)
@@ -182,6 +183,7 @@ class TopologyBase(object):
         if sys.platform != "win32":
 
             def handler_signals(signal_number, stack):
+                
                 print(
                     "signal {} received: set _has_to_stop to True".format(
                         signal_number
@@ -232,11 +234,12 @@ class TopologyBase(object):
         self.nb_workers_cpu = 0
         self.nb_workers_io = 0
         workers = []
+        print("###compute")
 
         class CheckWorksThread(threading.Thread):
             cls_to_be_updated = threading.Thread
-
             def __init__(self):
+                print("### nom thread: "+str(os.getpid()))
                 self.has_to_stop = False
                 super(CheckWorksThread, self).__init__()
                 self.exitcode = None
@@ -268,14 +271,14 @@ class TopologyBase(object):
                     self.exception = e
 
         class CheckWorksProcess(CheckWorksThread):
-            cls_to_be_updated = Process
 
+            cls_to_be_updated = Process
+            print("### pid process : "+str(os.getpid()))
             def in_time_loop(self):
                 # weird bug subprocessing py3
                 for worker in workers:
                     if not worker.really_started:
-                        # print('check if worker has really started.' +
-                        #       worker.key)
+                        print('check if worker has really started.' + worker.key)
                         try:
                             worker.really_started = worker.comm_started.get_nowait()
                         except queue.Empty:
@@ -301,17 +304,19 @@ class TopologyBase(object):
 
                 super(CheckWorksProcess, self).in_time_loop()
 
+
         self.thread_check_works_t = CheckWorksThread()
         self.thread_check_works_t.start()
 
         self.thread_check_works_p = CheckWorksProcess()
         self.thread_check_works_p.start()
 
+        
+
         while (
             not self._has_to_stop
             and (any([not q.is_empty() for q in self.queues]) or len(workers) > 0)
         ):
-
             # debug
             # if logger.level == 10 and \
             #    all([q.is_empty() for q in self.queues]) and len(workers) == 1:
@@ -328,6 +333,7 @@ class TopologyBase(object):
             #             from fluiddyn import ipydebug
             #             ipydebug()
 
+
             self.nb_workers = len(workers)
 
             # slow down this loop...
@@ -342,10 +348,11 @@ class TopologyBase(object):
                     )
                 )
                 sleep(dt)
-
+            print("####"+self.queues.__str__())
             for q in self.queues:
                 if not q.is_empty():
                     logger.debug(q)
+
                     logger.debug("check_and_act for work: " + repr(q.work))
                     try:
                         new_workers = q.check_and_act(sequential=sequential)
@@ -406,6 +413,8 @@ class TopologyBase(object):
             exit(99)
 
         self._reset_std_as_default()
+        
+        print("###end")
 
     def _reset_std_as_default(self):
         sys.stdout = _stdout_at_import
