@@ -21,7 +21,7 @@
     ###############################################################################
 
 
-   import datetime
+import datetime
 import math
 
 import matplotlib.pyplot as plt
@@ -33,20 +33,10 @@ import scipy.io
 
 from .. import BaseWork
 from ...data_objects.surfaceTracking import SurfaceTrackingObject
-   import datetime
-   import math
-
-   import matplotlib.pyplot as plt
-   import numpy as np
-   import pylab
-   import scipy.interpolate
-   import scipy.io
-
-   from .. import BaseWork
-   from ...data_objects.surfaceTracking import SurfaceTrackingObject
 
 
-   class WorkSurfaceTracking(BaseWork):
+
+class WorkSurfaceTracking(BaseWork):
     """Base class for SurfaceTracking
 
     ? This class is meant to be subclassed, not instantiated directly.
