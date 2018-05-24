@@ -20,11 +20,8 @@
     #            oscillating profile experiment at LEGI 2017                      #
     ###############################################################################
 
-import scipy.io
-import scipy.interpolate
-import scipy.interpolate
-import scipy.io
-import datetime
+
+   import datetime
 import math
 
 import matplotlib.pyplot as plt
@@ -32,6 +29,7 @@ import numpy as np
 import pylab
 import scipy.interpolate
 import scipy.io
+
 
 from .. import BaseWork
 from ...data_objects.surfaceTracking import SurfaceTrackingObject
@@ -42,10 +40,6 @@ from ...data_objects.surfaceTracking import SurfaceTrackingObject
    import numpy as np
    import pylab
    import scipy.interpolate
-   import scipy.interpolate
-   import scipy.interpolate
-   import scipy.io
-   import scipy.io
    import scipy.io
 
    from .. import BaseWork
