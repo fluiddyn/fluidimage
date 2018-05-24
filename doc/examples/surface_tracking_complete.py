@@ -2,6 +2,7 @@ from fluidimage.topologies.surface_tracking import TopologySurfaceTracking
 
 params = TopologySurfaceTracking.create_default_params()
 
+params.film.fileName = 'film.cine'
 params.film.path = '../../../surfacetracking/111713'
 params.film.pathRef = '../../../surfacetracking/reference_water'
 

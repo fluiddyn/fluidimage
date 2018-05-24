@@ -20,24 +20,39 @@
     #            oscillating profile experiment at LEGI 2017                      #
     ###############################################################################
 
-   import scipy.io
+import scipy.io
 import scipy.interpolate
+import scipy.interpolate
+import scipy.io
+import datetime
+import math
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pylab
+import scipy.interpolate
+import scipy.io
+
+from .. import BaseWork
+from ...data_objects.surfaceTracking import SurfaceTrackingObject
+   import datetime
+   import math
+
+   import matplotlib.pyplot as plt
+   import numpy as np
+   import pylab
+   import scipy.interpolate
+   import scipy.interpolate
    import scipy.interpolate
    import scipy.io
-   import datetime
-    import math
+   import scipy.io
+   import scipy.io
 
-    import matplotlib.pyplot as plt
-    import numpy as np
-    import pylab
-    import scipy.interpolate
-    import scipy.io
-
-    from .. import BaseWork
-    from ...data_objects.surfaceTracking import SurfaceTrackingObject
+   from .. import BaseWork
+   from ...data_objects.surfaceTracking import SurfaceTrackingObject
 
 
-    class WorkSurfaceTracking(BaseWork):
+   class WorkSurfaceTracking(BaseWork):
     """Base class for SurfaceTracking
 
     ? This class is meant to be subclassed, not instantiated directly.
@@ -74,9 +89,9 @@ import scipy.interpolate
     def __init__(self,params):
         
         self.params = params
-        print(params)
 
         self.works_surface_tracking= []
+        self.nameFrame = None
 
         self.path = params.film.path
         self.pathRef = params.film.pathRef
@@ -132,10 +147,11 @@ import scipy.interpolate
                                 self.ymax, self.gain, self.filt, self.bo,self.red_factor,
                                 self.pix_size, self.distance_object, self.distance_lens,
                                 self.wave_proj, self.n_frames_stock, self.plot_reduction_factor, self.kx,
-                                self.ky,frame, verify_process=False, offset=2.5)
+                                self.ky,frame[0], verify_process=False, offset=2.5)
         
         surfaceTracking.H_sav = H_sav
         surfaceTracking.H_filt = H_filt
+        surfaceTracking.nameFrame = frame[1].split('/')[-1]
         return surfaceTracking
         #offset = thickness/2 #of the reference plate (in order to find the origin)
     def rgb2gray(rgb):
@@ -320,11 +336,10 @@ import scipy.interpolate
         return H_sav,H_filt, status, ttlast
 
 
-    def _prepare_with_image(self, im=None, imshape=None):
+    def _prepare_with_image(self, im=None, nameFrame = None,imshape=None):
         """Prepare the works surface_tracking with an image."""
         if imshape is None:
             imshape = im.shape
-
         for work_surface_tracking in self.works_surface_tracking:
             work_surface_tracking._prepare_with_image(imshape=imshape)
         

@@ -15,15 +15,13 @@ Created on Fri May 18 09:57:58 2018
 
 """
 import json
-import os
 
 from . import prepare_path_dir_result
 from .base import TopologyBase
 from .waiting_queues.base import (
     WaitingQueueMultiprocessing,
     WaitingQueueThreading,
-    WaitingQueueLoadImage
-)
+    WaitingQueueLoadImagePath)
 from .. import ParamContainer
 from .. import SeriesOfArrays
 from ..data_objects.surfaceTracking import *
@@ -65,6 +63,7 @@ class TopologySurfaceTracking(TopologyBase):
         params._set_child(
             "film",
             attribs={
+                "fileName": "",
                 "path": "",
                 "pathRef": "",
                 "ind_start": 0,
@@ -121,8 +120,8 @@ postfix : str
         self.surface_tracking_work = WorkSurfaceTracking(params)
 
 
-        serie_arrays = SerieOfArraysFromFiles(params.film.path)
-
+        serie_arrays = SerieOfArraysFromFiles(params.film.path + "/" + params.film.fileName)
+        print(params.film.path + "/"+params.film.fileName)
         self.series = SeriesOfArrays(
             serie_arrays,
             None,
@@ -130,6 +129,7 @@ postfix : str
             ind_stop=params.film.ind_stop,
             ind_step=params.film.ind_step,
         )
+
 
         path_dir = self.path
         path_dir_result, self.how_saving = prepare_path_dir_result(
@@ -140,19 +140,19 @@ postfix : str
         self.results = {}
 
         def save_surface_tracking_object(o):
-            ret = o.save(path_dir_result)
+            ret = o.save(path_dir_result+"/results/"+o.nameFrame)
             return ret
         
 
         self.wq_sf_out = WaitingQueueThreading(
-            "delta", save_surface_tracking_object, self.results, topology=self
+            "save_surface_tracking_object", save_surface_tracking_object, self.results, topology=self
         )
         
         self.wq_sf_in = WaitingQueueMultiprocessing(
-            "surface_tracking", self.surface_tracking_work.compute, self.wq_sf_out, topology=self
+            "surface_tracking_work", self.surface_tracking_work.compute, self.wq_sf_out, topology=self
         )
         
-        self.wq0 = WaitingQueueLoadImage(
+        self.wq0 = WaitingQueueLoadImagePath(
             destination=self.wq_sf_in, path_dir=path_dir, topology=self
         )
         
@@ -167,64 +167,44 @@ postfix : str
             nb_max_workers=nb_max_workers,
         )
 
-        self.add_frames(self.get_file()) # similar to add
+        self.add_frames(self.series) # similar to add
 
 
 
-    def add_frames(self,frames):
+    def add_frames(self,series):
         """
         Inspired by Topologies/piv add_Series
         :param frames:
         :return:
         """
-        if frames.__sizeof__() == 0:
-            logger.warning("add 0 frame, no frame to compute.")
+
+        if len(series) == 0:
+            logger.warning("add 0 image. No image to process.")
             return
 
-        if self.how_saving == "complete":
-            names = []
-            index_frames = []
-            for i,frame in enumerate(frames):
-                if os.path.exists(os.path.join(self.path_dir_result, frame)):
-                    continue
-                names.append(frame)
-                index_frames.append(i * params.film.ind_step + params.film.ind_start)
+        names = series.get_name_all_arrays()
 
-            if len(index_frames) == 0:
+        if self.how_saving == "complete":
+            names_to_compute = []
+            for name in names:
+                if not os.path.exists(os.path.join(self.path_dir_result, name)):
+                    names_to_compute.append(name)
+
+            names = names_to_compute
+            if len(names) == 0:
                 logger.warning(
                     'topology in mode "complete" and work already done.'
                 )
                 return
 
-                frames.set_index_frames(index_frames)
+        nb_names = len(names)
+        print("Add {} images to compute.".format(nb_names))
 
-            logger.debug(repr(names))
-            # logger.debug(repr([frame.get_name_arrays() for frame in frames]))
+        logger.debug(repr(names))
 
-        else:
-            names = frames.get_name_all_arrays()
-
-        nb_frames = frames.__sizeof__()
-        print("Add {} surface tracking to compute.".format(nb_frames))
-
-        for i, frame in enumerate(frames):
-            if i > 1:
-                break
-
-            print("Files of serie {}: {}".format(i, frame))
+        print("First files to process:", names[:4])
 
         self.wq0.add_name_files(names)
-        k, o = self.wq0.popitem()
-        im = self.wq0.work(o)
-        self.wq0.fill_destination(k, im)
-
-        # a little bit strange, to apply mask...
-        # try:
-        #     params_mask = self.params.mask
-        # except AttributeError:
-        #     params_mask = None
-
-        self.surface_tracking_work._prepare_with_image(im)
 
     def _print_at_exit(self, time_since_start):
        pass
@@ -234,8 +214,24 @@ postfix : str
         path = self.path
         if fn is None:
             # print(path + '/*')
-            film = SerieOfArraysFromFiles(path+'/'+'film.cine')
+            film = SerieOfArraysFromFiles(path+'/'+params.film.fileName)
         return film
+
+    def get_name_surface_tracking(serie, prefix="piv"):
+        index_slices = serie._index_slices
+        str_indices = ""
+        for i, inds in enumerate(index_slices):
+            index = inds[0]
+            str_index = get_str_index(serie, i, index)
+            if len(inds) > 1:
+                str_index += "-" + get_str_index(serie, i, inds[1] - 1)
+
+            if i > 1:
+                str_indices += serie._index_separators[i - 1]
+            str_indices += str_index
+
+        name = prefix + "_" + str_indices + ".h5"
+        return name
         
 class WaitingQueueLoadFrame(WaitingQueueThreading):
     nb_max_workers = 8

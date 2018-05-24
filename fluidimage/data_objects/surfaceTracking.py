@@ -6,11 +6,18 @@ Created on Tue May 22 09:04:32 2018
 @author: blancfat8p
 """
 
+import os
+
+import h5netcdf
+import h5py
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
 from matplotlib import cm
+
+from .. import __version__ as fluidimage_version
+from .._hg_rev import hg_rev
 
 
 def get_str_index(serie, i, index):
@@ -62,6 +69,9 @@ class SurfaceTrackingObject(SerieOfArraysFromFiles):
 
 
     def __init__(self,params,file_name=None, str_path=None):
+
+        self.passes = []
+
         SurfaceTrackingObject.i += 1
         self.params = params
         if file_name is not None:
@@ -70,13 +80,12 @@ class SurfaceTrackingObject(SerieOfArraysFromFiles):
             self._load(str_path)
             return
 
+        self.file_name = None
         self.H_sav = None
         self.H_filt = None
-        self.path_save = ""
+        self.path_save = None
 
     def generate_plot(self,h , name, scale_h=1, scale_x=1, scale_y=1):
-        print("save")
-        print(h)
         plt.ioff()
         y, x = np.meshgrid(np.arange(0, h.shape[1]), np.arange(0, h.shape[0]))
     
@@ -159,64 +168,86 @@ class SurfaceTrackingObject(SerieOfArraysFromFiles):
         plt.savefig(png_file)
         plt.close()
 
-    def _get_name(self, kind):
-        if hasattr(self, "file_name"):
-            return self.file_name[:-3] + "_light.h5"
 
-        serie = self.file_name
 
-        str_ind0 = serie._compute_strindices_from_indices(
-            *[inds[0] for inds in serie.get_index_slices()]
-        )
+    def save_hdf5(self, path=None, out_format=None, kind=None):
+        name = self.file_name
+        if path is not None:
+            root, ext = os.path.splitext(path)
+            if ext in [".h5", ".nc"]:
+                path_file = path
+            else:
+                path_file = os.path.join(path, name)
+        else:
+            path_file = name
 
-        str_ind1 = serie._compute_strindices_from_indices(
-            *[inds[1] - 1 for inds in serie.get_index_slices()]
-        )
+        if out_format == "uvmat":
+            with h5netcdf.File(path_file, "w") as f:
+                self._save_as_uvmat(f)
+        else:
+            with h5py.File(path_file, "w") as f:
+                f.attrs["class_name"] = "SurfaceTrackingObject"
+                f.attrs["module_name"] = "fluidimage.data_objects.surface_tracking"
+                f.attrs["nb_passes"] = len(self.passes)
+                f.attrs["fluidimage_version"] = fluidimage_version
+                f.attrs["fluidimage_hg_rev"] = hg_rev
 
-        name = (
-            "surface_tracking" + serie.base_name + str_ind0 + "-" + str_ind1 + "_light.h5"
-        )
-        return name
+                for i, r in enumerate(self.passes):
+                    r._save_in_hdf5_object(f, tag="surface_tracking{}".format(i))
 
-    def save(self,name):
-        pathsav = "../../../surfacetracking/111713/results/"
-        name = "aName"+str(SurfaceTrackingObject.i)
-        SurfaceTrackingObject.i += 1
-        scipy.io.savemat(pathsav + name,
-                         mdict={'H_sav': self.H_sav, 'H_filt': self.H_filt})
+        return path_file
 
-    #
-    # def save(self, path=None, out_format="uvmat", kind=None):
-    #     path = '../../../surfacetracking/111713/results/'
-    #     # name = self._get_name(kind)
-    #     name = "name"
-    #
-    #     if path is not None:
-    #         path_file = os.path.join(path, name)
-    #     else:
-    #         path_file = name
-    #
-    #     with h5py.File(path_file, "w") as f:
-    #         f.attrs["class_name"] = "Surface_tracking"
-    #         f.attrs["module_name"] = "fluidimage.data_objects.surface_tracking"
-    #
-    #         self._save_in_hdf5_object(f, tag="sf")
-    #
-    #     return self
-    #
-    # def _save_in_hdf5_object(self, f, tag="sf"):
-    #
-    #     if "class_name" not in f.attrs.keys():
-    #         f.attrs["class_name"] = "Surface_tracking"
-    #         f.attrs["module_name"] = "fluidimage.data_objects.surface_tracking"
-    #     if "params" not in f.keys():
-    #         self.params._save_as_hdf5(hdf5_parent=f)
-    #     # if "couple" not in f.keys():
-    #     #     self.couple.save(hdf5_parent=f)
-    #
-    #     g_piv = f.create_group(tag)
-    #     g_piv.attrs["class_name"] = "Surface_tracking"
-    #     g_piv.attrs["module_name"] = "fluidimage.data_objects.surface_tracking"
-    #
-    #     for k in self._keys_to_be_saved:
-    #         g_piv.create_dataset(k, data=self.__dict__[k])
+    def _save_in_hdf5_object(self, f, tag="piv0"):
+
+        if "class_name" not in f.attrs.keys():
+            f.attrs["class_name"] = "SurfaceTrackingObject"
+            f.attrs["module_name"] = "fluidimage.data_objects.surface_tracking"
+
+        if "params" not in f.keys():
+            self.params._save_as_hdf5(hdf5_parent=f)
+
+        if "couple" not in f.keys():
+            self.couple.save(hdf5_parent=f)
+
+        g_piv = f.create_group(tag)
+        f.attrs["class_name"] = "SurfaceTrackingObject"
+        f.attrs["module_name"] = "fluidimage.data_objects.surface_tracking"
+
+        for k in self._keys_to_be_saved:
+            if k in self.__dict__:
+                g_piv.create_dataset(k, data=self.__dict__[k])
+
+        for name_dict in self._dict_to_be_saved:
+            try:
+                d = self.__dict__[name_dict]
+            except KeyError:
+                pass
+            else:
+                g = g_piv.create_group(name_dict)
+                keys = list(d.keys())
+                values = list(d.values())
+                try:
+                    for i, k in enumerate(keys):
+                        keys[i] = k.encode()
+                except AttributeError:
+                    pass
+                try:
+                    for i, k in enumerate(values):
+                        values[i] = k.encode()
+                except AttributeError:
+                    pass
+
+                g.create_dataset("keys", data=keys)
+                g.create_dataset("values", data=values)
+
+        if "deltaxs_tps" in self.__dict__:
+            g = g_piv.create_group("deltaxs_tps")
+            for i, arr in enumerate(self.deltaxs_tps):
+                g.create_dataset("subdom{}".format(i), data=arr)
+
+            g = g_piv.create_group("deltays_tps")
+            for i, arr in enumerate(self.deltays_tps):
+                g.create_dataset("subdom{}".format(i), data=arr)
+
+    def save(self, path=None, name = None, kind=None):
+        scipy.io.savemat(path,mdict={'H_sav': self.H_sav, 'H_filt': self.H_filt})
