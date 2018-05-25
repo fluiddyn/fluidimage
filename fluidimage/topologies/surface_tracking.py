@@ -21,7 +21,8 @@ from .base import TopologyBase
 from .waiting_queues.base import (
     WaitingQueueMultiprocessing,
     WaitingQueueThreading,
-    WaitingQueueLoadImagePath)
+    WaitingQueueLoadImagePath,
+)
 from .. import ParamContainer
 from .. import SeriesOfArrays
 from ..data_objects.surfaceTracking import *
@@ -107,11 +108,10 @@ postfix : str
             ),
         )
 
-
         return params
 
     def __init__(self, params=None, logging_level="info", nb_max_workers=None):
-        
+
         if params is None:
             params = self.__class__.create_default_params()
 
@@ -119,9 +119,10 @@ postfix : str
         self.path = params.film.path
         self.surface_tracking_work = WorkSurfaceTracking(params)
 
-
-        serie_arrays = SerieOfArraysFromFiles(params.film.path + "/" + params.film.fileName)
-        print(params.film.path + "/"+params.film.fileName)
+        serie_arrays = SerieOfArraysFromFiles(
+            params.film.path + "/" + params.film.fileName
+        )
+        print(params.film.path + "/" + params.film.fileName)
         self.series = SeriesOfArrays(
             serie_arrays,
             None,
@@ -129,7 +130,6 @@ postfix : str
             ind_stop=params.film.ind_stop,
             ind_step=params.film.ind_step,
         )
-
 
         path_dir = self.path
         path_dir_result, self.how_saving = prepare_path_dir_result(
@@ -140,25 +140,28 @@ postfix : str
         self.results = {}
 
         def save_surface_tracking_object(o):
-            ret = o.save(path_dir_result+"/results/"+o.nameFrame)
+            ret = o.save(path_dir_result + "/results/" + o.nameFrame)
             return ret
-        
 
         self.wq_sf_out = WaitingQueueThreading(
-            "save_surface_tracking_object", save_surface_tracking_object, self.results, topology=self
+            "save_surface_tracking_object",
+            save_surface_tracking_object,
+            self.results,
+            topology=self,
         )
-        
+
         self.wq_sf_in = WaitingQueueMultiprocessing(
-            "surface_tracking_work", self.surface_tracking_work.compute, self.wq_sf_out, topology=self
+            "surface_tracking_work",
+            self.surface_tracking_work.compute,
+            self.wq_sf_out,
+            topology=self,
         )
-        
+
         self.wq0 = WaitingQueueLoadImagePath(
             destination=self.wq_sf_in, path_dir=path_dir, topology=self
         )
-        
-        waiting_queues = [
-            self.wq0,self.wq_sf_in, self.wq_sf_out
-            ]
+
+        waiting_queues = [self.wq0, self.wq_sf_in, self.wq_sf_out]
 
         super(TopologySurfaceTracking, self).__init__(
             waiting_queues,
@@ -167,11 +170,9 @@ postfix : str
             nb_max_workers=nb_max_workers,
         )
 
-        self.add_frames(self.series) # similar to add
+        self.add_frames(self.series)  # similar to add
 
-
-
-    def add_frames(self,series):
+    def add_frames(self, series):
         """
         Inspired by Topologies/piv add_Series
         :param frames:
@@ -207,14 +208,14 @@ postfix : str
         self.wq0.add_name_files(names)
 
     def _print_at_exit(self, time_since_start):
-       pass
+        pass
 
-    def get_file(self, path='./', fn=None):
-        '''read the files with SeriesOfArraysFromFile in path or a specified file if fn-arg is given'''
+    def get_file(self, path="./", fn=None):
+        """read the files with SeriesOfArraysFromFile in path or a specified file if fn-arg is given"""
         path = self.path
         if fn is None:
             # print(path + '/*')
-            film = SerieOfArraysFromFiles(path+'/'+params.film.fileName)
+            film = SerieOfArraysFromFiles(path + "/" + params.film.fileName)
         return film
 
     def get_name_surface_tracking(serie, prefix="piv"):
@@ -232,13 +233,16 @@ postfix : str
 
         name = prefix + "_" + str_indices + ".h5"
         return name
-        
+
+
 class WaitingQueueLoadFrame(WaitingQueueThreading):
     nb_max_workers = 8
 
     def __init__(self, *args, **kwargs):
         self.path_dir = kwargs.pop("path_dir")
-        super().__init__(name = "SurfaceTracking", work=WorkSurfaceTracking, *args, **kwargs)
+        super().__init__(
+            name="SurfaceTracking", work=WorkSurfaceTracking, *args, **kwargs
+        )
         self.num_frame_to_compute = []
         self.work_name = __name__ + ".load"
 

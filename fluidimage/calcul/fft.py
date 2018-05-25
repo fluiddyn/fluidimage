@@ -151,8 +151,7 @@ class SKCUFFT2DReal2Complex(object):
     def compute_energy_from_Fourier(self, ff_fft):
         return (
             np.sum(abs(ff_fft[:, 0]) ** 2 + abs(ff_fft[:, -1]) ** 2)
-            + 2
-            * np.sum(abs(ff_fft[:, 1:-1]) ** 2)
+            + 2 * np.sum(abs(ff_fft[:, 1:-1]) ** 2)
         ) / 2
 
     def compute_energy_from_spatial(self, ff):
@@ -212,8 +211,7 @@ class FFTW2DReal2Complex(object):
     def compute_energy_from_Fourier(self, ff_fft):
         return (
             np.sum(abs(ff_fft[:, 0]) ** 2 + abs(ff_fft[:, -1]) ** 2)
-            + 2
-            * np.sum(abs(ff_fft[:, 1:-1]) ** 2)
+            + 2 * np.sum(abs(ff_fft[:, 1:-1]) ** 2)
         ) / 2
 
     def compute_energy_from_spatial(self, ff):

@@ -332,10 +332,8 @@ class ThreadWork(threading.Thread):
 
     # self.daemon = True
 
-
-        
     def run(self):
-        print("### pid thread "+str(self.getName()))
+        print("### pid thread " + str(self.getName()))
         try:
             super(ThreadWork, self).run()
         except Exception as e:
@@ -356,7 +354,10 @@ class WaitingQueueThreading(WaitingQueueMultiprocessing):
         return ThreadWork(*args, **kwargs)
 
     def enough_workers(self):
-        return self._nb_workers >= self.nb_max_workers or self.topology.nb_workers_io >= self.topology.nb_max_workers_io
+        return (
+            self._nb_workers >= self.nb_max_workers
+            or self.topology.nb_workers_io >= self.topology.nb_max_workers_io
+        )
 
 
 class WaitingQueueLoadFile(WaitingQueueThreading):
@@ -456,9 +457,9 @@ class WaitingQueueMakeCouple(WaitingQueueBase):
                         self._keys.remove(k0)
                     else:
                         v0 = self[k0]
-                        self.nb_couples_to_create[k0] = self.nb_couples_to_create[
-                            k0
-                        ] - 1
+                        self.nb_couples_to_create[k0] = (
+                            self.nb_couples_to_create[k0] - 1
+                        )
 
                     if self.nb_couples_to_create[k1] == 1:
                         v1 = self.pop(k1)
@@ -466,9 +467,9 @@ class WaitingQueueMakeCouple(WaitingQueueBase):
                         self._keys.remove(k1)
                     else:
                         v1 = self[k1]
-                        self.nb_couples_to_create[k1] = self.nb_couples_to_create[
-                            k1
-                        ] - 1
+                        self.nb_couples_to_create[k1] = (
+                            self.nb_couples_to_create[k1] - 1
+                        )
 
                     self.destination[newk] = ArrayCouple(
                         (k0, k1),

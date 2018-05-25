@@ -28,10 +28,12 @@ from ..util.util import logger
 from .base import TopologyBase
 
 from .waiting_queues.base import (
-    WaitingQueueMultiprocessing, WaitingQueueThreading
+    WaitingQueueMultiprocessing,
+    WaitingQueueThreading,
 )
 from .waiting_queues.series import (
-    WaitingQueueMakeSerie, WaitingQueueLoadImageSeries
+    WaitingQueueMakeSerie,
+    WaitingQueueLoadImageSeries,
 )
 
 
@@ -368,10 +370,8 @@ postfix : str
         except AttributeError:
             nb_results = None
         if nb_results is not None and nb_results > 0:
-            txt += (
-                " ({} results, {:.2f} s/result).".format(
-                    nb_results, time_since_start / nb_results
-                )
+            txt += " ({} results, {:.2f} s/result).".format(
+                nb_results, time_since_start / nb_results
             )
         else:
             txt += "."

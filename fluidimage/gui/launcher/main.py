@@ -18,7 +18,8 @@ from fluiddyn.util.paramcontainer_gui import QtParamContainer
 from fluiddyn.util.paramcontainer import ParamContainer
 
 from fluidimage.topologies.launcher import (
-    TopologyPreprocLauncher, TopologyPIVLauncher
+    TopologyPreprocLauncher,
+    TopologyPIVLauncher,
 )
 
 

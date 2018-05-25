@@ -47,8 +47,10 @@ dt_update = 0.1
 if "OMP_NUM_THREADS" not in os.environ:
     warn(
         "The environment variable OMP_NUM_THREADS "
-        "should be defined to 1 to run fluidimage topologies."
+        'was not set so we fix it to "1", '
+        "which is needed for fluidimage topologies."
     )
+    os.environ["OMP_NUM_THREADS"] = "1"
 
 OMP_NUM_THREADS = int(os.environ.get("OMP_NUM_THREADS", 1))
 
@@ -132,7 +134,6 @@ class TopologyBase(object):
         self, queues, path_output=None, logging_level="info", nb_max_workers=None
     ):
 
-
         if path_output is not None:
             if not os.path.exists(path_output):
                 os.makedirs(path_output)
@@ -183,7 +184,7 @@ class TopologyBase(object):
         if sys.platform != "win32":
 
             def handler_signals(signal_number, stack):
-                
+
                 print(
                     "signal {} received: set _has_to_stop to True".format(
                         signal_number
@@ -238,8 +239,9 @@ class TopologyBase(object):
 
         class CheckWorksThread(threading.Thread):
             cls_to_be_updated = threading.Thread
+
             def __init__(self):
-                print("### nom thread: "+str(os.getpid()))
+                print("### nom thread: " + str(os.getpid()))
                 self.has_to_stop = False
                 super(CheckWorksThread, self).__init__()
                 self.exitcode = None
@@ -273,14 +275,17 @@ class TopologyBase(object):
         class CheckWorksProcess(CheckWorksThread):
 
             cls_to_be_updated = Process
-            print("### pid process : "+str(os.getpid()))
+            print("### pid process : " + str(os.getpid()))
+
             def in_time_loop(self):
                 # weird bug subprocessing py3
                 for worker in workers:
                     if not worker.really_started:
-                        print('check if worker has really started.' + worker.key)
+                        print("check if worker has really started." + worker.key)
                         try:
-                            worker.really_started = worker.comm_started.get_nowait()
+                            worker.really_started = (
+                                worker.comm_started.get_nowait()
+                            )
                         except queue.Empty:
                             pass
                         if (
@@ -304,18 +309,14 @@ class TopologyBase(object):
 
                 super(CheckWorksProcess, self).in_time_loop()
 
-
         self.thread_check_works_t = CheckWorksThread()
         self.thread_check_works_t.start()
 
         self.thread_check_works_p = CheckWorksProcess()
         self.thread_check_works_p.start()
 
-        
-
-        while (
-            not self._has_to_stop
-            and (any([not q.is_empty() for q in self.queues]) or len(workers) > 0)
+        while not self._has_to_stop and (
+            any([not q.is_empty() for q in self.queues]) or len(workers) > 0
         ):
             # debug
             # if logger.level == 10 and \
@@ -333,7 +334,6 @@ class TopologyBase(object):
             #             from fluiddyn import ipydebug
             #             ipydebug()
 
-
             self.nb_workers = len(workers)
 
             # slow down this loop...
@@ -348,7 +348,7 @@ class TopologyBase(object):
                     )
                 )
                 sleep(dt)
-            print("####"+self.queues.__str__())
+            print("####" + self.queues.__str__())
             for q in self.queues:
                 if not q.is_empty():
                     logger.debug(q)
@@ -413,7 +413,7 @@ class TopologyBase(object):
             exit(99)
 
         self._reset_std_as_default()
-        
+
         print("###end")
 
     def _reset_std_as_default(self):
@@ -428,9 +428,8 @@ class TopologyBase(object):
         idebug = 0
         # if the last queue is a WaitingQueueThreading (saving),
         # it is also emptied.
-        while (
-            len(workers) > 0
-            or (not q.is_empty() and isinstance(q, WaitingQueueThreading))
+        while len(workers) > 0 or (
+            not q.is_empty() and isinstance(q, WaitingQueueThreading)
         ):
 
             sleep(0.5)
@@ -460,10 +459,8 @@ class TopologyBase(object):
         except AttributeError:
             nb_results = None
         if nb_results is not None and nb_results > 0:
-            txt += (
-                " ({} results, {:.2f} s/result).".format(
-                    nb_results, time_since_start / nb_results
-                )
+            txt += " ({} results, {:.2f} s/result).".format(
+                nb_results, time_since_start / nb_results
             )
         else:
             txt += "."
@@ -480,9 +477,11 @@ class TopologyBase(object):
         # waiting queues
         code += '\nnode [shape="record"]\n'
 
-        txt_queue = '"{name}"\t[label="<f0> {name}|' + "|".join(
-            ["<f{}>".format(i) for i in range(1, 5)]
-        ) + '"]\n'
+        txt_queue = (
+            '"{name}"\t[label="<f0> {name}|'
+            + "|".join(["<f{}>".format(i) for i in range(1, 5)])
+            + '"]\n'
+        )
 
         for q in self.queues:
             code += txt_queue.format(name=q.name)

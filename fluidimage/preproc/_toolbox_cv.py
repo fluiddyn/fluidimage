@@ -35,7 +35,10 @@ from .io import iterate_multiple_imgs
 
 
 __all__ = [
-    "sliding_median", "sliding_minima", "global_threshold", "adaptive_threshold"
+    "sliding_median",
+    "sliding_minima",
+    "global_threshold",
+    "adaptive_threshold",
 ]
 
 

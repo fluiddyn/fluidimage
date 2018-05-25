@@ -1,10 +1,9 @@
 
 import unittest
+import os
 
 from fluidimage import SeriesOfArrays
 from fluidimage.works.piv import WorkPIV
-
-import os
 
 here = os.path.abspath(os.path.dirname(__file__))
 

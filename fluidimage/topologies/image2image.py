@@ -16,13 +16,16 @@ from . import prepare_path_dir_result
 from .base import TopologyBase
 
 from .waiting_queues.base import (
-    WaitingQueueMultiprocessing, WaitingQueueThreading, WaitingQueueLoadImagePath
+    WaitingQueueMultiprocessing,
+    WaitingQueueThreading,
+    WaitingQueueLoadImagePath,
 )
 
 from ..util.util import logger
 
 from ..preproc.image2image import (
-    complete_im2im_params_with_default, init_im2im_function
+    complete_im2im_params_with_default,
+    init_im2im_function,
 )
 
 
@@ -231,10 +234,8 @@ postfix : str
         except AttributeError:
             nb_results = None
         if nb_results is not None and nb_results > 0:
-            txt += (
-                " ({} images, {:.2f} s/field).".format(
-                    nb_results, time_since_start / nb_results
-                )
+            txt += " ({} images, {:.2f} s/field).".format(
+                nb_results, time_since_start / nb_results
             )
         else:
             txt += "."

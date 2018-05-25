@@ -58,13 +58,13 @@ def compute_tps_coeff_subdom(
     y_dom = np.arange(min_coord[0], max_coord[0], range_coord[0] / nb_subdomy)
     y_dom = np.unique(np.append(y_dom, max_coord[0]))
 
-    buffer_area_x = x_dom * 0 + range_coord[1] / (
-        nb_subdomx
-    ) * percent_buffer_area
+    buffer_area_x = (
+        x_dom * 0 + range_coord[1] / (nb_subdomx) * percent_buffer_area
+    )
     # buffer_area_x[0], buffer_area_x[-1] = 0, 0
-    buffer_area_y = y_dom * 0 + range_coord[0] / (
-        nb_subdomy
-    ) * percent_buffer_area
+    buffer_area_y = (
+        y_dom * 0 + range_coord[0] / (nb_subdomy) * percent_buffer_area
+    )
     # buffer_area_y[0], buffer_area_y[-1] = 0, 0
 
     ind_subdom = np.zeros([nb_subdom, 2])

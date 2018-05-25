@@ -160,7 +160,8 @@ class PreprocResults(LightPIVResults):
                 imsave(path_file, v, as_int=True)
             elif out_format == "h5":
                 attrs = {
-                    "class_name": "PreprocResults", "module_name": self.__module__
+                    "class_name": "PreprocResults",
+                    "module_name": self.__module__,
                 }
                 imsave_h5(path_file, v, self.params, attrs, as_int=True)
             else:

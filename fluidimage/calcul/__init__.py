@@ -11,5 +11,6 @@ calculations.
    correl
    subpix
    interpolate
+   smooth_clean
 
 """

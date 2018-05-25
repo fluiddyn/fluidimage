@@ -55,8 +55,6 @@ def get_name_surface_tracking(frame, prefix="sf"):
     return name
 
 
-
-
 class DataObject(object):
     pass
 
@@ -67,8 +65,7 @@ class SurfaceTrackingObject(SerieOfArraysFromFiles):
     """
     i = 0
 
-
-    def __init__(self,params,file_name=None, str_path=None):
+    def __init__(self, params, file_name=None, str_path=None):
 
         self.passes = []
 
@@ -85,90 +82,105 @@ class SurfaceTrackingObject(SerieOfArraysFromFiles):
         self.H_filt = None
         self.path_save = None
 
-    def generate_plot(self,h , name, scale_h=1, scale_x=1, scale_y=1):
+    def generate_plot(self, h, name, scale_h=1, scale_x=1, scale_y=1):
         plt.ioff()
         y, x = np.meshgrid(np.arange(0, h.shape[1]), np.arange(0, h.shape[0]))
-    
-        h_s = h*scale_h
-        x_s = x*scale_x
-        y_s = y*scale_y
+
+        h_s = h * scale_h
+        x_s = x * scale_x
+        y_s = y * scale_y
         # print(x_s.shape[1])
         # print(len(x_s))
-    
+
         fig = plt.figure(figsize=(10, 6))
-    
-        ax1 = plt.subplot2grid((5, 7), (0, 0),
-                               colspan=4, rowspan=3, projection='3d')
-        
-        self.surf = ax1.plot_surface(x_s, y_s, h_s[:, :], cmap=cm.viridis,
-                                vmin=-20, vmax=20,antialiased=False)
-        ax1.plot3D(x_s[:,-5], y_s[:,-5],
-                   h_s[:, -5], '--',
-                   color='darkblue', linewidth=2)
-        ax1.plot3D(x_s[-220,:], y_s[-220,:],
-                   h_s[-220,:], ':',
-                   color='darkblue', linewidth=1.5)
-        ax1.plot3D([0, 0], [0, 0], [-20, 20], 'None')
-        ax1.set_zlabel('Height [mm]')
-        ax1.set_xlabel('Foil lateral [mm]')
-        ax1.set_ylabel('Foil longitudal [mm]')
-        fig.colorbar(self.surf, shrink=0.6, aspect=40, orientation="horizontal",
-                     pad=0.15)
+
+        ax1 = plt.subplot2grid(
+            (5, 7), (0, 0), colspan=4, rowspan=3, projection="3d"
+        )
+
+        self.surf = ax1.plot_surface(
+            x_s,
+            y_s,
+            h_s[:, :],
+            cmap=cm.viridis,
+            vmin=-20,
+            vmax=20,
+            antialiased=False,
+        )
+        ax1.plot3D(
+            x_s[:, -5],
+            y_s[:, -5],
+            h_s[:, -5],
+            "--",
+            color="darkblue",
+            linewidth=2,
+        )
+        ax1.plot3D(
+            x_s[-220, :],
+            y_s[-220, :],
+            h_s[-220, :],
+            ":",
+            color="darkblue",
+            linewidth=1.5,
+        )
+        ax1.plot3D([0, 0], [0, 0], [-20, 20], "None")
+        ax1.set_zlabel("Height [mm]")
+        ax1.set_xlabel("Foil lateral [mm]")
+        ax1.set_ylabel("Foil longitudal [mm]")
+        fig.colorbar(
+            self.surf, shrink=0.6, aspect=40, orientation="horizontal", pad=0.15
+        )
         ax1.xaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
         ax1.yaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
         ax1.zaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
         ax1.view_init(30, -30)
         ax1.set_aspect(1.5)
-    
+
         ax2 = plt.subplot2grid((5, 7), (3, 1), colspan=6, rowspan=2)
-        plt.plot([-1, 150], [0, 0], 'k', linewidth=0.5)
-    #    plt.plot(np.arange(0, h.shape[0]), h_s[:, int(y.shape[1]*2/3)], '--',
-    #             color='darkblue', linewidth=2)
-        plt.plot(x_s[:, -120], h_s[:, -120], '--',
-                 color='darkblue', linewidth=2)
+        plt.plot([-1, 150], [0, 0], "k", linewidth=0.5)
+        #    plt.plot(np.arange(0, h.shape[0]), h_s[:, int(y.shape[1]*2/3)], '--',
+        #             color='darkblue', linewidth=2)
+        plt.plot(x_s[:, -120], h_s[:, -120], "--", color="darkblue", linewidth=2)
         ax2.set_ylim(-20, 20)
-        ax2.set_xlabel('Cut lateral  [mm]')
-        ax2.set_ylabel('Height [mm]')
-        ax2.spines['right'].set_bounds(-25, 25)
-        ax2.spines['left'].set_visible(False)
-        ax2.spines['top'].set_visible(False)
-        ax2.yaxis.set_ticks_position('right')
-        ax2.xaxis.set_ticks_position('bottom')
+        ax2.set_xlabel("Cut lateral  [mm]")
+        ax2.set_ylabel("Height [mm]")
+        ax2.spines["right"].set_bounds(-25, 25)
+        ax2.spines["left"].set_visible(False)
+        ax2.spines["top"].set_visible(False)
+        ax2.yaxis.set_ticks_position("right")
+        ax2.xaxis.set_ticks_position("bottom")
         ax2.yaxis.set_label_position("right")
-        plt.grid(which='major', linestyle='-',)
+        plt.grid(which="major", linestyle="-")
         plt.minorticks_on()
         ax2.set_yticks([-20, -10, 0, 10, 20])
-        ax2.set_aspect('equal')
+        ax2.set_aspect("equal")
         ax3 = plt.subplot2grid((5, 7), (0, 4), colspan=3, rowspan=3)
-        plt.plot([-1, 65], [0, 0], 'k', linewidth=0.5)
-        plt.plot(y_s[-220,:], h_s[-220,:], ':',
-                 color='darkblue', linewidth=2.5)
+        plt.plot([-1, 65], [0, 0], "k", linewidth=0.5)
+        plt.plot(y_s[-220, :], h_s[-220, :], ":", color="darkblue", linewidth=2.5)
         # plt.plot(np.arange(0, h.shape[1]), h_s[int(x.shape[1]-12), :], ':',
         #         color='darkblue', linewidth=1.5)
         #  -np.mean(h_s[int(x.shape[1]-12), :]),
         ax3.set_ylim(-5, 5)
         # ax3.set_xticks(np.arange(0, 130, 25))
-        ax3.set_xlabel('Cut longitudal [mm]')
+        ax3.set_xlabel("Cut longitudal [mm]")
         #  ax3.set_ylabel('Deformation to mean [mm]')
-        ax3.set_ylabel('Height [mm]')
-        ax3.spines['right'].set_bounds(-20, 20)
-        ax3.spines['left'].set_visible(False)
-        ax3.spines['top'].set_visible(False)
-        ax3.yaxis.set_ticks_position('right')
-        ax3.xaxis.set_ticks_position('bottom')
+        ax3.set_ylabel("Height [mm]")
+        ax3.spines["right"].set_bounds(-20, 20)
+        ax3.spines["left"].set_visible(False)
+        ax3.spines["top"].set_visible(False)
+        ax3.yaxis.set_ticks_position("right")
+        ax3.xaxis.set_ticks_position("bottom")
         ax3.yaxis.set_label_position("right")
-        plt.grid(which='major', linestyle='-',)
+        plt.grid(which="major", linestyle="-")
         plt.minorticks_on()
         ax3.set_yticks([-20, -10, 0, 10, 20])
-        ax3.set_aspect('equal')
+        ax3.set_aspect("equal")
         plt.tight_layout()
-        svg_file = self.path+'/plot/{:05d}.svg'.format(int(name))
-        png_file = self.path+'/plot/{:05d}.png'.format(int(name))
+        svg_file = self.path + "/plot/{:05d}.svg".format(int(name))
+        png_file = self.path + "/plot/{:05d}.png".format(int(name))
         # plt.savefig(svg_file)
         plt.savefig(png_file)
         plt.close()
-
-
 
     def save_hdf5(self, path=None, out_format=None, kind=None):
         name = self.file_name
@@ -187,7 +199,9 @@ class SurfaceTrackingObject(SerieOfArraysFromFiles):
         else:
             with h5py.File(path_file, "w") as f:
                 f.attrs["class_name"] = "SurfaceTrackingObject"
-                f.attrs["module_name"] = "fluidimage.data_objects.surface_tracking"
+                f.attrs[
+                    "module_name"
+                ] = "fluidimage.data_objects.surface_tracking"
                 f.attrs["nb_passes"] = len(self.passes)
                 f.attrs["fluidimage_version"] = fluidimage_version
                 f.attrs["fluidimage_hg_rev"] = hg_rev
@@ -249,5 +263,5 @@ class SurfaceTrackingObject(SerieOfArraysFromFiles):
             for i, arr in enumerate(self.deltays_tps):
                 g.create_dataset("subdom{}".format(i), data=arr)
 
-    def save(self, path=None, name = None, kind=None):
-        scipy.io.savemat(path,mdict={'H_sav': self.H_sav, 'H_filt': self.H_filt})
+    def save(self, path=None, name=None, kind=None):
+        scipy.io.savemat(path, mdict={"H_sav": self.H_sav, "H_filt": self.H_filt})

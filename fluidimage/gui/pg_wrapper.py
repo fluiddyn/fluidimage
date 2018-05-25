@@ -122,7 +122,9 @@ class PGWrapper(object):
         label.hide()
 
         def mouseMoved(evt):
-            data1 = p1.getImageItem().image  # should be updated using sigTimeChanged
+            data1 = (
+                p1.getImageItem().image
+            )  # should be updated using sigTimeChanged
             pos = evt[
                 0
             ]  # using signal proxy turns original arguments into a tuple
@@ -131,17 +133,13 @@ class PGWrapper(object):
             y = mousePoint.y()
             index = np.array([x, y], dtype=int)
             index_max = data1.shape
-            if (
-                np.all(np.greater_equal(index, [0, 0]))
-                and np.all(np.less_equal(index, index_max))
+            if np.all(np.greater_equal(index, [0, 0])) and np.all(
+                np.less_equal(index, index_max)
             ):
                 text = (
-                    (
-                        "<span style='font-size: 10pt; color: cyan'>(%0.1f, %0.1f)=</span>"
-                        "<span style='color: red'>%0.1f</span>"
-                    )
-                    % (mousePoint.x(), mousePoint.y(), data1[index[0], index[1]])
-                )
+                    "<span style='font-size: 10pt; color: cyan'>(%0.1f, %0.1f)=</span>"
+                    "<span style='color: red'>%0.1f</span>"
+                ) % (mousePoint.x(), mousePoint.y(), data1[index[0], index[1]])
                 label.setHtml(text)
                 label.setPos(x, y)
                 label.show()

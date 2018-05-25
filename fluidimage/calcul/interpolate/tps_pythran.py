@@ -68,6 +68,6 @@ def compute_tps_matrix(new_pos, centers):
     EM_ret = np.empty((nb_centers + 1 + d, nb_new_pos))
     EM_ret[:nb_centers, :] = EM
     EM_ret[nb_centers, :] = np.ones(nb_new_pos)
-    EM_ret[nb_centers + 1:nb_centers + 1 + d, :] = new_pos
+    EM_ret[nb_centers + 1 : nb_centers + 1 + d, :] = new_pos
 
     return EM_ret

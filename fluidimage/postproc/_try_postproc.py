@@ -140,9 +140,12 @@ Lt = np.max(postp.t) - np.min(postp.t)
 
 # moyenne spatial de fft spatiotemp vs fft temp
 
-psd = np.sum(
-    postp.fft.spatiotemp.psdU + postp.fft.spatiotemp.psdV, (1, 2)
-) * 1.0 * dkx * dky
+psd = (
+    np.sum(postp.fft.spatiotemp.psdU + postp.fft.spatiotemp.psdV, (1, 2))
+    * 1.0
+    * dkx
+    * dky
+)
 pylab.loglog(omega, psd)
 psd2 = postp.fft.time.psdU + postp.fft.time.psdV
 psd2 = np.sum(psd2, (1, 2)) * 1.0 * (dx * dy) / (Lx * Ly)
@@ -151,9 +154,11 @@ print(np.mean(((psd2 - psd) ** 2) / psd))
 print(np.max(((psd2 - psd) ** 2) / psd))
 
 # moyenne temporelle de fft spatiotemp vs fft spatial
-psd = np.sum(
-    postp.fft.spatiotemp.psdU + postp.fft.spatiotemp.psdV, 0
-) * 1.0 * domega
+psd = (
+    np.sum(postp.fft.spatiotemp.psdU + postp.fft.spatiotemp.psdV, 0)
+    * 1.0
+    * domega
+)
 pylab.pcolor(Kx, Ky, psd)
 psd2 = postp.fft.spatial.psdU + postp.fft.spatial.psdV
 psd2 = np.sum(psd2, 0) * 1.0 * dt / Lt

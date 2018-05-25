@@ -132,7 +132,7 @@ def correl_pycuda(im0, im1, disp_max):
                     g_odata.gpudata,
                     block=(threads_reduce, 1, 1),
                     grid=(blocks_reduce, 1),
-                    shared=4 * threads_reduce
+                    shared=4 * threads_reduce,
                 )
                 if blocks_reduce < maxthreads:
                     threads_reduce = nextpow2(blocks_reduce)
@@ -144,7 +144,7 @@ def correl_pycuda(im0, im1, disp_max):
                 g_sumdata.gpudata,
                 block=(threads_reduce, 1, 1),
                 grid=(blocks_reduce, 1),
-                shared=4 * threads_reduce
+                shared=4 * threads_reduce,
             )
 
             correl[xiy, xix] = g_sumdata.get()
@@ -184,7 +184,7 @@ def correl_pycuda(im0, im1, disp_max):
                     g_odata.gpudata,
                     block=(threads_reduce, 1, 1),
                     grid=(blocks_reduce, 1),
-                    shared=4 * threads_reduce
+                    shared=4 * threads_reduce,
                 )
                 if blocks_reduce < maxthreads:
                     threads_reduce = nextpow2(blocks_reduce)
@@ -196,7 +196,7 @@ def correl_pycuda(im0, im1, disp_max):
                 g_sumdata.gpudata,
                 block=(threads_reduce, 1, 1),
                 grid=(blocks_reduce, 1),
-                shared=4 * threads_reduce
+                shared=4 * threads_reduce,
             )
 
             correl[xiy, xix + disp_max + 1] = g_sumdata.get()
@@ -241,7 +241,7 @@ def correl_pycuda(im0, im1, disp_max):
                     g_odata.gpudata,
                     block=(threads_reduce, 1, 1),
                     grid=(blocks_reduce, 1),
-                    shared=4 * threads_reduce
+                    shared=4 * threads_reduce,
                 )
                 if blocks_reduce < maxthreads:
                     threads_reduce = nextpow2(blocks_reduce)
@@ -253,7 +253,7 @@ def correl_pycuda(im0, im1, disp_max):
                 g_sumdata.gpudata,
                 block=(threads_reduce, 1, 1),
                 grid=(blocks_reduce, 1),
-                shared=4 * threads_reduce
+                shared=4 * threads_reduce,
             )
 
             correl[xiy + disp_max + 1, xix] = g_sumdata.get()
@@ -292,7 +292,7 @@ def correl_pycuda(im0, im1, disp_max):
                     g_odata.gpudata,
                     block=(threads_reduce, 1, 1),
                     grid=(blocks_reduce, 1),
-                    shared=4 * threads_reduce
+                    shared=4 * threads_reduce,
                 )
                 if blocks_reduce < maxthreads:
                     threads_reduce = nextpow2(blocks_reduce)
@@ -304,7 +304,7 @@ def correl_pycuda(im0, im1, disp_max):
                 g_sumdata.gpudata,
                 block=(threads_reduce, 1, 1),
                 grid=(blocks_reduce, 1),
-                shared=4 * threads_reduce
+                shared=4 * threads_reduce,
             )
 
             correl[xiy + disp_max + 1, xix + disp_max + 1] = g_sumdata.get()

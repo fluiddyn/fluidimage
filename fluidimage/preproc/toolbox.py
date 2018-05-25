@@ -63,7 +63,9 @@ class PreprocToolsBase(object):
                 func_doc = func.__doc__
 
             if func_doc is not None:
-                enable_doc = "enable : bool\n" + "        Set as `True` to enable the tool"
+                enable_doc = (
+                    "enable : bool\n" + "        Set as `True` to enable the tool"
+                )
                 params[tool]._set_doc(func_doc + enable_doc)
 
     @classmethod
@@ -121,6 +123,7 @@ class PreprocToolsPy(PreprocToolsBase):
     @classmethod
     def _get_backend(cls):
         from . import _toolbox_py as tools
+
         return tools
 
 
@@ -133,6 +136,7 @@ class PreprocToolsCV(PreprocToolsBase):
     @classmethod
     def _get_backend(cls):
         from . import _toolbox_cv as tools
+
         return tools
 
 

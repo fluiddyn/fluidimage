@@ -64,12 +64,12 @@ class WorkPreproc(PreprocBase):
 
     def display(self, ind=0, hist=False):
         nb_images = 2
-        name_files = self.serie_arrays.get_name_files()[ind:ind + nb_images]
+        name_files = self.serie_arrays.get_name_files()[ind : ind + nb_images]
 
         results_series = SerieOfArraysFromFiles(self.params.saving.path)
         results = {
             name: results_series.get_array_from_name(name)
-            for name in name_files[ind:ind + nb_images]
+            for name in name_files[ind : ind + nb_images]
         }
 
         return super(WorkPreproc, self).display(ind, hist, results)
