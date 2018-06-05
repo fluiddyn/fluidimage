@@ -22,11 +22,15 @@ from .base import TopologyBase
 from .waiting_queues.base import (
     WaitingQueueMultiprocessing,
     WaitingQueueThreading,
-    WaitingQueueLoadImagePath)
+    WaitingQueueLoadImagePath,
+    WaitingQueueMakeCouple)
+
+from ..data_objects.piv import ArrayCouple
 from .. import ParamContainer
 from .. import SeriesOfArrays
 from ..data_objects.surfaceTracking import *
 from ..util.util import logger
+from fluiddyn.util.paramcontainer import ParamContainer
 from ..works.surfaceTracking.surface_tracking import WorkSurfaceTracking
 
 
@@ -62,6 +66,17 @@ class TopologySurfaceTracking(TopologyBase):
         params = ParamContainer(tag="params")
 
         params._set_child(
+            "series",
+            attribs={
+                "path": "",
+                "strcouple": "i:i+2",
+                "ind_start": 0,
+                "ind_stop": None,
+                "ind_step": 1,
+            },
+        )
+
+        params._set_child(
             "film",
             attribs={
                 "fileName": "",
@@ -74,7 +89,7 @@ class TopologySurfaceTracking(TopologyBase):
         )
 
         params._set_child(
-            "saving", attribs={"plot" :False, "path": None, "how": "hdf5", "postfix": "surface_tracking"}
+            "saving", attribs={"plot" :False, "how_many" :1000, "path": None, "how": "hdf5", "postfix": "surface_tracking"}
         )
 
         params.saving._set_doc(
@@ -108,6 +123,18 @@ postfix : str
             ),
         )
 
+        params._set_child("mask", attribs={"strcrop": None})
+
+        params.mask._set_doc(
+            """
+            Parameters describing how images are masked.
+            
+            strcrop : None, str
+            
+                Two-dimensional slice (for example '100:600, :'). If None, the whole image
+                is used.
+            """
+        )
 
         return params
 
@@ -124,7 +151,7 @@ postfix : str
         serie_arrays = SerieOfArraysFromFiles(params.film.path + "/" + params.film.fileName)
         self.series = SeriesOfArrays(
             serie_arrays,
-            None,
+            params.series.strcouple,
             ind_start=params.film.ind_start,
             ind_stop=params.film.ind_stop,
             ind_step=params.film.ind_step,
@@ -151,13 +178,17 @@ postfix : str
         self.wq_sf_in = WaitingQueueMultiprocessing(
             "surface_tracking_work", self.surface_tracking_work.compute, self.wq_sf_out, topology=self
         )
-        
+
+        self.wq_images = WaitingQueueMakeCouple(
+            "array image", self.wq_sf_in, topology=self
+        )
+
         self.wq0 = WaitingQueueLoadImagePath(
-            destination=self.wq_sf_in, path_dir=path_dir, topology=self
+            destination=self.wq_images, path_dir=path_dir, topology=self
         )
         
         waiting_queues = [
-            self.wq0,self.wq_sf_in, self.wq_sf_out
+            self.wq0, self.wq_images, self.wq_sf_in, self.wq_sf_out
             ]
 
         super(TopologySurfaceTracking, self).__init__(
@@ -167,71 +198,76 @@ postfix : str
             nb_max_workers=nb_max_workers,
         )
 
-        self.add_frames(self.series) # similar to add
+        self.add_series(self.series) # similar to add
 
-
-
-    def add_frames(self,series):
+    def add_series(self, series):
         """
-        Inspired by Topologies/piv add_Series
-        :param frames:
+        Fill working queues
+        :param series: Series representing a film
+        :type SeriesOfArrays
         :return:
         """
-
         if len(series) == 0:
-            logger.warning("add 0 image. No image to process.")
+            logger.warning("add 0 couple. No PIV to compute.")
             return
 
-        names = series.get_name_all_arrays()
-
         if self.how_saving == "complete":
-            names_to_compute = []
-            for name in names:
-                if not os.path.exists(os.path.join(self.path_dir_result, name)):
-                    names_to_compute.append(name)
+            names = []
+            index_series = []
+            for i, serie in enumerate(series):
+                name_sf = serie.get_name_arrays()
+                if os.path.exists(os.path.join(self.path_dir_result, name_sf[0])):
+                    continue
 
-            names = names_to_compute
-            if len(names) == 0:
+                for name in serie.get_name_arrays():
+                    if name not in names:
+                        names.append(name)
+
+                index_series.append(i * series.ind_step + series.ind_start)
+
+            if len(index_series) == 0:
                 logger.warning(
                     'topology in mode "complete" and work already done.'
                 )
                 return
 
-        nb_names = len(names)
-        print("Add {} images to compute.".format(nb_names))
+            series.set_index_series(index_series)
 
-        logger.debug(repr(names))
+            logger.debug(repr(names))
+            logger.debug(repr([serie.get_name_arrays() for serie in series]))
+        else:
+            names = series.get_name_all_arrays()
 
-        print("First files to process:", names[:4])
+        nb_series = len(series)
+        print("Add {} surface fields to compute.".format(nb_series))
+
+        for i, serie in enumerate(series):
+            if i > 1:
+                break
+
+        print("Files of serie {}: {}".format(i, serie.get_name_arrays()))
 
         self.wq0.add_name_files(names)
+        self.wq_images.add_series(series)
+
+        k, o = self.wq0.popitem()
+        im = self.wq0.work(o)
+        self.wq0.fill_destination(k, im)
+
+        # a little bit strange, to apply mask...
+        try:
+            params_mask = self.params.mask
+        except AttributeError:
+            params_mask = None
+        couple = ArrayCouple(
+            names=("", ""), arrays=(im, im), params_mask=params_mask
+        )
+        im, _ = couple.get_arrays()
 
     def _print_at_exit(self, time_since_start):
        pass
 
-    def get_file(self, path='./', fn=None):
-        '''read the files with SeriesOfArraysFromFile in path or a specified file if fn-arg is given'''
-        path = self.path
-        if fn is None:
-            # print(path + '/*')
-            film = SerieOfArraysFromFiles(path+'/'+params.film.fileName)
-        return film
-
-        
-class WaitingQueueLoadFrame(WaitingQueueThreading):
-    nb_max_workers = 8
-
-    def __init__(self, *args, **kwargs):
-        self.path_dir = kwargs.pop("path_dir")
-        super().__init__(name = "SurfaceTracking", work=WorkSurfaceTracking, *args, **kwargs)
-        self.num_frame_to_compute = []
-        self.work_name = __name__ + ".load"
-
-    def add_name_files(self, names):
-        self.update(
-            {name: os.path.join(self.path_dir, name) for name in names}, names
-        )
-
 
 params = TopologySurfaceTracking.create_default_params()
 __doc__ += params._get_formatted_docs()
+

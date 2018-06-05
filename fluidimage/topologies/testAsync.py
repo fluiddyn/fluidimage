@@ -23,16 +23,17 @@ class AsyncPiv:
 
     async def process(self, im1, im2):
         """
-        this function call get image, compute piv;  and save piv
-        :param index_image: index of images to compute
-        :param path: path of images to compute
+        this function call load_image, compute piv and save_piv
+        :param name of im1
+        :type str
+        :param name of im2
+        :type str
         :return: none
         """
         start = time.time()
         couple = await self.load_images(im1, im2)
         result = await self.compute(couple)
-        light_result = result.make_light_result()
-        await self.save_pib(light_result, im1, im2)
+        await self.save_piv(result, im1, im2)
         end = time.time()
         print("Computing image {}: {}".format(im1 + " - " + im2, end - start))
         return
@@ -40,8 +41,10 @@ class AsyncPiv:
     async def load_images(self, im1, im2):
         """
         load two image and make a couple
-        :param index_image:
-        :param path: path to find images to compute
+        :param name of im1
+        :type str
+        :param name of im2
+        :type str
         :return: couple
         """
         if self.img_tmp == None:
@@ -65,12 +68,23 @@ class AsyncPiv:
         """
         Create a pivwork and compute a couple
         :param couple: a couple from arrayCouple
+        :type ArrayCouple
         :return: a piv object
         """
         workpiv = WorkPIV(self.params)
         return workpiv.calcul(couple)
 
-    async def save_pib(self, light_result, im1, im2):
+    async def save_piv(self, result, im1, im2):
+        """
+        Save the light result at path_save
+        :param result of the computing
+        :param name of im1
+        :type str
+        :param name of im2
+        :type str
+        :return:
+        """
+        light_result = result.make_light_result()
         im1 = im1[:-4]
         im2 = im2[:-4]
         scipy.io.savemat(
@@ -86,11 +100,12 @@ class AsyncPiv:
     def a_process(self, listdir):
         """
         Define a concurenced work which is destined to be compute in one process
-        :param i: will be changed later, allow to choose a set of images
+        :param listdir: list of image names to compute
+        :type list
         :return:
         """
         self.params = TopologyPIV.create_default_params()
-        self.params.series.path = path
+        self.params.series.path = self.path_images
         self.params.series.ind_start = 1
 
         self.params.piv0.shape_crop_im0 = 32
@@ -114,22 +129,23 @@ class AsyncPiv:
         self.loop.close()
 
 
-if __name__ == "__main__":
+def main():
     # Managing dir paths
-    sub_path_image = "Images"
+    sub_path_image = "Images2"
     path = "../../image_samples/Karman/{}/".format(sub_path_image)
     path_save = "../../image_samples/Karman/{}.results.async/".format(sub_path_image)
+    assert os.listdir(path)
     if not os.path.exists(path_save):
         os.makedirs(path_save)
 
     def partition(lst, n):
         """
-        partition evently lst into n sublists and
+        Partition evently lst into n sublists and
         add the last images of each sublist to the head
         of the next sublist ( in order to compute all piv )
         :param lst: a list
         :param n: number of sublist wanted
-        :return:
+        :return: A sliced list
         """
         L = len(lst)
         assert 0 < n <= L
@@ -147,6 +163,7 @@ if __name__ == "__main__":
     nb_process = multiprocessing.cpu_count()
     # spliting images list
     listdir = os.listdir(path)
+
     if len(listdir) <= nb_process:  # if there is less piv to compute than cpu
         nb_process = len(listdir) - 1  # adapt process number
     print("nb process :{}".format(nb_process))
@@ -154,10 +171,13 @@ if __name__ == "__main__":
     listdir = partition(listdir, nb_process)
     # making and starting processes
     processes = []
-    pool = multiprocessing.Pool(processes=nb_process)
+    # pool = multiprocessing.Pool(processes=nb_process)
     for i in range(nb_process):
-        async = AsyncPiv(path, path_save)
-        p = multiprocessing.Process(target=async.a_process, args=(listdir[i],))
+        async_piv = AsyncPiv(path, path_save)
+        p = multiprocessing.Process(target=async_piv.a_process, args=(listdir[i],))
         p.start()
     for p in processes:
         p.join()
+
+if __name__ == "__main__":
+    main()

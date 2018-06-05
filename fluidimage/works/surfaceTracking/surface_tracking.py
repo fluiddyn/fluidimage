@@ -21,14 +21,11 @@
 ###############################################################################
 
 
-import datetime
 import math
-
-import matplotlib.pyplot as plt
 import numpy as np
-import pylab
 import scipy.interpolate
 import scipy.io
+import pims
 
 
 from .. import BaseWork
@@ -68,6 +65,8 @@ class WorkSurfaceTracking(BaseWork):
         pass
 
     def __init__(self, params):
+
+        self.cpt = 0
 
         self.params = params
 
@@ -114,16 +113,23 @@ class WorkSurfaceTracking(BaseWork):
         self.kx = np.arange(-self.l_x / 2, self.l_x / 2) / self.l_x
         self.ky = np.arange(-self.l_y / 2, self.l_y / 2) / self.l_y
 
+        self.refraw = self.get_file(self.pathRef)
+        refc, k_x = self.wave_vector(self.refraw, self.ymin, self.ymax, self.xmin, self.xmax, self.sur, self.startref_frame,
+                                self.lastref_frame)
+
         self.kxx = self.kx / self.pix_size
         self.gain, self.filt = self.create_gainfilter(
-            self.ky, self.kx, self.k_y, self.k_x, self.l_y, self.l_x, self.slicer
+            self.ky, self.kx, self.k_y, k_x, self.l_y, self.l_x, self.slicer
         )
-
-    def compute(self, frame):
-
+    def compute(self, frameCouple):
+        """
+        Compute a frame
+        :param frameCouple: A couple of frame
+        :type data_objects.piv.ArrayCouple
+        :return:
+        """
         surfaceTracking = SurfaceTrackingObject(params=self.params)
-
-        H_sav, H_filt, status, ttlast = self.processAFrame(
+        H, H_filt, a_filt = self.processAFrame(
             self.path,
             self.l_x,
             self.l_y,
@@ -143,19 +149,69 @@ class WorkSurfaceTracking(BaseWork):
             self.plot_reduction_factor,
             self.kx,
             self.ky,
-            frame[0],
+            frameCouple,
             verify_process=False,
             offset=2.5,
         )
 
-        surfaceTracking.H_sav = H_sav
+        surfaceTracking.H = H
         surfaceTracking.H_filt = H_filt
-        surfaceTracking.nameFrame = frame[1].split("/")[-1]
+        surfaceTracking.a_filt = a_filt
+        surfaceTracking.pix_size = self.pix_size
+        surfaceTracking.nameFrame = frameCouple.arrays[0][1].split("/")[-1]
         return surfaceTracking
         # offset = thickness/2 #of the reference plate (in order to find the origin)
 
-    def rgb2gray(rgb):
-        return np.dot(rgb[..., :3], [0.299, 0.587, 0.114])
+    def processAFrame(
+        self,
+        path,
+        l_x,
+        l_y,
+        xmin,
+        xmax,
+        ymin,
+        ymax,
+        gain,
+        filt,
+        bo,
+        red_factor,
+        pix_size,
+        distance_object,
+        distance_lens,
+        wave_proj,
+        n_frames_stock,
+        plot_reduction_factor,
+        kx,
+        ky,
+        frame,
+        save_png=True,
+        verify_process=True,
+        filmName=None,
+        offset=0,
+    ):
+        arrays1 = frame.arrays[0][0]
+        arrays2 = frame.arrays[1][0]
+
+        fix_y = int(np.fix(l_y / 2 / red_factor))
+        fix_x = int(np.fix(l_x / 2 / red_factor))
+
+        a1 = self.process_frame(arrays1, ymin, ymax, xmin, xmax, gain, filt, bo, red_factor)
+        a2 = self.process_frame(arrays2, ymin, ymax, xmin, xmax, gain, filt, bo, red_factor)
+
+        jump = a2[fix_y, fix_x] - a1[fix_y, fix_x]
+
+        while (abs(jump) > math.pi):
+            a2 = a2 - np.sign(jump) * 2 * math.pi
+            jump = a2[fix_y, fix_x] - a1[fix_y, fix_x]
+
+        H = self.convphase(a2, pix_size, distance_object, distance_lens,
+                           self.wave_proj, 'True', red_factor)
+        H = H[4:-4, 4:-4]
+        Hfilt = H-np.mean(H)
+        afilt = a2 - np.mean(a2) - offset
+
+        return H, Hfilt, afilt
+
 
     def create_gainfilter(self, ky, kx, k_y, k_x, l_y, l_x, slicer):
         kxgrid, kygrid = np.meshgrid(kx, ky)
@@ -273,135 +329,14 @@ class WorkSurfaceTracking(BaseWork):
         indc = np.max(np.fft.fftshift(abs(Fref)), axis=0).argmax()
         return ref, abs(kxma[indc])
 
-    def processAFrame(
-        self,
-        path,
-        l_x,
-        l_y,
-        xmin,
-        xmax,
-        ymin,
-        ymax,
-        gain,
-        filt,
-        bo,
-        red_factor,
-        pix_size,
-        distance_object,
-        distance_lens,
-        wave_proj,
-        n_frames_stock,
-        plot_reduction_factor,
-        kx,
-        ky,
-        frame,
-        save_png=True,
-        verify_process=True,
-        filmName=None,
-        offset=0,
-    ):
-
-        start = datetime.datetime.now()
-        status = False
-        # initialize array H_sav and H_filt
-        Ly = int((l_y - bo - bo - 1) / red_factor)  # length(list)
-        Lx = int((l_x - bo - bo - 1) / red_factor)  # length(list)
-        H_sav = np.zeros(
-            (Ly - 8 + 1, Lx - 8 + 1, n_frames_stock), dtype=np.float32
-        )
-        H_filt = np.zeros(
-            (Ly - 8 + 1, Lx - 8 + 1, n_frames_stock), dtype=np.float32
-        )
-
-        fix_y = int(np.fix(l_y / 2 / red_factor))
-        fix_x = int(np.fix(l_x / 2 / red_factor))
-
-        iframe = 1
-        a2 = self.process_frame(
-            frame, ymin, ymax, xmin, xmax, gain, filt, bo, red_factor
-        )
-        if iframe == 1:
-            a_mem = a2
-            jump = a2[fix_y, fix_x] - a_mem[fix_y, fix_x]
-            while abs(jump) > math.pi:
-                a2 = a2 - np.sign(jump) * 2 * math.pi
-                jump = a2[fix_y, fix_x] - a_mem[fix_y, fix_x]
-            a_mem = a2
-        self.H = self.convphase(
-            a2,
-            pix_size,
-            distance_object,
-            distance_lens,
-            self.wave_proj,
-            "True",
-            red_factor,
-        )
-        self.H = self.H[4:-4, 4:-4]
-        Hfilt = self.H - np.mean(self.H)
-        afilt = a2 - np.mean(a2) - offset
-
-        #        if (save_png):
-        #            #heights_plotter(-a2, f/plot_reduction_factor, 1, pix_size*1000, pix_size*1000)
-        #            self.heights_plotter(-afilt, f/plot_reduction_factor, 1, pix_size*1000, pix_size*1000)
-
-        #        if (iframe % n_frames_stock > 0):
-        #            H_sav[:, :, iframe % n_frames_stock-1] = self.H
-        #            H_filt[:, :, iframe % n_frames_stock-1] = Hfilt
-        #        else:
-        #         print("save as matlab hdf5-file; iframe from ", iframe-n_frames_stock,
-        #               " to ", iframe-1)
-        #         H_sav[:, :, n_frames_stock-1] = self.H
-        #         H_filt[:, :, n_frames_stock-1] = Hfilt
-        #         pathsav = path+"/results/"
-
-        #            scipy.io.savemat(pathsav+str(f)+"heights_{:03d}".format(int(iframe/n_frames_stock)),
-        #                             mdict={'H_sav': H_sav, 'H_filt': H_filt})
-        if verify_process:
-            plt.figure(3)
-            plt.ion()
-            pylab.imshow(self.H)
-            plt.pause(0.05)
-
-            plt.figure(4)
-            plt.ion()
-            pylab.imshow(Hfilt)
-            plt.pause(0.05)
-
-        if verify_process:
-            X, Y = np.meshgrid(kx, ky)
-            fig = plt.figure(5)
-            ax = fig.add_subplot(211, projection="3d")
-            # Plot the surface.
-            self.surf = ax.plot_surface(
-                X[0 : self.H.shape[0], 0 : self.H.shape[1]],
-                Y[0 : self.H.shape[0], 0 : self.H.shape[1]],
-                self.H_sav[:, :, 0],
-                linewidth=0,
-                antialiased=False,
-            )
-            ax = fig.add_subplot(212, projection="3d")
-            # Plot the surface.
-            self.surf = ax.plot_surface(
-                X[0 : self.H.shape[0], 0 : self.H.shape[1]],
-                Y[0 : self.H.shape[0], 0 : self.H.shape[1]],
-                self.H_sav[:, :, 900],
-                linewidth=0,
-                antialiased=False,
-            )
-            plt.show()
-
-        end_f = datetime.datetime.now()
-        ttlast = (end_f - start).seconds + float(
-            (end_f - start).microseconds
-        ) / 1000000
-
-        print("process film finished after ", ttlast, " s")
-        status = True
-        return H_sav, H_filt, status, ttlast
-
-    def _prepare_with_image(self, im=None, nameFrame=None, imshape=None):
-        """Prepare the works surface_tracking with an image."""
-        if imshape is None:
-            imshape = im.shape
-        for work_surface_tracking in self.works_surface_tracking:
-            work_surface_tracking._prepare_with_image(imshape=imshape)
+    def get_file(self,path='./', fn=None):
+        '''read the files in path or a specified file if fn-arg is given'''
+        path = self.path
+        if fn is None:
+            # print(path + '/*')
+            film = self.get_file(path, 'film.cine')
+            #film = pims.open(path + '/*')
+        else:
+            print("####"+path + '/' + fn)
+            film = pims.open(str(path) + '/' + fn)
+        return film
