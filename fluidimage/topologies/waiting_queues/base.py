@@ -333,7 +333,6 @@ class ThreadWork(threading.Thread):
     # self.daemon = True
 
     def run(self):
-        print("### pid thread " + str(self.getName()))
         try:
             super(ThreadWork, self).run()
         except Exception as e:

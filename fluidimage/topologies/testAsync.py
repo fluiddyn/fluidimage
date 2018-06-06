@@ -1,6 +1,7 @@
 """testPiv mode asynchrone
 ================
 """
+import sys
 import os
 import time
 import multiprocessing
@@ -13,17 +14,40 @@ from fluidimage.util.util import imread
 from fluidimage.works.piv.multipass import WorkPIV
 from fluidimage.data_objects.piv import ArrayCouple
 
+from fluidimage.util.util import logger
+from fluidimage import config_logging
+from fluiddyn import time_as_str
+from fluiddyn.io.tee import MultiFile
 
 class AsyncPiv:
 
     def __init__(self, path_image, path_save):
+
         self.path_images = path_image
         self.path_save = path_save
         self.img_tmp = None
+        self.params = TopologyPIV.create_default_params()
+        self.workpiv = WorkPIV(self.params)
+        self.params.series.path = self.path_images
+        self.params.series.ind_start = 1
+
+        self.params.piv0.shape_crop_im0 = 32
+        self.params.multipass.number = 2
+        self.params.multipass.use_tps = True
+
+        self.params.multipass.use_tps = True
+
+        # params.saving.how has to be equal to 'complete' for idempotent jobs
+        self.params.saving.how = "complete"
+        self.params.saving.postfix = "piv_complete_async"
+
+        self.loop = asyncio.get_event_loop()
+
+        self._log_file = None
 
     async def process(self, im1, im2):
         """
-        this function call load_image, compute piv and save_piv
+        Call load_image, compute piv and save_piv with awaits
         :param name of im1
         :type str
         :param name of im2
@@ -33,20 +57,23 @@ class AsyncPiv:
         start = time.time()
         couple = await self.load_images(im1, im2)
         result = await self.compute(couple)
+        end = time.time()
+        logger.info("Computed Image {}  : {}s".format(couple.name, end - start))
         await self.save_piv(result, im1, im2)
         end = time.time()
-        print("Computing image {}: {}".format(im1 + " - " + im2, end - start))
+        logger.info("finished Image {}  : {}s".format(im1 + " - " + im2, end - start))
         return
 
     async def load_images(self, im1, im2):
         """
-        load two image and make a couple
+        load two images and make a couple
         :param name of im1
         :type str
         :param name of im2
         :type str
         :return: couple
         """
+        start = time.time()
         if self.img_tmp == None:
             image1 = await self.loop.run_in_executor(
                 None, functools.partial(imread, self.path_images + im1)
@@ -62,6 +89,8 @@ class AsyncPiv:
             names=(im1, im2), arrays=(image1, image2), params_mask=params_mask
         )
         self.img_tmp = image2
+        end = time.time()
+        logger.info("Loaded Image {}  : {}s".format(im1 + " - " + im2, end - start))
         return couple
 
     async def compute(self, couple):
@@ -71,7 +100,9 @@ class AsyncPiv:
         :type ArrayCouple
         :return: a piv object
         """
+        start = time.time()
         workpiv = WorkPIV(self.params)
+        end = time.time()
         return workpiv.calcul(couple)
 
     async def save_piv(self, result, im1, im2):
@@ -99,27 +130,11 @@ class AsyncPiv:
 
     def a_process(self, listdir):
         """
-        Define a concurenced work which is destined to be compute in one process
+        Define a concurenced work which is destined to be compute in a single process
         :param listdir: list of image names to compute
         :type list
         :return:
         """
-        self.params = TopologyPIV.create_default_params()
-        self.params.series.path = self.path_images
-        self.params.series.ind_start = 1
-
-        self.params.piv0.shape_crop_im0 = 32
-        self.params.multipass.number = 2
-        self.params.multipass.use_tps = True
-
-        self.params.multipass.use_tps = True
-
-        # params.saving.how has to be equal to 'complete' for idempotent jobs
-        self.params.saving.how = "complete"
-        self.params.saving.postfix = "piv_complete_async"
-
-        self.loop = asyncio.get_event_loop()
-
         tasks = []
         for i in range(len(listdir) - 1):
             tasks.append(
@@ -129,11 +144,21 @@ class AsyncPiv:
         self.loop.close()
 
 
+
 def main():
-    # Managing dir paths
+    #Define path
     sub_path_image = "Images2"
-    path = "../../image_samples/Karman/{}/".format(sub_path_image)
     path_save = "../../image_samples/Karman/{}.results.async/".format(sub_path_image)
+    #Logger
+    log = os.path.join(
+        path_save,
+        "log_" + time_as_str() + "_" + str(os.getpid()) + ".txt",
+    )
+    log_file = open(log, "w")
+    sys.stdout = MultiFile([sys.stdout, log_file])
+    config_logging("info", file=sys.stdout)
+    # Managing dir paths
+    path = "../../image_samples/Karman/{}/".format(sub_path_image)
     assert os.listdir(path)
     if not os.path.exists(path_save):
         os.makedirs(path_save)
@@ -171,7 +196,6 @@ def main():
     listdir = partition(listdir, nb_process)
     # making and starting processes
     processes = []
-    # pool = multiprocessing.Pool(processes=nb_process)
     for i in range(nb_process):
         async_piv = AsyncPiv(path, path_save)
         p = multiprocessing.Process(target=async_piv.a_process, args=(listdir[i],))
