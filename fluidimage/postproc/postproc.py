@@ -25,7 +25,6 @@ class DataObject(object):
 
 
 class PIV_Postproc(LightPIVResults):
-
     def __init__(self, path):
         super(PIV_Postproc, self).__init__(str_path=path)
         self.path = os.path.abspath(path)
@@ -117,9 +116,9 @@ class PIV_Postproc(LightPIVResults):
             dkx = kx[1] - kx[0]
             dky = ky[1] - ky[0]
             energphys = np.sum(self.U ** 2 + self.V ** 2) * dx * dy / Lx / Ly
-            energspectral = np.sum(
-                self.fft.spatial.psdU + self.fft.spatial.psdV
-            ) * dkx * dky
+            energspectral = (
+                np.sum(self.fft.spatial.psdU + self.fft.spatial.psdV) * dkx * dky
+            )
             print("%%%% PARSEVAL %%%%")
             print("np.sum(U**2+V**2) * dx*dy / Lx/Ly =")
             print(energphys)
@@ -128,7 +127,6 @@ class PIV_Postproc(LightPIVResults):
 
 
 class PIV_PostProc_serie(LightPIVResults):
-
     def __init__(self, path=None):
         self.path = path
         path0 = path[0]
@@ -252,9 +250,9 @@ class PIV_PostProc_serie(LightPIVResults):
                 Lt = np.max(self.t) - np.min(self.t)
                 domega = omega[1] - omega[0]
                 energphys = np.sum(self.U ** 2 + self.V ** 2) * dt / Lt
-                energspectral = np.sum(
-                    self.fft.time.psdU + self.fft.time.psdV
-                ) * domega
+                energspectral = (
+                    np.sum(self.fft.time.psdU + self.fft.time.psdV) * domega
+                )
                 print("%%%% PARSEVAL %%%%")
                 print("np.sum(U**2+V**2) * dt / Lt =")
                 print(energphys)
@@ -290,9 +288,9 @@ class PIV_PostProc_serie(LightPIVResults):
             dkx = kx[1] - kx[0]
             dky = ky[1] - ky[0]
             energphys = np.sum(self.U ** 2 + self.V ** 2) * dx * dy / Lx / Ly
-            energspectral = np.sum(
-                self.fft.spatial.psdU + self.fft.spatial.psdV
-            ) * dkx * dky
+            energspectral = (
+                np.sum(self.fft.spatial.psdU + self.fft.spatial.psdV) * dkx * dky
+            )
             print("%%%% PARSEVAL %%%%")
             print("np.sum(U**2+V**2) * dx*dy / Lx/Ly =")
             print(energphys)
@@ -365,12 +363,15 @@ class PIV_PostProc_serie(LightPIVResults):
             dt = self.t[1] - self.t[0]
             Lt = np.max(self.t) - np.min(self.t)
             domega = omega[1] - omega[0]
-            energphys = np.sum(
-                self.U ** 2 + self.V ** 2
-            ) * dx * dy * dt / Lx / Ly / Lt
-            energspectral = np.sum(
-                self.fft.spatiotemp.psdU + self.fft.spatiotemp.psdV
-            ) * dkx * dky * domega
+            energphys = (
+                np.sum(self.U ** 2 + self.V ** 2) * dx * dy * dt / Lx / Ly / Lt
+            )
+            energspectral = (
+                np.sum(self.fft.spatiotemp.psdU + self.fft.spatiotemp.psdV)
+                * dkx
+                * dky
+                * domega
+            )
             print("%%%% PARSEVAL %%%%")
             print("np.sum(U**2+V**2) * dx*dy*dt / Lx/Ly/Lt =")
             print(energphys)

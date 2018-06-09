@@ -18,12 +18,12 @@ from fluiddyn.util.paramcontainer_gui import QtParamContainer
 from fluiddyn.util.paramcontainer import ParamContainer
 
 from fluidimage.topologies.launcher import (
-    TopologyPreprocLauncher, TopologyPIVLauncher
+    TopologyPreprocLauncher,
+    TopologyPIVLauncher,
 )
 
 
 class Program(QtWidgets.QMainWindow, Ui_MainWindow):
-
     def __init__(self):
         topologies = [TopologyPreprocLauncher, TopologyPIVLauncher]
         self.topologies = {cls.__name__: cls for cls in topologies}

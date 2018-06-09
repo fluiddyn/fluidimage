@@ -11,7 +11,6 @@ here = os.path.abspath(os.path.dirname(__file__))
 
 
 class TestPIV(unittest.TestCase):
-
     def test_piv(self):
         params = Topo.create_default_params()
 

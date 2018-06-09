@@ -38,10 +38,8 @@ class TopologyBase(object):
 
     """
 
-    def __init__(self,
-                 path_output=None,
-                 logging_level="info",
-                 nb_max_workers=None,
+    def __init__(
+        self, path_output=None, logging_level="info", nb_max_workers=None
     ):
 
         if path_output is not None:
@@ -142,10 +140,8 @@ class TopologyBase(object):
         except AttributeError:
             nb_results = None
         if nb_results is not None and nb_results > 0:
-            txt += (
-                " ({} results, {:.2f} s/result).".format(
-                    nb_results, time_since_start / nb_results
-                )
+            txt += " ({} results, {:.2f} s/result).".format(
+                nb_results, time_since_start / nb_results
             )
         else:
             txt += "."
@@ -161,24 +157,34 @@ class TopologyBase(object):
         code = "digraph {\nrankdir = LR\ncompound=true\n"
         # waiting queues
         code += '\nnode [shape="record"]\n'
-
-        txt_queue = '"{name}"\t[label="<f0> {name}|' + "|".join(
-            ["<f{}>".format(i) for i in range(1, 5)]
-        ) + '"]\n'
+        txt_queue = (
+            '{name_quoted:40s} [label="<f0> {name}|'
+            + "|".join(["<f{}>".format(i) for i in range(1, 5)])
+            + '"]\n'
+        )
 
         for q in self.queues:
-            code += txt_queue.format(name=q.name)
+            name_quoted = '"{}"'.format(q.name)
+            code += txt_queue.format(name=q.name, name_quoted=name_quoted)
 
         # works and links
         code += '\nnode [shape="ellipse"]\n'
 
-        txt_work = '"{name}"\t[label="{name}"]'
+        txt_work = '{name_quoted:40s} [label="{name}"]\n'
         for q in self.queues:
             name_work = q.work_name or str(q.work)
-            code += txt_work.format(name=name_work)
-            code += '"{}" -> "{}"'.format(q.name, name_work)
+            name_quoted = '"{}"'.format(name_work)
+            code += txt_work.format(name=name_work, name_quoted=name_quoted)
+
+        code += "\n"
+
+        for q in self.queues:
+            name_work = q.work_name or str(q.work)
+            code += '{:40s} -> "{}"\n'.format('"' + q.name + '"', name_work)
             if hasattr(q.destination, "name"):
-                code += '"{}" -> "{}"'.format(name_work, q.destination.name)
+                code += '{:40s} -> "{}"\n'.format(
+                    '"' + name_work + '"', q.destination.name
+                )
 
         code += "}\n"
 

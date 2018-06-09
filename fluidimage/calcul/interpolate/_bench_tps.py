@@ -8,7 +8,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from fluidimage.calcul.interpolate.thin_plate_spline import (
-    compute_tps_coeff, ThinPlateSpline
+    compute_tps_coeff,
+    ThinPlateSpline,
 )
 
 

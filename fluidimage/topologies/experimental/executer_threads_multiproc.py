@@ -40,7 +40,6 @@ dt_update = 0.1
 
 
 class ExecuterThreadsMultiprocs(ExecuterBase):
-
     def __init__(self, topology):
         super().__init__(topology)
         raise NotImplementedError()
@@ -136,7 +135,9 @@ class ExecuterThreadsMultiprocs(ExecuterBase):
                         # print('check if worker has really started.' +
                         #       worker.key)
                         try:
-                            worker.really_started = worker.comm_started.get_nowait()
+                            worker.really_started = (
+                                worker.comm_started.get_nowait()
+                            )
                         except queue.Empty:
                             pass
                         if (
@@ -166,9 +167,8 @@ class ExecuterThreadsMultiprocs(ExecuterBase):
         self.thread_check_works_p = CheckWorksProcess()
         self.thread_check_works_p.start()
 
-        while (
-            not self._has_to_stop
-            and (any([not q.is_empty() for q in self.queues]) or len(workers) > 0)
+        while not self._has_to_stop and (
+            any([not q.is_empty() for q in self.queues]) or len(workers) > 0
         ):
 
             # debug
@@ -271,9 +271,8 @@ class ExecuterThreadsMultiprocs(ExecuterBase):
         idebug = 0
         # if the last queue is a WaitingQueueThreading (saving),
         # it is also emptied.
-        while (
-            len(workers) > 0
-            or (not q.is_empty() and isinstance(q, WaitingQueueThreading))
+        while len(workers) > 0 or (
+            not q.is_empty() and isinstance(q, WaitingQueueThreading)
         ):
 
             sleep(0.5)

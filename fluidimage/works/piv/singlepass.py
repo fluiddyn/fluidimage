@@ -33,7 +33,9 @@ import numpy as np
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
 
 from ...data_objects.piv import (
-    ArrayCouple, HeavyPIVResults, get_slices_from_strcrop
+    ArrayCouple,
+    HeavyPIVResults,
+    get_slices_from_strcrop,
 )
 from ...calcul.correl import correlation_classes
 from .. import BaseWork
@@ -180,9 +182,7 @@ class BaseWorkPIV(BaseWork):
             correls,
             errors,
             secondary_peaks,
-        ) = self._loop_vectors(
-            im0, im1
-        )
+        ) = self._loop_vectors(im0, im1)
 
         xs, ys = self._xyoriginalimage_from_xymasked(xs, ys)
 
@@ -404,8 +404,8 @@ class BaseWorkPIV(BaseWork):
     def _crop_im0(self, ixvec, iyvec, im):
         """Crop image 0."""
         subim = im[
-            iyvec - self._start_for_crop0[0]:iyvec + self._stop_for_crop0[0],
-            ixvec - self._start_for_crop0[1]:ixvec + self._stop_for_crop0[1],
+            iyvec - self._start_for_crop0[0] : iyvec + self._stop_for_crop0[0],
+            ixvec - self._start_for_crop0[1] : ixvec + self._stop_for_crop0[1],
         ]
         subim = np.array(subim, dtype=np.float32)
         return subim - subim.mean()
@@ -413,8 +413,8 @@ class BaseWorkPIV(BaseWork):
     def _crop_im1(self, ixvec, iyvec, im):
         """Crop image 1."""
         subim = im[
-            iyvec - self._start_for_crop1[0]:iyvec + self._stop_for_crop1[0],
-            ixvec - self._start_for_crop1[1]:ixvec + self._stop_for_crop1[1],
+            iyvec - self._start_for_crop1[0] : iyvec + self._stop_for_crop1[0],
+            ixvec - self._start_for_crop1[1] : ixvec + self._stop_for_crop1[1],
         ]
         subim = np.array(subim, dtype=np.float32)
         return subim - subim.mean()
@@ -562,6 +562,7 @@ class FirstWorkPIV(BaseWorkPIV):
       :func:`fluidimage.works.piv.multipass.WorkPIV.create_default_params`.
 
     """
+
     index_pass = 0
 
     @classmethod

@@ -7,7 +7,7 @@ import numpy as np
 
 
 def compute_subpix_2d_gaussian2(correl, ix, iy):
-    correl_crop = correl[iy - 1:iy + 2, ix - 1:ix + 2]
+    correl_crop = correl[iy - 1 : iy + 2, ix - 1 : ix + 2]
     # hoops, pythran crashes because of this line
     # correl_crop[correl_crop < 0] = 1e-6
 
@@ -32,7 +32,14 @@ def compute_subpix_2d_gaussian2(correl, ix, iy):
                 correl_crop[j, i]
             )
 
-    c00, c10, c01, c11, c20, c02 = c00 / 9, c10 / 6, c01 / 6, c11 / 4, c20 / 6, c02 / 6
+    c00, c10, c01, c11, c20, c02 = (
+        c00 / 9,
+        c10 / 6,
+        c01 / 6,
+        c11 / 4,
+        c20 / 6,
+        c02 / 6,
+    )
     deplx = (c11 * c01 - 2 * c10 * c02) / (4 * c20 * c02 - c11 ** 2)
     deply = (c11 * c10 - 2 * c01 * c20) / (4 * c20 * c02 - c11 ** 2)
     return deplx, deply, correl_crop

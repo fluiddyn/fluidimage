@@ -4,6 +4,7 @@
 
 """
 
+
 class PIVError(Exception):
     """No peak"""
 

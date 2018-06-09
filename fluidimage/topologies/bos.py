@@ -277,10 +277,8 @@ postfix : str
         except AttributeError:
             nb_results = None
         if nb_results is not None and nb_results > 0:
-            txt += (
-                " ({} bos fields, {:.2f} s/field).".format(
-                    nb_results, time_since_start / nb_results
-                )
+            txt += " ({} bos fields, {:.2f} s/field).".format(
+                nb_results, time_since_start / nb_results
             )
         else:
             txt += "."

@@ -102,7 +102,7 @@ def _compute_indices_max(correl, norm):
         error.results = (ix, iy, correl_max)
         raise error
 
-    if np.isnan(np.sum(correl[iy - 1:iy + 2:2, ix - 1:ix + 2:2])):
+    if np.isnan(np.sum(correl[iy - 1 : iy + 2 : 2, ix - 1 : ix + 2 : 2])):
         error = PIVError(explanation="Correlation peak touching nan.")
         error.results = (ix, iy, correl_max)
         raise error
@@ -112,6 +112,7 @@ def _compute_indices_max(correl, norm):
 
 class CorrelBase(object):
     """This class is meant to be subclassed, not instantiated directly."""
+
     _tag = "base"
 
     def __init__(
@@ -165,8 +166,8 @@ class CorrelBase(object):
             ix, iy, correl_max = e.results
             # second chance to find a better peak...
             correl[
-                iy - self.particle_radius:iy + self.particle_radius + 1,
-                ix - self.particle_radius:ix + self.particle_radius + 1,
+                iy - self.particle_radius : iy + self.particle_radius + 1,
+                ix - self.particle_radius : ix + self.particle_radius + 1,
             ] = np.nan
             try:
                 ix2, iy2, correl_max2 = _compute_indices_max(correl, norm)
@@ -186,8 +187,8 @@ class CorrelBase(object):
             other_peaks = []
             for ip in range(0, self.nb_peaks_to_search - 1):
                 correl[
-                    iy - self.particle_radius:iy + self.particle_radius + 1,
-                    ix - self.particle_radius:ix + self.particle_radius + 1,
+                    iy - self.particle_radius : iy + self.particle_radius + 1,
+                    ix - self.particle_radius : ix + self.particle_radius + 1,
                 ] = np.nan
                 try:
                     ix, iy, correl_max_other = _compute_indices_max(correl, norm)
@@ -215,6 +216,7 @@ class CorrelPythran(CorrelBase):
     """Correlation using pythran.
        Correlation class by hands with with numpy.
     """
+
     _tag = "pythran"
 
     def _init2(self):
@@ -223,10 +225,14 @@ class CorrelPythran(CorrelBase):
             if self.im0_shape == self.im1_shape:
                 displacement_max = min(self.im0_shape) // 2 - 1
             else:
-                displacement_max = min(
-                    self.im0_shape[0] - self.im1_shape[0],
-                    self.im0_shape[1] - self.im1_shape[1],
-                ) // 2 - 1
+                displacement_max = (
+                    min(
+                        self.im0_shape[0] - self.im1_shape[0],
+                        self.im0_shape[1] - self.im1_shape[1],
+                    )
+                    // 2
+                    - 1
+                )
         if displacement_max <= 0:
             raise ValueError(
                 "displacement_max <= 0 : problem with images shapes?"
@@ -247,6 +253,7 @@ class CorrelPyCuda(CorrelBase):
     """Correlation using pycuda.
        Correlation class by hands with with cuda.
     """
+
     _tag = "pycuda"
 
     def _init2(self):
@@ -255,10 +262,14 @@ class CorrelPyCuda(CorrelBase):
             if self.im0_shape == self.im1_shape:
                 displacement_max = min(self.im0_shape) // 2
             else:
-                displacement_max = min(
-                    self.im0_shape[0] - self.im1_shape[0],
-                    self.im0_shape[1] - self.im1_shape[1],
-                ) // 2 - 1
+                displacement_max = (
+                    min(
+                        self.im0_shape[0] - self.im1_shape[0],
+                        self.im0_shape[1] - self.im1_shape[1],
+                    )
+                    // 2
+                    - 1
+                )
         if displacement_max <= 0:
             raise ValueError(
                 "displacement_max <= 0 : problem with images shapes?"
@@ -278,6 +289,7 @@ class CorrelPyCuda(CorrelBase):
 
 class CorrelScipySignal(CorrelBase):
     """Correlations using scipy.signal.correlate2d"""
+
     _tag = "scipy.signal"
 
     def _init2(self):
@@ -321,6 +333,7 @@ class CorrelScipySignal(CorrelBase):
 
 class CorrelScipyNdimage(CorrelBase):
     """Correlations using scipy.ndimage.correlate."""
+
     _tag = "scipy.ndimage"
 
     def _init2(self):
@@ -336,6 +349,7 @@ class CorrelScipyNdimage(CorrelBase):
 
 class CorrelTheano(CorrelBase):
     """Correlations using theano.tensor.nnet.conv2d"""
+
     _tag = "theano"
 
     def _init2(self):
@@ -352,9 +366,11 @@ class CorrelTheano(CorrelBase):
             if im0_shape == im1_shape:
                 displacement_max = max(im0_shape) // 2
             else:
-                displacement_max = max(
-                    im0_shape[0] - im1_shape[0], im0_shape[1] - im1_shape[1]
-                ) // 2 - 1
+                displacement_max = (
+                    max(im0_shape[0] - im1_shape[0], im0_shape[1] - im1_shape[1])
+                    // 2
+                    - 1
+                )
         if displacement_max <= 0:
             raise ValueError("displacement_max <= 0 : problem with images shapes")
 
@@ -408,9 +424,8 @@ class CorrelTheano(CorrelBase):
                 border_mode="valid",
             )
         else:
-            if (
-                (self.ny0 <= 2 * self.displacement_max + self.ny1)
-                & (self.nx0 <= 2 * self.displacement_max + self.nx1)
+            if (self.ny0 <= 2 * self.displacement_max + self.ny1) & (
+                self.nx0 <= 2 * self.displacement_max + self.nx1
             ):
                 correl_theano = theano.tensor.nnet.conv2d(
                     im00,
@@ -419,14 +434,13 @@ class CorrelTheano(CorrelBase):
                         1,
                         1,
                         2 * displacement_max + self.ny1,
-                        2 * displacement_max + self.nx1
+                        2 * displacement_max + self.nx1,
                     ),
                     filter_shape=(1, 1) + im1_shape,
                     border_mode="valid",
                 )
-            elif (
-                (self.ny0 > 2 * self.displacement_max + self.ny1)
-                & (self.nx0 > 2 * self.displacement_max + self.nx1)
+            elif (self.ny0 > 2 * self.displacement_max + self.ny1) & (
+                self.nx0 > 2 * self.displacement_max + self.nx1
             ):
                 correl_theano = theano.tensor.nnet.conv2d(
                     im00,
@@ -456,8 +470,8 @@ class CorrelTheano(CorrelBase):
                 (2 * self.ny - 1, 2 * self.nx - 1), dtype=np.float32
             )
             im0b[
-                self.ny // 2 - 1:self.ny + self.ny // 2 - 1,
-                self.nx // 2 - 1:self.nx + self.nx // 2 - 1,
+                self.ny // 2 - 1 : self.ny + self.ny // 2 - 1,
+                self.nx // 2 - 1 : self.nx + self.nx // 2 - 1,
             ] = im0
             # Correlation with periodic condition (==FFT version) :
             # im0 = np.tile(im0, (3, 3))
@@ -465,30 +479,28 @@ class CorrelTheano(CorrelBase):
             #           self.ny//2+1:2*self.ny+self.ny//2]
             im0 = im0b.reshape(1, 1, 2 * self.ny - 1, 2 * self.nx - 1)
         elif self.mode == "disp":
-            if (
-                (self.ny0 < 2 * self.displacement_max + self.ny1)
-                & (self.nx0 < 2 * self.displacement_max + self.nx1)
+            if (self.ny0 < 2 * self.displacement_max + self.ny1) & (
+                self.nx0 < 2 * self.displacement_max + self.nx1
             ):
 
                 im0b = np.zeros(
                     (
                         2 * self.displacement_max + self.ny1,
-                        2 * self.displacement_max + self.nx1
+                        2 * self.displacement_max + self.nx1,
                     ),
                     dtype=np.float32,
                 )
                 i00 = (2 * self.displacement_max + self.nx1 - self.nx0) // 2
                 j00 = (2 * self.displacement_max + self.ny1 - self.ny0) // 2
-                im0b[j00:self.ny0 + j00, i00:self.nx0 + i00] = im0
+                im0b[j00 : self.ny0 + j00, i00 : self.nx0 + i00] = im0
                 im0 = im0b.reshape(
                     1,
                     1,
                     2 * self.displacement_max + self.ny1,
-                    2 * self.displacement_max + self.nx1
+                    2 * self.displacement_max + self.nx1,
                 )
-            elif (
-                (self.ny0 > 2 * self.displacement_max + self.ny1)
-                & (self.nx0 > 2 * self.displacement_max + self.nx1)
+            elif (self.ny0 > 2 * self.displacement_max + self.ny1) & (
+                self.nx0 > 2 * self.displacement_max + self.nx1
             ):
                 im0 = im0.reshape(1, 1, self.ny0, self.nx0)
         else:
@@ -507,8 +519,8 @@ class CorrelTheano(CorrelBase):
                 0,
                 0,
                 0,
-                j00:j00 + 2 * self.displacement_max + 1,
-                i00:i00 + 2 * self.displacement_max + 1
+                j00 : j00 + 2 * self.displacement_max + 1,
+                i00 : i00 + 2 * self.displacement_max + 1,
             ]
         else:
             correl = correl.reshape(self.ny, self.nx)
@@ -518,6 +530,7 @@ class CorrelTheano(CorrelBase):
 
 class CorrelFFTBase(CorrelBase):
     """Correlations using fft."""
+
     _tag = "fft.base"
 
     def _init2(self):
@@ -560,6 +573,7 @@ class CorrelFFTBase(CorrelBase):
 
 class CorrelFFTNumpy(CorrelFFTBase):
     """Correlations using numpy.fft."""
+
     _tag = "np.fft"
 
     def __call__(self, im0, im1):
@@ -572,6 +586,7 @@ class CorrelFFTNumpy(CorrelFFTBase):
 
 class CorrelFFTW(CorrelFFTBase):
     """Correlations using fluidimage.fft.FFTW2DReal2Complex"""
+
     FFTClass = FFTW2DReal2Complex
     _tag = "fftw"
 
@@ -610,6 +625,7 @@ class CorrelCuFFT(CorrelFFTBase):
 
 class CorrelSKCuFFT(CorrelFFTBase):
     """Correlations using fluidimage.fft.FFTW2DReal2Complex"""
+
     FFTClass = SKCUFFT2DReal2Complex
     _tag = "skcufft"
 

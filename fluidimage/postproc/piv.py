@@ -362,8 +362,8 @@ class PIV2d(object):
         ret = deepcopy(self)
 
         if phys:
-            indy = ((ret.y >= start0) & (ret.y <= stop0))
-            indx = ((ret.x >= start1) & (ret.x <= stop1))
+            indy = (ret.y >= start0) & (ret.y <= stop0)
+            indx = (ret.x >= start1) & (ret.x <= stop1)
             start0 = np.argwhere(ret.y == ret.y[indy].min())[0][0]
             stop0 = np.argwhere(ret.y == ret.y[indy].max())[0][0] + 1
             start1 = np.argwhere(ret.x == ret.x[indx].min())[0][0]
@@ -382,9 +382,7 @@ class PIV2d(object):
         ret.history.append(
             (
                 "extract(start0={}, stop0={}, " "start1={}, stop1={}, phys={})"
-            ).format(
-                start0, stop0, start1, stop1, phys
-            )
+            ).format(start0, stop0, start1, stop1, phys)
         )
 
         return ret
@@ -485,9 +483,10 @@ class ArrayPIV(object):
         self._list.__detitem__(key)
 
     def __repr__(self):
-        return "ArrayPIV containing {} fields:\n".format(
-            len(self)
-        ) + self._list.__repr__()
+        return (
+            "ArrayPIV containing {} fields:\n".format(len(self))
+            + self._list.__repr__()
+        )
 
     def __len__(self):
         return self._list.__len__()

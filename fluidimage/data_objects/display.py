@@ -13,7 +13,6 @@ if is_run_from_ipython():
 
 
 class DisplayPIV(object):
-
     def __init__(
         self,
         im0,
@@ -70,7 +69,7 @@ class DisplayPIV(object):
                 origin="upper",
                 extent=[0, im0.shape[1], im0.shape[0], 0],
                 vmin=0,
-                vmax=0.99 * im0.max()
+                vmax=0.99 * im0.max(),
             )
 
             self.image1 = ax1.imshow(
@@ -80,7 +79,7 @@ class DisplayPIV(object):
                 origin="upper",
                 extent=[0, im0.shape[1], im0.shape[0], 0],
                 vmin=0,
-                vmax=0.99 * im1.max()
+                vmax=0.99 * im1.max(),
             )
             self.image1.set_visible(False)
         else:
@@ -296,9 +295,7 @@ class DisplayPIV(object):
         correl_max = result.correls_max[ind_all]
         text = (
             "vector at ix = {} : iy = {} ; " "U = {:.3f} ; V = {:.3f}, C = {:.3f}"
-        ).format(
-            ix, iy, deltax, deltay, correl_max
-        )
+        ).format(ix, iy, deltax, deltay, correl_max)
 
         if ind_all in self.piv_results.errors:
             text += ", error: " + self.piv_results.errors[ind_all]
@@ -396,7 +393,6 @@ class DisplayPIV(object):
 
 
 class DisplayPreProc(object):
-
     def __init__(self, im0, im1, im0p, im1p, pourcent_histo=99, hist=False):
 
         fig = plt.figure()
