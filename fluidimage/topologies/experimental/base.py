@@ -10,19 +10,37 @@
 import signal
 import sys
 import os
+from warnings import warn
 
 from fluiddyn import time_as_str
 from fluiddyn.io.tee import MultiFile
 
-from ..util.util import logger
-from .. import config_logging
+from ...util.util import logger
+from ... import config_logging
 from .nb_workers import nb_max_workers as _nb_max_workers, nb_cores
 
 _stdout_at_import = sys.stdout
 _stderr_at_import = sys.stderr
 
 
-class TopologyBase(object):
+class MyObj:
+    def __init__(self, **kwargs):
+        self._kwargs = kwargs
+        self.__dict__.update(kwargs)
+
+    def __repr__(self):
+        return super().__repr__() + "\n" + self._kwargs.__repr__()
+
+
+class Queue(MyObj):
+    """Represent a queue"""
+
+
+class Work(MyObj):
+    """Represent a work"""
+
+
+class TopologyBase:
     """Base class for topologies of processing.
 
     Parameters
@@ -69,6 +87,9 @@ class TopologyBase(object):
 
             config_logging(logging_level, file=sys.stdout)
 
+        self.queues = []
+        self.works = []
+
         if nb_max_workers is None:
             nb_max_workers = _nb_max_workers
 
@@ -100,6 +121,35 @@ class TopologyBase(object):
 
             signal.signal(12, handler_signals)
 
+    def add_queue(self, name: str, kind: str = None):
+        """Create a new queue."""
+        queue = Queue(name=name, kind=kind)
+        self.queues.append(queue)
+        return queue
+
+    def add_work(
+        self,
+        name: str,
+        func_or_cls=None,
+        params_cls=None,
+        input_queue=None,
+        output_queue=None,
+        kind: str = None,
+    ):
+        """Create a new work relating queues."""
+        if func_or_cls is None:
+            warn(f'func_or_cls is None for work "{name}"')
+
+        work = Work(
+            name=name,
+            input_queue=input_queue,
+            func_or_cls=func_or_cls,
+            params_cls=params_cls,
+            output_queue=output_queue,
+            kind=kind,
+        )
+        self.works.append(work)
+
     def compute(self, sequential=None, has_to_exit=True, executer=None):
         """Compute (run all works to be done).
 
@@ -119,8 +169,8 @@ class TopologyBase(object):
         """
         if executer is None:
             raise NotImplementedError
-        else:
-            raise NotImplementedError
+
+        raise NotImplementedError
 
         self.executer = executer
 
@@ -154,6 +204,9 @@ class TopologyBase(object):
     def make_code_graphviz(self, name_file):
         """Generate the graphviz / dot code."""
 
+        if name_file.endswith(".dot"):
+            name_file = name_file[:-4]
+
         code = "digraph {\nrankdir = LR\ncompound=true\n"
         # waiting queues
         code += '\nnode [shape="record"]\n'
@@ -170,29 +223,81 @@ class TopologyBase(object):
         # works and links
         code += '\nnode [shape="ellipse"]\n'
 
-        txt_work = '{name_quoted:40s} [label="{name}"]\n'
-        for q in self.queues:
-            name_work = q.work_name or str(q.work)
-            name_quoted = '"{}"'.format(name_work)
-            code += txt_work.format(name=name_work, name_quoted=name_quoted)
+        txt_work = '{:40s} [label="{}"]\n'
+        for work in self.works:
+            name_work = work.name
+            code += txt_work.format('"{}"'.format(name_work), name_work)
 
         code += "\n"
 
-        for q in self.queues:
-            name_work = q.work_name or str(q.work)
-            code += '{:40s} -> "{}"\n'.format('"' + q.name + '"', name_work)
-            if hasattr(q.destination, "name"):
-                code += '{:40s} -> "{}"\n'.format(
-                    '"' + name_work + '"', q.destination.name
-                )
+        str_link = '{:40s} -> "{}"\n'
+
+        for work in self.works:
+            name_work = work.name
+
+            if work.input_queue is not None:
+                queues = work.input_queue
+                if isinstance(queues, Queue):
+                    queues = (queues,)
+                for queue in queues:
+                    code += str_link.format('"' + queue.name + '"', name_work)
+            if work.output_queue is not None:
+                queues = work.output_queue
+                if isinstance(queues, Queue):
+                    queues = (queues,)
+                for queue in queues:
+                    code += str_link.format('"' + name_work + '"', queue.name)
 
         code += "}\n"
 
-        with open(name_file, "w") as f:
-            f.write(code)
+        with open(name_file + ".dot", "w") as file:
+            file.write(code)
 
         print(
             "A graph can be produced with one of these commands:\n"
-            "dot topo.dot -Tpng -o topo.png\n"
-            "dot topo.dot -Tx11"
+            f"dot {name_file}.dot -Tpng -o {name_file}.png\n"
+            f"dot {name_file}.dot -Tx11"
         )
+
+
+if __name__ == "__main__":
+    topo = TopologyBase()
+
+    queue_names_piv = topo.add_queue("names piv")
+    queue_names_couples = topo.add_queue("names couples")
+    queue_paths = topo.add_queue("paths")
+    queue_arrays = topo.add_queue("arrays")
+    queue_couples = topo.add_queue("couples of arrays")
+    queue_piv = topo.add_queue("piv")
+
+    topo.add_work(
+        "fill names piv",
+        output_queue=queue_names_piv,
+        kind=("global", "one shot"),
+    )
+    topo.add_work(
+        "fill (names couples, paths)",
+        input_queue=queue_names_piv,
+        output_queue=(queue_names_couples, queue_paths),
+        kind=("global", "one shot"),
+    )
+    topo.add_work(
+        "path -> arrays",
+        input_queue=queue_paths,
+        output_queue=queue_arrays,
+        kind="io",
+    )
+    topo.add_work(
+        "make couples arrays",
+        input_queue=(queue_arrays, queue_names_couples),
+        output_queue=queue_couples,
+        kind="global",
+    )
+
+    topo.add_work(
+        "couples -> piv", input_queue=queue_couples, output_queue=queue_piv
+    )
+
+    topo.add_work("save piv", input_queue=queue_piv, kind="io")
+
+    topo.make_code_graphviz("tmp.dot")
