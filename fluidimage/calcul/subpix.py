@@ -22,6 +22,7 @@ class SubPix(object):
        - evaluate subpix methods.
 
     """
+
     methods = ["2d_gaussian", "2d_gaussian2", "centroid", "no_subpix"]
 
     def __init__(self, method="centroid", nsubpix=None):
@@ -108,7 +109,7 @@ class SubPix(object):
         if method == "2d_gaussian":
 
             correl_crop = correl[
-                iy - nsubpix:iy + nsubpix + 1, ix - nsubpix:ix + nsubpix + 1
+                iy - nsubpix : iy + nsubpix + 1, ix - nsubpix : ix + nsubpix + 1
             ]
             ny, nx = correl_crop.shape
 
@@ -141,7 +142,7 @@ class SubPix(object):
         elif method == "centroid":
 
             correl_crop = correl[
-                iy - nsubpix:iy + nsubpix + 1, ix - nsubpix:ix + nsubpix + 1
+                iy - nsubpix : iy + nsubpix + 1, ix - nsubpix : ix + nsubpix + 1
             ]
             ny, nx = correl_crop.shape
 
@@ -160,9 +161,7 @@ class SubPix(object):
                     " deplx**2 + deply**2 > (0.5+nsubpix)**2\n"
                     "method: " + method + "\ndeplx, deply = ({}, {})\n"
                     "correl_subpix =\n{}"
-                ).format(
-                    deplx, deply, correl_crop
-                )
+                ).format(deplx, deply, correl_crop)
             )
             raise PIVError(
                 explanation="wrong subpix", result_compute_subpix=(iy, ix)

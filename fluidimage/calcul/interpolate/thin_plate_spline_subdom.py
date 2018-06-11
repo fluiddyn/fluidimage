@@ -103,9 +103,7 @@ class ThinPlateSplineSubdom(object):
                         & (xs < x_dom[i + 1] + buffer_area_x[i + 1])
                         & (ys >= y_dom[j] - buffer_area_y[j])
                         & (ys < y_dom[j + 1] + buffer_area_y[j + 1])
-                    )[
-                        0
-                    ]
+                    )[0]
                 )
 
                 i_subdom += 1
@@ -156,9 +154,7 @@ class ThinPlateSplineSubdom(object):
                         & (npos[1] < x_dom[i + 1] + buffer_area_x[i + 1])
                         & (npos[0] >= y_dom[j] - buffer_area_y[j])
                         & (npos[0] < y_dom[j + 1] + buffer_area_y[j + 1])
-                    )[
-                        0
-                    ]
+                    )[0]
                 )
 
                 i_subdom += 1

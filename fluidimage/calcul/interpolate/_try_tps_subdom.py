@@ -5,7 +5,9 @@ from numpy import pi
 
 import matplotlib.pyplot as plt
 
-from fluidimage.calcul.interpolate.thin_plate_spline_subdom import ThinPlateSplineSubdom
+from fluidimage.calcul.interpolate.thin_plate_spline_subdom import (
+    ThinPlateSplineSubdom
+)
 
 
 def myplot(i, x, y, U, title=None):

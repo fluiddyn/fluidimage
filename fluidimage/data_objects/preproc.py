@@ -80,7 +80,6 @@ def get_name_preproc(serie, name_files, ind_serie, nb_series, out_format):
 
 
 class ArraySerie(ArrayCouple):
-
     def __init__(
         self,
         names=None,
@@ -131,7 +130,6 @@ class ArraySerie(ArrayCouple):
 
 
 class PreprocResults(LightPIVResults):
-
     def __init__(self, params=None, str_path=None, hdf5_object=None):
 
         self._keys_to_be_saved = ["data"]
@@ -160,7 +158,8 @@ class PreprocResults(LightPIVResults):
                 imsave(path_file, v, as_int=True)
             elif out_format == "h5":
                 attrs = {
-                    "class_name": "PreprocResults", "module_name": self.__module__
+                    "class_name": "PreprocResults",
+                    "module_name": self.__module__,
                 }
                 imsave_h5(path_file, v, self.params, attrs, as_int=True)
             else:

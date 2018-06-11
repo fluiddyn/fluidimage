@@ -31,7 +31,7 @@ from fluiddyn.util.paramcontainer import ParamContainer, tidy_container
 from .util import get_number_from_string2, get_base_from_normal_vector
 
 
-class Interpolent():
+class Interpolent:
     pass
 
 
@@ -66,7 +66,7 @@ def get_points(points_file):
     return results
 
 
-class CalibDirect():
+class CalibDirect:
     """Class for direct Calibration
     This calibration determine the equations of optical paths for "each" pixels
 
@@ -285,9 +285,7 @@ class CalibDirect():
         """
         displacements = self.intersect_with_plane(
             indx + dx / 2., indy + dy / 2., a, b, c, d
-        ) - self.intersect_with_plane(
-            indx - dx / 2., indy - dy / 2., a, b, c, d
-        )
+        ) - self.intersect_with_plane(indx - dx / 2., indy - dy / 2., a, b, c, d)
         return displacements
 
     def get_base_camera_plane(self, indx=None, indy=None):
@@ -428,7 +426,7 @@ class CalibDirect():
         plt.show()
 
 
-class DirectStereoReconstruction():
+class DirectStereoReconstruction:
     """Class to get stereo reconstruction with direct Calibration
     This calibration determine the equations of optical paths for "each" pixels
 
@@ -569,15 +567,17 @@ class DirectStereoReconstruction():
         """
         # if not hasattr(self, 'grid_x'):
         #     self.find_common_grid(X0, X1, a, b, c, d)
-        ind0 = (~np.isnan(X0[:, 0])) * (~np.isnan(X0[:, 1])) * (
-            ~np.isnan(d0cam[:, 0])
-        ) * (
-            ~np.isnan(d0cam[:, 1])
+        ind0 = (
+            (~np.isnan(X0[:, 0]))
+            * (~np.isnan(X0[:, 1]))
+            * (~np.isnan(d0cam[:, 0]))
+            * (~np.isnan(d0cam[:, 1]))
         )
-        ind1 = (~np.isnan(X1[:, 0])) * (~np.isnan(X1[:, 1])) * (
-            ~np.isnan(d1cam[:, 0])
-        ) * (
-            ~np.isnan(d1cam[:, 1])
+        ind1 = (
+            (~np.isnan(X1[:, 0]))
+            * (~np.isnan(X1[:, 1]))
+            * (~np.isnan(d1cam[:, 0]))
+            * (~np.isnan(d1cam[:, 1]))
         )
 
         d0xcam = griddata(

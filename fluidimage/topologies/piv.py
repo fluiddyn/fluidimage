@@ -234,7 +234,10 @@ postfix : str
             ]
         else:
             waiting_queues = [
-                self.wq0, self.wq_images, self.wq_couples, self.wq_piv
+                self.wq0,
+                self.wq_images,
+                self.wq_couples,
+                self.wq_piv,
             ]
 
         super(TopologyPIV, self).__init__(
@@ -316,10 +319,8 @@ postfix : str
         except AttributeError:
             nb_results = None
         if nb_results is not None and nb_results > 0:
-            txt += (
-                " ({} piv fields, {:.2f} s/field).".format(
-                    nb_results, time_since_start / nb_results
-                )
+            txt += " ({} piv fields, {:.2f} s/field).".format(
+                nb_results, time_since_start / nb_results
             )
         else:
             txt += "."

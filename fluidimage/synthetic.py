@@ -54,6 +54,6 @@ def make_synthetic_images(
 
         ixfirst = (nx - nx1) // 2
         iyfirst = (ny - ny1) // 2
-        im1 = im1[iyfirst:iyfirst + ny1, ixfirst:ixfirst + nx1]
+        im1 = im1[iyfirst : iyfirst + ny1, ixfirst : ixfirst + nx1]
 
     return im0, im1

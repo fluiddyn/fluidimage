@@ -64,9 +64,8 @@ class LogTopology(object):
                     self.nb_cpus_allowed = nb_cpus = int(line.split()[2])
                     self._title += ", nb_cpus_allowed = {}".format(nb_cpus)
 
-                if (
-                    nb_max_workers is None
-                    and line.startswith("nb_max_workers = ")
+                if nb_max_workers is None and line.startswith(
+                    "nb_max_workers = "
                 ):
                     self.nb_max_workers = nb_max_workers = int(line.split()[2])
                     self._title += ", nb_max_workers = {}".format(nb_max_workers)
@@ -96,9 +95,7 @@ class LogTopology(object):
                         date = words[0][:-1]
                         t = time.mktime(
                             time.strptime(date[:-3], "%Y-%m-%d_%H-%M-%S")
-                        ) + float(
-                            date[-3:]
-                        )
+                        ) + float(date[-3:])
 
                     if "start compute. mem usage:" in line:
                         self.date_start = date

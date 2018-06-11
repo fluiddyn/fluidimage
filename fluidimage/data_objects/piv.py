@@ -68,9 +68,9 @@ def get_name_piv(serie, prefix="piv"):
 
 
 def get_name_bos(name, serie):
-    name = name[len(serie.base_name):]
+    name = name[len(serie.base_name) :]
     if serie.extension_file is not None:
-        name = name[:-len(serie.extension_file) - 1]
+        name = name[: -len(serie.extension_file) - 1]
     return "bos" + name + ".h5"
 
 
@@ -481,6 +481,7 @@ class HeavyPIVResults(DataObject):
 
         """
         from ..postproc.piv import get_grid_pixel
+
         return get_grid_pixel(self.params, self.couple.shape_images, index_pass)
 
 
@@ -616,9 +617,7 @@ class MultipassPIVResults(DataObject):
                     f.dimensions[str_nb_subdom] = np.shape(ir.deltaxs_tps)[0]
                     f.dimensions["nb_tps{}".format(iuvmat)] = np.shape(
                         ir.deltaxs_tps
-                    )[
-                        1
-                    ]
+                    )[1]
                     tmp[inds] = ir.deltaxs_smooth
                     f.create_variable(
                         "Civ{}_U_smooth".format(iuvmat), (str_nb_vec,), data=tmp
@@ -724,7 +723,10 @@ class MultipassPIVResults(DataObject):
 
 class LightPIVResults(DataObject):
     _keys_to_be_saved = [
-        "ixvecs_final", "iyvecs_final", "deltaxs_final", "deltays_final"
+        "ixvecs_final",
+        "iyvecs_final",
+        "deltaxs_final",
+        "deltays_final",
     ]
 
     def __init__(
@@ -778,9 +780,7 @@ class LightPIVResults(DataObject):
             *[inds[1] - 1 for inds in serie.get_index_slices()]
         )
 
-        name = (
-            "piv_" + serie.base_name + str_ind0 + "-" + str_ind1 + "_light.h5"
-        )
+        name = "piv_" + serie.base_name + str_ind0 + "-" + str_ind1 + "_light.h5"
         return name
 
     def save(self, path=None, out_format="uvmat", kind=None):

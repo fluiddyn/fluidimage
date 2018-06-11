@@ -19,7 +19,9 @@ from copy import deepcopy, copy
 
 from ...util.util import logger
 from .base import (
-    WaitingQueueLoadImage, WaitingQueueBase, WaitingQueueMultiprocessing
+    WaitingQueueLoadImage,
+    WaitingQueueBase,
+    WaitingQueueMultiprocessing,
 )
 
 from ...data_objects.preproc import ArraySerie
@@ -40,7 +42,7 @@ class WaitingQueueLoadImageSeries(WaitingQueueLoadImage):
 
         cond_nb_items = len(self.destination) >= buffer_limit
 
-        return (cond_instance and cond_nb_items)
+        return cond_instance and cond_nb_items
 
     def add_name_files(self, names):
         self.update(
@@ -104,9 +106,9 @@ class WaitingQueueMakeSerie(WaitingQueueBase):
 
         cond_instance = isinstance(self.destination, WaitingQueueMultiprocessing)
 
-        cond_nb_items = (len(self.destination) >= self.topology.nb_items_lim)
+        cond_nb_items = len(self.destination) >= self.topology.nb_items_lim
 
-        return (cond_instance and cond_nb_items)
+        return cond_instance and cond_nb_items
 
     def check_and_act(self, sequential=None):
 

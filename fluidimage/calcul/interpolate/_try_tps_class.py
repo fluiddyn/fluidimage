@@ -11,7 +11,8 @@ import matplotlib.pyplot as plt
 plt.ion()
 
 from fluidimage.calcul.interpolate.thin_plate_spline import (
-    compute_tps_coeff, ThinPlateSpline
+    compute_tps_coeff,
+    ThinPlateSpline,
 )
 
 n0 = 100

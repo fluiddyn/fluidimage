@@ -54,7 +54,6 @@ except ImportError:
 
 
 class TestCorrel(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         nx = 32
@@ -129,7 +128,6 @@ for k, cls in classes.items():
 
 
 class TestCorrel1(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         nx = 32
@@ -196,7 +194,6 @@ for k, cls in classes.items():
 
 
 class TestCorrel2(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         nx0 = 48

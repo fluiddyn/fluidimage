@@ -279,7 +279,9 @@ class TopologyBase(object):
                         # print('check if worker has really started.' +
                         #       worker.key)
                         try:
-                            worker.really_started = worker.comm_started.get_nowait()
+                            worker.really_started = (
+                                worker.comm_started.get_nowait()
+                            )
                         except queue.Empty:
                             pass
                         if (
@@ -309,9 +311,8 @@ class TopologyBase(object):
         self.thread_check_works_p = CheckWorksProcess()
         self.thread_check_works_p.start()
 
-        while (
-            not self._has_to_stop
-            and (any([not q.is_empty() for q in self.queues]) or len(workers) > 0)
+        while not self._has_to_stop and (
+            any([not q.is_empty() for q in self.queues]) or len(workers) > 0
         ):
 
             # debug
@@ -421,9 +422,8 @@ class TopologyBase(object):
         idebug = 0
         # if the last queue is a WaitingQueueThreading (saving),
         # it is also emptied.
-        while (
-            len(workers) > 0
-            or (not q.is_empty() and isinstance(q, WaitingQueueThreading))
+        while len(workers) > 0 or (
+            not q.is_empty() and isinstance(q, WaitingQueueThreading)
         ):
 
             sleep(0.5)
@@ -453,10 +453,8 @@ class TopologyBase(object):
         except AttributeError:
             nb_results = None
         if nb_results is not None and nb_results > 0:
-            txt += (
-                " ({} results, {:.2f} s/result).".format(
-                    nb_results, time_since_start / nb_results
-                )
+            txt += " ({} results, {:.2f} s/result).".format(
+                nb_results, time_since_start / nb_results
             )
         else:
             txt += "."
@@ -472,24 +470,34 @@ class TopologyBase(object):
         code = "digraph {\nrankdir = LR\ncompound=true\n"
         # waiting queues
         code += '\nnode [shape="record"]\n'
-
-        txt_queue = '"{name}"\t[label="<f0> {name}|' + "|".join(
-            ["<f{}>".format(i) for i in range(1, 5)]
-        ) + '"]\n'
+        txt_queue = (
+            '{name_quoted:40s} [label="<f0> {name}|'
+            + "|".join(["<f{}>".format(i) for i in range(1, 5)])
+            + '"]\n'
+        )
 
         for q in self.queues:
-            code += txt_queue.format(name=q.name)
+            name_quoted = '"{}"'.format(q.name)
+            code += txt_queue.format(name=q.name, name_quoted=name_quoted)
 
         # works and links
         code += '\nnode [shape="ellipse"]\n'
 
-        txt_work = '"{name}"\t[label="{name}"]'
+        txt_work = '{name_quoted:40s} [label="{name}"]\n'
         for q in self.queues:
             name_work = q.work_name or str(q.work)
-            code += txt_work.format(name=name_work)
-            code += '"{}" -> "{}"'.format(q.name, name_work)
+            name_quoted = '"{}"'.format(name_work)
+            code += txt_work.format(name=name_work, name_quoted=name_quoted)
+
+        code += "\n"
+
+        for q in self.queues:
+            name_work = q.work_name or str(q.work)
+            code += '{:40s} -> "{}"\n'.format('"' + q.name + '"', name_work)
             if hasattr(q.destination, "name"):
-                code += '"{}" -> "{}"'.format(name_work, q.destination.name)
+                code += '{:40s} -> "{}"\n'.format(
+                    '"' + name_work + '"', q.destination.name
+                )
 
         code += "}\n"
 

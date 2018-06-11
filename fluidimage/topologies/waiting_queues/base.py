@@ -53,7 +53,6 @@ from ...util.util import logger, log_memory_usage, cstring
 
 
 class WaitingQueueBase(dict):
-
     def __init__(
         self, name, work, destination=None, work_name=None, topology=None
     ):
@@ -327,7 +326,6 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
 
 
 class ThreadWork(threading.Thread):
-
     def __init__(self, *args, **kwargs):
         self.exitcode = None
         super(ThreadWork, self).__init__(*args, **kwargs)
@@ -355,7 +353,10 @@ class WaitingQueueThreading(WaitingQueueMultiprocessing):
         return ThreadWork(*args, **kwargs)
 
     def enough_workers(self):
-        return self._nb_workers >= self.nb_max_workers or self.topology.nb_workers_io >= self.topology.nb_max_workers_io
+        return (
+            self._nb_workers >= self.nb_max_workers
+            or self.topology.nb_workers_io >= self.topology.nb_max_workers_io
+        )
 
 
 class WaitingQueueLoadFile(WaitingQueueThreading):
@@ -373,7 +374,6 @@ class WaitingQueueLoadFile(WaitingQueueThreading):
 
 
 class WaitingQueueLoadImage(WaitingQueueLoadFile):
-
     def __init__(self, *args, **kwargs):
         super(WaitingQueueLoadImage, self).__init__(
             "image file", load_image, *args, **kwargs
@@ -387,7 +387,6 @@ def load_image_path(path):
 
 
 class WaitingQueueLoadImagePath(WaitingQueueLoadFile):
-
     def __init__(self, *args, **kwargs):
         super(WaitingQueueLoadImagePath, self).__init__(
             "image file", load_image_path, *args, **kwargs
@@ -396,7 +395,6 @@ class WaitingQueueLoadImagePath(WaitingQueueLoadFile):
 
 
 class WaitingQueueMakeCouple(WaitingQueueBase):
-
     def __init__(
         self, name, destination, work_name="make couples", topology=None
     ):
@@ -455,9 +453,9 @@ class WaitingQueueMakeCouple(WaitingQueueBase):
                         self._keys.remove(k0)
                     else:
                         v0 = self[k0]
-                        self.nb_couples_to_create[k0] = self.nb_couples_to_create[
-                            k0
-                        ] - 1
+                        self.nb_couples_to_create[k0] = (
+                            self.nb_couples_to_create[k0] - 1
+                        )
 
                     if self.nb_couples_to_create[k1] == 1:
                         v1 = self.pop(k1)
@@ -465,9 +463,9 @@ class WaitingQueueMakeCouple(WaitingQueueBase):
                         self._keys.remove(k1)
                     else:
                         v1 = self[k1]
-                        self.nb_couples_to_create[k1] = self.nb_couples_to_create[
-                            k1
-                        ] - 1
+                        self.nb_couples_to_create[k1] = (
+                            self.nb_couples_to_create[k1] - 1
+                        )
 
                     self.destination[newk] = ArrayCouple(
                         (k0, k1),
@@ -478,7 +476,6 @@ class WaitingQueueMakeCouple(WaitingQueueBase):
 
 
 class WaitingQueueMakeCoupleBOS(WaitingQueueBase):
-
     def __init__(
         self,
         name,

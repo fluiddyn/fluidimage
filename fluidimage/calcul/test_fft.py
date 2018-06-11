@@ -109,7 +109,7 @@ class TestFFTW2DReal2Complex(unittest.TestCase):
 
             op = FFTW2DReal2Complex(nx, ny)
 
-            func = (np.random.random(op.shapeX))
+            func = np.random.random(op.shapeX)
 
             func = np.array(func, dtype=op.type_real)
 

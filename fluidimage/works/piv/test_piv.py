@@ -10,7 +10,6 @@ here = os.path.abspath(os.path.dirname(__file__))
 
 
 class TestPIV(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         series = SeriesOfArrays(

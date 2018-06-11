@@ -82,7 +82,6 @@ def tidy_uvmat_instructions(params):
 
 
 class ActionBase(object):
-
     def __init__(self, instructions):
         self.instructions = instructions
 
@@ -150,7 +149,9 @@ def params_from_uvmat_xml(instructions):
     params.piv0.shape_crop_im0 = n0
 
     if hasattr(instructions.action_input, "patch2"):
-        params.multipass.subdom_size = instructions.action_input.patch2.sub_domain_size
+        params.multipass.subdom_size = (
+            instructions.action_input.patch2.sub_domain_size
+        )
     else:
         params.multipass.use_tps = False
 

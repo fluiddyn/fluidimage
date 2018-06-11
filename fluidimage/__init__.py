@@ -13,7 +13,11 @@ from fluiddyn.util.paramcontainer import ParamContainer
 from fluiddyn.util import create_object_from_file, get_memory_usage
 from fluiddyn.util import config_logging as _cl_fluiddyn
 from .util.util import (
-    imread, imsave, logger, log_memory_usage, print_memory_usage
+    imread,
+    imsave,
+    logger,
+    log_memory_usage,
+    print_memory_usage,
 )
 from fluidimage.topologies.log import LogTopology
 

@@ -87,7 +87,7 @@ path : str, {''}
         if not ind:
             name_files = self.serie_arrays.get_name_files()[:nimages]
         else:
-            name_files = self.serie_arrays.get_name_files()[ind:ind + nimages]
+            name_files = self.serie_arrays.get_name_files()[ind : ind + nimages]
 
         before = {}
         for fname in name_files:

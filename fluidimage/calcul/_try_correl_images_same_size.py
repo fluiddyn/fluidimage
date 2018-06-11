@@ -8,7 +8,10 @@ import matplotlib.pyplot as plt
 plt.ion()
 
 from fluidimage.calcul.correl import (
-    CorrelScipySignal, CorrelScipyNdimage, CorrelFFTNumpy, CorrelFFTW
+    CorrelScipySignal,
+    CorrelScipyNdimage,
+    CorrelFFTNumpy,
+    CorrelFFTW,
 )
 
 from fluidimage.synthetic import make_synthetic_images

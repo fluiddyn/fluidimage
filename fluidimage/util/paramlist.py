@@ -32,7 +32,6 @@ from fluidimage.topologies.piv import TopologyPIV
 
 
 class ParamListBase(list):
-
     def __init__(self, *args, **kwargs):
         super(ParamListBase, self).__init__(*args)
         self.TopologyClass = None
@@ -125,7 +124,6 @@ class ParamListBase(list):
 
 
 class ParamListPreproc(ParamListBase):
-
     def __init__(self, *args, **kwargs):
         super(ParamListPreproc, self).__init__(*args, **kwargs)
         self.TopologyClass = TopologyPreproc
@@ -139,7 +137,6 @@ class ParamListPreproc(ParamListBase):
 
 
 class ParamListPIV(ParamListBase):
-
     def __init__(self, *args, **kwargs):
         super(ParamListPreproc, self).__init__(*args, **kwargs)
         self.TopologyClass = TopologyPIV

@@ -36,6 +36,7 @@ def _get_args_bound_method(method):
 
 class TopologyLauncher(object):
     """Launcher (class to be subclassed)."""
+
     Topology = TopologyPIV
 
     @classmethod
@@ -90,4 +91,5 @@ class TopologyPIVLauncher(TopologyLauncher):
 
 class TopologyPreprocLauncher(TopologyLauncher):
     """Preproc topology launcher"""
+
     Topology = TopologyPreproc

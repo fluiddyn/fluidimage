@@ -4,7 +4,6 @@ from .util import make_params_calibration
 
 
 class Calibration(object):
-
     def __init__(self, path_file):
         self.path_file = path_file
         self.params = make_params_calibration(path_file)
@@ -58,17 +57,15 @@ class Calibration(object):
             norm_plane[0] = axis_rot[0] * coeff + axis_rot[1] * sin_om
             norm_plane[1] = axis_rot[1] * coeff - axis_rot[0] * sin_om
             norm_plane[2] = axis_rot[2] * coeff + cos_om
-            Z0 = np.dot(
-                norm_plane, (params.slices.zslice_coord[index_level])
-            ) / norm_plane[
-                2
-            ]
+            Z0 = (
+                np.dot(norm_plane, (params.slices.zslice_coord[index_level]))
+                / norm_plane[2]
+            )
         else:
             Z0 = params.slices.zslice_coord[index_level][2]
         Z0virt = Z0
-        if (
-            hasattr(params, "interface_coord")
-            and hasattr(params, "refraction_index")
+        if hasattr(params, "interface_coord") and hasattr(
+            params, "refraction_index"
         ):
             H = params.interface_coord[2]
             if H > Z0:
@@ -137,8 +134,8 @@ class Calibration(object):
             A21 = -R[6] * Ty + R[3] * Tz + Z21 * Z0virt
             A22 = -R[0] * Tz + R[6] * Tx + Z22 * Z0virt
 
-            X0 = (R[4] * Tx - R[1] * Ty + Zx0 * Z0virt)
-            Y0 = (-R[3] * Tx + R[0] * Ty + Zy0 * Z0virt)
+            X0 = R[4] * Tx - R[1] * Ty + Zx0 * Z0virt
+            Y0 = -R[3] * Tx + R[0] * Ty + Zy0 * Z0virt
 
             Xd = (X - params.C[0]) / params.f[0]  # sensor coordinates
             Yd = (Y - params.C[1]) / params.f[1]
@@ -176,9 +173,8 @@ class Calibration(object):
         # general case
         if hasattr(params, "R"):
             R = params.R
-            if (
-                hasattr(params, "interface_coord")
-                and hasattr(params, "refraction_index")
+            if hasattr(params, "interface_coord") and hasattr(
+                params, "refraction_index"
             ):
                 H = params.interface_coord[2]
                 if H > Zphys:
