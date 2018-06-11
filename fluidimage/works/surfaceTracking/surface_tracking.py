@@ -121,6 +121,7 @@ class WorkSurfaceTracking(BaseWork):
         self.gain, self.filt = self.create_gainfilter(
             self.ky, self.kx, self.k_y, k_x, self.l_y, self.l_x, self.slicer
         )
+        self.a1_tmp = None
     def compute(self, frameCouple):
         """
         Compute a frame
@@ -185,7 +186,7 @@ class WorkSurfaceTracking(BaseWork):
         ky,
         frame,
         save_png=True,
-        verify_process=True,
+        verify_process=False,
         filmName=None,
         offset=0,
     ):
@@ -194,9 +195,12 @@ class WorkSurfaceTracking(BaseWork):
 
         fix_y = int(np.fix(l_y / 2 / red_factor))
         fix_x = int(np.fix(l_x / 2 / red_factor))
-
-        a1 = self.process_frame(arrays1, ymin, ymax, xmin, xmax, gain, filt, bo, red_factor)
+        if self.a1_tmp is None :
+            a1 = self.process_frame(arrays1, ymin, ymax, xmin, xmax, gain, filt, bo, red_factor)
+        else :
+            a1 = self.a1_tmp
         a2 = self.process_frame(arrays2, ymin, ymax, xmin, xmax, gain, filt, bo, red_factor)
+        self.a1_tmp = a2
 
         jump = a2[fix_y, fix_x] - a1[fix_y, fix_x]
 

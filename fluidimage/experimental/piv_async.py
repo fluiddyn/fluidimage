@@ -5,7 +5,7 @@ import functools
 import scipy.io
 import asyncio
 
-from .. import ParamContainer, SerieOfArraysFromFiles, SeriesOfArrays
+from fluidimage import ParamContainer, SerieOfArraysFromFiles, SeriesOfArrays
 
 from fluidimage.topologies.piv import TopologyPIV
 from fluidimage.util.util import imread
@@ -14,13 +14,16 @@ from fluidimage.data_objects.piv import ArrayCouple
 from fluidimage.util.util import logger
 
 
-class Async_piv:
+class AsyncPIV:
 
     def __init__(self, params,  work):
 
         self.params = params
-        self.path_images = os.path.join(params.series.path, params.path.sub_images_path)
-        self.saving_path = os.path.join(params.series.path, params.saving.postfix)
+        self.path_images = os.path.join(params.series.path)
+        images_dir_name = self.params.series.path.split("/")[-1]
+        self.saving_path = os.path.join(os.path.dirname(params.series.path),str(images_dir_name)+"."+params.saving.postfix)
+        if not os.path.exists(self.saving_path):
+            os.makedirs(self.saving_path)
         self.work = work
         self.loop = asyncio.get_event_loop()
 
@@ -28,7 +31,7 @@ class Async_piv:
         self.img_tmp = None
 
 
-    async def process(self, im1, im2):
+    async def process(self, im1, im2, serie):
         """
         Call load_image, compute piv and save_piv with awaits
         :param name of im1
@@ -38,7 +41,7 @@ class Async_piv:
         :return: none
         """
         start = time.time()
-        couple = await self.load_images(im1, im2)
+        couple = await self.load_images(im1, im2, serie)
         result = await self.compute(couple)
         end = time.time()
         logger.info("Computed Image {}  : {}s".format(couple.name, end - start))
@@ -47,7 +50,7 @@ class Async_piv:
         logger.info("finished Image {}  : {}s".format(im1 + " - " + im2, end - start))
         return
 
-    async def load_images(self, im1, im2):
+    async def load_images(self, im1, im2, serie):
         """
         load two images and make a couple
         :param name of im1
@@ -69,7 +72,7 @@ class Async_piv:
         )
         params_mask = self.params.mask
         couple = ArrayCouple(
-            names=(im1, im2), arrays=(image1, image2), params_mask=params_mask)
+            names=(im1, im2), arrays=(image1, image2), params_mask=params_mask, serie=serie)
         self.img_tmp = image2
         end = time.time()
         logger.info("Loaded Image {}  : {}s".format(im1 + " - " + im2, end - start))
@@ -82,8 +85,6 @@ class Async_piv:
         :type ArrayCouple
         :return: a piv object
         """
-        start = time.time()
-        end = time.time()
         return self.work.calcul(couple)
 
     async def save_piv(self, result, im1, im2):
@@ -96,21 +97,9 @@ class Async_piv:
         :type str
         :return:
         """
-        # result.save(path = self.saving_path+im1+"_"+im2+".h5", kind = "notNone")
-        light_result = result.make_light_result()
-        im1 = im1[:-4]
-        im2 = im2[:-4]
-        scipy.io.savemat(
-            self.saving_path + "/piv_" + im1 + "_" + im2,
-            mdict={
-                "deltaxs": light_result.deltaxs,
-                "deltays": light_result.deltays,
-                "xs": light_result.xs,
-                "ys": light_result.ys,
-            },
-        )
+        result.save(path = self.saving_path+"/"+im1[:-4]+"_"+im2[:-4]+".h5", kind = one)
 
-    def a_process(self, series):
+    def fill_queue(self, serie):
         """
         Define a concurenced work which is destined to be compute in a single process
         :param listdir: list of image names to compute
@@ -118,10 +107,12 @@ class Async_piv:
         :return:
         """
         tasks = []
-        series = series.get_name_all_arrays()
-        for i in range(len(series) - 1):
+        serie_names = serie.get_name_all_arrays()
+        print(serie_names)
+        for i in range(len(serie_names) - 1):
+            a_serie = serie.get_next_serie()
             tasks.append(
-                asyncio.ensure_future(self.process(series[i], series[i + 1]))
+                asyncio.ensure_future(self.process(serie_names[i], serie_names[i + 1], a_serie, ))
             )
         self.loop.run_until_complete(asyncio.wait(tasks))
         self.loop.close()
