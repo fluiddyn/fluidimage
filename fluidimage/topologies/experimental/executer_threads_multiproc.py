@@ -1,24 +1,17 @@
-"""Topology base (:mod:`fluidimage.topologies.base`)
-====================================================
+"""executer_threads_multiproc
 
-.. autoclass:: TopologyBase
-   :members:
-   :private-members:
+An executer with the same methods as the "standard" fluidimage topology,
+i.e. using threads for IO bounded tasks and multiprocessing for CPU-bounded tasks.
 
 """
-from __future__ import print_function
+
 
 from time import sleep, time
-from multiprocessing import cpu_count, Process
-import signal
-import re
-import sys
-import os
 import gc
+import os
 
-# from copy import copy
 import threading
-from warnings import warn
+from multiprocessing import Process
 
 try:
     import queue
@@ -26,172 +19,35 @@ except ImportError:
     # python 2
     import Queue as queue
 
+
 from fluiddyn import time_as_str
-from fluiddyn.io.tee import MultiFile
 
-from ..util.util import cstring, logger, log_memory_usage
-from ..config import get_config
-from .waiting_queues.base import WaitingQueueThreading
-from .. import config_logging
 
-_stdout_at_import = sys.stdout
-_stderr_at_import = sys.stderr
+from ...util.util import cstring, logger, log_memory_usage
+from ..waiting_queues.base import (
+    WaitingQueueMultiprocessing,
+    WaitingQueueThreading,
+    WaitingQueueMakeCouple,
+    WaitingQueueLoadImage,
+)
 
-config = get_config()
+from .executer_base import ExecuterBase
+from .nb_workers import nb_max_workers
 
 dt = 0.25  # s
 dt_small = 0.02
 dt_update = 0.1
 
 
-if "OMP_NUM_THREADS" not in os.environ:
-    warn(
-        "The environment variable OMP_NUM_THREADS "
-        'was not set so we fix it to "1", '
-        "which is needed for fluidimage topologies."
-    )
-    os.environ["OMP_NUM_THREADS"] = "1"
+class ExecuterThreadsMultiprocs(ExecuterBase):
+    def __init__(self, topology):
+        super().__init__(topology)
+        raise NotImplementedError()
+        # we have to create a list of queues (WaitingQueueMultiprocessing,
+        # WaitingQueueThreading, WaitingQueueMakeCouple, WaitingQueueLoadImage)
+        # from the topology...
 
-OMP_NUM_THREADS = int(os.environ.get("OMP_NUM_THREADS", 1))
-
-if OMP_NUM_THREADS > 1:
-    warn("OMP_NUM_THREADS is greater than 1!")
-
-nb_cores = cpu_count()
-
-if config is not None:
-    try:
-        allow_hyperthreading = eval(config["topology"]["allow_hyperthreading"])
-    except KeyError:
-        allow_hyperthreading = True
-
-try:  # should work on UNIX
-    # found in http://stackoverflow.com/questions/1006289/how-to-find-out-the-number-of-cpus-using-python # noqa
-    with open("/proc/self/status") as f:
-        status = f.read()
-    m = re.search(r"(?m)^Cpus_allowed:\s*(.*)$", status)
-    if m:
-        nb_cpus_allowed = bin(int(m.group(1).replace(",", ""), 16)).count("1")
-
-    if nb_cpus_allowed > 0:
-        nb_cores = nb_cpus_allowed
-
-    with open("/proc/cpuinfo") as f:
-        cpuinfo = f.read()
-
-    nb_proc_tot = 0
-    siblings = None
-    for line in cpuinfo.split("\n"):
-        if line.startswith("processor"):
-            nb_proc_tot += 1
-        if line.startswith("siblings") and siblings is None:
-            siblings = int(line.split()[-1])
-
-    if nb_proc_tot == siblings * 2:
-        if allow_hyperthreading is False:
-            print("We do not use hyperthreading.")
-            nb_cores //= 2
-
-except IOError:
-    pass
-
-nb_max_workers = None
-if config is not None:
-    try:
-        nb_max_workers = eval(config["topology"]["nb_max_workers"])
-    except KeyError:
-        pass
-
-# default nb_max_workers
-# Difficult: trade off between overloading and limitation due to input output.
-# The user can do much better for a specific case.
-if nb_max_workers is None:
-    if nb_cores < 16:
-        nb_max_workers = nb_cores + 2
-    else:
-        nb_max_workers = nb_cores
-
-_nb_max_workers = nb_max_workers
-
-
-class TopologyBase(object):
-    """Base class for topologies of processing.
-
-    Parameters
-    ----------
-
-    queues : list
-
-    path_output : None
-
-    logging_level : 'info'
-
-    nb_max_workers : None
-
-    """
-
-    def __init__(
-        self, queues, path_output=None, logging_level="info", nb_max_workers=None
-    ):
-
-        if path_output is not None:
-            if not os.path.exists(path_output):
-                os.makedirs(path_output)
-            self.path_output = path_output
-            log = os.path.join(
-                path_output,
-                "log_" + time_as_str() + "_" + str(os.getpid()) + ".txt",
-            )
-            self._log_file = open(log, "w")
-
-            stdout = sys.stdout
-            if isinstance(stdout, MultiFile):
-                stdout = _stdout_at_import
-
-            stderr = sys.stderr
-            if isinstance(stderr, MultiFile):
-                stderr = _stderr_at_import
-
-            sys.stdout = MultiFile([stdout, self._log_file])
-            sys.stderr = MultiFile([stderr, self._log_file])
-
-        if logging_level is not None:
-            for handler in logger.handlers:
-                logger.removeHandler(handler)
-
-            config_logging(logging_level, file=sys.stdout)
-
-        if nb_max_workers is None:
-            nb_max_workers = _nb_max_workers
-
-        self.nb_max_workers_io = max(int(nb_max_workers * 0.8), 2)
-        self.nb_max_launch = max(int(self.nb_max_workers_io), 1)
-
-        if nb_max_workers < 1:
-            raise ValueError("nb_max_workers < 1")
-
-        print("nb_cpus_allowed = {}".format(nb_cores))
-        print("nb_max_workers = ", nb_max_workers)
-        print("nb_max_workers_io = ", self.nb_max_workers_io)
-
-        self.queues = queues
-        self.nb_max_workers = nb_max_workers
-        self.nb_cores = nb_cores
-        self.nb_items_lim = max(2 * nb_max_workers, 2)
-
-        self._has_to_stop = False
-
-        if sys.platform != "win32":
-
-            def handler_signals(signal_number, stack):
-                print(
-                    "signal {} received: set _has_to_stop to True".format(
-                        signal_number
-                    )
-                )
-                self._has_to_stop = True
-
-            signal.signal(12, handler_signals)
+        # self.queues = ...
 
     def compute(self, sequential=None, has_to_exit=True):
         """Compute (run all works to be done).
@@ -408,13 +264,6 @@ class TopologyBase(object):
             logger.info(cstring("Exit with signal 99.", color="FAIL"))
             exit(99)
 
-        self._reset_std_as_default()
-
-    def _reset_std_as_default(self):
-        sys.stdout = _stdout_at_import
-        sys.stderr = _stderr_at_import
-        self._log_file.close()
-
     def _clear_save_queue(self, workers, sequential):
         """Clear the last queue (which is often saving) before stopping."""
         q = self.queues[-1]
@@ -444,68 +293,3 @@ class TopologyBase(object):
 
     # workers[:] = [w for w in workers
     #               if not w.fill_destination()]
-
-    def _print_at_exit(self, time_since_start):
-        """Print information before exit."""
-        txt = "Stop compute after t = {:.2f} s".format(time_since_start)
-        try:
-            nb_results = len(self.results)
-        except AttributeError:
-            nb_results = None
-        if nb_results is not None and nb_results > 0:
-            txt += " ({} results, {:.2f} s/result).".format(
-                nb_results, time_since_start / nb_results
-            )
-        else:
-            txt += "."
-
-        if hasattr(self, "path_dir_result"):
-            txt += "\npath results:\n" + self.path_dir_result
-
-        print(txt)
-
-    def make_code_graphviz(self, name_file):
-        """Generate the graphviz / dot code."""
-
-        code = "digraph {\nrankdir = LR\ncompound=true\n"
-        # waiting queues
-        code += '\nnode [shape="record"]\n'
-        txt_queue = (
-            '{name_quoted:40s} [label="<f0> {name}|'
-            + "|".join(["<f{}>".format(i) for i in range(1, 5)])
-            + '"]\n'
-        )
-
-        for q in self.queues:
-            name_quoted = '"{}"'.format(q.name)
-            code += txt_queue.format(name=q.name, name_quoted=name_quoted)
-
-        # works and links
-        code += '\nnode [shape="ellipse"]\n'
-
-        txt_work = '{name_quoted:40s} [label="{name}"]\n'
-        for q in self.queues:
-            name_work = q.work_name or str(q.work)
-            name_quoted = '"{}"'.format(name_work)
-            code += txt_work.format(name=name_work, name_quoted=name_quoted)
-
-        code += "\n"
-
-        for q in self.queues:
-            name_work = q.work_name or str(q.work)
-            code += '{:40s} -> "{}"\n'.format('"' + q.name + '"', name_work)
-            if hasattr(q.destination, "name"):
-                code += '{:40s} -> "{}"\n'.format(
-                    '"' + name_work + '"', q.destination.name
-                )
-
-        code += "}\n"
-
-        with open(name_file, "w") as f:
-            f.write(code)
-
-        print(
-            "A graph can be produced with one of these commands:\n"
-            "dot topo.dot -Tpng -o topo.png\n"
-            "dot topo.dot -Tx11"
-        )

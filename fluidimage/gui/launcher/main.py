@@ -24,7 +24,6 @@ from fluidimage.topologies.launcher import (
 
 
 class Program(QtWidgets.QMainWindow, Ui_MainWindow):
-
     def __init__(self):
         topologies = [TopologyPreprocLauncher, TopologyPIVLauncher]
         self.topologies = {cls.__name__: cls for cls in topologies}

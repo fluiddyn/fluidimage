@@ -82,7 +82,6 @@ def tidy_uvmat_instructions(params):
 
 
 class ActionBase(object):
-
     def __init__(self, instructions):
         self.instructions = instructions
 

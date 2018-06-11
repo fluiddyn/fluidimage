@@ -25,7 +25,6 @@ class DataObject(object):
 
 
 class PIV_Postproc(LightPIVResults):
-
     def __init__(self, path):
         super(PIV_Postproc, self).__init__(str_path=path)
         self.path = os.path.abspath(path)
@@ -128,7 +127,6 @@ class PIV_Postproc(LightPIVResults):
 
 
 class PIV_PostProc_serie(LightPIVResults):
-
     def __init__(self, path=None):
         self.path = path
         path0 = path[0]

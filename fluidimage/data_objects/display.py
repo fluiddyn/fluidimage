@@ -13,7 +13,6 @@ if is_run_from_ipython():
 
 
 class DisplayPIV(object):
-
     def __init__(
         self,
         im0,
@@ -394,7 +393,6 @@ class DisplayPIV(object):
 
 
 class DisplayPreProc(object):
-
     def __init__(self, im0, im1, im0p, im1p, pourcent_histo=99, hist=False):
 
         fig = plt.figure()

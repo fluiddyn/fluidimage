@@ -4,7 +4,6 @@ from .util import make_params_calibration
 
 
 class Calibration(object):
-
     def __init__(self, path_file):
         self.path_file = path_file
         self.params = make_params_calibration(path_file)

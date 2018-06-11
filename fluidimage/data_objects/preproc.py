@@ -80,7 +80,6 @@ def get_name_preproc(serie, name_files, ind_serie, nb_series, out_format):
 
 
 class ArraySerie(ArrayCouple):
-
     def __init__(
         self,
         names=None,
@@ -131,7 +130,6 @@ class ArraySerie(ArrayCouple):
 
 
 class PreprocResults(LightPIVResults):
-
     def __init__(self, params=None, str_path=None, hdf5_object=None):
 
         self._keys_to_be_saved = ["data"]

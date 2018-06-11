@@ -53,7 +53,6 @@ from ...util.util import logger, log_memory_usage, cstring
 
 
 class WaitingQueueBase(dict):
-
     def __init__(
         self, name, work, destination=None, work_name=None, topology=None
     ):
@@ -325,7 +324,6 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
 
 
 class ThreadWork(threading.Thread):
-
     def __init__(self, *args, **kwargs):
         self.exitcode = None
         super(ThreadWork, self).__init__(*args, **kwargs)
@@ -374,7 +372,6 @@ class WaitingQueueLoadFile(WaitingQueueThreading):
 
 
 class WaitingQueueLoadImage(WaitingQueueLoadFile):
-
     def __init__(self, *args, **kwargs):
         super(WaitingQueueLoadImage, self).__init__(
             "image file", load_image, *args, **kwargs
@@ -388,7 +385,6 @@ def load_image_path(path):
 
 
 class WaitingQueueLoadImagePath(WaitingQueueLoadFile):
-
     def __init__(self, *args, **kwargs):
         super(WaitingQueueLoadImagePath, self).__init__(
             "image file", load_image_path, *args, **kwargs
@@ -397,7 +393,6 @@ class WaitingQueueLoadImagePath(WaitingQueueLoadFile):
 
 
 class WaitingQueueMakeCouple(WaitingQueueBase):
-
     def __init__(
         self, name, destination, work_name="make couples", topology=None
     ):
@@ -479,7 +474,6 @@ class WaitingQueueMakeCouple(WaitingQueueBase):
 
 
 class WaitingQueueMakeCoupleBOS(WaitingQueueBase):
-
     def __init__(
         self,
         name,

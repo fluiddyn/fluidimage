@@ -562,6 +562,7 @@ class FirstWorkPIV(BaseWorkPIV):
       :func:`fluidimage.works.piv.multipass.WorkPIV.create_default_params`.
 
     """
+
     index_pass = 0
 
     @classmethod

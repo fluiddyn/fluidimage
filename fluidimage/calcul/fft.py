@@ -66,6 +66,7 @@ nthreads = 1
 
 class CUFFT2DReal2Complex(object):
     """A class to use cufft with float32."""
+
     type_real = "float32"
     type_complex = "complex64"
 
@@ -114,12 +115,14 @@ class CUFFT2DReal2Complex(object):
 
 class CUFFT2DReal2ComplexFloat64(CUFFT2DReal2Complex):
     """A class to use cufft with float64."""
+
     type_real = "float64"
     type_complex = "complex128"
 
 
 class SKCUFFT2DReal2Complex(object):
     """A class to use skcuda-cufft with float32."""
+
     type_real = "float32"
     type_complex = "complex64"
 
@@ -167,6 +170,7 @@ class FFTW2DReal2Complex(object):
     These ffts are NOT normalized (faster)!
 
     """
+
     type_real = "float32"
     type_complex = "complex64"
 
@@ -223,5 +227,6 @@ class FFTW2DReal2Complex(object):
 
 class FFTW2DReal2ComplexFloat64(FFTW2DReal2Complex):
     """A class to use fftw with float64."""
+
     type_real = "float64"
     type_complex = "complex128"

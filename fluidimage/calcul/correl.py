@@ -112,6 +112,7 @@ def _compute_indices_max(correl, norm):
 
 class CorrelBase(object):
     """This class is meant to be subclassed, not instantiated directly."""
+
     _tag = "base"
 
     def __init__(
@@ -215,6 +216,7 @@ class CorrelPythran(CorrelBase):
     """Correlation using pythran.
        Correlation class by hands with with numpy.
     """
+
     _tag = "pythran"
 
     def _init2(self):
@@ -251,6 +253,7 @@ class CorrelPyCuda(CorrelBase):
     """Correlation using pycuda.
        Correlation class by hands with with cuda.
     """
+
     _tag = "pycuda"
 
     def _init2(self):
@@ -286,6 +289,7 @@ class CorrelPyCuda(CorrelBase):
 
 class CorrelScipySignal(CorrelBase):
     """Correlations using scipy.signal.correlate2d"""
+
     _tag = "scipy.signal"
 
     def _init2(self):
@@ -329,6 +333,7 @@ class CorrelScipySignal(CorrelBase):
 
 class CorrelScipyNdimage(CorrelBase):
     """Correlations using scipy.ndimage.correlate."""
+
     _tag = "scipy.ndimage"
 
     def _init2(self):
@@ -344,6 +349,7 @@ class CorrelScipyNdimage(CorrelBase):
 
 class CorrelTheano(CorrelBase):
     """Correlations using theano.tensor.nnet.conv2d"""
+
     _tag = "theano"
 
     def _init2(self):
@@ -524,6 +530,7 @@ class CorrelTheano(CorrelBase):
 
 class CorrelFFTBase(CorrelBase):
     """Correlations using fft."""
+
     _tag = "fft.base"
 
     def _init2(self):
@@ -566,6 +573,7 @@ class CorrelFFTBase(CorrelBase):
 
 class CorrelFFTNumpy(CorrelFFTBase):
     """Correlations using numpy.fft."""
+
     _tag = "np.fft"
 
     def __call__(self, im0, im1):
@@ -578,6 +586,7 @@ class CorrelFFTNumpy(CorrelFFTBase):
 
 class CorrelFFTW(CorrelFFTBase):
     """Correlations using fluidimage.fft.FFTW2DReal2Complex"""
+
     FFTClass = FFTW2DReal2Complex
     _tag = "fftw"
 
@@ -616,6 +625,7 @@ class CorrelCuFFT(CorrelFFTBase):
 
 class CorrelSKCuFFT(CorrelFFTBase):
     """Correlations using fluidimage.fft.FFTW2DReal2Complex"""
+
     FFTClass = SKCUFFT2DReal2Complex
     _tag = "skcufft"
 
