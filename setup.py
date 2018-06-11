@@ -114,6 +114,7 @@ setup(
     author='Pierre Augier',
     author_email='pierre.augier@legi.cnrs.fr',
     url='https://bitbucket.org/fluiddyn/fluidimage',
+    python_requires='>=3.6',
     license='CeCILL',
     classifiers=[
         # How mature is this project? Common values are
@@ -127,10 +128,7 @@ setup(
         'License :: OSI Approved :: GNU General Public License v2 (GPLv2)',
         # actually CeCILL License (GPL compatible license for French laws)
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6'],
     packages=find_packages(exclude=[
         'doc', 'include', 'scripts']),
