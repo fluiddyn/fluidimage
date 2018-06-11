@@ -254,8 +254,8 @@ class TopologyBase:
             file.write(code)
 
         print(
-            "A graph can be produced with one of these commands:\n"
-            f"dot {name_file}.dot -Tpng -o {name_file}.png\n"
+            "A graph can be produced with graphviz with one of these commands:\n"
+            f"dot {name_file}.dot -Tpng -o {name_file}.png && eog {name_file}.png\n"
             f"dot {name_file}.dot -Tx11"
         )
 
