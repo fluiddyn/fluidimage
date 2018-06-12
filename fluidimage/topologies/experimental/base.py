@@ -15,9 +15,9 @@ from warnings import warn
 from fluiddyn import time_as_str
 from fluiddyn.io.tee import MultiFile
 
-from ...util.util import logger
-from ... import config_logging
-from .nb_workers import nb_max_workers as _nb_max_workers, nb_cores
+from fluidimage.util.util import logger
+from fluidimage import config_logging
+from fluidimage.topologies.experimental.nb_workers import nb_max_workers as _nb_max_workers, nb_cores
 
 _stdout_at_import = sys.stdout
 _stderr_at_import = sys.stderr
@@ -34,6 +34,9 @@ class MyObj:
 
 class Queue(MyObj):
     """Represent a queue"""
+    def __init__(self, **kwargs):
+        super(Queue, self).__init__(**kwargs)
+        self.queue = dict()
 
 
 class Work(MyObj):
@@ -170,8 +173,6 @@ class TopologyBase:
         if executer is None:
             raise NotImplementedError
 
-        raise NotImplementedError
-
         self.executer = executer
 
         self.executer.compute(sequential=sequential, has_to_exit=has_to_exit)
@@ -223,30 +224,68 @@ class TopologyBase:
         # works and links
         code += '\nnode [shape="ellipse"]\n'
 
-        txt_work = '{:40s} [label="{}"]\n'
+        txt_work = '{:40s} [label="{}",color = "{}"]\n'
+
         for work in self.works:
             name_work = work.name
-            code += txt_work.format('"{}"'.format(name_work), name_work)
+            color = "Black"
+            if work.kind is not None:
+                if "io" in work.kind:
+                    color = "Green"
+            code += txt_work.format('"{}"'.format(name_work, color), name_work, color)
 
         code += "\n"
 
-        str_link = '{:40s} -> "{}"\n'
+        str_link = '{:40s} -> "{}" [arrowhead = "{}", style = "{}", color = "{}"]\n'
 
         for work in self.works:
             name_work = work.name
-
+            arrowhead = "normal"
+            style = "dashed"
+            color = "Black"
+            if work.kind is not None:
+                if "one shot" in work.kind:
+                    style = "filled"
+                if "global" in work.kind:
+                    arrowhead = "odiamond"
+                if "io" in work.kind:
+                    color = "Green"
             if work.input_queue is not None:
                 queues = work.input_queue
                 if isinstance(queues, Queue):
                     queues = (queues,)
                 for queue in queues:
-                    code += str_link.format('"' + queue.name + '"', name_work)
+                    code += str_link.format('"' + queue.name + '"', name_work, arrowhead, style, color )
             if work.output_queue is not None:
                 queues = work.output_queue
                 if isinstance(queues, Queue):
                     queues = (queues,)
                 for queue in queues:
-                    code += str_link.format('"' + name_work + '"', queue.name)
+                    code += str_link.format('"' + name_work + '"', queue.name, arrowhead, style, color)
+
+        #Legend
+        code += '\n subgraph cluster_01 {'
+        code += '\n node [height="0px", width="0px",shape=none,];'
+        code += '\n edge [ minlen = 1,];'
+        code += '\n label = "Legend";'
+        code += '\n key [label=<<table border="0" cellpadding="2" cellspacing="0" cellborder="0">'
+        code += '\n <tr><td align="right" port="i1">Global</td></tr>'
+        code += '\n <tr><td align="right" port="i2">One Shot</td></tr>'
+        code += '\n <tr><td align="right" port="i3">Multiple Shot</td></tr>'
+        code += '\n <tr><td align="right" port="i4">I/O</td></tr>'
+        code += '\n </table>>]'
+        code += '\n key2 [label=<<table border="0" cellpadding="2" cellspacing="0" cellborder="0">'
+        code += '\n<tr><td port="i1">&nbsp;</td></tr>'
+        code += '\n<tr><td port="i2">&nbsp;</td></tr>'
+        code += '\n<tr><td port="i3">&nbsp;</td></tr>'
+        code += '\n<tr><td port="i4">&nbsp;</td></tr>'
+        code += '\n </table>>]'
+        code += '\n  key:i1:e -> key2:i1:w [arrowhead = "odiamond"]'
+        code += '\n  key:i2:e -> key2:i2:w [arrowhead = "none"]'
+        code += '\n  key:i3:e -> key2:i3:w [style = "dashed", arrowhead = "none"]'
+        code += '\n  key:i4:e -> key2:i4:w [arrowhead = "none", color="Green"]'
+        code += '\n } \n'
+
 
         code += "}\n"
 
