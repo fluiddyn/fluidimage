@@ -18,7 +18,7 @@ from .base import TopologyBase
 from .. import prepare_path_dir_result
 from ...works.piv import WorkPIV
 from ...data_objects.piv import get_name_piv, ArrayCouple
-from ...util.util import logger
+from ...util.util import logger, imread
 from .. import image2image
 
 
@@ -202,20 +202,20 @@ postfix : str
 
         self.add_work(
             "fill names piv",
-            func_or_cls=None,
+            func_or_cls=self.fill_name_piv,
             output_queue=queue_names_piv,
             kind=("global", "one shot"),
         )
         self.add_work(
             "fill (names couples, paths)",
-            func_or_cls=None,
+            func_or_cls=self.fill_name_couple_and_path,
             input_queue=queue_names_piv,
             output_queue=(queue_names_couples, queue_paths),
             kind=("global", "one shot"),
         )
         self.add_work(
             "path -> arrays",
-            func_or_cls=None,
+            func_or_cls=imread,
             input_queue=queue_paths,
             output_queue=queue_arrays0,
             kind="io",
@@ -235,7 +235,7 @@ postfix : str
 
         self.add_work(
             "make couples arrays",
-            func_or_cls=None,
+            func_or_cls=self.make_couple,
             params_cls=None,
             input_queue=(queue_arrays1, queue_names_couples),
             output_queue=queue_couples,
@@ -260,6 +260,41 @@ postfix : str
             input_queue=queue_piv,
             kind="io",
         )
+
+
+    def fill_name_piv(self, input_queue, output_queue):
+        for name in os.listdir(self.params.series.path):
+            output_queue.queue[name] = name
+
+    def fill_name_couple_and_path(self, input_queue, output_queues):
+        previous_name = None
+        input_queue.queue = sorted(input_queue.queue)
+        for name in input_queue.queue:
+            print(name)
+            output_queues[1].queue[name] = os.path.join(self.params.series.path,name)
+            if previous_name is not None:
+                output_queues[0].queue[previous_name] = (str(previous_name),name[:-4])
+                previous_name = name[:-4]
+            else:
+                previous_name = name[:-4]
+        print("haha")
+        print(output_queues[0].queue)
+
+    def make_couple(self, intput_queue, output_queue):
+        print(type(intput_queue[1]))
+        print(len(intput_queue[0].queue))
+        try:
+            params_mask = self.params.mask
+        except AttributeError:
+            params_mask = None
+        key, couple = intput_queue[1].queue.popitem()
+        array1 = intput_queue[0].queue[couple[0]]
+        array2 = intput_queue[0].queue[couple[1]]
+        couple = ArrayCouple(
+            names=(couple[0], couple[1]), arrays=(array1, array2), params_mask=params_mask
+        )
+        return couple
+
 
     def _fill_input_queues(self):
 

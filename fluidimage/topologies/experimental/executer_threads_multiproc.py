@@ -29,8 +29,10 @@ from ..waiting_queues.base import (
     WaitingQueueThreading,
     WaitingQueueMakeCouple,
     WaitingQueueLoadImage,
+    WaitingQueueBase,
 )
-
+from fluidimage.topologies.experimental.base import Queue
+from fluidimage.topologies.experimental.base import Work
 from .executer_base import ExecuterBase
 from .nb_workers import nb_max_workers
 
@@ -42,12 +44,24 @@ dt_update = 0.1
 class ExecuterThreadsMultiprocs(ExecuterBase):
     def __init__(self, topology):
         super().__init__(topology)
-        raise NotImplementedError()
         # we have to create a list of queues (WaitingQueueMultiprocessing,
         # WaitingQueueThreading, WaitingQueueMakeCouple, WaitingQueueLoadImage)
         # from the topology...
 
-        # self.queues = ...
+        self.queues = []
+        # create waiting queues :
+        # for q in reversed(topology.queues):
+        #         self.queues.append(WaitingQueueBase(name=q.name, work=q.name))
+
+        # implement topologie
+        for w in reversed(topology.works):
+            self.add_queue(w)
+
+
+
+        print("len self.queue :{}".format(len(self.queues)))
+        self._has_to_stop = False
+
 
     def compute(self, sequential=None, has_to_exit=True):
         """Compute (run all works to be done).
@@ -66,12 +80,32 @@ class ExecuterThreadsMultiprocs(ExecuterBase):
           because of a signal 12 (cluster), a signal 99 is sent at exit.
 
         """
+
+
+        for w in self.topology.works:
+            print("###WORK### kind = {} name = {} input queue = {}".format(w.kind, w.name, w.input_queue))
+            if w.input_queue is None: #First work or no queue before work
+                w.func_or_cls(None,w.output_queue)
+            elif w.kind is not None and "global" not in w.kind :
+                if isinstance(w.func_or_cls, object):
+                    key, obj = w.input_queue.queue.popitem()
+                    print(key,obj)
+                    ret = w.func_or_cls(obj)
+                    w.output_queue.queue[key] = ret
+                else:
+                    queue = w.input_queue.queue
+                    w.func_or_cls(queue, w.output_queue)
+                    print(w.output_queue.queue)
+            else:
+                w.func_or_cls(w.input_queue, w.output_queue)
+                print(w.output_queue[0].queue)
+                print(w.output_queue[1].queue)
+
         if hasattr(self, "path_output"):
             logger.info("path results:\n" + self.path_output)
             if hasattr(self, "params"):
                 tmp_path_params = os.path.join(
-                    self.path_output,
-                    "params_" + time_as_str() + "_" + str(os.getpid()),
+                    self.path_output, "params_" + time_as_str() + "_" + str(os.getpid())
                 )
 
                 if not os.path.exists(tmp_path_params + ".xml"):
@@ -135,15 +169,10 @@ class ExecuterThreadsMultiprocs(ExecuterBase):
                         # print('check if worker has really started.' +
                         #       worker.key)
                         try:
-                            worker.really_started = (
-                                worker.comm_started.get_nowait()
-                            )
+                            worker.really_started = worker.comm_started.get_nowait()
                         except queue.Empty:
                             pass
-                        if (
-                            not worker.really_started
-                            and time() - worker.t_start > 10
-                        ):
+                        if not worker.really_started and time() - worker.t_start > 10:
                             # bug! The worker does not work. We kill it! :-)
                             logger.error(
                                 cstring(
@@ -167,6 +196,7 @@ class ExecuterThreadsMultiprocs(ExecuterBase):
         self.thread_check_works_p = CheckWorksProcess()
         self.thread_check_works_p.start()
 
+        print(self)
         while not self._has_to_stop and (
             any([not q.is_empty() for q in self.queues]) or len(workers) > 0
         ):
@@ -221,8 +251,7 @@ class ExecuterThreadsMultiprocs(ExecuterBase):
                         self._clear_save_queue(workers, sequential)
                         logger.info(
                             cstring(
-                                "The last waiting queue has been emptied.",
-                                color="FAIL",
+                                "The last waiting queue has been emptied.", color="FAIL"
                             )
                         )
                         log_memory_usage(color="FAIL", mode="info")
@@ -257,12 +286,52 @@ class ExecuterThreadsMultiprocs(ExecuterBase):
         self.thread_check_works_t.join()
         self.thread_check_works_p.join()
 
-        self._print_at_exit(time() - self.t_start)
+        # TODO self._print_at_exit(time() - self.t_start)
+
         log_memory_usage(time_as_str(2) + ": end of `compute`. mem usage")
 
         if self._has_to_stop and has_to_exit:
             logger.info(cstring("Exit with signal 99.", color="FAIL"))
             exit(99)
+
+    def add_queue(self, work):
+        if len(self.queues) is 0:
+            destination = None
+        else:
+            destination = self.queues[-1]
+        if work.kind is not None and work.input_queue is not None:
+            if "io" in work.kind:
+                self.queues.append(
+                    WaitingQueueThreading(
+                        name=work.input_queue,
+                        work_name=work.name,
+                        work=work.func_or_cls,
+                        destination=destination,
+                    )
+                )
+            else:
+                if "global" in work.kind:
+                    self.queues.append(
+                        WaitingQueueMakeCouple(
+                            name=work.input_queue, destination=destination
+                        )
+                    )
+                else:
+                    self.queues.append(
+                        WaitingQueueMultiprocessing(
+                            name=work.input_queue,
+                            work=work.func_or_cls,
+                            destination=destination,
+                        )
+                    )
+        else:
+            self.queues.append(
+                WaitingQueueMultiprocessing(
+                    name=work.input_queue,
+                    work=work.func_or_cls,
+                    destination=destination,
+                )
+            )
 
     def _clear_save_queue(self, workers, sequential):
         """Clear the last queue (which is often saving) before stopping."""
