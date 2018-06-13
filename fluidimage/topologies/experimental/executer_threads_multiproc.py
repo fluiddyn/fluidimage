@@ -332,20 +332,16 @@ class ExecuterThreadsMultiprocs(ExecuterBase):
                         new_queue = self.give_correspondant_waiting_queue(work, destination, q)
                         self.queues.append(new_queue)
                         # attribute output queue
-                        print("start")
                         for q in self.queues:
                             if work.output_queue is not None and not isinstance(work.output_queue, tuple):
                                 print(work.output_queue.__dict__['name'] + "--" + q.name)
                                 if work.output_queue.__dict__['name'] is q.name:
-                                    print("OK")
                                     work.output_queue = q
-                        print("finished")
                 else:         #One input queue
                     destination = self.give_destination(work)
                     new_queue = self.give_correspondant_waiting_queue(work,destination)
                     self.queues.append(new_queue)
                     #attribute output queue
-                    print("start")
                     for q in self.queues:
                         if work.output_queue is not None and not isinstance(work.output_queue, tuple):
                             print(work.output_queue.__dict__['name']+"--"+ q.name)
@@ -353,9 +349,26 @@ class ExecuterThreadsMultiprocs(ExecuterBase):
                                 print("OK")
                                 work.output_queue = q
                     print("finished")
+        #attribute input queue
+        for w in self.topology.works:
+                if isinstance(w.input_queue, tuple):
+                    tupleq = ()
+                    for iq in w.input_queue:
+                       for q in self.queues:
+                            if iq.__dict__['name'] is q.name:
+                                tupleq = tupleq + tuple(q)
+                    w.input_queue = tupleq
+                else:
+                    for q in self.queues:
+                        if w.input_queue is not None:
+                            if w.input_queue.__dict__['name'] is q.name:
+                                w.input_queue = q
+
+
         for w in self.topology.works:
             print("###WORK### name = {}, kind = {} input queue = {}, output_queue = {}"
                   .format(w.name, w.kind, type(w.input_queue), type(w.output_queue)))
+
     def give_destination(self,work):
         if len(self.queues) is 0:
             return  None
