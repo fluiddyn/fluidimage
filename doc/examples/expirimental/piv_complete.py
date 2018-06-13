@@ -17,7 +17,7 @@ params.saving.how = 'complete'
 params.saving.postfix = 'piv_complete'
 
 
-topology = TopologyPIV(params,  logging_level='info')
+topology = TopologyPIV(params, logging_level='info')
 #topology.make_code_graphviz('topo.dot')
 
-topology.compute(executer=ExecuterThreadsMultiprocs(topology))
+topology.compute(executer=ExecuterThreadsMultiprocs(topology), sequential=True)

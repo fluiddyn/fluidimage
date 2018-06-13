@@ -97,7 +97,7 @@ class AsyncPIV:
         :type str
         :return:
         """
-        result.save(path = self.saving_path+"/"+im1[:-4]+"_"+im2[:-4]+".h5", kind = one)
+        result.save(path = self.saving_path+"/"+im1[:-4]+"_"+im2[:-4]+".h5", kind = "one")
 
     def fill_queue(self, serie):
         """

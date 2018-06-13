@@ -262,42 +262,8 @@ postfix : str
         )
 
 
+
     def fill_name_piv(self, input_queue, output_queue):
-        for name in os.listdir(self.params.series.path):
-            output_queue.queue[name] = name
-
-    def fill_name_couple_and_path(self, input_queue, output_queues):
-        previous_name = None
-        input_queue.queue = sorted(input_queue.queue)
-        for name in input_queue.queue:
-            print(name)
-            output_queues[1].queue[name] = os.path.join(self.params.series.path,name)
-            if previous_name is not None:
-                output_queues[0].queue[previous_name] = (str(previous_name),name[:-4])
-                previous_name = name[:-4]
-            else:
-                previous_name = name[:-4]
-        print("haha")
-        print(output_queues[0].queue)
-
-    def make_couple(self, intput_queue, output_queue):
-        print(type(intput_queue[1]))
-        print(len(intput_queue[0].queue))
-        try:
-            params_mask = self.params.mask
-        except AttributeError:
-            params_mask = None
-        key, couple = intput_queue[1].queue.popitem()
-        array1 = intput_queue[0].queue[couple[0]]
-        array2 = intput_queue[0].queue[couple[1]]
-        couple = ArrayCouple(
-            names=(couple[0], couple[1]), arrays=(array1, array2), params_mask=params_mask
-        )
-        return couple
-
-
-    def _fill_input_queues(self):
-
         series = self.series
 
         if len(series) == 0:
@@ -340,25 +306,67 @@ postfix : str
 
             print("Files of serie {}: {}".format(i, serie.get_name_arrays()))
 
-        self.wq0.add_name_files(names)
-        self.wq_images.add_series(series)
+        for name in names:
+            output_queue[name] = name
 
-        k, o = self.wq0.popitem()
-        im = self.wq0.work(o)
-        self.wq0.fill_destination(k, im)
-
-        # a little bit strange, to apply mask...
+        # k, o = self.wq0.popitem()
+        # im = self.wq0.work(o)
+        # self.wq0.fill_destination(k, im)
+        #
+        # # a little bit strange, to apply mask...
         # try:
         #     params_mask = self.params.mask
         # except AttributeError:
         #     params_mask = None
-
+        #
         # couple = ArrayCouple(
         #     names=("", ""), arrays=(im, im), params_mask=params_mask
         # )
         # im, _ = couple.get_arrays()
-
+        #
         # self.piv_work._prepare_with_image(im)
+
+
+
+    def fill_name_couple_and_path(self, input_queue, output_queues):
+        print("###fill name and path")
+        previous_name = None
+        print(type(input_queue.queue))
+        input_queue = sorted(input_queue)
+        for name in input_queue:
+            output_queues[name] = os.path.join(self.params.series.path,name)
+            if previous_name is not None:
+                output_queues[previous_name] = (str(previous_name),name[:-4])
+                previous_name = name[:-4]
+            else:
+                previous_name = name[:-4]
+
+    def make_couple(self, input_queue, output_queue):
+        print('###make couple')
+        print(len(input_queue))
+        try:
+            params_mask = self.params.mask
+        except AttributeError:
+            params_mask = None
+        key, couple = input_queue.popitem()
+        if couple[0] in input_queue and couple[1] in input_queue:
+            array1 = input_queue[0][couple[0]]
+            array2 = input_queue[0][couple[1]]
+            couple = ArrayCouple(
+                names=(couple[0], couple[1]), arrays=(array1, array2), params_mask=params_mask,
+            )
+            return couple
+        else :
+            array1 = input_queue[0].queue[couple[1]+".bmp"]
+            couple = ArrayCouple(
+                names=("", ""), arrays=(array1, array1), params_mask=params_mask
+            )
+            im, _ = couple.get_arrays()
+            self.piv_work = WorkPIV(self.params)
+            self.piv_work._prepare_with_image(im)
+            output_queue.queue[key] = couple
+            return couple
+
 
     def _print_at_exit(self, time_since_start):
 
