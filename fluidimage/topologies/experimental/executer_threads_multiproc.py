@@ -89,7 +89,7 @@ class ExecuterThreadsMultiprocs(ExecuterBase):
                   .format(w.name, w.kind, type(w.input_queue), type(w.output_queue)))
             if w.input_queue is None: #First work or no queue before work
                 w.func_or_cls(w.input_queue, w.output_queue)
-            elif w.output_queue is None: #First work or no queue before work ( SAVE )
+            elif w.output_queue is None: #last work or no queue after work ( SAVE )
                 key, obj = w.input_queue.popitem()
                 #TODO use dataobject save method
                 path_save = '../../../../resultsPIVTMP'
@@ -218,16 +218,14 @@ class ExecuterThreadsMultiprocs(ExecuterBase):
         self.thread_check_works_p.start()
 
 
-        print(self._has_to_stop)
-        for q in self.queues:
-            if not q.is_empty():
-                q.popitem()
-            print(len(q))
+
 
         while not self._has_to_stop and (
             any([not q.is_empty() for q in self.queues]) or len(workers) > 0
         ):
-            print("DOES THE WHILLLLLLLLLLLLLLLLLE")
+            print(self._has_to_stop)
+            for q in self.queues:
+                    print(len(q))
             # debug
             # if logger.level == 10 and \
             #    all([q.is_empty() for q in self.queues]) and len(workers) == 1:
@@ -313,7 +311,7 @@ class ExecuterThreadsMultiprocs(ExecuterBase):
         self.thread_check_works_t.join()
         self.thread_check_works_p.join()
 
-        # TODO self._print_at_exit(time() - self.t_start)
+        #TODO self._print_at_exit(time() - self.t_start)
 
         log_memory_usage(time_as_str(2) + ": end of `compute`. mem usage")
 
@@ -323,36 +321,65 @@ class ExecuterThreadsMultiprocs(ExecuterBase):
 
 
     def add_queues(self):
+        """
+        fill self.queues with appropriate queues from waiting_queue_base
+        change work.input_queue and work.output_queue with previous queues ( from waiting_queue_base )
+        Considere tuples ( tuple are changed in list for simplicity )
+        :return:
+        """
+        #TODO considered that first and last queue can be tuple
+        #TODO Simplify the code
         for work in reversed(self.topology.works):
             print(work.name)
-            if work.input_queue is not None:
-                if isinstance(work.input_queue, tuple):#Many input_queue
+            if work.input_queue is not None: # First work or no input queue
+                if isinstance(work.input_queue, tuple):#Tuple : Many input_queue
                     for q in work.input_queue:
                         destination = self.give_destination(work)
                         new_queue = self.give_correspondant_waiting_queue(work, destination, q)
                         self.queues.append(new_queue)
                         # attribute output queue
-                        print("start")
                         for q in self.queues:
                             if work.output_queue is not None and not isinstance(work.output_queue, tuple):
-                                print(work.output_queue.__dict__['name'] + "--" + q.name)
                                 if work.output_queue.__dict__['name'] is q.name:
-                                    print("OK")
                                     work.output_queue = q
-                        print("finished")
                 else:         #One input queue
                     destination = self.give_destination(work)
                     new_queue = self.give_correspondant_waiting_queue(work,destination)
                     self.queues.append(new_queue)
                     #attribute output queue
-                    print("start")
-                    for q in self.queues:
-                        if work.output_queue is not None and not isinstance(work.output_queue, tuple):
-                            print(work.output_queue.__dict__['name']+"--"+ q.name)
+
+                    if work.output_queue is not None and not isinstance(work.output_queue, tuple):
+                        for q in self.queues:
                             if work.output_queue.__dict__['name'] is q.name:
-                                print("OK")
                                 work.output_queue = q
-                    print("finished")
+                    elif isinstance(work.output_queue, tuple):
+                        lst_q = []
+
+                        for iq in work.output_queue:
+                            for q in self.queues:
+                                if iq.__dict__['name'] is q.name:
+                                    lst_q.append(q)
+                        work.output_queue = lst_q
+
+            else: # fisrt work : attribute output queue
+                for q in self.queues:
+                    if work.output_queue.__dict__['name'] is q.name:
+                        work.output_queue = q
+        # attribute input queue
+        for w in self.topology.works:
+            if isinstance(w.input_queue, tuple):
+                lst_q = []
+                for iq in w.input_queue:
+                    for q in self.queues:
+                        if iq.__dict__['name'] is q.name:
+                            lst_q.append(q)
+                w.input_queue = lst_q
+            else:
+                for q in self.queues:
+                    if w.input_queue is not None:
+                        if w.input_queue.__dict__['name'] is q.name:
+                            w.input_queue = q
+
         for w in self.topology.works:
             print("###WORK### name = {}, kind = {} input queue = {}, output_queue = {}"
                   .format(w.name, w.kind, type(w.input_queue), type(w.output_queue)))
@@ -377,24 +404,28 @@ class ExecuterThreadsMultiprocs(ExecuterBase):
                     work_name=work.name,
                     work=work.func_or_cls,
                     destination=destination,
+                    topology=self.topology
                 )
             else:
                 if "global" in work.kind:
                     queue = WaitingQueueMakeCouple(
                         name=queue_name,
-                        destination=destination
+                        destination=destination,
+                        topology=self.topology
                     )
                 else:
                     queue = WaitingQueueMultiprocessing(
                         name=queue_name,
                         work=work.func_or_cls,
                         destination=destination,
+                        topology=self.topology,
                     )
         else:
             queue = WaitingQueueMultiprocessing(
                 name=queue_name,
                 work=work.func_or_cls,
                 destination=destination,
+                topology=self.topology
             )
         return queue
 

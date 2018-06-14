@@ -7,6 +7,7 @@
 
 """
 
+from time import sleep, time
 import signal
 import sys
 import os
@@ -36,7 +37,6 @@ class Queue(MyObj):
     """Represent a queue"""
     def __init__(self, **kwargs):
         super(Queue, self).__init__(**kwargs)
-        self.queue = dict()
 
 
 class Work(MyObj):
@@ -123,6 +123,7 @@ class TopologyBase:
                 self._has_to_stop = True
 
             signal.signal(12, handler_signals)
+        self.t_start = time()
 
     def add_queue(self, name: str, kind: str = None):
         """Create a new queue."""
@@ -174,7 +175,6 @@ class TopologyBase:
             raise NotImplementedError
 
         self.executer = executer
-
         self.executer.compute(sequential=sequential, has_to_exit=has_to_exit)
         self._reset_std_as_default()
 

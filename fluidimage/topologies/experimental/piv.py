@@ -262,7 +262,6 @@ postfix : str
         )
 
 
-
     def fill_name_piv(self, input_queue, output_queue):
         series = self.series
 
@@ -308,6 +307,7 @@ postfix : str
 
         for name in names:
             output_queue[name] = name
+        return series
 
         # k, o = self.wq0.popitem()
         # im = self.wq0.work(o)
@@ -326,30 +326,27 @@ postfix : str
         #
         # self.piv_work._prepare_with_image(im)
 
-
-
     def fill_name_couple_and_path(self, input_queue, output_queues):
-        print("###fill name and path")
         previous_name = None
-        print(type(input_queue.queue))
         input_queue = sorted(input_queue)
         for name in input_queue:
-            output_queues[name] = os.path.join(self.params.series.path,name)
+            output_queues[1][name[:-4]] = os.path.join(self.params.series.path,name)
             if previous_name is not None:
-                output_queues[previous_name] = (str(previous_name),name[:-4])
+                output_queues[0][previous_name] = (str(previous_name),name[:-4])
                 previous_name = name[:-4]
             else:
                 previous_name = name[:-4]
+        return output_queues
 
     def make_couple(self, input_queue, output_queue):
         print('###make couple')
-        print(len(input_queue))
         try:
             params_mask = self.params.mask
         except AttributeError:
             params_mask = None
-        key, couple = input_queue.popitem()
-        if couple[0] in input_queue and couple[1] in input_queue:
+
+        key, couple = input_queue[1].popitem() #pop a couple
+        if couple[0] in input_queue[0] and couple[1] in input_queue[0]:
             array1 = input_queue[0][couple[0]]
             array2 = input_queue[0][couple[1]]
             couple = ArrayCouple(
@@ -357,14 +354,14 @@ postfix : str
             )
             return couple
         else :
-            array1 = input_queue[0].queue[couple[1]+".bmp"]
+            array1 = input_queue[0][couple[0]]
             couple = ArrayCouple(
                 names=("", ""), arrays=(array1, array1), params_mask=params_mask
             )
             im, _ = couple.get_arrays()
             self.piv_work = WorkPIV(self.params)
             self.piv_work._prepare_with_image(im)
-            output_queue.queue[key] = couple
+            output_queue[key] = couple
             return couple
 
 
