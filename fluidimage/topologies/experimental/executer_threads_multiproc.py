@@ -89,7 +89,7 @@ class ExecuterThreadsMultiprocs(ExecuterBase):
                   .format(w.name, w.kind, type(w.input_queue), type(w.output_queue)))
             if w.input_queue is None: #First work or no queue before work
                 w.func_or_cls(w.input_queue, w.output_queue)
-            elif w.output_queue is None: #last work or no queue after work ( SAVE )
+            elif w.output_queue is None: #First work or no queue before work ( SAVE )
                 key, obj = w.input_queue.popitem()
                 #TODO use dataobject save method
                 path_save = '../../../../resultsPIVTMP'
@@ -218,14 +218,16 @@ class ExecuterThreadsMultiprocs(ExecuterBase):
         self.thread_check_works_p.start()
 
 
-
+        print(self._has_to_stop)
+        for q in self.queues:
+            if not q.is_empty():
+                q.popitem()
+            print(len(q))
 
         while not self._has_to_stop and (
             any([not q.is_empty() for q in self.queues]) or len(workers) > 0
         ):
-            print(self._has_to_stop)
-            for q in self.queues:
-                    print(len(q))
+            print("DOES THE WHILLLLLLLLLLLLLLLLLE")
             # debug
             # if logger.level == 10 and \
             #    all([q.is_empty() for q in self.queues]) and len(workers) == 1:
@@ -338,10 +340,14 @@ class ExecuterThreadsMultiprocs(ExecuterBase):
                         new_queue = self.give_correspondant_waiting_queue(work, destination, q)
                         self.queues.append(new_queue)
                         # attribute output queue
+                        print("start")
                         for q in self.queues:
                             if work.output_queue is not None and not isinstance(work.output_queue, tuple):
+                                print(work.output_queue.__dict__['name'] + "--" + q.name)
                                 if work.output_queue.__dict__['name'] is q.name:
+                                    print("OK")
                                     work.output_queue = q
+                        print("finished")
                 else:         #One input queue
                     destination = self.give_destination(work)
                     new_queue = self.give_correspondant_waiting_queue(work,destination)
