@@ -223,11 +223,18 @@ class ExecuterThreadsMultiprocs(ExecuterBase):
             if not q.is_empty():
                 q.popitem()
             print(len(q))
+        self.queues[4].destination = self.queues[2]
+        self.queues[3].destination = self.queues[1]
+        self.queues[2].destination = self.queues[1]
+        self.queues[1].destination = self.queues[0]
+
 
         while not self._has_to_stop and (
             any([not q.is_empty() for q in self.queues]) or len(workers) > 0
         ):
-            print("DOES THE WHILLLLLLLLLLLLLLLLLE")
+            print(workers)
+            for q in self.queues:
+                 print("{}  : {}, {}, {}".format(len(q), q.name, type(q), q.destination))
             # debug
             # if logger.level == 10 and \
             #    all([q.is_empty() for q in self.queues]) and len(workers) == 1:
@@ -391,7 +398,7 @@ class ExecuterThreadsMultiprocs(ExecuterBase):
                   .format(w.name, w.kind, type(w.input_queue), type(w.output_queue)))
     def give_destination(self,work):
         if len(self.queues) is 0:
-            return  None
+            return None
         for q in self.queues:
             if work.output_queue is q.name:
                 return q
