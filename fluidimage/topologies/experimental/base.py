@@ -37,11 +37,25 @@ class Queue(MyObj):
     """Represent a queue"""
     def __init__(self, **kwargs):
         super(Queue, self).__init__(**kwargs)
+        self.queue = {}
 
+    # def popitem(self):
+    #     k = self._keys.pop(0)
+    #     o = super(self.queue, self).pop(k)
+    #     return k, o
 
 class Work(MyObj):
     """Represent a work"""
-
+    def have_to_work(self):
+        print("{} have to work ?".format(self.name))
+        if isinstance(self.input_queue,tuple):
+            for q in self.input_queue:
+                if not q.queue: #if a queue is empty
+                    return False
+        else:
+            if not self.input_queue.queue:
+                return False
+        return True
 
 class TopologyBase:
     """Base class for topologies of processing.

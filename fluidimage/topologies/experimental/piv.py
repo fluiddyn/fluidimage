@@ -20,6 +20,7 @@ from ...works.piv import WorkPIV
 from ...data_objects.piv import get_name_piv, ArrayCouple
 from ...util.util import logger, imread
 from .. import image2image
+import scipy.io
 
 
 class TopologyPIV(TopologyBase):
@@ -215,7 +216,7 @@ postfix : str
         )
         self.add_work(
             "path -> arrays",
-            func_or_cls=imread,
+            func_or_cls=self.imread,
             input_queue=queue_paths,
             output_queue=queue_arrays0,
             kind="io",
@@ -244,7 +245,7 @@ postfix : str
 
         self.add_work(
             "couples -> piv",
-            func_or_cls=WorkPIV,
+            func_or_cls = self.calcul,
             params_cls=params,
             input_queue=queue_couples,
             output_queue=queue_piv,
@@ -256,15 +257,44 @@ postfix : str
 
         self.add_work(
             "save piv",
-            func_or_cls=save_piv_object,
+            func_or_cls=self.save_piv,
             input_queue=queue_piv,
             kind="io",
         )
+    def save_piv(self, input_queue, output_queue):
+        print(input_queue.queue)
+        if input_queue.queue:
+            key, light_result = input_queue.queue.popitem()
+            path_save = '../../../../fluidimage/image_samples/Karman/trio/resultsPIVTMP'+key
+            scipy.io.savemat(
+                path_save,
+                mdict={
+                    "deltaxs": light_result.deltaxs,
+                    "deltays": light_result.deltays,
+                    "xs": light_result.xs,
+                    "ys": light_result.ys,
+                },
+            )
+            print('###PIV {} SAVED !!!!!###'.format(key))
 
+    def calcul(self, input_queue, output_queue):
+        print(input_queue.queue)
+        if input_queue.queue:
+            key, array_couple = input_queue.queue.popitem()
+            ret = WorkPIV(self.params).calcul(array_couple)
+            lighPiv = ret.make_light_result()
+            output_queue.queue[key] = lighPiv
+
+
+    def imread(self, input_queue, output_queue):
+        if input_queue.queue:
+            key, path = input_queue.queue.popitem()
+            output_queue.queue[key] = imread(path)
+            print(output_queue.queue)
 
     def fill_name_piv(self, input_queue, output_queue):
-        series = self.series
 
+        series = self.series
         if len(series) == 0:
             logger.warning("add 0 couple. No PIV to compute.")
             return
@@ -305,9 +335,9 @@ postfix : str
 
             print("Files of serie {}: {}".format(i, serie.get_name_arrays()))
 
+        print(type(output_queue))
         for name in names:
-            output_queue[name] = name
-        return series
+            output_queue.queue[name] = name
 
         # k, o = self.wq0.popitem()
         # im = self.wq0.work(o)
@@ -326,45 +356,43 @@ postfix : str
         #
         # self.piv_work._prepare_with_image(im)
 
-    def fill_name_couple_and_path(self, input_queue, output_queues):
+    def fill_name_couple_and_path(self,input_queue, output_queues):
         previous_name = None
-        input_queue = sorted(input_queue)
+        input_queue = sorted(input_queue.queue)
+
         for name in input_queue:
-            output_queues[1][name[:-4]] = os.path.join(self.params.series.path,name)
+            output_queues[1].queue[name[:-4]] = os.path.join(self.params.series.path,name)
             if previous_name is not None:
-                output_queues[0][previous_name] = (str(previous_name),name[:-4])
+                output_queues[0].queue[previous_name] = (str(previous_name),name[:-4])
                 previous_name = name[:-4]
             else:
                 previous_name = name[:-4]
         return output_queues
 
+
     def make_couple(self, input_queue, output_queue):
-        print('###make couple')
         try:
             params_mask = self.params.mask
         except AttributeError:
             params_mask = None
+        if ( input_queue[0].queue and input_queue[1].queue):
+            key, couple = input_queue[1].queue.popitem() #pop a couple
+            print(couple[0])
+            if couple[0] in input_queue[0].queue and couple[1] in input_queue[0].queue:
+                array1 = input_queue[0].queue[couple[0]]
+                array2 = input_queue[0].queue[couple[1]]
+                couple = ArrayCouple(
+                    names=(couple[0], couple[1]),
+                    arrays=(array1, array2),
+                    params_mask=params_mask,
+                )
+                output_queue.queue[key] = couple
+            else:
+                input_queue[1].queue[key] = couple
+        else:
+            logger.error('Array or name couple is empty')
 
-        key, couple = input_queue[1].popitem() #pop a couple
-        if couple[0] in input_queue[0] and couple[1] in input_queue[0]:
-            array1 = input_queue[0][couple[0]]
-            array2 = input_queue[0][couple[1]]
-            couple = ArrayCouple(
-                names=(couple[0], couple[1]), arrays=(array1, array2), params_mask=params_mask,
-            )
-            return couple
-        else :
-            array1 = input_queue[0][couple[0]]
-            couple = ArrayCouple(
-                names=("", ""), arrays=(array1, array1), params_mask=params_mask
-            )
-            im, _ = couple.get_arrays()
-            self.piv_work = WorkPIV(self.params)
-            self.piv_work._prepare_with_image(im)
-            output_queue[key] = couple
-            return couple
-
-
+        print(output_queue.queue)
     def _print_at_exit(self, time_since_start):
 
         txt = "Stop compute after t = {:.2f} s".format(time_since_start)
