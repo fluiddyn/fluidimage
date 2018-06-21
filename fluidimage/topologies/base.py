@@ -314,8 +314,6 @@ class TopologyBase(object):
         while not self._has_to_stop and (
             any([not q.is_empty() for q in self.queues]) or len(workers) > 0
         ):
-            print("workers")
-            print(workers)
             # debug
             # if logger.level == 10 and \
             #    all([q.is_empty() for q in self.queues]) and len(workers) == 1:

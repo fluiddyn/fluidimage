@@ -251,46 +251,26 @@ postfix : str
             output_queue=queue_piv,
         )
 
-        def save_piv_object(o):
-            ret = o.save(path_dir_result)
-            return ret
-
         self.add_work(
             "save piv",
             func_or_cls=self.save_piv,
             input_queue=queue_piv,
             kind="io",
         )
-    def save_piv(self, input_queue, output_queue):
-        print(input_queue.queue)
-        if input_queue.queue:
-            key, light_result = input_queue.queue.popitem()
-            path_save = '../../../../fluidimage/image_samples/Karman/trio/resultsPIVTMP'+key
-            scipy.io.savemat(
-                path_save,
-                mdict={
-                    "deltaxs": light_result.deltaxs,
-                    "deltays": light_result.deltays,
-                    "xs": light_result.xs,
-                    "ys": light_result.ys,
-                },
-            )
-            print('###PIV {} SAVED !!!!!###'.format(key))
 
-    def calcul(self, input_queue, output_queue):
-        print(input_queue.queue)
-        if input_queue.queue:
-            key, array_couple = input_queue.queue.popitem()
-            ret = WorkPIV(self.params).calcul(array_couple)
-            lighPiv = ret.make_light_result()
-            output_queue.queue[key] = lighPiv
+    def save_piv_object(self,o):
+        ret = o.save(self.path_dir_result)
+        return ret
 
+    def save_piv(self, piv_object):
+        self.save_piv_object(piv_object)
+        print('###PIV SAVED !!!!!###')
 
-    def imread(self, input_queue, output_queue):
-        if input_queue.queue:
-            key, path = input_queue.queue.popitem()
-            output_queue.queue[key] = imread(path)
-            print(output_queue.queue)
+    def calcul(self, array_couple):
+        return WorkPIV(self.params).calcul(array_couple)
+
+    def imread(self, path):
+        return imread(path)
 
     def fill_name_piv(self, input_queue, output_queue):
 
@@ -298,7 +278,7 @@ postfix : str
         if len(series) == 0:
             logger.warning("add 0 couple. No PIV to compute.")
             return
-
+        print(series)
         if self.how_saving == "complete":
             names = []
             index_series = []
@@ -358,16 +338,16 @@ postfix : str
 
     def fill_name_couple_and_path(self,input_queue, output_queues):
         previous_name = None
-        input_queue = sorted(input_queue.queue)
+        input_queue.queue = sorted(input_queue.queue)
 
-        for name in input_queue:
+        for name in input_queue.queue:
             output_queues[1].queue[name[:-4]] = os.path.join(self.params.series.path,name)
             if previous_name is not None:
                 output_queues[0].queue[previous_name] = (str(previous_name),name[:-4])
                 previous_name = name[:-4]
             else:
                 previous_name = name[:-4]
-        return output_queues
+        input_queue.queue = {}
 
 
     def make_couple(self, input_queue, output_queue):
@@ -385,6 +365,7 @@ postfix : str
                     names=(couple[0], couple[1]),
                     arrays=(array1, array2),
                     params_mask=params_mask,
+                    serie=self.series.get_next_serie() #TODO link with real serie
                 )
                 output_queue.queue[key] = couple
             else:

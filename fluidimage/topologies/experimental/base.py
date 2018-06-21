@@ -39,10 +39,6 @@ class Queue(MyObj):
         super(Queue, self).__init__(**kwargs)
         self.queue = {}
 
-    # def popitem(self):
-    #     k = self._keys.pop(0)
-    #     o = super(self.queue, self).pop(k)
-    #     return k, o
 
 class Work(MyObj):
     """Represent a work"""

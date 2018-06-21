@@ -172,7 +172,6 @@ class BaseWorkPIV(BaseWork):
         im0, im1 = couple.get_arrays()
         if not hasattr(self, "ixvecs_grid"):
             self._prepare_with_image(im0)
-
         (
             deltaxs,
             deltays,
