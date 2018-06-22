@@ -355,28 +355,25 @@ postfix : str
             params_mask = self.params.mask
         except AttributeError:
             params_mask = None
+        if ( input_queue[0].queue and input_queue[1].queue):
+            key, couple = input_queue[1].queue.popitem() #pop a couple
+            print(couple[0])
+            if couple[0] in input_queue[0].queue and couple[1] in input_queue[0].queue:
+                array1 = input_queue[0].queue[couple[0]]
+                array2 = input_queue[0].queue[couple[1]]
+                couple = ArrayCouple(
+                    names=(couple[0], couple[1]),
+                    arrays=(array1, array2),
+                    params_mask=params_mask,
+                    serie=self.series.get_next_serie() #TODO link with real serie
+                )
+                output_queue.queue[key] = couple
+            else:
+                input_queue[1].queue[key] = couple
+        else:
+            logger.error('Array or name couple is empty')
 
-        keys = ""
-        for key, couple in input_queue[0].queue.items():
-            keys += str(key)+" "
-        print(keys)
-        #for each name couple
-        for key, couple in input_queue[1].queue.items():
-                print(couple)
-                # if correspondant arrays are avaible
-                if couple[0] in input_queue[0].queue and couple[1] in input_queue[0].queue:
-                    array1 = input_queue[0].queue[couple[0]]
-                    array2 = input_queue[0].queue[couple[1]]
-                    couple = ArrayCouple(
-                        names=(couple[0], couple[1]),
-                        arrays=(array1, array2),
-                        params_mask=params_mask,
-                        serie=self.series.get_next_serie() #TODO link with real serie
-                    )
-                    output_queue.queue[key] = couple
-                    return
-        logger.info("Cannot find correspond array to each couple names")
-
+        print(output_queue.queue)
     def _print_at_exit(self, time_since_start):
 
         txt = "Stop compute after t = {:.2f} s".format(time_since_start)

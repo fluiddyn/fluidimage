@@ -31,6 +31,7 @@ from ..waiting_queues.base import (
     WaitingQueueMakeCouple,
     WaitingQueueLoadImage,
     WaitingQueueBase,
+    WaitingQueueOneShot
 )
 from fluidimage.topologies.experimental.base import Queue
 from fluidimage.topologies.experimental.base import Work
@@ -49,20 +50,19 @@ class ExecuterThreadsMultiprocs(ExecuterBase):
         # WaitingQueueThreading, WaitingQueueMakeCouple, WaitingQueueLoadImage)
         # from the topology...
 
-        self.queues = []
+
         # create waiting queues :
         # for q in reversed(topology.queues):
-        #         self.queues.append(WaitingQueueBase(name=q.name, work=q.name))
+        #         self.topology.queues.append(WaitingQueueBase(name=q.name, work=q.name))
 
         # implement topologie
         self.add_queues()
 
-        for q in self.queues:
+        for q in self.topology.queues:
             # print(q.name)
             print(type(q))
 
 
-        print("len self.queue :{}".format(len(self.queues)))
         self._has_to_stop = False
 
 
@@ -83,44 +83,9 @@ class ExecuterThreadsMultiprocs(ExecuterBase):
           because of a signal 12 (cluster), a signal 99 is sent at exit.
 
         """
-        for w in self.topology.works:
 
-            print("###WORK### name = {}, kind = {} input queue = {}, output_queue = {}"
-                  .format(w.name, w.kind, type(w.input_queue), type(w.output_queue)))
-            if w.input_queue is None: #First work or no queue before work
-                w.func_or_cls(w.input_queue, w.output_queue)
-            elif w.output_queue is None: #First work or no queue before work ( SAVE )
-                key, obj = w.input_queue.popitem()
-                #TODO use dataobject save method
-                path_save = '../../../../resultsPIVTMP'
-                scipy.io.savemat(
-                    path_save,
-                    mdict={
-                        "deltaxs": obj.deltaxs,
-                        "deltays": obj.deltays,
-                        "xs": obj.xs,
-                        "ys": obj.ys,
-                    },
-                )
-            elif  w.kind is not None : #kind is not empty
-                if  "global" not in w.kind :
-                        if inspect.isclass(w.func_or_cls): #it's a class
-                            queue = w.input_queue
-                            w.func_or_cls(queue, w.output_queue)
-                        elif inspect.isfunction(w.func_or_cls): #its a function
-                            key, obj = w.input_queue.popitem()
-                            ret = w.func_or_cls(obj)
-                            w.output_queue[key] = ret
-                        else:
-                            logger.warn("Neither a class nor a function")
-                elif "global" in w.kind:
-                    w.func_or_cls(w.input_queue, w.output_queue)
-            else: #No kind attribute
-                key, obj = w.input_queue.popitem()
-                ret =  w.func_or_cls(self.topology.params).calcul(obj)
-                lighPiv = ret.make_light_result()
-                w.output_queue[key] = lighPiv
 
+        self.start_works()
 
         if hasattr(self, "path_output"):
             logger.info("path results:\n" + self.path_output)
@@ -217,27 +182,21 @@ class ExecuterThreadsMultiprocs(ExecuterBase):
         self.thread_check_works_p = CheckWorksProcess()
         self.thread_check_works_p.start()
 
-
-        print(self._has_to_stop)
-        for q in self.queues:
-            if not q.is_empty():
-                q.popitem()
-            print(len(q))
-        self.queues[4].destination = self.queues[2]
-        self.queues[3].destination = self.queues[1]
-        self.queues[2].destination = self.queues[1]
-        self.queues[1].destination = self.queues[0]
+        # self.topology.queues[1].destination = self.topology.queues[4]
+        # self.topology.queues[3].destination = self.topology.queues[4]
+        self.topology.queues[2].destination = self.topology.queues[3]
+        self.topology.queues[4].destination = self.topology.queues[5]
 
 
         while not self._has_to_stop and (
-            any([not q.is_empty() for q in self.queues]) or len(workers) > 0
+            any([not q.is_empty() for q in self.topology.queues]) or len(workers) > 0
         ):
-            print(workers)
-            for q in self.queues:
+            print("###WHILE###")
+            for q in self.topology.queues:
                  print("{}  : {}, {}, {}".format(len(q), q.name, type(q), q.destination))
             # debug
             # if logger.level == 10 and \
-            #    all([q.is_empty() for q in self.queues]) and len(workers) == 1:
+            #    all([q.is_empty() for q in self.topology.queues]) and len(workers) == 1:
             #     for worker in workers:
             #         try:
             #             is_alive = worker.is_alive()
@@ -266,8 +225,8 @@ class ExecuterThreadsMultiprocs(ExecuterBase):
                 )
                 sleep(dt)
 
-            for q in self.queues:
-                if not q.is_empty():
+            for q in self.topology.queues:
+                if not q.is_empty() and not isinstance(q, WaitingQueueOneShot):
                     logger.debug(q)
                     logger.debug("check_and_act for work: " + repr(q.work))
                     try:
@@ -331,7 +290,7 @@ class ExecuterThreadsMultiprocs(ExecuterBase):
 
     def add_queues(self):
         """
-        fill self.queues with appropriate queues from waiting_queue_base
+        fill self.topology.queues with appropriate queues from waiting_queue_base
         change work.input_queue and work.output_queue with previous queues ( from waiting_queue_base )
         Considere tuples ( tuple are changed in list for simplicity )
         :return:
@@ -339,43 +298,39 @@ class ExecuterThreadsMultiprocs(ExecuterBase):
         #TODO considered that first and last queue can be tuple
         #TODO Simplify the code
         for work in reversed(self.topology.works):
-            print(work.name)
             if work.input_queue is not None: # First work or no input queue
                 if isinstance(work.input_queue, tuple):#Tuple : Many input_queue
                     for q in work.input_queue:
                         destination = self.give_destination(work)
                         new_queue = self.give_correspondant_waiting_queue(work, destination, q)
-                        self.queues.append(new_queue)
+                        self.replace_queue(new_queue)
                         # attribute output queue
-                        print("start")
-                        for q in self.queues:
+                        for q in self.topology.queues:
                             if work.output_queue is not None and not isinstance(work.output_queue, tuple):
-                                print(work.output_queue.__dict__['name'] + "--" + q.name)
                                 if work.output_queue.__dict__['name'] is q.name:
-                                    print("OK")
-                                    work.output_queue = q
-                        print("finished")
-                else:         #One input queue
+                                     work.output_queue = q
+
+                else:   #One input queue
                     destination = self.give_destination(work)
-                    new_queue = self.give_correspondant_waiting_queue(work,destination)
-                    self.queues.append(new_queue)
+                    new_queue = self.give_correspondant_waiting_queue(work, destination)
+                    self.replace_queue(new_queue)
                     #attribute output queue
 
                     if work.output_queue is not None and not isinstance(work.output_queue, tuple):
-                        for q in self.queues:
+                        for q in self.topology.queues:
                             if work.output_queue.__dict__['name'] is q.name:
                                 work.output_queue = q
                     elif isinstance(work.output_queue, tuple):
                         lst_q = []
 
                         for iq in work.output_queue:
-                            for q in self.queues:
+                            for q in self.topology.queues:
                                 if iq.__dict__['name'] is q.name:
                                     lst_q.append(q)
                         work.output_queue = lst_q
 
             else: # fisrt work : attribute output queue
-                for q in self.queues:
+                for q in self.topology.queues:
                     if work.output_queue.__dict__['name'] is q.name:
                         work.output_queue = q
         # attribute input queue
@@ -383,12 +338,12 @@ class ExecuterThreadsMultiprocs(ExecuterBase):
             if isinstance(w.input_queue, tuple):
                 lst_q = []
                 for iq in w.input_queue:
-                    for q in self.queues:
+                    for q in self.topology.queues:
                         if iq.__dict__['name'] is q.name:
                             lst_q.append(q)
                 w.input_queue = lst_q
             else:
-                for q in self.queues:
+                for q in self.topology.queues:
                     if w.input_queue is not None:
                         if w.input_queue.__dict__['name'] is q.name:
                             w.input_queue = q
@@ -396,10 +351,11 @@ class ExecuterThreadsMultiprocs(ExecuterBase):
         for w in self.topology.works:
             print("###WORK### name = {}, kind = {} input queue = {}, output_queue = {}"
                   .format(w.name, w.kind, type(w.input_queue), type(w.output_queue)))
+
     def give_destination(self,work):
-        if len(self.queues) is 0:
+        if len(self.topology.queues) is 0:
             return None
-        for q in self.queues:
+        for q in self.topology.queues:
             if work.output_queue is q.name:
                 return q
 
@@ -411,8 +367,17 @@ class ExecuterThreadsMultiprocs(ExecuterBase):
         if input_queue is None:  # No input queue
             print("Work {} has no input queue".format(input_queue))
         elif work.kind is not None:  # kind is not empty
-            if "io" in work.kind:
-                queue = WaitingQueueThreading(
+            if "one shot" in work.kind:
+                print("WORK func_or_cls {}".format(work))
+                queue = WaitingQueueOneShot(
+                    name=input_queue.name,
+                    work_name=work.name,
+                    work=work.func_or_cls,
+                    destination=destination,
+                    topology=self.topology)
+
+            elif "io" in work.kind:
+                queue = WaitingQueueMultiprocessing(
                     name=input_queue.name,
                     work_name=work.name,
                     work=work.func_or_cls,
@@ -421,8 +386,9 @@ class ExecuterThreadsMultiprocs(ExecuterBase):
                 )
             else:
                 if "global" in work.kind:
-                    queue = WaitingQueueMakeCouple(
+                    queue = WaitingQueueMultiprocessing(
                         name=queue_name,
+                        work = work.func_or_cls,
                         destination=destination,
                         topology=self.topology
                     )
@@ -436,15 +402,64 @@ class ExecuterThreadsMultiprocs(ExecuterBase):
         else:
             queue = WaitingQueueMultiprocessing(
                 name=queue_name,
+                work_name=str(work.func_or_cls),
                 work=work.func_or_cls,
                 destination=destination,
                 topology=self.topology
             )
         return queue
 
+
+    def start_works(self):
+        for w in self.topology.works:
+            print("###WORK### name = {}, kind = {} input queue = {}, output_queue = {}"
+                  .format(w.name, w.kind, type(w.input_queue), type(w.output_queue)))
+            if w.input_queue is None:  # First work or no queue before work
+                w.func_or_cls(w.input_queue, w.output_queue)
+            elif w.kind is not None and 'one shot' in w.kind:
+                w.func_or_cls(w.input_queue, w.output_queue)
+            # elif w.output_queue is None:  # First work or no queue before work ( SAVE )
+            #     key, obj = w.input_queue.popitem()
+            #     # TODO use dataobject save method
+            #     path_save = '../../../../resultsPIVTMP'
+            #     scipy.io.savemat(
+            #         path_save,
+            #         mdict={
+            #             "deltaxs": obj.deltaxs,
+            #             "deltays": obj.deltays,
+            #             "xs": obj.xs,
+            #             "ys": obj.ys,
+            #         },
+            #     )
+            # elif w.kind is not None:  # kind is not empty
+            #     if "global" not in w.kind:
+            #         if inspect.isclass(w.func_or_cls):  # it's a class
+            #             queue = w.input_queue
+            #             w.func_or_cls(queue, w.output_queue)
+            #         elif inspect.isfunction(w.func_or_cls):  # its a function
+            #             key, obj = w.input_queue.popitem()
+            #             ret = w.func_or_cls(obj)
+            #             w.output_queue[key] = ret
+            #         else:
+            #             logger.warn("Neither a class nor a function")
+            #     elif "global" in w.kind:
+            #         w.func_or_cls(w.input_queue, w.output_queue)
+            # else:  # No kind attribute
+            #     key, obj = w.input_queue.popitem()
+            #     ret = w.func_or_cls(obj)
+            #     lighPiv = ret.make_light_result()
+            #     w.output_queue[key] = lighPiv
+
+
+    def replace_queue(self, queue):
+        for index, q in enumerate(self.topology.queues):
+            if q.name is queue.name:
+                self.topology.queues[index] = queue
+                return
+
     def _clear_save_queue(self, workers, sequential):
         """Clear the last queue (which is often saving) before stopping."""
-        q = self.queues[-1]
+        q = self.topology.queues[-1]
 
         idebug = 0
         # if the last queue is a WaitingQueueThreading (saving),

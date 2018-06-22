@@ -53,16 +53,15 @@ class ExecuterAwaitMultiprocs(ExecuterBase):
                 async def func(work=w):
                     print("funtion {} is called".format(work.name))
                     if work.input_queue.queue:
-                        key, obj = work.input_queue.queue.popitem()
+                        key, obj = await work.input_queue.queue.popitem()
                         ret =  work.func_or_cls(obj)
                         work.output_queue.queue[key] = ret
             else: #Last work
                 async def func(work=w):
                     print("funtion {} is called".format(work.name))
                     if work.input_queue.queue:
-                        key, obj = work.input_queue.queue.popitem()
+                        key, obj = await work.input_queue.queue.popitem()
                         work.func_or_cls(obj)
-
             self.async_funcs[w.name] = func
 
     def compute(self, sequential = True, has_to_exit= False):
@@ -83,10 +82,7 @@ class ExecuterAwaitMultiprocs(ExecuterBase):
 
     async def start_async_works(self):
         async with trio.open_nursery() as nursery:
-            # while any([any(q.queue) for q in self.topology.queues]):
-            for _ in range(3):
-                nursery.start_soon(self.process)
-            # for key, af in reversed(self.async_funcs.items()):
-            #     nursery.start_soon(af)
+            for f in self.async_funcs :
+                nursery.start_soon(f)
 
         logger.info("Work all done in {}".format(time.time() - self.t_start))

@@ -12,6 +12,7 @@ import signal
 import sys
 import os
 from warnings import warn
+import trio
 
 from fluiddyn import time_as_str
 from fluiddyn.io.tee import MultiFile
