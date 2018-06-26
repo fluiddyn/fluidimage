@@ -319,23 +319,6 @@ postfix : str
         for name in names:
             output_queue.queue[name] = name
 
-        # k, o = self.wq0.popitem()
-        # im = self.wq0.work(o)
-        # self.wq0.fill_destination(k, im)
-        #
-        # # a little bit strange, to apply mask...
-        # try:
-        #     params_mask = self.params.mask
-        # except AttributeError:
-        #     params_mask = None
-        #
-        # couple = ArrayCouple(
-        #     names=("", ""), arrays=(im, im), params_mask=params_mask
-        # )
-        # im, _ = couple.get_arrays()
-        #
-        # self.piv_work._prepare_with_image(im)
-
     def fill_name_couple_and_path(self,input_queue, output_queues):
         previous_name = None
         input_queue.queue = sorted(input_queue.queue)
@@ -367,15 +350,27 @@ postfix : str
                 if couple[0] in input_queue[0].queue and couple[1] in input_queue[0].queue:
                     array1 = input_queue[0].queue[couple[0]]
                     array2 = input_queue[0].queue[couple[1]]
+                    # serie = self.get_associated_series(key, series=self.series)
+                    # print(serie)
                     couple = ArrayCouple(
                         names=(couple[0], couple[1]),
                         arrays=(array1, array2),
                         params_mask=params_mask,
-                        serie=self.series.get_next_serie() #TODO link with real serie
+                        serie= self.series.get_next_serie()
                     )
                     output_queue.queue[key] = couple
-                    return
+                    return True
+                return False
         logger.info("Cannot find correspond array to each couple names")
+
+    def get_associated_series(self, image_name, series):
+        stop = series.nb_series
+        for index in range(0, stop):
+            print(series.get_serie_from_index(index).filename_given[:-4])
+            if series.get_serie_from_index(index).filename_given[:-4] is image_name:
+                print(series.get_serie_from_index(index))
+                return series.get_serie_from_index(index)
+
 
     def _print_at_exit(self, time_since_start):
 

@@ -214,10 +214,10 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
         return workers
 
     def _launch_worker(self):
-
+        print(self.keys())
         k = self._keys[0]
         o = self[k]
-
+        print(o)
         log_memory_usage(
             "{:.2f} s. ".format(time() - self.topology.t_start)
             + "Launch work "
@@ -321,6 +321,44 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
 
         p.fill_destination = fill_destination
         return p
+
+class WaitingQueueMultiprocessingSpe(WaitingQueueMultiprocessing):
+
+    def _launch_worker(self):
+
+        k = self._keys[0]
+        o = self[k]
+        print(o)
+        log_memory_usage(
+            "{:.2f} s. ".format(time() - self.topology.t_start)
+            + "Launch work "
+            + self.work_name
+            + " ({}). mem usage".format(k)
+        )
+
+        comm = self._Queue()
+        comm_started = self._Queue()
+        p = self._Process(
+            target=exec_work_and_comm, args=(self.work, o, comm, comm_started)
+        )
+        p.t_start = t_start = time()
+        p.comm = comm
+        p.key = k
+        p.work_name = self.work_name
+
+        # to handle a bug py3 multiprocessing
+        p.comm_started = comm_started
+        p.really_started = False
+        p.start()
+
+        # we do this after p.start() because an error can be raised here
+
+        self._nb_workers += 1
+        if self.do_use_cpu:
+            self.topology.nb_workers_cpu += 1
+        else:
+            self.topology.nb_workers_io += 1
+        p.do_use_cpu = self.do_use_cpu
 
 
 class ThreadWork(threading.Thread):
@@ -472,6 +510,46 @@ class WaitingQueueMakeCouple(WaitingQueueBase):
                         params_mask=self.topology.params.mask,
                     )
 
+class WaitingQueueOneShot(WaitingQueueBase):
+    def __init__(
+        self,
+        name,
+        destination,
+        work,
+        work_name="make couples",
+        topology=None,
+        image_reference=None,
+        path_reference=None,
+        serie=None,
+    ):
+        self.topology = topology
+        work = "make_couples"
+
+        self.image_reference = image_reference
+        self.path_reference = path_reference
+        self.serie = serie
+        self.work = work
+
+        self.topology = topology
+        work = "make_couples"
+        self.image_reference = image_reference
+        self.path_reference = path_reference
+        self.serie = serie
+
+        super(WaitingQueueOneShot, self).__init__(
+            name, work, destination, work_name, topology
+        )
+
+    def is_empty(self):
+        return WaitingQueueBase.is_empty(WaitingQueueBase)
+
+
+    def check_and_act(self, sequential=None):
+        if self.is_destination_full():
+            return
+        print(type(self.work))
+
+
 
 class WaitingQueueMakeCoupleBOS(WaitingQueueBase):
     def __init__(
@@ -484,6 +562,17 @@ class WaitingQueueMakeCoupleBOS(WaitingQueueBase):
         path_reference=None,
         serie=None,
     ):
+
+        self.topology = topology
+        work = "make_couples"
+
+        self.image_reference = image_reference
+        self.path_reference = path_reference
+        self.serie = serie
+
+        super(WaitingQueueMakeCoupleBOS, self).__init__(
+            name, work, destination, work_name, topology
+        )
 
         self.topology = topology
         work = "make_couples"

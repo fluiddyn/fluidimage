@@ -31,9 +31,9 @@ class ExecuterAwaitMultiprocs(ExecuterBase):
             print("func : {} ".format(key))
         print("\n")
 
-    async def process(self):
+    async def process(self,cond):
         for key, af in reversed(self.async_funcs.items()):
-            await af()
+            await af(cond)
 
     def define_function(self):
         #define functions and store them
@@ -46,22 +46,46 @@ class ExecuterAwaitMultiprocs(ExecuterBase):
                 self.funcs[w.name] = func
                 continue
             elif w.kind is not None and "global" in w.kind:  ## global functions
-                async def func(work=w):
+                async def func(cond, work=w):
                     print("global funtion {} is called".format(work.name))
-                    work.func_or_cls(work.input_queue, work.output_queue)
+                    async with cond:
+                        while not self.has_to_stop():
+                            while not work.func_or_cls(work.input_queue, work.output_queue):
+                                print("global funtion {} is whiling".format(work.name))
+                                cond.notify()
+                                await cond.wait()
+                            cond.notify()
+                            await cond.wait()
+                        print("global funtion {} is have finished working".format(work.name))
             elif w.output_queue is not None: ### other function
-                async def func(work=w):
-                    print("funtion {} is called".format(work.name))
-                    if work.input_queue.queue:
-                        key, obj = work.input_queue.queue.popitem()
-                        ret =  work.func_or_cls(obj)
-                        work.output_queue.queue[key] = ret
+                async def func(cond, work=w):
+                    async with cond:
+                        while not self.has_to_stop():
+                            print("funtion {} is called".format(work.name))
+                            while not work.input_queue.queue:
+                                print("global funtion {} is whiling".format(work.name))
+                                cond.notify()
+                                await cond.wait()
+                            key, obj = work.input_queue.queue.popitem()
+                            ret =  work.func_or_cls(obj)
+                            work.output_queue.queue[key] = ret
+                            cond.notify()
+                            await cond.wait()
+                        print("global funtion {} is have finished working".format(work.name))
             else: #Last work
-                async def func(work=w):
-                    print("funtion {} is called".format(work.name))
-                    if work.input_queue.queue:
-                        key, obj = work.input_queue.queue.popitem()
-                        work.func_or_cls(obj)
+                async def func(cond, work=w):
+                    async with cond:
+                        while not self.has_to_stop():
+                            print("funtion {} is called".format(work.name))
+                            while not work.input_queue.queue:
+                                print("global funtion {} is whiling".format(work.name))
+                                cond.notify()
+                                await cond.wait()
+                            key, obj = work.input_queue.queue.popitem()
+                            work.func_or_cls(obj)
+                            cond.notify()
+                            await cond.wait()
+                        print("global funtion {} is have finished working".format(work.name))
 
             self.async_funcs[w.name] = func
 
@@ -81,12 +105,13 @@ class ExecuterAwaitMultiprocs(ExecuterBase):
             if w.kind is None or 'one shot' not in w.kind:
                 self.works.append(w)
 
+    def has_to_stop(self):
+        return not any([any(q.queue) for q in self.topology.queues])
+
     async def start_async_works(self):
         async with trio.open_nursery() as nursery:
-            # while any([any(q.queue) for q in self.topology.queues]):
-            for _ in range(3):
-                nursery.start_soon(self.process)
-            # for key, af in reversed(self.async_funcs.items()):
-            #     nursery.start_soon(af)
+            cond = trio.Condition()
+            for key, af in reversed(self.async_funcs.items()):
+                nursery.start_soon(af, cond)
 
         logger.info("Work all done in {}".format(time.time() - self.t_start))
