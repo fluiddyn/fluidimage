@@ -39,13 +39,15 @@ class ExecuterAwaitMultiprocs(ExecuterBase):
         #define functions and store them
         for w in reversed(self.topology.works):
             print(w.name)
-            if w.kind is not None and "one shot" in w.kind: ##One shot functionw
+            # One shot functions
+            if w.kind is not None and "one shot" in w.kind:
                 def func(work=w):
                     print("funtion {} is called".format(work.name))
                     work.func_or_cls(work.input_queue, work.output_queue)
                 self.funcs[w.name] = func
                 continue
-            elif w.kind is not None and "global" in w.kind:  ## global functions
+            # global functions
+            elif w.kind is not None and "global" in w.kind:
                 async def func(cond, work=w):
                     print("global funtion {} is called".format(work.name))
                     async with cond:
@@ -57,7 +59,25 @@ class ExecuterAwaitMultiprocs(ExecuterBase):
                             cond.notify()
                             await cond.wait()
                         print("global funtion {} is have finished working".format(work.name))
-            elif w.output_queue is not None: ### other function
+            # I/O
+            elif w.kind is not None and "io" in w.kind and w.output_queue is not None:
+                async def func(cond, work=w):
+                    async with cond:
+                        while not self.has_to_stop():
+                            print("funtion {} is called".format(work.name))
+                            while not work.input_queue.queue:
+                                print("global funtion {} is whiling".format(work.name))
+                                cond.notify()
+                                await cond.wait()
+                            key, obj = work.input_queue.queue.popitem()
+                            file = await trio.open_file(obj)
+                            ret =  await trio.run_sync_in_worker_thread(work.func_or_cls,file)
+                            work.output_queue.queue[key] = ret
+                            cond.notify()
+                            await cond.wait()
+                        print("funtion {} is have finished working".format(work.name))
+            # other functions that have an output queue
+            elif w.output_queue is not None:
                 async def func(cond, work=w):
                     async with cond:
                         while not self.has_to_stop():
@@ -71,8 +91,9 @@ class ExecuterAwaitMultiprocs(ExecuterBase):
                             work.output_queue.queue[key] = ret
                             cond.notify()
                             await cond.wait()
-                        print("global funtion {} is have finished working".format(work.name))
-            else: #Last work
+                        print("funtion {} is have finished working".format(work.name))
+            else:
+                # Last work : no output queue
                 async def func(cond, work=w):
                     async with cond:
                         while not self.has_to_stop():
@@ -82,10 +103,10 @@ class ExecuterAwaitMultiprocs(ExecuterBase):
                                 cond.notify()
                                 await cond.wait()
                             key, obj = work.input_queue.queue.popitem()
-                            work.func_or_cls(obj)
+                            await trio.run_sync_in_worker_thread(work.func_or_cls,obj)
                             cond.notify()
                             await cond.wait()
-                        print("global funtion {} is have finished working".format(work.name))
+                        print("funtion {} is have finished working".format(work.name))
 
             self.async_funcs[w.name] = func
 
@@ -106,7 +127,7 @@ class ExecuterAwaitMultiprocs(ExecuterBase):
                 self.works.append(w)
 
     def has_to_stop(self):
-        return not any([any(q.queue) for q in self.topology.queues])
+        return not any([len(q.queue) != 0 for q in self.topology.queues])
 
     async def start_async_works(self):
         async with trio.open_nursery() as nursery:
@@ -115,3 +136,11 @@ class ExecuterAwaitMultiprocs(ExecuterBase):
                 nursery.start_soon(af, cond)
 
         logger.info("Work all done in {}".format(time.time() - self.t_start))
+
+
+class multiproc:
+
+    def __init__(self):
+        pass
+
+

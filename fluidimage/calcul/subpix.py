@@ -154,17 +154,17 @@ class SubPix(object):
         elif method == "no_subpix":
             deplx = deply = 0.
 
-        if deplx ** 2 + deply ** 2 > 2 * (0.5 + nsubpix) ** 2:
-            print(
-                (
-                    "Wrong subpix for one vector:"
-                    " deplx**2 + deply**2 > (0.5+nsubpix)**2\n"
-                    "method: " + method + "\ndeplx, deply = ({}, {})\n"
-                    "correl_subpix =\n{}"
-                ).format(deplx, deply, correl_crop)
-            )
-            raise PIVError(
-                explanation="wrong subpix", result_compute_subpix=(iy, ix)
-            )
+        # if deplx ** 2 + deply ** 2 > 2 * (0.5 + nsubpix) ** 2:
+        #     print(
+        #         (
+        #             "Wrong subpix for one vector:"
+        #             " deplx**2 + deply**2 > (0.5+nsubpix)**2\n"
+        #             "method: " + method + "\ndeplx, deply = ({}, {})\n"
+        #             "correl_subpix =\n{}"
+        #         ).format(deplx, deply, correl_crop)
+        #     )
+        #     raise PIVError(
+        #         explanation="wrong subpix", result_compute_subpix=(iy, ix)
+        #     )
 
         return deplx + ix, deply + iy

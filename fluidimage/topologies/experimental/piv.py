@@ -345,23 +345,44 @@ postfix : str
         print(keys)
         #for each name couple
         for key, couple in input_queue[1].queue.items():
-                print(couple)
-                # if correspondant arrays are avaible
+                # if correspondant arrays are avaible, make an array couple
                 if couple[0] in input_queue[0].queue and couple[1] in input_queue[0].queue:
+
                     array1 = input_queue[0].queue[couple[0]]
                     array2 = input_queue[0].queue[couple[1]]
                     # serie = self.get_associated_series(key, series=self.series)
                     # print(serie)
-                    couple = ArrayCouple(
+                    array_couple = ArrayCouple(
                         names=(couple[0], couple[1]),
                         arrays=(array1, array2),
                         params_mask=params_mask,
-                        serie= self.series.get_next_serie()
+                        serie=self.series.get_next_serie()
                     )
-                    output_queue.queue[key] = couple
+
+                    output_queue.queue[key] = array_couple
+                    #remove names_couple
+                    del input_queue[1].queue[key]
+
+                    #remove the image_array if it not will be used anymore
+                    #
+                    # print("lets remove :")
+                    # if  not couple[0] not in ([names[0] for _, names in input_queue[1].queue.items()]) and\
+                    #     not couple[0] not in ([names[1] for _, names in input_queue[1].queue.items()]):
+                    #     print("###removing image {}".format(couple[0]))
+                    #     input_queue[0].queue.pop(couple[0])
+                    # if  not couple[1] not in ([names[0] for _, names in input_queue[1].queue.items()]) and\
+                    #     not couple[1] not in ([names[1] for _, names in input_queue[1].queue.items()]):
+                    #     print("###removing image {}".format(couple[0]))
+                    #     input_queue[0].queue.pop(couple[1])
+                    # keys = ""
+                    # for key, couple in input_queue[0].queue.items():
+                    #     keys += str(key) + " "
+                    # print(keys)
                     return True
-                return False
+        return False
         logger.info("Cannot find correspond array to each couple names")
+
+
 
     def get_associated_series(self, image_name, series):
         stop = series.nb_series
