@@ -38,7 +38,7 @@ class Queue(MyObj):
     """Represent a queue"""
     def __init__(self, **kwargs):
         super(Queue, self).__init__(**kwargs)
-        self.queue = {}
+        self.queue = None
 
 
 class Work(MyObj):

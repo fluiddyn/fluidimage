@@ -23,6 +23,7 @@ from .. import image2image
 import scipy.io
 
 
+
 class TopologyPIV(TopologyBase):
     """Topology for PIV.
 
@@ -249,6 +250,7 @@ postfix : str
             params_cls=params,
             input_queue=queue_couples,
             output_queue=queue_piv,
+            kind = "server"
         )
 
         self.add_work(
@@ -257,6 +259,8 @@ postfix : str
             input_queue=queue_piv,
             kind="io",
         )
+
+        #imag
 
     def save_piv_object(self,o):
         ret = o.save(self.path_dir_result)
@@ -364,25 +368,19 @@ postfix : str
                     del input_queue[1].queue[key]
 
                     #remove the image_array if it not will be used anymore
-                    #
-                    # print("lets remove :")
-                    # if  not couple[0] not in ([names[0] for _, names in input_queue[1].queue.items()]) and\
-                    #     not couple[0] not in ([names[1] for _, names in input_queue[1].queue.items()]):
-                    #     print("###removing image {}".format(couple[0]))
-                    #     input_queue[0].queue.pop(couple[0])
-                    # if  not couple[1] not in ([names[0] for _, names in input_queue[1].queue.items()]) and\
-                    #     not couple[1] not in ([names[1] for _, names in input_queue[1].queue.items()]):
-                    #     print("###removing image {}".format(couple[0]))
-                    #     input_queue[0].queue.pop(couple[1])
-                    # keys = ""
-                    # for key, couple in input_queue[0].queue.items():
-                    #     keys += str(key) + " "
-                    # print(keys)
+                    if not self.still_is_in_dict(couple[0],input_queue[1].queue):
+                       del input_queue[0].queue[couple[0]]
+                    if not self.still_is_in_dict(couple[1],input_queue[1].queue):
+                       del input_queue[0].queue[couple[1]]
                     return True
         return False
-        logger.info("Cannot find correspond array to each couple names")
 
-
+    @staticmethod
+    def still_is_in_dict(image_name, dict):
+        for key,t in dict.items():
+            if image_name in t:
+                return True
+        return False
 
     def get_associated_series(self, image_name, series):
         stop = series.nb_series

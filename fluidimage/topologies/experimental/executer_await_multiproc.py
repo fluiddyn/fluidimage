@@ -7,6 +7,8 @@ IO tasks are handled with an asyncio event loops.
 import collections
 import trio
 import time
+import rpyc
+from rpyc import async as async_
 from fluidimage.util.util import logger
 from fluidimage.topologies.experimental.executer_base import ExecuterBase
 from fluidimage.topologies.experimental.nb_workers import nb_max_workers
@@ -21,6 +23,9 @@ class ExecuterAwaitMultiprocs(ExecuterBase):
         self.works = []
         self.async_funcs = collections.OrderedDict()
         self.funcs = collections.OrderedDict()
+        #server
+        self.server = None
+        self.start_server()
         #fonctions definition
         self.get_async_works()
         self.define_function()
@@ -55,6 +60,8 @@ class ExecuterAwaitMultiprocs(ExecuterBase):
                             while not work.func_or_cls(work.input_queue, work.output_queue):
                                 print("global funtion {} is whiling".format(work.name))
                                 cond.notify()
+                                if self.has_to_stop():
+                                    return
                                 await cond.wait()
                             cond.notify()
                             await cond.wait()
@@ -68,11 +75,35 @@ class ExecuterAwaitMultiprocs(ExecuterBase):
                             while not work.input_queue.queue:
                                 print("global funtion {} is whiling".format(work.name))
                                 cond.notify()
+                                if self.has_to_stop():
+                                    return
                                 await cond.wait()
                             key, obj = work.input_queue.queue.popitem()
-                            file = await trio.open_file(obj)
-                            ret =  await trio.run_sync_in_worker_thread(work.func_or_cls,file)
+                            # ret = await trio.open_file(obj)
+                            ret =  await trio.run_sync_in_worker_thread(work.func_or_cls,obj)
                             work.output_queue.queue[key] = ret
+                            cond.notify()
+                            await cond.wait()
+                        print("funtion {} is have finished working".format(work.name))
+            #multiproc on server
+            elif w.kind is not None and "server" in w.kind and w.output_queue is not None:
+                async def func(cond, work=w):
+                    async with cond:
+                        while not self.has_to_stop():
+                            print("funtion {} is called".format(work.name))
+                            while not work.input_queue.queue:
+                                print("global funtion {} is whiling".format(work.name))
+                                cond.notify()
+                                if self.has_to_stop():
+                                    return
+                                await cond.wait()
+                            key, obj = work.input_queue.queue.popitem()
+                            # server_func = async_(self.server.root.exposed_add_work)
+                            # server_func(work.func_or_cls, obj)
+                            self.server.root.exposed_add_work(work=work.func_or_cls, obj=obj)
+                            if self.server.root.exposed_result_ready():
+                                res = self.server.root.exposed_get_a_result()
+                                work.output_queue.queue[key] = res
                             cond.notify()
                             await cond.wait()
                         print("funtion {} is have finished working".format(work.name))
@@ -85,6 +116,8 @@ class ExecuterAwaitMultiprocs(ExecuterBase):
                             while not work.input_queue.queue:
                                 print("global funtion {} is whiling".format(work.name))
                                 cond.notify()
+                                if self.has_to_stop():
+                                    return
                                 await cond.wait()
                             key, obj = work.input_queue.queue.popitem()
                             ret =  work.func_or_cls(obj)
@@ -101,6 +134,8 @@ class ExecuterAwaitMultiprocs(ExecuterBase):
                             while not work.input_queue.queue:
                                 print("global funtion {} is whiling".format(work.name))
                                 cond.notify()
+                                if self.has_to_stop():
+                                    return
                                 await cond.wait()
                             key, obj = work.input_queue.queue.popitem()
                             await trio.run_sync_in_worker_thread(work.func_or_cls,obj)
@@ -137,6 +172,8 @@ class ExecuterAwaitMultiprocs(ExecuterBase):
 
         logger.info("Work all done in {}".format(time.time() - self.t_start))
 
+    def start_server(self):
+        self.server = rpyc.connect("localhost", 18813, config={"allow_public_attrs": True, "allow_pickle": True})
 
 class multiproc:
 
