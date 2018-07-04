@@ -1,5 +1,5 @@
 from fluidimage.topologies.experimental.piv import TopologyPIV
-from fluidimage.topologies.experimental.executer_await_multiproc import ExecuterAwaitMultiprocs
+from fluidimage.topologies.experimental.executer_await_multiproc_2 import ExecuterAwaitMultiprocs
 import os
 
 params = TopologyPIV.create_default_params()

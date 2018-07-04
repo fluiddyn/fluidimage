@@ -8,6 +8,7 @@ import collections
 import trio
 import time
 import rpyc
+import pickle
 import aiohttp
 from rpyc.utils.server import ThreadedServer
 from rpyc import async as async_
@@ -26,12 +27,16 @@ class ExecuterAwaitMultiprocs(ExecuterBase):
         self.works = []
         self.async_funcs = collections.OrderedDict()
         self.funcs = collections.OrderedDict()
+        self.sleep_time = 0.01
+        #working statut
+        self.working_statut = {}
+
         #server
         self.server = None
-        trio.run(self.start_server)
+        # trio.run(self.start_server)
         # #fonctions definition
-        # self.get_async_works()
-        # self.define_function()
+        self.get_async_works()
+        self.define_function()
         # print("\nWhat's in function dicts ?\n ")
         # for key, af in self.async_funcs.items():
         #     print("async func : {} ".format(key))
@@ -62,69 +67,72 @@ class ExecuterAwaitMultiprocs(ExecuterBase):
                     print("{} is called".format(work.name))
                     while True:
                         while not work.func_or_cls(work.input_queue, work.output_queue):
-                            print("{} have nothing in his queue".format(work.name))
-                            if self.has_to_stop():
+                            if self.has_to_stop() and not self.job_in_progress():
                                 return
-                            await trio.sleep(1)
-                        print("{} is working".format(work.name))
+                            await trio.sleep(self.sleep_time)
+                        await trio.sleep(self.sleep_time)
                         self.print_queues()
-                        # I/O
+            # I/O
             elif w.kind is not None and "io" in w.kind and w.output_queue is not None:
                 async def func(work=w):
                     print("{} is called".format(work.name))
                     while True:
+
                         while not work.input_queue.queue:
-                            print("{} have nothing in his queue".format(work.name))
                             if self.has_to_stop():
                                 return
-                            await trio.sleep(1)
-                        self.print_queues()
-                        print("{} is poping".format(work.name))
+                            await trio.sleep(self.sleep_time)
                         key, obj = await trio.run_sync_in_worker_thread(self.pull,work.input_queue.queue)
-                        print("{} is working".format(work.name))
-                        # ret = await trio.open_file(obj)
+                        work.input_queue.queue['test'] = True
                         ret = await trio.run_sync_in_worker_thread(work.func_or_cls, obj)
-                        print("{} is pushing".format(work.name))
                         await trio.run_sync_in_worker_thread(self.push,key, ret,work.output_queue.queue)
+                        del work.input_queue.queue['test']
+                        await trio.sleep(self.sleep_time)
                         self.print_queues()
+            # server
             elif w.kind is not None and "server" in w.kind and w.output_queue is not None:
                 async def func(work=w):
                     print("{} is called".format(work.name))
-                    while True:
+                    while True :
                         while not work.input_queue.queue:
-                            print("{} have nothing in his queue".format(work.name))
                             if self.has_to_stop():
                                 return
-                            await trio.sleep(1)
-                        self.print_queues()
-                        print("{} is poping".format(work.name))
+                            await trio.sleep(self.sleep_time)
                         key, obj = await trio.run_sync_in_worker_thread(self.pull,work.input_queue.queue)
-                        print("{} is working".format(work.name))
-                        await self.send_work(work.func_or_cls, obj)
-
-                        print("{} is pushing".format(work.name))
+                        work.input_queue.queue['test'] = True
+                        #server part
+                        conn = await trio.open_tcp_stream("localhost", 8891)
+                        obj_s = pickle.dumps(obj)
+                        print("send obj")
+                        await conn.send_all(obj_s)
+                        print('sent')
+                        ret = await conn.receive_some(102400)
+                        print("received ret")
+                        ret = pickle.loads(ret)
+                        print(ret)
                         if work.output_queue is not None:
                             await trio.run_sync_in_worker_thread(self.push,key,ret,work.output_queue.queue)
-                        self.print_queues()
+                        del work.input_queue.queue['test']
             #other functions
+                        self.print_queues()
             else:
                 async def func(work=w):
                     print("{} is called".format(work.name))
-                    while True:
+                    while True :
+
                         while not work.input_queue.queue:
-                            print("{} have nothing in his queue".format(work.name))
-                            if self.has_to_stop():
+                            if self.has_to_stop() :
                                 return
-                            await trio.sleep(1)
-                        self.print_queues()
-                        print("{} is poping".format(work.name))
+                            await trio.sleep(self.sleep_time)
                         (key, obj) = await trio.run_sync_in_worker_thread(self.pull,work.input_queue.queue)
-                        print("{} is working".format(work.name))
-                        ret = await trio.run_sync_in_worker_thread(work.func_or_cls, obj)
+                        work.input_queue.queue['test'] = True
+                        ret = work.func_or_cls(obj)
                         if work.output_queue is not None:
-                            print("{} is pushing".format(work.name))
                             await trio.run_sync_in_worker_thread(self.push, key, ret, work.output_queue.queue)
-                        self.print_queues()
+                        del work.input_queue.queue['test']
+                        await trio.sleep(self.sleep_time)
+            #put funcctions in async_foncs dict
+                        print(self.print_queues())
             self.async_funcs[w.name] = func
 
 
@@ -146,12 +154,13 @@ class ExecuterAwaitMultiprocs(ExecuterBase):
     def has_to_stop(self):
         return not any([len(q.queue) != 0 for q in self.topology.queues])
 
-    async def send_work(self,work,  obj):
-        async with aiohttp.ClientSession() as session:
-            async with session.get('localhost') as resp:
-                print(resp.status)
-                print(await
-                resp.text())
+    def job_in_progress(self):
+        return any([working_statu is True for key, working_statu in self.working_statut.items()])
+
+    async def send_work(self, obj):
+        conn = await trio.open_tcp_stream("localhost", 8888)
+        obj_s = pickle.dumps(obj)
+        await conn.send_all(obj_s)
 
     def pull(self, input_queue):
         key, obj = input_queue.popitem()
@@ -167,48 +176,9 @@ class ExecuterAwaitMultiprocs(ExecuterBase):
         print("\n")
 
     async def start_async_works(self):
-        async with trio.open_nursery() as nursery:
+        async with trio.open_nursery() as self.nursery:
             for key, af in reversed(self.async_funcs.items()):
-                nursery.start_soon(af)
+                self.nursery.start_soon(af)
         logger.info("Work all done in {}".format(time.time() - self.t_start))
 
-
-
-
-    def before_run(self):
-        print("!!! run started")
-
-    def _print_with_task(self, msg, task):
-        # repr(task) is perhaps more useful than task.name in general,
-        # but in context of a tutorial the extra noise is unhelpful.
-        print("{}: {}".format(msg, task.name))
-
-    def task_spawned(self, task):
-        self._print_with_task("### new task spawned", task)
-
-    def task_scheduled(self, task):
-        self._print_with_task("### task scheduled", task)
-
-    def before_task_step(self, task):
-        self._print_with_task(">>> about to run one step of task", task)
-
-    def after_task_step(self, task):
-        self._print_with_task("<<< task step finished", task)
-
-    def task_exited(self, task):
-        self._print_with_task("### task exited", task)
-
-    def before_io_wait(self, timeout):
-        if timeout:
-            print("### waiting for I/O for up to {} seconds".format(timeout))
-        else:
-            print("### doing a quick check for I/O")
-        self._sleep_time = trio.current_time()
-
-    def after_io_wait(self, timeout):
-        duration = trio.current_time() - self._sleep_time
-        print("### finished I/O check (took {} seconds)".format(duration))
-
-    def after_run(self):
-        print("!!! run finished")
 

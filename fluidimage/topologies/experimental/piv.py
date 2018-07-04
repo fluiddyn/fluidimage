@@ -9,7 +9,7 @@
 import os
 import json
 import sys
-
+import random
 from ... import ParamContainer, SerieOfArraysFromFiles, SeriesOfArrays
 
 from .base import TopologyBase
@@ -165,6 +165,9 @@ postfix : str
 
     def __init__(self, params=None, logging_level="info", nb_max_workers=None):
 
+        #TEMP : FOR PIV SERIE NAME PROBLEM
+        self.tmp_name = 0
+
         if params is None:
             params = self.__class__.create_default_params()
 
@@ -250,7 +253,7 @@ postfix : str
             params_cls=params,
             input_queue=queue_couples,
             output_queue=queue_piv,
-            kind = "server"
+            kind="server"
         )
 
         self.add_work(
@@ -263,12 +266,15 @@ postfix : str
         #imag
 
     def save_piv_object(self,o):
-        ret = o.save(self.path_dir_result)
+        print()
+        self.tmp_name += 1
+        ret = o.save(self.path_dir_result+'/piv_'+str(self.tmp_name)+".h5")
+        print('###PIV SAVED !!!!!###')
+        print(ret)
         return ret
 
     def save_piv(self, piv_object):
         self.save_piv_object(piv_object)
-        print('###PIV SAVED !!!!!###')
 
     def calcul(self, array_couple):
         return WorkPIV(self.params).calcul(array_couple)
@@ -349,30 +355,28 @@ postfix : str
         print(keys)
         #for each name couple
         for key, couple in input_queue[1].queue.items():
-                # if correspondant arrays are avaible, make an array couple
-                if couple[0] in input_queue[0].queue and couple[1] in input_queue[0].queue:
+            # if correspondant arrays are avaible, make an array couple
+            if couple[0] in input_queue[0].queue and couple[1] in input_queue[0].queue:
+                array1 = input_queue[0].queue[couple[0]]
+                array2 = input_queue[0].queue[couple[1]]
+                # serie = self.get_associated_series(key, series=self.series)
+                # print(serie)
+                array_couple = ArrayCouple(
+                    names=(couple[0], couple[1]),
+                    arrays=(array1, array2),
+                    params_mask=params_mask,
+                    serie=self.series.get_serie_from_name(couple)
+                )
 
-                    array1 = input_queue[0].queue[couple[0]]
-                    array2 = input_queue[0].queue[couple[1]]
-                    # serie = self.get_associated_series(key, series=self.series)
-                    # print(serie)
-                    array_couple = ArrayCouple(
-                        names=(couple[0], couple[1]),
-                        arrays=(array1, array2),
-                        params_mask=params_mask,
-                        serie=self.series.get_next_serie()
-                    )
-
-                    output_queue.queue[key] = array_couple
-                    #remove names_couple
-                    del input_queue[1].queue[key]
-
-                    #remove the image_array if it not will be used anymore
-                    if not self.still_is_in_dict(couple[0],input_queue[1].queue):
-                       del input_queue[0].queue[couple[0]]
-                    if not self.still_is_in_dict(couple[1],input_queue[1].queue):
-                       del input_queue[0].queue[couple[1]]
-                    return True
+                output_queue.queue[key] = array_couple
+                #remove names_couple
+                del input_queue[1].queue[key]
+                #remove the image_array if it not will be used anymore
+                if not self.still_is_in_dict(couple[0],input_queue[1].queue):
+                    del input_queue[0].queue[couple[0]]
+                if not self.still_is_in_dict(couple[1],input_queue[1].queue):
+                    del input_queue[0].queue[couple[1]]
+                return True
         return False
 
     @staticmethod
