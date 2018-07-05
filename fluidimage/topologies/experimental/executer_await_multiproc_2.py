@@ -28,21 +28,11 @@ class ExecuterAwaitMultiprocs(ExecuterBase):
         self.async_funcs = collections.OrderedDict()
         self.funcs = collections.OrderedDict()
         self.sleep_time = 0.01
-        #working statut
-        self.working_statut = {}
-
         #server
         self.server = None
-        # trio.run(self.start_server)
         # #fonctions definition
         self.get_async_works()
         self.define_function()
-        # print("\nWhat's in function dicts ?\n ")
-        # for key, af in self.async_funcs.items():
-        #     print("async func : {} ".format(key))
-        # for key, f in self.funcs.items():
-        #     print("func : {} ".format(key))
-        # print("\n")
 
 
     async def process(self,cond):
@@ -130,7 +120,6 @@ class ExecuterAwaitMultiprocs(ExecuterBase):
                 async def func(work=w):
                     print("{} is called".format(work.name))
                     while True :
-
                         while not work.input_queue.queue:
                             if self.has_to_stop() :
                                 return
@@ -164,9 +153,6 @@ class ExecuterAwaitMultiprocs(ExecuterBase):
 
     def has_to_stop(self):
         return not any([len(q.queue) != 0 for q in self.topology.queues])
-
-    def job_in_progress(self):
-        return any([working_statu is True for key, working_statu in self.working_statut.items()])
 
     async def send_work(self, obj):
         conn = await trio.open_tcp_stream("localhost", 8888)

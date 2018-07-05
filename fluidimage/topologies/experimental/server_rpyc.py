@@ -53,7 +53,7 @@ class MyClass(rpyc.Service):
 def startNode():
     #retrieve node name from node configuration file
     # appConfig  = util.config()
-    t = ThreadedServer(MyClass, port = 18813, protocol_config = {"allow_public_attrs" : True,"allow_pickle":True})
+    t = ThreadedServer(MyClass, port=18813, protocol_config = {"allow_public_attrs" : True,"allow_pickle":True})
     t.start()
 
 
