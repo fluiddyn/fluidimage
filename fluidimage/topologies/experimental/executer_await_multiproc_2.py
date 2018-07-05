@@ -77,7 +77,7 @@ class ExecuterAwaitMultiprocs(ExecuterBase):
                 async def func(work=w):
                     print("{} is called".format(work.name))
                     while True:
-
+                        await trio.sleep(self.sleep_time)
                         while not work.input_queue.queue:
                             if self.has_to_stop():
                                 return
@@ -94,6 +94,7 @@ class ExecuterAwaitMultiprocs(ExecuterBase):
                 async def func(work=w):
                     print("{} is called".format(work.name))
                     while True :
+                        await trio.sleep(self.sleep_time)
                         while not work.input_queue.queue:
                             if self.has_to_stop():
                                 return
@@ -101,18 +102,28 @@ class ExecuterAwaitMultiprocs(ExecuterBase):
                         key, obj = await trio.run_sync_in_worker_thread(self.pull,work.input_queue.queue)
                         work.input_queue.queue['test'] = True
                         #server part
-                        conn = await trio.open_tcp_stream("localhost", 8891)
+                        conn = await trio.open_tcp_stream("localhost", 8888)
                         obj_s = pickle.dumps(obj)
                         print("send obj")
                         await conn.send_all(obj_s)
+                        await conn.send_eof() #end sending signal
                         print('sent')
-                        ret = await conn.receive_some(102400)
-                        print("received ret")
-                        ret = pickle.loads(ret)
-                        print(ret)
-                        if work.output_queue is not None:
-                            await trio.run_sync_in_worker_thread(self.push,key,ret,work.output_queue.queue)
-                        del work.input_queue.queue['test']
+                        #receiving
+                        data = []
+                        while True:
+                            packet = await conn.receive_some(4096)
+                            print("packet")
+                            if not packet:
+                                break
+                            data.append(packet)
+                        print("end receiving")
+                        try:
+                            ret = pickle.loads(b"".join(data))
+                            if work.output_queue is not None:
+                                await trio.run_sync_in_worker_thread(self.push, key, ret, work.output_queue.queue)
+                            del work.input_queue.queue['test']
+                        except:
+                            print("PICKEL ERROR ")
             #other functions
                         self.print_queues()
             else:
