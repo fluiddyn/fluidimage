@@ -4,7 +4,7 @@ import os
 
 params = TopologyPIV.create_default_params()
 
-params.series.path = '../../../image_samples/Karman/Images3'
+params.series.path = '../../../image_samples/Karman/Images2'
 params.series.ind_start = 1
 
 params.piv0.shape_crop_im0 = 32
@@ -20,4 +20,5 @@ params.saving.postfix = 'await_piv2_recompute'
 topology = TopologyPIV(params, logging_level='info')
 #topology.make_code_graphviz('topo.dot')
 
-topology.compute(executer=ExecuterAwaitMultiprocs(topology, multi_executor=False), sequential=True)
+executer = ExecuterAwaitMultiprocs(topology, multi_executor=False, sleep_time=0.1, worker_limit=None, queues_limit=6)
+topology.compute(executer=executer)

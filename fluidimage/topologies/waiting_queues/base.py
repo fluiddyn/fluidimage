@@ -214,10 +214,8 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
         return workers
 
     def _launch_worker(self):
-        print(self.keys())
         k = self._keys[0]
         o = self[k]
-        print(o)
         log_memory_usage(
             "{:.2f} s. ".format(time() - self.topology.t_start)
             + "Launch work "

@@ -257,13 +257,11 @@ postfix : str
 
     def save_piv(self, piv_object):
         self.save_piv_object(piv_object)
-        print('###PIV SAVED !!!!!###')
 
     def calcul(self, array_couple):
         return WorkPIV(self.params).calcul(array_couple)
 
     def imread(self, path):
-        print(path)
         return imread(path)
 
     def fill_series_name_couple_and_path(self, input_queue, output_queues):
@@ -274,7 +272,6 @@ postfix : str
         if len(series) == 0:
             logger.warning("add 0 couple. No PIV to compute.")
             return
-        print(series)
         if self.how_saving == "complete":
             names = []
             index_series = []
@@ -306,14 +303,9 @@ postfix : str
         print("Add {} PIV fields to compute.".format(nb_series))
 
         for i, serie in enumerate(series):
-            print(serie.get_name_arrays())
             queue_series_name_couple[i] = serie.get_name_arrays()
             queue_path[serie.get_name_arrays()[0]] = serie.get_path_files()[0]
         queue_path[serie.get_name_arrays()[1]] = serie.get_path_files()[1]
-        for key, path in queue_path.items():
-            print(key, path)
-        print(serie.get_path_files()[1])
-
         print("Files of serie {}: {}".format(i, serie.get_name_arrays()))
 
     def make_couple(self, input_queues, output_queue):
@@ -349,9 +341,7 @@ postfix : str
 
     @staticmethod
     def still_is_in_dict(image_name, dict):
-        print("###",image_name)
         for key,names in dict.items():
-            print(key)
             if image_name in names:
                 return True
         return False
