@@ -278,7 +278,7 @@ postfix : str
         if len(series) == 0:
             logger.warning("add 0 couple. No PIV to compute.")
             return
-        print(series)
+
         if self.how_saving == "complete":
             names = []
             index_series = []
@@ -315,7 +315,6 @@ postfix : str
 
             print("Files of serie {}: {}".format(i, serie.get_name_arrays()))
 
-        print(type(output_queue))
         for name in names:
             output_queue.queue[name] = name
 
@@ -357,7 +356,7 @@ postfix : str
             params_mask = None
         if ( input_queue[0].queue and input_queue[1].queue):
             key, couple = input_queue[1].queue.popitem() #pop a couple
-            print(couple[0])
+
             if couple[0] in input_queue[0].queue and couple[1] in input_queue[0].queue:
                 array1 = input_queue[0].queue[couple[0]]
                 array2 = input_queue[0].queue[couple[1]]

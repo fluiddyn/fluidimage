@@ -4,9 +4,11 @@ This executer splits the work in nb_max_workers multiprocessing workers.
 IO tasks are handled with an asyncio event loops.
 
 """
-import collections
-import trio
 import time
+import math
+import collections
+import copy
+import trio
 from fluiddyn import time_as_str
 from fluidimage.util.util import logger, get_memory_usage
 from fluidimage.topologies.experimental.executer_base import ExecuterBase
@@ -79,7 +81,7 @@ class Executer(ExecuterBase):
                             await trio.sleep(self.sleep_time)
                         t_start = time.time()
                         while not work.func_or_cls(work.input_queue, work.output_queue):
-                            if self.has_to_stop() and self.nb_working_worker == 0:
+                            if self.has_to_stop():
                                 return
                             await trio.sleep(self.sleep_time)
                             t_start = time.time()
@@ -105,36 +107,51 @@ class Executer(ExecuterBase):
             # I/O
             elif w.kind is not None and "io" in w.kind and w.output_queue is not None:
 
-                async def func(q_c2s=None, q_s2c=None, work=w):
+                async def func(work=w):
                     while True:
                         while (
                             not work.input_queue.queue
                             or self.nb_working_worker >= self.worker_limit
                             or len(work.output_queue.queue) > self.queues_limit
                         ):
-                            if self.has_to_stop() and self.nb_working_worker == 0:
+                            if self.has_to_stop():
                                 return
                             await trio.sleep(self.sleep_time)
-                        start = time.time()
+                        t_start = time.time()
                         work.input_queue.queue["in_working"] = True
                         (key, obj) = await trio.run_sync_in_worker_thread(
                             self.pull, work.input_queue.queue
                         )
-                        self.nursery.start_soon(self.worker, work, key, obj)
+                        logger.info(
+                            "[92m{:.3f} s. Launch work {} ({}). mem usage: {:.3f} Mb[0m".format(
+                                time.time() - self.t_start,
+                                work.name.replace(" ", "_"),
+                                key,
+                                get_memory_usage(),
+                            )
+                        )
+                        ret = await trio.run_sync_in_worker_thread(work.func_or_cls, obj)
+                        self.push(key, ret, work.output_queue.queue)
+                        # self.nursery.start_soon(self.worker, work, key, obj)
                         del work.input_queue.queue["in_working"]
+                        logger.info(
+                            "work {} {} done in {:.3f} s".format(
+                                work.name.replace(" ", "_"), key, time.time() - t_start
+                            )
+                        )
                         self.print_queues()
                         await trio.sleep(self.sleep_time)
             # there is output_queue
             elif w.output_queue is not None:
 
-                async def func(q_c2s=None, q_s2c=None, work=w):
+                async def func(work=w):
                     while True:
                         while (
                             not work.input_queue.queue
                             or self.nb_working_worker >= self.worker_limit
                             or len(work.output_queue.queue) > self.queues_limit
                         ):
-                            if self.has_to_stop() and self.nb_working_worker == 0:
+                            if self.has_to_stop():
                                 return
                             await trio.sleep(self.sleep_time)
                         start = time.time()
@@ -142,6 +159,7 @@ class Executer(ExecuterBase):
                         (key, obj) = await trio.run_sync_in_worker_thread(
                             self.pull, work.input_queue.queue
                         )
+                        self.nb_working_worker += 1
                         self.nursery.start_soon(self.worker, work, key, obj)
                         del work.input_queue.queue["in_working"]
                         self.print_queues()
@@ -150,13 +168,13 @@ class Executer(ExecuterBase):
             # There is no output_queue
             else:
 
-                async def func(q_c2s=None, q_s2c=None, work=w):
+                async def func(work=w):
                     while True:
                         while (
                             not work.input_queue.queue
                             or self.nb_working_worker >= self.worker_limit
                         ):
-                            if self.has_to_stop() and self.nb_working_worker == 0:
+                            if self.has_to_stop():
                                 return
                             await trio.sleep(self.sleep_time)
                         start = time.time()
@@ -164,6 +182,7 @@ class Executer(ExecuterBase):
                         (key, obj) = await trio.run_sync_in_worker_thread(
                             self.pull, work.input_queue.queue
                         )
+                        self.nb_working_worker += 1
                         self.nursery.start_soon(self.worker, work, key, obj)
                         del work.input_queue.queue["in_working"]
                         self.print_queues()
@@ -174,11 +193,12 @@ class Executer(ExecuterBase):
     def do_one_shot_job(self):
         for key, func in reversed(self.funcs.items()):
             logger.info(
-                "Does one_shot_job key func : {} with function {}".format(key, func)
+                "Does one_shot_job, key func : {} with function {}".format(key, func)
             )
             func()
 
     async def worker(self, work, key, obj):
+
         t_start = time.time()
         logger.info(
             "[92m{:.3f} s. Launch work {} ({}). mem usage: {:.3f} Mb[0m".format(
@@ -188,7 +208,6 @@ class Executer(ExecuterBase):
                 get_memory_usage(),
             )
         )
-        self.nb_working_worker += 1
         ret = await trio.run_sync_in_worker_thread(work.func_or_cls, obj)
         if work.output_queue is not None:
             self.push(key, obj, work.output_queue.queue)
@@ -238,7 +257,7 @@ class Executer(ExecuterBase):
         Work has to stop flag
         :return:
         """
-        return not any([len(q.queue) != 0 for q in self.topology.queues])
+        return (not any([len(q.queue) != 0 for q in self.topology.queues])) and self.nb_working_worker == 0
 
     def pull(self, input_queue):
         key, obj = input_queue.popitem()
@@ -252,7 +271,6 @@ class Executer(ExecuterBase):
         return
 
     def print_queues(self):
-        # return
         for q in self.topology.queues:
             print("{} : {} ".format(len(q.queue), q.name))
         print("\n")
@@ -315,34 +333,57 @@ class ExecuterAwaitMultiprocs(ExecuterBase):
                 first_queue = w.output_queue
                 work_first_queue = w
                 break
-        # fill the first queue
-        if isinstance(work_first_queue.output_queue, tuple):
-            raise NotImplementedError("First work have two or more output_queues")
-        work_first_queue.func_or_cls(input_queue=None, output_queue=first_queue)
-        # split it
-        dict_list = []
-        for item in self.partition_dict(first_queue.queue, nb_process):
-            dict_list.append(item)
-        i = 0
-        nb_dict = len(dict_list)
-        for item in first_queue.queue.items():
-            if not self.is_in_dict_list(item, dict_list):
-                dict_list[i % nb_dict][item[0]] = item[1]
-                i += 1
+        # # fill the first queue
+        # if isinstance(work_first_queue.output_queue, tuple):
+        #     raise NotImplementedError("First work have two or more output_queues")
+        # work_first_queue.func_or_cls(input_queue=None, output_queue=first_queue)
+        # # split it
+        # dict_list = []
+        # for item in self.partition_dict(first_queue.queue, nb_process):
+        #     dict_list.append(item)
+        # i = 0
+        # nb_dict = len(dict_list)
+        # for item in first_queue.queue.items():
+        #     if not self.is_in_dict_list(item, dict_list):
+        #         dict_list[i % nb_dict][item[0]] = item[1]
+        #         i += 1
 
         # change topology
-        new_topology = self.topology
-        del new_topology.works[0]
+        # print(self.topology.series.ind_start)
+        # new_topology = self.topology
+        # del new_topology.works[0]
         # make process and executor
         processes = []
-        for i in range(nb_process + 1):
-            executor = Executer(new_topology, worker_limit=1, new_dict=dict_list[i])
+        executors = []
+        ind_start = self.topology.series.ind_start
+        print("start ",self.topology.series.ind_start)
+        print("stop ",self.topology.series.ind_stop)
+        print("step ",self.topology.series.ind_step)
+        rest = int(((self.topology.series.ind_stop - self.topology.series.ind_start)) % nb_process)
+        step = math.floor(((self.topology.series.ind_stop - self.topology.series.ind_start)/self.topology.series.ind_step) / nb_process)
+        print("rest ", rest)
+        print("new_step ",step)
+        for i in range(nb_process):
+            print("process ",i)
+            #change topology
+            new_topology = copy.copy(self.topology)
+            new_topology.series.ind_start = ind_start
+            add_rest = 0
+            if rest > 0:
+                add_rest = 1
+                rest -= 1
+            new_topology.series.ind_stop = self.topology.series.ind_start + step*self.topology.series.ind_step + add_rest
+            ind_start = self.topology.series.ind_stop
+            print(new_topology.series.ind_start)
+            print(new_topology.series.ind_stop)
+            #create executor
+            executor = Executer(new_topology, worker_limit=1)
             p = Process(target=executor.compute)
-            processes.append(p)
-        for p in processes:
+            # p.start()
             p.start()
 
-    def partition_dict(self, dict, num):
+    @staticmethod
+    def partition_dict( dict, num):
         slice = int(len(dict) / num)
         it = iter(dict)
         for i in range(0, len(dict), slice):

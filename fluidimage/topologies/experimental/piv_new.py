@@ -8,6 +8,7 @@
 """
 import os
 import json
+import copy
 import sys
 import random
 from ... import ParamContainer, SerieOfArraysFromFiles, SeriesOfArrays
@@ -179,6 +180,8 @@ postfix : str
             ind_step=params.series.ind_step,
         )
 
+
+
         path_dir = self.series.serie.path_dir
         path_dir_result, self.how_saving = prepare_path_dir_result(
             path_dir, params.saving.path, params.saving.postfix, params.saving.how
@@ -209,7 +212,7 @@ postfix : str
         )
         self.add_work(
             "path -> arrays",
-            func_or_cls=self.imread,
+            func_or_cls=imread,
             input_queue=queue_paths,
             output_queue=queue_arrays,
             kind="io",
@@ -246,7 +249,7 @@ postfix : str
 
         self.add_work(
             "save piv",
-            func_or_cls=self.save_piv,
+            func_or_cls=self.save_piv_object,
             input_queue=queue_piv,
             kind="io",
         )
@@ -255,14 +258,8 @@ postfix : str
         ret = o.save(self.path_dir_result)
         return ret
 
-    def save_piv(self, piv_object):
-        self.save_piv_object(piv_object)
-
     def calcul(self, array_couple):
         return WorkPIV(self.params).calcul(array_couple)
-
-    def imread(self, path):
-        return imread(path)
 
     def fill_series_name_couple_and_path(self, input_queue, output_queues):
         queue_series_name_couple = output_queues[0].queue
@@ -302,11 +299,14 @@ postfix : str
         nb_series = len(series)
         print("Add {} PIV fields to compute.".format(nb_series))
 
+        print("series ind_start ",series.ind_start)
+        print("series ind_stop ",series.ind_stop)
         for i, serie in enumerate(series):
-            queue_series_name_couple[i] = serie.get_name_arrays()
+            inew = (i*self.series.ind_step + series.ind_start)
+            queue_series_name_couple[inew] = serie.get_name_arrays()
+            print('####add serie ',queue_series_name_couple[inew])
             queue_path[serie.get_name_arrays()[0]] = serie.get_path_files()[0]
-        queue_path[serie.get_name_arrays()[1]] = serie.get_path_files()[1]
-        print("Files of serie {}: {}".format(i, serie.get_name_arrays()))
+            queue_path[serie.get_name_arrays()[1]] = serie.get_path_files()[1]
 
     def make_couple(self, input_queues, output_queue):
         #for readablity
@@ -321,13 +321,16 @@ postfix : str
         for key, couple in queue_series_name_couple.items():
             # if correspondant arrays are avaible, make an array couple
             if couple[0] in queue_array.keys() and couple[1] in queue_array.keys():
+                print("###############",key, " ",couple[0]," ", couple[1])
+                print(self.series.get_serie_from_index(key))
                 array1 = queue_array[couple[0]]
                 array2 = queue_array[couple[1]]
+                serie = copy.copy(self.series.get_serie_from_index(key))
                 array_couple = ArrayCouple(
                     names=(couple[0], couple[1]),
                     arrays=(array1, array2),
                     params_mask=params_mask,
-                    serie=self.series.get_serie_from_index(key+1)
+                    serie=serie
                 )
                 output_queue.queue[key] = array_couple
                 del queue_series_name_couple[key]
