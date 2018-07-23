@@ -1,7 +1,9 @@
-"""Topology for PIV computation (:mod:`fluidimage.topologies.piv`)
-==================================================================
+"""Topology for BOS computation (:mod:`fluidimage.experimental.topologies.bos_new`)
+===================================================================================
 
-.. autoclass:: TopologyPIV
+New Topology for BOS computation.
+
+.. autoclass:: TopologyBOS
    :members:
    :private-members:
 
@@ -10,41 +12,41 @@ import os
 import json
 import copy
 import sys
-import random
-from ... import ParamContainer, SerieOfArraysFromFiles, SeriesOfArrays
+from fluidimage import ParamContainer, SerieOfArraysFromFiles, SeriesOfArrays
 
-from .base import TopologyBase
-
-
-from .. import prepare_path_dir_result
-from ...works.piv import WorkPIV
-from ...data_objects.piv import get_name_piv, ArrayCouple
-from ...util.util import logger, imread
-from .. import image2image
-import scipy.io
+from fluidimage.experimental.topologies.base import TopologyBase
 
 
-class TopologyPIV(TopologyBase):
-    """Topology for PIV.
+from fluidimage.topologies import prepare_path_dir_result
+from fluidimage.works.piv import WorkPIV
+from fluidimage.data_objects.piv import get_name_bos, ArrayCoupleBOS
+from fluidimage.util.util import logger, imread
+from fluidimage.topologies import image2image
 
-    Parameters
-    ----------
 
-    params : None
+class TopologyBOS(TopologyBase):
+    """Topology for BOS.
 
-      A ParamContainer containing the parameters for the computation.
+      See https://en.wikipedia.org/wiki/Background-oriented_schlieren_technique
 
-    logging_level : str, {'warning', 'info', 'debug', ...}
+      Parameters
+      ----------
 
-      Logging level.
+      params : None
 
-    nb_max_workers : None, int
+        A ParamContainer containing the parameters for the computation.
 
-      Maximum numbers of "workers". If None, a number is computed from the
-      number of cores detected. If there are memory errors, you can try to
-      decrease the number of workers.
+      logging_level : str, {'warning', 'info', 'debug', ...}
 
-    """
+        Logging level.
+
+      nb_max_workers : None, int
+
+        Maximum numbers of "workers". If None, a number is computed from the
+        number of cores detected. If there are memory errors, you can try to
+        decrease the number of workers.
+
+      """
 
     @classmethod
     def create_default_params(cls):
@@ -124,7 +126,7 @@ int_stop : None
         )
 
         params._set_child(
-            "saving", attribs={"path": None, "how": "ask", "postfix": "piv"}
+            "saving", attribs={"path": None, "how": "ask", "postfix": "bos"}
         )
 
         params.saving._set_doc(
@@ -152,8 +154,8 @@ postfix : str
             json.dumps(
                 {
                     "program": "fluidimage",
-                    "module": "fluidimage.topologies.piv",
-                    "class": "TopologyPIV",
+                    "module": "fluidimage.topologies.bos",
+                    "class": "Topologybos",
                 }
             ),
         )
@@ -188,21 +190,21 @@ postfix : str
         )
         self.path_dir_result = path_dir_result
 
-        super(TopologyPIV, self).__init__(
+        super(TopologyBOS, self).__init__(
             path_output=path_dir_result,
             logging_level=logging_level,
             nb_max_workers=nb_max_workers,
         )
 
+
         queue_series_names_couples = self.add_queue("series_names_couple")
         queue_paths = self.add_queue("paths")
         queue_arrays = queue_arrays1 = self.add_queue("arrays")
         queue_array_couples = self.add_queue("couples of arrays")
-        queue_piv = self.add_queue("piv")
+        queue_bos = self.add_queue("bos")
 
         if params.preproc.im2im is not None:
             queue_arrays1 = self.add_queue("arrays1")
-
 
         self.add_work(
             "fill (series name couple, paths)",
@@ -240,21 +242,21 @@ postfix : str
         )
 
         self.add_work(
-            "couples -> piv",
-            func_or_cls = self.calcul,
+            "couples -> bos",
+            func_or_cls=self.calcul,
             params_cls=params,
             input_queue=queue_array_couples,
-            output_queue=queue_piv,
+            output_queue=queue_bos,
         )
 
         self.add_work(
-            "save piv",
-            func_or_cls=self.save_piv_object,
-            input_queue=queue_piv,
+            "save bos",
+            func_or_cls=self.save_bos_object,
+            input_queue=queue_bos,
             kind="io",
         )
 
-    def save_piv_object(self,o):
+    def save_bos_object(self, o):
         ret = o.save(self.path_dir_result)
         return ret
 
@@ -267,14 +269,14 @@ postfix : str
 
         series = self.series
         if len(series) == 0:
-            logger.warning("add 0 couple. No PIV to compute.")
+            logger.warning("add 0 couple. No bos to compute.")
             return
         if self.how_saving == "complete":
             names = []
             index_series = []
             for i, serie in enumerate(series):
-                name_piv = get_name_piv(serie, prefix="piv")
-                if os.path.exists(os.path.join(self.path_dir_result, name_piv)):
+                name_bos = get_name_bos(serie, prefix="bos")
+                if os.path.exists(os.path.join(self.path_dir_result, name_bos)):
                     continue
 
                 for name in serie.get_name_arrays():
@@ -293,23 +295,26 @@ postfix : str
 
             logger.debug(repr(names))
             logger.debug(repr([serie.get_name_arrays() for serie in series]))
-        else:
-            names = series.get_name_all_arrays()
+
 
         nb_series = len(series)
-        print("Add {} PIV fields to compute.".format(nb_series))
+        print("Add {} bos fields to compute.".format(nb_series))
 
-        print("series ind_start ",series.ind_start)
-        print("series ind_stop ",series.ind_stop)
+
+        first_array_name = self.series.get_serie_from_index(1).filename_given
+        self.first_array = imread(os.path.join(self.params.series.path, first_array_name))
         for i, serie in enumerate(series):
-            inew = (i*self.series.ind_step + series.ind_start)
-            queue_series_name_couple[inew] = serie.get_name_arrays()
-            print('####add serie ',queue_series_name_couple[inew])
-            queue_path[serie.get_name_arrays()[0]] = serie.get_path_files()[0]
+            inew = i * self.series.ind_step + series.ind_start
+            queue_series_name_couple[inew] = (first_array_name,serie.get_name_arrays()[1])
             queue_path[serie.get_name_arrays()[1]] = serie.get_path_files()[1]
+        try :
+            del queue_path[first_array_name]
+        except:
+            pass
+        print(queue_path)
 
     def make_couple(self, input_queues, output_queue):
-        #for readablity
+        # for readablity
         queue_series_name_couple = input_queues[0].queue
         queue_array = input_queues[1].queue
 
@@ -319,24 +324,25 @@ postfix : str
             params_mask = None
         # for each name couple
         for key, couple in queue_series_name_couple.items():
-            # if correspondant arrays are avaible, make an array couple
-            if couple[0] in queue_array.keys() and couple[1] in queue_array.keys():
-                print("###############",key, " ",couple[0]," ", couple[1])
-                print(self.series.get_serie_from_index(key))
-                array1 = queue_array[couple[0]]
+            # if corresponding arrays are available, make an array couple
+            if (
+                 couple[1] in queue_array.keys()
+            ):
                 array2 = queue_array[couple[1]]
                 serie = copy.copy(self.series.get_serie_from_index(key))
-                array_couple = ArrayCouple(
+                paths = self.params.series.path
+
+                array_couple = ArrayCoupleBOS(
                     names=(couple[0], couple[1]),
-                    arrays=(array1, array2),
+                    arrays=(self.first_array, array2),
                     params_mask=params_mask,
-                    serie=serie
+                    paths=paths,
+                    serie=serie,
                 )
+                print(array_couple)
                 output_queue.queue[key] = array_couple
                 del queue_series_name_couple[key]
-                #remove the image_array if it not will be used anymore
-                if not self.still_is_in_dict(couple[0], queue_series_name_couple):
-                    del queue_array[couple[0]]
+                # remove the image_array if it will not be used anymore
                 if not self.still_is_in_dict(couple[1], queue_series_name_couple):
                     del queue_array[couple[1]]
                 return True
@@ -344,7 +350,7 @@ postfix : str
 
     @staticmethod
     def still_is_in_dict(image_name, dict):
-        for key,names in dict.items():
+        for key, names in dict.items():
             if image_name in names:
                 return True
         return False
@@ -357,7 +363,7 @@ postfix : str
         except AttributeError:
             nb_results = None
         if nb_results is not None and nb_results > 0:
-            txt += " ({} piv fields, {:.2f} s/field).".format(
+            txt += " ({} bos fields, {:.2f} s/field).".format(
                 nb_results, time_since_start / nb_results
             )
         else:
@@ -369,14 +375,12 @@ postfix : str
 
 
 if "sphinx" in sys.modules:
-
-    params = TopologyPIV.create_default_params()
+    params = TopologyBOS.create_default_params()
 
     __doc__ += params._get_formatted_docs()
 
-
 if __name__ == "__main__":
-    params = TopologyPIV.create_default_params()
+    params = TopologyBOS.create_default_params()
     params.series.path = "../../../image_samples/Karman/Images"
     params.series.ind_start = 1
     params.series.ind_step = 2
@@ -388,8 +392,8 @@ if __name__ == "__main__":
     params.mask.strcrop = ":, 50:500"
 
     # params.saving.how = 'complete'
-    params.saving.postfix = "piv_example"
+    params.saving.postfix = "bos_example2"
 
-    topo = TopologyPIV(params, logging_level="info")
+    topo = TopologyBOS(params, logging_level="info")
 
     topo.make_code_graphviz("tmp.dot")

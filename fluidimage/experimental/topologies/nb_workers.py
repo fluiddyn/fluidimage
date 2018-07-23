@@ -3,7 +3,7 @@ import re
 import os
 from multiprocessing import cpu_count
 
-from ...config import get_config
+from fluidimage.config import get_config
 
 config = get_config()
 

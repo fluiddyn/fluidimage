@@ -19,8 +19,8 @@ from fluidimage import config_logging
 from fluiddyn import time_as_str
 from fluiddyn.io.tee import MultiFile
 
-class AsyncPiv:
 
+class AsyncPiv:
     def __init__(self, path_image, path_save):
 
         self.path_images = path_image
@@ -61,7 +61,9 @@ class AsyncPiv:
         logger.info("Computed Image {}  : {}s".format(couple.name, end - start))
         await self.save_piv(result, im1, im2)
         end = time.time()
-        logger.info("finished Image {}  : {}s".format(im1 + " - " + im2, end - start))
+        logger.info(
+            "finished Image {}  : {}s".format(im1 + " - " + im2, end - start)
+        )
         return
 
     async def load_images(self, im1, im2):
@@ -90,7 +92,9 @@ class AsyncPiv:
         )
         self.img_tmp = image2
         end = time.time()
-        logger.info("Loaded Image {}  : {}s".format(im1 + " - " + im2, end - start))
+        logger.info(
+            "Loaded Image {}  : {}s".format(im1 + " - " + im2, end - start)
+        )
         return couple
 
     async def compute(self, couple):
@@ -144,15 +148,15 @@ class AsyncPiv:
         self.loop.close()
 
 
-
 def main():
-    #Define path
+    # Define path
     sub_path_image = "Images2"
-    path_save = "../../image_samples/Karman/{}.results.async/".format(sub_path_image)
-    #Logger
+    path_save = "../../image_samples/Karman/{}.results.async/".format(
+        sub_path_image
+    )
+    # Logger
     log = os.path.join(
-        path_save,
-        "log_" + time_as_str() + "_" + str(os.getpid()) + ".txt",
+        path_save, "log_" + time_as_str() + "_" + str(os.getpid()) + ".txt"
     )
     log_file = open(log, "w")
     sys.stdout = MultiFile([sys.stdout, log_file])
@@ -198,10 +202,13 @@ def main():
     processes = []
     for i in range(nb_process):
         async_piv = AsyncPiv(path, path_save)
-        p = multiprocessing.Process(target=async_piv.a_process, args=(listdir[i],))
+        p = multiprocessing.Process(
+            target=async_piv.a_process, args=(listdir[i],)
+        )
         p.start()
     for p in processes:
         p.join()
+
 
 if __name__ == "__main__":
     main()

@@ -1,6 +1,5 @@
-from fluidimage.topologies.experimental.piv import TopologyPIV
-from fluidimage.topologies.experimental.executer_threads_multiproc import ExecuterThreadsMultiprocs
-import os
+from fluidimage.topologies.piv import TopologyPIV
+from fluidimage.experimental.executors.executor_await import ExecutorAwaitMultiprocs
 
 params = TopologyPIV.create_default_params()
 
@@ -20,4 +19,4 @@ params.saving.postfix = 'piv_complete'
 topology = TopologyPIV(params, logging_level='debug')
 #topology.make_code_graphviz('topo.dot')
 
-topology.compute(executer=ExecuterThreadsMultiprocs(topology), sequential=True)
+topology.compute(executer=ExecutorAwaitMultiprocs(topology), sequential=True)

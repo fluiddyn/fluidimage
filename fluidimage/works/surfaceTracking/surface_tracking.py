@@ -114,14 +114,23 @@ class WorkSurfaceTracking(BaseWork):
         self.ky = np.arange(-self.l_y / 2, self.l_y / 2) / self.l_y
 
         self.refraw = self.get_file(self.pathRef)
-        refc, k_x = self.wave_vector(self.refraw, self.ymin, self.ymax, self.xmin, self.xmax, self.sur, self.startref_frame,
-                                self.lastref_frame)
+        refc, k_x = self.wave_vector(
+            self.refraw,
+            self.ymin,
+            self.ymax,
+            self.xmin,
+            self.xmax,
+            self.sur,
+            self.startref_frame,
+            self.lastref_frame,
+        )
 
         self.kxx = self.kx / self.pix_size
         self.gain, self.filt = self.create_gainfilter(
             self.ky, self.kx, self.k_y, k_x, self.l_y, self.l_x, self.slicer
         )
         self.a1_tmp = None
+
     def compute(self, frameCouple):
         """
         Compute a frame
@@ -195,27 +204,37 @@ class WorkSurfaceTracking(BaseWork):
 
         fix_y = int(np.fix(l_y / 2 / red_factor))
         fix_x = int(np.fix(l_x / 2 / red_factor))
-        if self.a1_tmp is None :
-            a1 = self.process_frame(arrays1, ymin, ymax, xmin, xmax, gain, filt, bo, red_factor)
-        else :
+        if self.a1_tmp is None:
+            a1 = self.process_frame(
+                arrays1, ymin, ymax, xmin, xmax, gain, filt, bo, red_factor
+            )
+        else:
             a1 = self.a1_tmp
-        a2 = self.process_frame(arrays2, ymin, ymax, xmin, xmax, gain, filt, bo, red_factor)
+        a2 = self.process_frame(
+            arrays2, ymin, ymax, xmin, xmax, gain, filt, bo, red_factor
+        )
         self.a1_tmp = a2
 
         jump = a2[fix_y, fix_x] - a1[fix_y, fix_x]
 
-        while (abs(jump) > math.pi):
+        while abs(jump) > math.pi:
             a2 = a2 - np.sign(jump) * 2 * math.pi
             jump = a2[fix_y, fix_x] - a1[fix_y, fix_x]
 
-        H = self.convphase(a2, pix_size, distance_object, distance_lens,
-                           self.wave_proj, 'True', red_factor)
+        H = self.convphase(
+            a2,
+            pix_size,
+            distance_object,
+            distance_lens,
+            self.wave_proj,
+            "True",
+            red_factor,
+        )
         H = H[4:-4, 4:-4]
-        Hfilt = H-np.mean(H)
+        Hfilt = H - np.mean(H)
         afilt = a2 - np.mean(a2) - offset
 
         return H, Hfilt, afilt
-
 
     def create_gainfilter(self, ky, kx, k_y, k_x, l_y, l_x, slicer):
         kxgrid, kygrid = np.meshgrid(kx, ky)
@@ -333,14 +352,14 @@ class WorkSurfaceTracking(BaseWork):
         indc = np.max(np.fft.fftshift(abs(Fref)), axis=0).argmax()
         return ref, abs(kxma[indc])
 
-    def get_file(self,path='./', fn=None):
-        '''read the files in path or a specified file if fn-arg is given'''
+    def get_file(self, path="./", fn=None):
+        """read the files in path or a specified file if fn-arg is given"""
         path = self.path
         if fn is None:
             # print(path + '/*')
-            film = self.get_file(path, 'film.cine')
-            #film = pims.open(path + '/*')
+            film = self.get_file(path, "film.cine")
+            # film = pims.open(path + '/*')
         else:
-            print("####"+path + '/' + fn)
-            film = pims.open(str(path) + '/' + fn)
+            print("####" + path + "/" + fn)
+            film = pims.open(str(path) + "/" + fn)
         return film

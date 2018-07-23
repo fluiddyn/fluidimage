@@ -3,7 +3,7 @@ import os
 
 params = TopologyPIV.create_default_params()
 
-params.series.path = '../../../image_samples/Karman/Images2'
+params.series.path = '../../../image_samples/Karman/Images3'
 params.series.ind_start = 1
 
 params.piv0.shape_crop_im0 = 32

@@ -1,35 +1,28 @@
 import os
-import json
 import time
-import functools
-import scipy.io
-import asyncio
+import trio
 
-from fluidimage import ParamContainer, SerieOfArraysFromFiles, SeriesOfArrays
-
-from fluidimage.topologies.piv import TopologyPIV
 from fluidimage.util.util import imread
-from fluidimage.works.piv.multipass import WorkPIV
 from fluidimage.data_objects.piv import ArrayCouple
 from fluidimage.util.util import logger
 
 
-class AsyncPIV:
-
-    def __init__(self, params,  work):
+class PivTrio:
+    def __init__(self, params, work, serie):
 
         self.params = params
         self.path_images = os.path.join(params.series.path)
         images_dir_name = self.params.series.path.split("/")[-1]
-        self.saving_path = os.path.join(os.path.dirname(params.series.path),str(images_dir_name)+"."+params.saving.postfix)
+        self.saving_path = os.path.join(
+            os.path.dirname(params.series.path),
+            str(images_dir_name) + "." + params.saving.postfix,
+        )
         if not os.path.exists(self.saving_path):
             os.makedirs(self.saving_path)
         self.work = work
-        self.loop = asyncio.get_event_loop()
-
+        self.serie = serie
         self._log_file = None
         self.img_tmp = None
-
 
     async def process(self, im1, im2, serie):
         """
@@ -47,7 +40,9 @@ class AsyncPIV:
         logger.info("Computed Image {}  : {}s".format(couple.name, end - start))
         await self.save_piv(result, im1, im2)
         end = time.time()
-        logger.info("finished Image {}  : {}s".format(im1 + " - " + im2, end - start))
+        logger.info(
+            "finished Image {}  : {}s".format(im1 + " - " + im2, end - start)
+        )
         return
 
     async def load_images(self, im1, im2, serie):
@@ -60,22 +55,26 @@ class AsyncPIV:
         :return: couple
         """
         start = time.time()
-        if self.img_tmp == None:
-            image1 = await self.loop.run_in_executor(
-                None, functools.partial(imread, self.path_images +'/'+ im1)
-            )
+        if self.img_tmp is None:
+            image1 = imread(self.path_images + "/" + im1)
         else:
             image1 = self.img_tmp
 
-        image2 = await self.loop.run_in_executor(
-            None, functools.partial(imread, self.path_images +'/'+ im2)
-        )
+        image2 = imread(self.path_images + "/" + im2)
+
         params_mask = self.params.mask
         couple = ArrayCouple(
-            names=(im1, im2), arrays=(image1, image2), params_mask=params_mask, serie=serie)
+            names=(im1, im2),
+            arrays=(image1, image2),
+            params_mask=params_mask,
+            serie=serie,
+        )
+
         self.img_tmp = image2
         end = time.time()
-        logger.info("Loaded Image {}  : {}s".format(im1 + " - " + im2, end - start))
+        logger.info(
+            "Loaded Image {}  : {}s".format(im1 + " - " + im2, end - start)
+        )
         return couple
 
     async def compute(self, couple):
@@ -97,22 +96,30 @@ class AsyncPIV:
         :type str
         :return:
         """
-        result.save(path = self.saving_path+"/"+im1[:-4]+"_"+im2[:-4]+".h5", kind = "one")
+        result.save(
+            path=self.saving_path + "/" + im1[:-4] + "_" + im2[:-4] + ".h5",
+            kind="one",
+        )
 
-    def fill_queue(self, serie):
+    async def fill_queue(self):
         """
         Define a concurenced work which is destined to be compute in a single process
         :param listdir: list of image names to compute
         :type list
         :return:
-        """
+            """
         tasks = []
+        serie = self.serie
         serie_names = serie.get_name_all_arrays()
         print(serie_names)
-        for i in range(len(serie_names) - 1):
-            a_serie = serie.get_next_serie()
-            tasks.append(
-                asyncio.ensure_future(self.process(serie_names[i], serie_names[i + 1], a_serie, ))
-            )
-        self.loop.run_until_complete(asyncio.wait(tasks))
-        self.loop.close()
+        async with trio.open_nursery() as nursery:
+            for i in range(len(serie_names) - 1):
+                a_serie = serie.get_next_serie()
+                tasks.append(
+                    nursery.start_soon(
+                        self.process, serie_names[i], serie_names[i + 1], a_serie
+                    )
+                )
+
+    def main(self,):
+        trio.run(self.fill_queue)

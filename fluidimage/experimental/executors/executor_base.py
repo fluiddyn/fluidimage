@@ -1,3 +1,13 @@
+"""Base for executors
+=====================
+
+Executors inherit from this Class. Define best numbers of workers for the local computer and export OMP_NUM_THREADS=1
+
+.. autoclass:: ExecutorBase
+   :members:
+   :private-members:
+"""
+
 import os
 import re
 from multiprocessing import cpu_count
@@ -5,11 +15,22 @@ from fluidimage.config import get_config
 from warnings import warn
 
 
-class ExecuterBase:
+class ExecutorBase:
+    """
+
+    Parameters
+    ----------
+
+    topology : fluidimage.topology
+
+      A Topology from fluidimage.topology.
+
+    """
+
     def __init__(self, topology):
         self.topology = topology
         self.queues = []
-        #assigne dict to queue
+        # assigne dict to queue
         for q in self.topology.queues:
             new_queue = {}
             self.queues.append(new_queue)
@@ -20,7 +41,6 @@ class ExecuterBase:
         dt = 0.25  # s
         dt_small = 0.02
         dt_update = 0.1
-
 
         if "OMP_NUM_THREADS" not in os.environ:
             warn(
@@ -39,7 +59,9 @@ class ExecuterBase:
 
         if config is not None:
             try:
-                allow_hyperthreading = eval(config["topology"]["allow_hyperthreading"])
+                allow_hyperthreading = eval(
+                    config["topology"]["allow_hyperthreading"]
+                )
             except KeyError:
                 allow_hyperthreading = True
 
@@ -49,7 +71,9 @@ class ExecuterBase:
                 status = f.read()
             m = re.search(r"(?m)^Cpus_allowed:\s*(.*)$", status)
             if m:
-                nb_cpus_allowed = bin(int(m.group(1).replace(",", ""), 16)).count("1")
+                nb_cpus_allowed = bin(int(m.group(1).replace(",", ""), 16)).count(
+                    "1"
+                )
 
             if nb_cpus_allowed > 0:
                 nb_cores = nb_cpus_allowed
@@ -90,4 +114,3 @@ class ExecuterBase:
                 nb_max_workers = nb_cores
 
         self.nb_max_workers = nb_max_workers
-        print("###",self.nb_max_workers)

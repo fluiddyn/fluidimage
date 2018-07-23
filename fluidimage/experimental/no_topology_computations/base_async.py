@@ -12,20 +12,22 @@ from fluidimage import SerieOfArraysFromFiles, SeriesOfArrays
 
 
 class BaseAsync:
-
-    def __init__(self, params, work, async_proc_class,logging_level="info"):
+    def __init__(self, params, work, async_proc_class, logging_level="info"):
 
         self.params = params
         self.async_process_class = async_proc_class
         self.images_path = os.path.join(params.series.path)
         images_dir_name = self.params.series.path.split("/")[-1]
-        self.saving_path = os.path.join(os.path.dirname(params.series.path),str(images_dir_name)+"."+params.saving.postfix)
+        self.saving_path = os.path.join(
+            os.path.dirname(params.series.path),
+            str(images_dir_name) + "." + params.saving.postfix,
+        )
         self.series = []
-        self. processes = []
+        self.processes = []
         self.async_process = []
         self.work = work
 
-        #Logger
+        # Logger
         log = os.path.join(
             self.saving_path,
             "log_" + time_as_str() + "_" + str(os.getpid()) + ".txt",
@@ -49,13 +51,21 @@ class BaseAsync:
         nb_process = multiprocessing.cpu_count()
         # splitting series
         serie_arrays = SerieOfArraysFromFiles(path=self.images_path)
-        if (self.params.series.ind_stop - self.params.series.ind_start)/self.params.series.ind_step < nb_process:
-            nb_process = (self.params.series.ind_stop - self.params.series.ind_start) +1
-        self._make_partition(serie_arrays,nb_process)
+        if (
+            self.params.series.ind_stop - self.params.series.ind_start
+        ) / self.params.series.ind_step < nb_process:
+            nb_process = (
+                self.params.series.ind_stop - self.params.series.ind_start
+            ) + 1
+        self._make_partition(serie_arrays, nb_process)
         # making and starting processes
         for i in range(nb_process):
-            async_piv = self.async_process_class(self.params, self.work, self.series[i])
-            self.processes.append(multiprocessing.Process(target=async_piv.main,))
+            async_piv = self.async_process_class(self.params, self.work)
+            self.processes.append(
+                multiprocessing.Process(
+                    target=async_piv.fill_queue, args=(self.series[i],)
+                )
+            )
 
     def _start_processes(self):
         for p in self.processes:
@@ -72,7 +82,7 @@ class BaseAsync:
         :type int
         :return:
         """
-        print("nb process = "+str(n))
+        print("nb process = " + str(n))
         ind_start = self.params.series.ind_start
         ind_stop = self.params.series.ind_stop
         ind_step = self.params.series.ind_step
@@ -85,12 +95,14 @@ class BaseAsync:
                 plus = 1
             else:
                 plus = 0
-            self.series.append(SeriesOfArrays(
-                serie_arrays,
-                self.params.series.strcouple,
-                ind_start=ind_start,
-                ind_stop=ind_start + cut + plus,
-                ind_step=ind_step,
-            ))
+            self.series.append(
+                SeriesOfArrays(
+                    serie_arrays,
+                    self.params.series.strcouple,
+                    ind_start=ind_start,
+                    ind_stop=ind_start + cut + plus,
+                    ind_step=ind_step,
+                )
+            )
             ind_start = ind_start + cut + plus
             rest -= 1

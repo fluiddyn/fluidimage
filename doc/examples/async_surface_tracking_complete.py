@@ -1,6 +1,6 @@
 import os
-from fluidimage.experimental.piv_async import AsyncPIV
-from fluidimage.experimental.base_async import BaseAsync
+from fluidimage.experimental.no_topology_computations.piv_async import AsyncPIV
+from fluidimage.experimental.no_topology_computations.base_async import BaseAsync
 from fluidimage.topologies.surface_tracking import TopologySurfaceTracking
 from fluidimage.works.surfaceTracking.surface_tracking import WorkSurfaceTracking
 
