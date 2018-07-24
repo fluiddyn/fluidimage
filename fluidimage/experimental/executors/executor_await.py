@@ -87,7 +87,7 @@ class ExecutorAwait(ExecutorBase):
     def compute(self):
         """
         Compute the whole topology. Begin by executing one shot jobs,
-        then execute multiple shots jobs implementedas async functions.
+        then execute multiple shots jobs implemented as async functions.
         Warning, one shot jobs must be ancestors of multiple shots jobs in the topology
         :return:
         """
@@ -204,7 +204,6 @@ class ExecutorAwait(ExecutorBase):
                             )
                         )
                         self.print_queues()
-                        print(work.output_queue.queue.keys())
                         await trio.sleep(self.sleep_time)
 
             # there is output_queue
@@ -416,10 +415,11 @@ class ExecutorAwaitMultiprocs(ExecutorBase):
 
     def compute(self):
         """Compute the topology.
-        If self.multi_executor is True, split self.topology work in "self.nb_max_worker" slices. There is two ways do do this :
-        - If first self.topology has "series" attribute ( from seriesOfArray), it creates "self.nb_max_workers"
-        topologies and changes "ind_start" and "ind_stop" of topology.series
-        - else, if the first work of the topology has an unique output_queue, it splits that queue in "self.nb_max_worker"
+        If self.multi_executor is True, split self.topology work in "self.nb_max_worker" slices.
+         There is two ways do do this :
+        - If first self.topology has "series" attribute (from seriesOfArray), it creates "self.nb_max_workers"
+        topologies and changes "ind_start" and "ind_stop" of topology.series. The split considers series.ind_step.
+        - Else, if the first work of the topology has an unique output_queue, it splits that queue in "self.nb_max_worker"
         slices and create as many topologies. On these last, the first work will be removed and the first queue will be filled
         with a partition of the first queue
         Then create as many Executer_await as topologies, give each topology to each executors, and call each Executor_await.compute
@@ -455,82 +455,89 @@ class ExecutorAwaitMultiprocs(ExecutorBase):
         print("Work all done in {:.5f} s".format(time.time() - self.t_start))
 
     def multi_executor_compute(self, nb_process):
-        # if the topology doesn't have series
+        # topology doesn't have series
         if not hasattr(self.topology, "series"):
-            # get the first queue
-            for w in self.topology.works:
-                if w.input_queue == None:
-                    first_queue = w.output_queue
-                    work_first_queue = w
-                    break
-            # fill the first queue
-            if isinstance(work_first_queue.output_queue, tuple):
-                raise NotImplementedError(
-                    "First work have two or more output_queues"
-                )
-            work_first_queue.func_or_cls(
-                input_queue=None, output_queue=first_queue
-            )
-            # split it
-            dict_list = []
-            for item in self.partition_dict(first_queue.queue, nb_process):
-                dict_list.append(item)
-            i = 0
-            nb_dict = len(dict_list)
-            for item in first_queue.queue.items():
-                if not self.is_in_dict_list(item, dict_list):
-                    dict_list[i % nb_dict][item[0]] = item[1]
-                    i += 1
-
-            # change topology
-            print(self.topology.series.ind_start)
-            new_topology = copy.copy(self.topology)
-            del new_topology.works[0]
-        # Topology has series
+           self.start_mutiprocess_first_queue(nb_process)
+        # topology heas series
         else:
-            print('there is series')
-            ind_start = self.topology.series.ind_start
-            rest = int(
-                ((self.topology.series.ind_stop - self.topology.series.ind_start))
-                % nb_process
+            self.start_multiprocess_series(nb_process)
+
+    def start_mutiprocess_first_queue(self, nb_process):
+        # get the first queue
+        for w in self.topology.works:
+            if w.input_queue == None:
+                first_queue = w.output_queue
+                work_first_queue = w
+                break
+        # fill the first queue
+        if isinstance(work_first_queue.output_queue, tuple):
+            raise NotImplementedError(
+                "First work have two or more output_queues"
             )
-            step = math.floor(
-                ((self.topology.series.ind_stop - self.topology.series.ind_start))
-                / nb_process
-            )
+        work_first_queue.func_or_cls(
+            input_queue=None, output_queue=first_queue
+        )
+        # split it
+        dict_list = []
+        for item in self.partition_dict(first_queue.queue, nb_process):
+            dict_list.append(item)
+        i = 0
+        nb_dict = len(dict_list)
+        for item in first_queue.queue.items():
+            if not self.is_in_dict_list(item, dict_list):
+                dict_list[i % nb_dict][item[0]] = item[1]
+                i += 1
+        # change topology
+        new_topology = copy.copy(self.topology)
+        del new_topology.works[0]
         process = []
-        executor = []
-        topology_list = []
-        # Make process et start them
-        # Make process et start them
         for i in range(nb_process):
             print("process ", i)
-            if not hasattr(self.topology, "series"):
-                # Create an executor
-                executor = ExecutorAwait(
-                    new_topology, worker_limit=1, dict_list=dict_list[i]
-                )
-                p = Process(target=executor.compute)
-                p.start()
+            # Create an executor and start it in a process
+            executor = ExecutorAwait(
+                new_topology, worker_limit=1, dict_list=dict_list[i]
+            )
+            p = Process(target=executor.compute)
+            process.append(p)
+            p.start()
+        for p in process:
+            p.join()
+
+    def start_multiprocess_series(self, nb_process):
+
+        process = []
+        ind_stop_limit = self.topology.series.ind_stop
+        # Defining split values
+        ind_start = self.topology.series.ind_start
+        nb_image_computed = math.floor(
+            (self.topology.series.ind_stop - self.topology.series.ind_start) / self.topology.series.ind_step)
+        remainder = nb_image_computed % nb_process
+        step_process = math.floor(nb_image_computed / nb_process)
+        # change topology
+        for i in range(nb_process):
+            new_topology = copy.copy(self.topology)
+            new_topology.series.ind_start = ind_start
+            add_rest = 0
+            # To add forgotten images
+            if remainder > 0:
+                add_rest = 1
+                remainder -= 1
+            # defining ind_stop
+            ind_stop =  self.topology.series.ind_start \
+                        + step_process * self.topology.series.ind_step \
+                        + add_rest * self.topology.series.ind_step
+            # To make sure images exist
+            if ind_stop > ind_stop_limit:
+                new_topology.series.ind_stop = ind_stop_limit
             else:
-                # change topology
-                new_topology = copy.copy(self.topology)
-                new_topology.series.ind_start = ind_start
-                add_rest = 0
-                if rest > 0:
-                    add_rest = 1
-                    rest -= 1
-                new_topology.series.ind_stop = (
-                    self.topology.series.ind_start
-                    + step * self.topology.series.ind_step
-                    + add_rest
-                )
-                ind_start = self.topology.series.ind_stop
-                # Create an executor
-                executor = ExecutorAwait(new_topology, worker_limit=1)
-                p = Process(target=executor.compute)
-                process.append(p)
-                p.start()
+                new_topology.series.ind_stop = ind_stop
+            ind_start = self.topology.series.ind_stop
+            # Create an executor and launch it in a process
+            executor = ExecutorAwait(new_topology, worker_limit=1)
+            p = Process(target=executor.compute)
+            process.append(p)
+            p.start()
+        # wait until end of all processes
         for p in process:
             p.join()
 
