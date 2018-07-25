@@ -19,7 +19,10 @@ from fluiddyn.io.tee import MultiFile
 
 from fluidimage.util.util import logger
 from fluidimage import config_logging
-from fluidimage.experimental.topologies.nb_workers import nb_max_workers as _nb_max_workers, nb_cores
+from fluidimage.experimental.topologies.nb_workers import (
+    nb_max_workers as _nb_max_workers,
+    nb_cores,
+)
 
 _stdout_at_import = sys.stdout
 _stderr_at_import = sys.stderr
@@ -36,6 +39,7 @@ class MyObj:
 
 class Queue(MyObj):
     """Represent a queue"""
+
     def __init__(self, **kwargs):
         super(Queue, self).__init__(**kwargs)
         self.queue = None
@@ -43,16 +47,18 @@ class Queue(MyObj):
 
 class Work(MyObj):
     """Represent a work"""
+
     def have_to_work(self):
         print("{} have to work ?".format(self.name))
-        if isinstance(self.input_queue,tuple):
+        if isinstance(self.input_queue, tuple):
             for q in self.input_queue:
-                if not q.queue: #if a queue is empty
+                if not q.queue:  # if a queue is empty
                     return False
         else:
             if not self.input_queue.queue:
                 return False
         return True
+
 
 class TopologyBase:
     """Base class for topologies of processing.
@@ -225,11 +231,15 @@ class TopologyBase:
             if work.kind is not None:
                 if "io" in work.kind:
                     color = "Green"
-            code += txt_work.format('"{}"'.format(name_work, color), name_work, color)
+            code += txt_work.format(
+                '"{}"'.format(name_work, color), name_work, color
+            )
 
         code += "\n"
 
-        str_link = '{:40s} -> "{}" [arrowhead = "{}", style = "{}", color = "{}"]\n'
+        str_link = (
+            '{:40s} -> "{}" [arrowhead = "{}", style = "{}", color = "{}"]\n'
+        )
 
         for work in self.works:
             name_work = work.name
@@ -248,37 +258,44 @@ class TopologyBase:
                 if isinstance(queues, Queue):
                     queues = (queues,)
                 for queue in queues:
-                    code += str_link.format('"' + queue.name + '"', name_work, arrowhead, style, color )
+                    code += str_link.format(
+                        '"' + queue.name + '"', name_work, arrowhead, style, color
+                    )
             if work.output_queue is not None:
                 queues = work.output_queue
                 if isinstance(queues, Queue):
                     queues = (queues,)
                 for queue in queues:
-                    code += str_link.format('"' + name_work + '"', queue.name, arrowhead, style, color)
+                    code += str_link.format(
+                        '"' + name_work + '"', queue.name, arrowhead, style, color
+                    )
 
-        #Legend
-        code += '\n subgraph cluster_01 {'
+        # Legend
+        code += "\n subgraph cluster_01 {"
         code += '\n node [height="0px", width="0px",shape=none,];'
-        code += '\n edge [ minlen = 1,];'
+        code += "\n edge [ minlen = 1,];"
         code += '\n label = "Legend";'
-        code += '\n key [label=<<table border="0" cellpadding="2" cellspacing="0" cellborder="0">'
+        code += (
+            '\n key [label=<<table border="0" cellpadding="2" cellspacing="0" cellborder="0">'
+        )
         code += '\n <tr><td align="right" port="i1">Global</td></tr>'
         code += '\n <tr><td align="right" port="i2">One Shot</td></tr>'
         code += '\n <tr><td align="right" port="i3">Multiple Shot</td></tr>'
         code += '\n <tr><td align="right" port="i4">I/O</td></tr>'
-        code += '\n </table>>]'
-        code += '\n key2 [label=<<table border="0" cellpadding="2" cellspacing="0" cellborder="0">'
+        code += "\n </table>>]"
+        code += (
+            '\n key2 [label=<<table border="0" cellpadding="2" cellspacing="0" cellborder="0">'
+        )
         code += '\n<tr><td port="i1">&nbsp;</td></tr>'
         code += '\n<tr><td port="i2">&nbsp;</td></tr>'
         code += '\n<tr><td port="i3">&nbsp;</td></tr>'
         code += '\n<tr><td port="i4">&nbsp;</td></tr>'
-        code += '\n </table>>]'
+        code += "\n </table>>]"
         code += '\n  key:i1:e -> key2:i1:w [arrowhead = "odiamond"]'
         code += '\n  key:i2:e -> key2:i2:w [arrowhead = "none"]'
         code += '\n  key:i3:e -> key2:i3:w [style = "dashed", arrowhead = "none"]'
         code += '\n  key:i4:e -> key2:i4:w [arrowhead = "none", color="Green"]'
-        code += '\n } \n'
-
+        code += "\n } \n"
 
         code += "}\n"
 

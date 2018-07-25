@@ -20,6 +20,7 @@ Users are particularly concerned with the PIV and preprocessing topologies:
    bos
    preproc
    image2image
+   surface_tracking
 
 These others modules defined classes and functions useful for developers.
 

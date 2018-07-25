@@ -182,8 +182,6 @@ postfix : str
             ind_step=params.series.ind_step,
         )
 
-
-
         path_dir = self.series.serie.path_dir
         path_dir_result, self.how_saving = prepare_path_dir_result(
             path_dir, params.saving.path, params.saving.postfix, params.saving.how
@@ -195,7 +193,6 @@ postfix : str
             logging_level=logging_level,
             nb_max_workers=nb_max_workers,
         )
-
 
         queue_series_names_couples = self.add_queue("series_names_couple")
         queue_paths = self.add_queue("paths")
@@ -296,18 +293,21 @@ postfix : str
             logger.debug(repr(names))
             logger.debug(repr([serie.get_name_arrays() for serie in series]))
 
-
         nb_series = len(series)
         print("Add {} bos fields to compute.".format(nb_series))
 
-
         first_array_name = self.series.get_serie_from_index(1).filename_given
-        self.first_array = imread(os.path.join(self.params.series.path, first_array_name))
+        self.first_array = imread(
+            os.path.join(self.params.series.path, first_array_name)
+        )
         for i, serie in enumerate(series):
             inew = i * self.series.ind_step + series.ind_start
-            queue_series_name_couple[inew] = (first_array_name,serie.get_name_arrays()[1])
+            queue_series_name_couple[inew] = (
+                first_array_name,
+                serie.get_name_arrays()[1],
+            )
             queue_path[serie.get_name_arrays()[1]] = serie.get_path_files()[1]
-        try :
+        try:
             del queue_path[first_array_name]
         except:
             pass
@@ -325,9 +325,7 @@ postfix : str
         # for each name couple
         for key, couple in queue_series_name_couple.items():
             # if corresponding arrays are available, make an array couple
-            if (
-                 couple[1] in queue_array.keys()
-            ):
+            if couple[1] in queue_array.keys():
                 array2 = queue_array[couple[1]]
                 serie = copy.copy(self.series.get_serie_from_index(key))
                 paths = self.params.series.path
@@ -339,7 +337,6 @@ postfix : str
                     paths=paths,
                     serie=serie,
                 )
-                print(array_couple)
                 output_queue.queue[key] = array_couple
                 del queue_series_name_couple[key]
                 # remove the image_array if it will not be used anymore

@@ -1,13 +1,5 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Fri May 18 09:57:58 2018
-
-@author: blancfat8p
-"""
-
 """Topology for SurfaceTracking computation (:mod:`fluidimage.topologies.surface_tracking`)
-==================================================================
+===========================================================================================
 
 .. autoclass:: TopologySurfaceTracking
    :members:
@@ -23,7 +15,8 @@ from .waiting_queues.base import (
     WaitingQueueMultiprocessing,
     WaitingQueueThreading,
     WaitingQueueLoadImagePath,
-    WaitingQueueMakeCouple)
+    WaitingQueueMakeCouple,
+)
 
 from ..data_objects.piv import ArrayCouple
 from .. import ParamContainer
@@ -89,7 +82,14 @@ class TopologySurfaceTracking(TopologyBase):
         )
 
         params._set_child(
-            "saving", attribs={"plot" :False, "how_many" :1000, "path": None, "how": "hdf5", "postfix": "surface_tracking"}
+            "saving",
+            attribs={
+                "plot": False,
+                "how_many": 1000,
+                "path": None,
+                "how": "hdf5",
+                "postfix": "surface_tracking",
+            },
         )
 
         params.saving._set_doc(
@@ -139,7 +139,7 @@ postfix : str
         return params
 
     def __init__(self, params=None, logging_level="info", nb_max_workers=None):
-        
+
         if params is None:
             params = self.__class__.create_default_params()
 
@@ -147,8 +147,9 @@ postfix : str
         self.path = params.film.path
         self.surface_tracking_work = WorkSurfaceTracking(params)
 
-
-        serie_arrays = SerieOfArraysFromFiles(params.film.path + "/" + params.film.fileName)
+        serie_arrays = SerieOfArraysFromFiles(
+            params.film.path + "/" + params.film.fileName
+        )
         self.series = SeriesOfArrays(
             serie_arrays,
             params.series.strcouple,
@@ -156,7 +157,6 @@ postfix : str
             ind_stop=params.film.ind_stop,
             ind_step=params.film.ind_step,
         )
-
 
         path_dir = self.path
         path_dir_result, self.how_saving = prepare_path_dir_result(
@@ -167,16 +167,21 @@ postfix : str
         self.results = {}
 
         def save_surface_tracking_object(o):
-            ret = o.save(path_dir_result+"/results/"+o.nameFrame)
+            ret = o.save(path_dir_result + "/results/" + o.nameFrame)
             return ret
-        
 
         self.wq_sf_out = WaitingQueueThreading(
-            "save_surface_tracking_object", save_surface_tracking_object, self.results, topology=self
+            "save_surface_tracking_object",
+            save_surface_tracking_object,
+            self.results,
+            topology=self,
         )
-        
+
         self.wq_sf_in = WaitingQueueMultiprocessing(
-            "surface_tracking_work", self.surface_tracking_work.compute, self.wq_sf_out, topology=self
+            "surface_tracking_work",
+            self.surface_tracking_work.compute,
+            self.wq_sf_out,
+            topology=self,
         )
 
         self.wq_images = WaitingQueueMakeCouple(
@@ -186,10 +191,8 @@ postfix : str
         self.wq0 = WaitingQueueLoadImagePath(
             destination=self.wq_images, path_dir=path_dir, topology=self
         )
-        
-        waiting_queues = [
-            self.wq0, self.wq_images, self.wq_sf_in, self.wq_sf_out
-            ]
+
+        waiting_queues = [self.wq0, self.wq_images, self.wq_sf_in, self.wq_sf_out]
 
         super(TopologySurfaceTracking, self).__init__(
             waiting_queues,
@@ -198,7 +201,7 @@ postfix : str
             nb_max_workers=nb_max_workers,
         )
 
-        self.add_series(self.series) # similar to add
+        self.add_series(self.series)  # similar to add
 
     def add_series(self, series):
         """
@@ -265,9 +268,8 @@ postfix : str
         im, _ = couple.get_arrays()
 
     def _print_at_exit(self, time_since_start):
-       pass
+        pass
 
 
 params = TopologySurfaceTracking.create_default_params()
 __doc__ += params._get_formatted_docs()
-

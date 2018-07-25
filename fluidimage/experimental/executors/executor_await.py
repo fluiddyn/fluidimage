@@ -369,6 +369,7 @@ class ExecutorAwait(ExecutorBase):
             print("{} : {} ".format(len(q.queue), q.name))
         print("\n")
 
+
 class ExecutorAwaitMultiprocs(ExecutorBase):
     """ Manage the multi-executor mode
      This class is not the one whose really compute the topology. It is used to manage the Multi_executer
@@ -395,14 +396,13 @@ class ExecutorAwaitMultiprocs(ExecutorBase):
 
     """
 
-
     def __init__(
-            self,
-            topology,
-            multi_executor=False,
-            worker_limit=None,
-            queues_limit=4,
-            sleep_time=0.1,
+        self,
+        topology,
+        multi_executor=False,
+        worker_limit=None,
+        queues_limit=4,
+        sleep_time=0.1,
     ):
         super().__init__(topology)
         self.multi_executor = multi_executor
@@ -457,7 +457,7 @@ class ExecutorAwaitMultiprocs(ExecutorBase):
     def multi_executor_compute(self, nb_process):
         # topology doesn't have series
         if not hasattr(self.topology, "series"):
-           self.start_mutiprocess_first_queue(nb_process)
+            self.start_mutiprocess_first_queue(nb_process)
         # topology heas series
         else:
             self.start_multiprocess_series(nb_process)
@@ -471,12 +471,8 @@ class ExecutorAwaitMultiprocs(ExecutorBase):
                 break
         # fill the first queue
         if isinstance(work_first_queue.output_queue, tuple):
-            raise NotImplementedError(
-                "First work have two or more output_queues"
-            )
-        work_first_queue.func_or_cls(
-            input_queue=None, output_queue=first_queue
-        )
+            raise NotImplementedError("First work have two or more output_queues")
+        work_first_queue.func_or_cls(input_queue=None, output_queue=first_queue)
         # split it
         dict_list = []
         for item in self.partition_dict(first_queue.queue, nb_process):
@@ -510,7 +506,9 @@ class ExecutorAwaitMultiprocs(ExecutorBase):
         # Defining split values
         ind_start = self.topology.series.ind_start
         nb_image_computed = math.floor(
-            (self.topology.series.ind_stop - self.topology.series.ind_start) / self.topology.series.ind_step)
+            (self.topology.series.ind_stop - self.topology.series.ind_start)
+            / self.topology.series.ind_step
+        )
         remainder = nb_image_computed % nb_process
         step_process = math.floor(nb_image_computed / nb_process)
         # change topology
@@ -523,9 +521,11 @@ class ExecutorAwaitMultiprocs(ExecutorBase):
                 add_rest = 1
                 remainder -= 1
             # defining ind_stop
-            ind_stop =  self.topology.series.ind_start \
-                        + step_process * self.topology.series.ind_step \
-                        + add_rest * self.topology.series.ind_step
+            ind_stop = (
+                self.topology.series.ind_start
+                + step_process * self.topology.series.ind_step
+                + add_rest * self.topology.series.ind_step
+            )
             # To make sure images exist
             if ind_stop > ind_stop_limit:
                 new_topology.series.ind_stop = ind_stop_limit
@@ -540,8 +540,6 @@ class ExecutorAwaitMultiprocs(ExecutorBase):
         # wait until end of all processes
         for p in process:
             p.join()
-
-
 
     @staticmethod
     def partition_dict(dict, num):

@@ -24,8 +24,6 @@ _stdout_at_import = sys.stdout
 _stderr_at_import = sys.stderr
 
 
-
-
 class TopologyExample(TopologyBase):
     """Topology example for testing.
 
@@ -48,12 +46,16 @@ class TopologyExample(TopologyBase):
 
     """
 
-
-    def __init__(self, path_dir = None,path_output=None, logging_level="info", nb_max_workers=None):
+    def __init__(
+        self,
+        path_dir=None,
+        path_output=None,
+        logging_level="info",
+        nb_max_workers=None,
+    ):
 
         super().__init__(
-            logging_level=logging_level,
-            nb_max_workers=nb_max_workers,
+            logging_level=logging_level, nb_max_workers=nb_max_workers
         )
 
         if path_dir is None:
@@ -61,14 +63,12 @@ class TopologyExample(TopologyBase):
         else:
             self.path_dir = path_dir
 
-
         if path_output is not None:
             if not os.path.exists(path_output):
                 os.makedirs(path_output)
             self.path_output = path_output
         log = os.path.join(
-            path_output,
-            "log_" + time_as_str() + "_" + str(os.getpid()) + ".txt",
+            path_output, "log_" + time_as_str() + "_" + str(os.getpid()) + ".txt"
         )
 
         stdout = sys.stdout
@@ -94,12 +94,11 @@ class TopologyExample(TopologyBase):
 
         self.img_counter = 0
 
-        queue_names_img1= self.add_queue("names img 1")
+        queue_names_img1 = self.add_queue("names img 1")
         queue_names_img2 = self.add_queue("names img 2")
-        queue_array_couple= self.add_queue("array couples")
+        queue_array_couple = self.add_queue("array couples")
         queue_cpu1 = self.add_queue("queue_cpu1")
         queue_cpu2 = self.add_queue("queue_cpu2")
-
 
         self.add_work(
             "fill names",
@@ -116,26 +115,23 @@ class TopologyExample(TopologyBase):
         )
         self.add_work(
             "cpu1",
-            func_or_cls= self.cpu1,
+            func_or_cls=self.cpu1,
             input_queue=queue_array_couple,
             output_queue=queue_cpu1,
-            kind="server"
+            kind="server",
         )
 
         self.add_work(
             "cpu2",
-            func_or_cls= self.cpu2,
+            func_or_cls=self.cpu2,
             params_cls=None,
             input_queue=queue_cpu1,
             output_queue=queue_cpu2,
-            kind="server"
+            kind="server",
         )
 
         self.add_work(
-            "save",
-            func_or_cls = self.save,
-            params_cls=None,
-            input_queue=queue_cpu2,
+            "save", func_or_cls=self.save, params_cls=None, input_queue=queue_cpu2
         )
 
     def fill_names(self, input_queue, output_queues):
@@ -154,18 +150,16 @@ class TopologyExample(TopologyBase):
         start = time.time()
         key2, obj2 = input_queues[1].queue.popitem()
         print(self.path_dir + str(obj1))
-        img1 = np.array(imread(self.path_dir+"/"+str(obj1)))
-        img2 = np.array(imread(self.path_dir+"/"+str(obj2)))
-        output_queue.queue[str(key1+""+key2)] = [img1,img2]
+        img1 = np.array(imread(self.path_dir + "/" + str(obj1)))
+        img2 = np.array(imread(self.path_dir + "/" + str(obj2)))
+        output_queue.queue[str(key1 + "" + key2)] = [img1, img2]
         return True
 
     def save(self, array):
         self.img_counter += 1
         scipy.io.savemat(
-            self.path_dir + "/../test/array_"+str(self.img_counter),
-            mdict={
-                "array": array,
-            },
+            self.path_dir + "/../test/array_" + str(self.img_counter),
+            mdict={"array": array},
         )
         print("SAVED !!")
 
@@ -198,4 +192,3 @@ if __name__ == "__main__":
     topo = TopologyExample(logging_level="info")
     # topo.make_code_graphviz("tmp.dot")
     topo.compute()
-
