@@ -1,5 +1,5 @@
-"""Topology for PIV computation (:mod:`fluidimage.topologies.piv`)
-==================================================================
+"""Topology for PIV computation (:mod:`fluidimage.experimental.topologies.piv`)
+===============================================================================
 
 New topology for PIV computation.
 

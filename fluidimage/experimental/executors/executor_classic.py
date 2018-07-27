@@ -1,9 +1,14 @@
+"""
+Classic executor with multiprocessing and threading.
+Not funtionnal yet !
+"""
 
 
 import os
 from time import time, sleep
 import threading
 from multiprocessing import Process
+import multiprocessing
 from fluiddyn import time_as_str
 from fluidimage.util.util import (
     logger,
@@ -21,12 +26,13 @@ dt_update = 0.1
 class ExecutorClassic(ExecutorBase):
     def __init__(self, topology):
         super().__init__(topology)
+        self.t_start = time()
 
     def compute(self, sequential=None, has_to_exit=True):
 
         self.do_one_shot_job()
         print("One shot jobs done")
-        self.print_queue()
+
 
         if hasattr(self, "path_output"):
             logger.info("path results:\n" + self.path_output)
@@ -58,28 +64,27 @@ class ExecutorClassic(ExecutorBase):
 
             def __init__(self):
                 self.has_to_stop = False
-                super().__init__()
+                super(CheckWorksThread, self).__init__()
                 self.exitcode = None
                 self.daemon = True
 
             def in_time_loop(self):
+                print("threads loop")
                 t_tmp = time()
-                print("Thread in time loop")
                 for worker in workers:
-                    # if (
-                    #         # isinstance(worker, self.cls_to_be_updated)
-                    #         # and worker.fill_destination()
-                    # ):
-                    if not worker.really_started:
-                        worker.launch_worker()
+                    if (
+                        worker.finished
+                    ):
+                        print("#######removed worker {}".format(worker))
+                        workers.remove(worker)
                 t_tmp = time() - t_tmp
-
                 if t_tmp > 0.2:
                     logger.info(
                         "update list of workers with fill_destination "
                         "done in {:.3f} s".format(t_tmp)
                     )
-                sleep(1)
+                sleep(dt_update)
+
 
             def run(self):
                 try:
@@ -87,6 +92,7 @@ class ExecutorClassic(ExecutorBase):
                         self.in_time_loop()
                 except Exception as e:
                     print("Exception in UpdateThread")
+                    print(e)
                     self.exitcode = 1
                     self.exception = e
 
@@ -95,18 +101,23 @@ class ExecutorClassic(ExecutorBase):
 
             def in_time_loop(self):
                 # weird bug subprocessing py3
+                print("process loop")
                 for worker in workers:
-                    worker.launch_worker()
                     if not worker.really_started:
+                        worker.really_started = True
+                        worker.launch_worker()
+
                         # print('check if worker has really started.' +
                         #       worker.key)
                         try:
-                            worker.really_started = ()
-                        except:  # TODO queue.Empty:
+                            worker.really_started = (
+                                worker.comm_started.get_nowait()
+                            )
+                        except: # TODO queue.Empty:
                             pass
                         if (
-                            not worker.really_started
-                            # TODO and time() - worker.t_start > 10
+                                not worker.really_started
+                                and time() - worker.t_start > 10
                         ):
                             # bug! The worker does not work. We kill it! :-)
                             logger.error(
@@ -114,21 +125,15 @@ class ExecutorClassic(ExecutorBase):
                                     "Mysterious bug multiprocessing: "
                                     "a launched worker has not started. "
                                     "We kill it! ({}, key: {}).".format(
-                                        worker.work.name, worker.key
+                                        worker.work_name, worker.key
                                     ),
                                     color="FAIL",
                                 )
                             )
                             # the case of this worker has been
-                            worker.really_started = True
-                            # worker.launch_worker()
+                            workers.remove(worker)
 
-                        else:
-                            print("terminated")
-                            worker.terminate()
-                            del workers[worker]
-                    sleep(1)
-                super().in_time_loop()
+                super(CheckWorksProcess, self).in_time_loop()
 
         self.thread_check_works_t = CheckWorksThread()
         self.thread_check_works_t.start()
@@ -157,13 +162,12 @@ class ExecutorClassic(ExecutorBase):
 
             # For all "multiple shot" works
             for work in self.topology.works:
-                self.print_queue()
                 # TODO get multiple shot jobs in a list
                 if work.kind is None or "one shot" not in work.kind:
                     # global function
                     if work.kind is not None and "global" in work.kind:
                         if len(workers) < self.nb_max_workers:
-                            workers.append(GlobalWorker(work, item_number))
+                            workers.append(GlobalWorker(self.t_start, work, item_number))
                             item_number += 1
                     # I/O
                     elif (
@@ -171,20 +175,22 @@ class ExecutorClassic(ExecutorBase):
                         and "io" in work.kind
                         and work.output_queue is not None
                     ):
-                        # if work.queue is not empty
+                        if (
+                            work.input_queue.queue
+                            and len(workers) < self.nb_max_workers
+                        ):
+
+                            key, obj = work.input_queue.queue.popitem()
+                            workers.append(Worker(self.t_start, work, key, obj))
+                    # Other works
+                    else:
                         if (
                             work.input_queue.queue
                             and len(workers) < self.nb_max_workers
                         ):
                             key, obj = work.input_queue.queue.popitem()
-                            workers.append(Worker(work, key, obj))
-                    # Other works
-                    else:
-                        if work.input_queue.queue:
-                            key, obj = work.input_queue.queue.popitem()
-                            if len(workers) < self.nb_max_workers:
-                                workers.append(Worker(work, key, obj))
-            sleep(5000)
+                            workers.append(Worker(self.t_start, work, key, obj))
+                    sleep(dt)
         if self._has_to_stop:
             logger.info(
                 cstring(
@@ -199,7 +205,7 @@ class ExecutorClassic(ExecutorBase):
         self.thread_check_works_t.join()
         self.thread_check_works_p.join()
 
-        self._print_at_exit(time() - self.t_start)
+        # self._print_at_exit(time() - self.t_start)
         log_memory_usage(time_as_str(2) + ": end of `compute`. mem usage")
 
     def do_one_shot_job(self):
@@ -221,41 +227,39 @@ class ExecutorClassic(ExecutorBase):
         return not any([len(q.queue) != 0 for q in self.topology.queues])
 
 
-class Worker:
+class Worker():
+    @staticmethod
+    def _Queue(*args, **kwargs):
+        return multiprocessing.Queue(*args, **kwargs)
+
     @staticmethod
     def _Process(*args, **kwargs):
-        return Process(*args, **kwargs)
+        return multiprocessing.Process(*args, **kwargs)
 
-    def __init__(self, work, key, obj=None):
+    def __init__(self, t_start, work, key, obj=None):
         self.work = work
         self.key = key
         self.obj = obj
         self.really_started = False
-        self.t_start = None
+        self.finished = False
+        self.t_start = t_start
         self.p = None
 
     def launch_worker(self):
-
+        comm_started = self._Queue()
         self.p = self._Process(target=self.job)
         self.p.t_start = time()
         self.p.work_name = self.work.name
+        self.p.comm_started = comm_started
+        self.p.really_started = False
         self.p.start()
-        # self.p.nb_workers += 1
+        self.p.key = self.key
 
     def terminate(self):
         self.p.terminate()
 
     def job(self):
-        """
-        A worker is destined to be started with a "trio.start_soon".
-        It does the work on an item (key,obj) given in parameter,  and add the result on work.output_queue.
-        :param work: A work from the topology
-        :param key: The key of the dictionnary item to be process
-        :param obj: The value of the dictionnary item to be process
-        :return:
-        """
-        self.really_started = True
-        self.t_start = time()
+        t_start = time()
         log_memory_usage(
             "{:.2f} s. ".format(time() - self.t_start)
             + "Launch work "
@@ -264,31 +268,23 @@ class Worker:
         )
         ret = self.work.func_or_cls(self.obj)
         if self.work.output_queue is not None:
+            print("work {} filling output_queue".format(self.work.name))
             self.work.output_queue.queue[self.key] = ret
         logger.info(
             "work {} ({}) done in {:.3f} s".format(
-                self.work.name.replace(" ", "_"), self.key, time() - self.t_start
+                self.work.name.replace(" ", "_"), self.key, time() - t_start
             )
         )
         # TODO self._nb_workers -= 1
-        return
+        self.finished = True
 
 
 class GlobalWorker(Worker):
-    def __init__(self, work, key, obj=None):
-        super().__init__(work, key)
+    def __init__(self,t_start, work, key, obj=None):
+        super().__init__(t_start ,work, key)
 
     def job(self):
-        """
-        A worker is destined to be started with a "trio.start_soon".
-        It does the work on an item (key,obj) given in parameter,  and add the result on work.output_queue.
-        :param work: A work from the topology
-        :param key: The key of the dictionnary item to be process
-        :param obj: The value of the dictionnary item to be process
-        :return:
-        """
-        self.really_started = True
-        self.t_start = time()
+        t_start = time()
         log_memory_usage(
             "{:.2f} s. ".format(time() - self.t_start)
             + "Launch work "
@@ -301,8 +297,9 @@ class GlobalWorker(Worker):
             sleep(dt_small)
         logger.info(
             "work {} ({}) done in {:.3f} s".format(
-                self.work.name.replace(" ", "_"), self.key, time() - self.t_start
+                self.work.name.replace(" ", "_"), self.key, time() - t_start
             )
         )
         # TODO self.nb_working_worker -= 1
-        return
+        self.finished = True
+

@@ -19,7 +19,7 @@ Users are particularly concerned with the PIV and preprocessing topologies:
 
     piv_new
     bos_new
-
+    image2image_new
 
 These others modules defined classes and functions useful for developers.
 
@@ -27,5 +27,7 @@ These others modules defined classes and functions useful for developers.
    :toctree:
 
     example
+-> Can't import module 'example' in documentation for an unknown reason
+
 
 """

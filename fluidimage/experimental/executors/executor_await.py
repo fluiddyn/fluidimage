@@ -94,7 +94,6 @@ class ExecutorAwait(ExecutorBase):
 
         self.t_start = time.time()
         self.do_one_shot_job()
-        self.print_queues()
         trio.run(self.start_async_works)
 
     async def start_async_works(self):
@@ -158,7 +157,6 @@ class ExecutorAwait(ExecutorBase):
                             )
                         )
                         await trio.sleep(self.sleep_time)
-                        self.print_queues()
 
             # I/O
             elif (
@@ -203,7 +201,6 @@ class ExecutorAwait(ExecutorBase):
                                 time.time() - t_start,
                             )
                         )
-                        self.print_queues()
                         await trio.sleep(self.sleep_time)
 
             # there is output_queue
@@ -226,7 +223,6 @@ class ExecutorAwait(ExecutorBase):
                         self.nb_working_worker += 1
                         self.nursery.start_soon(self.worker, work, key, obj)
                         del work.input_queue.queue["in_working"]
-                        self.print_queues()
                         await trio.sleep(self.sleep_time)
 
             # There is no output_queue
@@ -249,7 +245,6 @@ class ExecutorAwait(ExecutorBase):
                         self.nb_working_worker += 1
                         self.nursery.start_soon(self.worker, work, key, obj)
                         del work.input_queue.queue["in_working"]
-                        self.print_queues()
                         await trio.sleep(self.sleep_time)
 
             self.async_funcs[w.name] = func
@@ -296,8 +291,14 @@ class ExecutorAwait(ExecutorBase):
         return
 
     async def workerIO(self, work, key, obj):
+        """
+        In case IO tasks need to have a specific worker. At this moment, this worker is unused.
+        :param work: A work from the topology
+        :param key: The key of the dictionnary item to be process
+        :param obj: The value of the dictionnary item to be process
+        :return:
+        """
         t_start = time.time()
-        self.nb_working_worker += 1
         log_memory_usage(
             "{:.2f} s. ".format(time.time() - self.topology.t_start)
             + "Launch work "
@@ -364,7 +365,6 @@ class ExecutorAwait(ExecutorBase):
         For all queues in "self.topology", print lenght and name
         :return:
         """
-        return
         for q in self.topology.queues:
             print("{} : {} ".format(len(q.queue), q.name))
         print("\n")
@@ -416,7 +416,7 @@ class ExecutorAwaitMultiprocs(ExecutorBase):
     def compute(self):
         """Compute the topology.
         If self.multi_executor is True, split self.topology work in "self.nb_max_worker" slices.
-         There is two ways do do this :
+        There is two ways do do this :
         - If first self.topology has "series" attribute (from seriesOfArray), it creates "self.nb_max_workers"
         topologies and changes "ind_start" and "ind_stop" of topology.series. The split considers series.ind_step.
         - Else, if the first work of the topology has an unique output_queue, it splits that queue in "self.nb_max_worker"
@@ -447,7 +447,6 @@ class ExecutorAwaitMultiprocs(ExecutorBase):
                 sleep_time=self.sleep_time,
             )
             executor_await.do_one_shot_job()
-            executor_await.print_queues()
             trio.run(executor_await.start_async_works)
         log_memory_usage(
             "{}:".format(time_as_str(2)) + " end compute. " + "mem usage"

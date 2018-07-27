@@ -9,24 +9,18 @@
 import os
 import json
 
-from fluidimage import ParamContainer, SeriesOfArrays
 
 from fluidimage.topologies import prepare_path_dir_result
-
 from .base import TopologyBase
 
-from fluidimage import ParamContainer, SerieOfArraysFromFiles, SeriesOfArrays
-
-
-from fluidimage.util.util import logger
+from fluidimage import ParamContainer, SeriesOfArrays
+from fluidimage.util.util import logger, imread
 
 from fluidimage.preproc.image2image import (
     complete_im2im_params_with_default,
     init_im2im_function,
 )
 
-
-from fluiddyn.util import import_class
 from fluiddyn.io.image import imsave
 
 
@@ -155,6 +149,7 @@ postfix : str
         )
 
         self.path_dir_result = path_dir_result
+        self.path_dir_src = params.series.path
 
         super(TopologyImage2Image, self).__init__(
             path_output=path_dir_result,
@@ -162,27 +157,38 @@ postfix : str
             nb_max_workers=nb_max_workers,
         )
 
-        self.queue_names = self.add_queue("queue_names")
-        self.queue_in = self.add_queue("queue_in")
+        self.queue_path = self.add_queue("queue_names")
+        self.queue_array_path = self.add_queue("queue_array_path")
         self.queue_out = self.add_queue("queue_out")
 
         self.add_work(
-            "fill_name",
-            self.add_queue,
-            output_queue=self.queue_names,
+            "fill_path",
+            self.add_series,
+            output_queue=self.queue_path,
             kind="one shot",
         )
 
         self.im2im_func = self.init_im2im(params)
+
+        self.add_work(
+            "get_array",
+            self.imread,
+            input_queue=self.queue_path,
+            output_queue=self.queue_array_path,
+        )
+
+
         self.add_work(
             "im2im",
             self.im2im_func,
-            input_queue=self.queue_names,
-            output_queue=self.queue_names,
+            input_queue=self.queue_array_path,
+            output_queue=self.queue_out,
         )
 
         self.add_work(
-            "queue_save", self.save_image(), input_queue=self.queue_names
+            "save",
+            self.save_image,
+            input_queue=self.queue_out,
         )
 
     def init_im2im(self, params_im2im):
@@ -191,32 +197,38 @@ postfix : str
         )
         return self.im2im_func
 
+    def imread(self, path):
+        array = imread(path)
+        return (array, path)
+
     def save_image(self, tuple_image_path):
         image, path = tuple_image_path
         nfile = os.path.split(path)[-1]
         path_out = os.path.join(self.path_dir_result, nfile)
         imsave(path_out, image)
 
-    def add_series(self, series):
+    def add_series(self, input_queue, output_queue):
 
+        series = self.series
         if len(series) == 0:
             logger.warning("add 0 image. No image to process.")
             return
 
         names = series.get_name_all_arrays()
 
-        if self.how_saving == "complete":
-            names_to_compute = []
-            for name in names:
-                if not os.path.exists(os.path.join(self.path_dir_result, name)):
-                    names_to_compute.append(name)
 
-            names = names_to_compute
-            if len(names) == 0:
-                logger.warning(
-                    'topology in mode "complete" and work already done.'
-                )
-                return
+        for name in names:
+            if self.how_saving == "complete":
+                  if not os.path.exists(os.path.join(self.path_dir_result, name)):
+                        output_queue[name] = os.path.join(self.path_dir_src, name)
+            else:
+                output_queue.queue[name] = os.path.join(self.path_dir_src, name)
+
+        if len(names) == 0:
+            logger.warning(
+                'topology in mode "complete" and work already done.'
+            )
+            return
 
         nb_names = len(names)
         print("Add {} images to compute.".format(nb_names))
@@ -225,4 +237,3 @@ postfix : str
 
         print("First files to process:", names[:4])
 
-        self.queue_names.add_name_files(names)

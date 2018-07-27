@@ -1,5 +1,5 @@
 """Topology example for testing (:mod:`fluidimage.experimental.topologies.example`)
-===============================================================================
+===================================================================================
 
 This topology has two pythran cpu bounded tasks. It helps see executors behavior with C fonctions.
 
@@ -12,13 +12,15 @@ import os
 import sys
 import time
 import numpy as np
-from fluidimage.experimental.cpu_bounded_task_examples_pythran import cpu1, cpu2
+import scipy.io
+
 from fluiddyn import time_as_str
 from fluiddyn.io.tee import MultiFile
 from fluidimage import config_logging
+
+from fluidimage.experimental.cpu_bounded_task_examples_pythran import cpu1, cpu2
 from .base import TopologyBase
 from ...util.util import logger, imread
-import scipy.io
 
 _stdout_at_import = sys.stdout
 _stderr_at_import = sys.stderr
@@ -186,7 +188,6 @@ class TopologyExample(TopologyBase):
         txt += "\npath results:\n" + self.path_dir_result
 
         print(txt)
-
 
 if __name__ == "__main__":
     topo = TopologyExample(logging_level="info")

@@ -56,6 +56,7 @@ functions.
 
    fluidimage.topologies
    fluidimage.data_objects
+   fluidimage.experimental
    fluidimage.works
    fluidimage.calcul
    fluidimage.preproc

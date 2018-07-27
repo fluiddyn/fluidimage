@@ -12,11 +12,9 @@ import os
 import json
 import copy
 import sys
+
 from fluidimage import ParamContainer, SerieOfArraysFromFiles, SeriesOfArrays
-
 from fluidimage.experimental.topologies.base import TopologyBase
-
-
 from fluidimage.topologies import prepare_path_dir_result
 from fluidimage.works.piv import WorkPIV
 from fluidimage.data_objects.piv import get_name_bos, ArrayCoupleBOS
