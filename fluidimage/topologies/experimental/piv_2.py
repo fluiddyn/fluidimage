@@ -245,7 +245,7 @@ postfix : str
 
         self.add_work(
             "couples -> piv",
-            func_or_cls = self.calcul,
+            func_or_cls=self.calcul,
             params_cls=params,
             input_queue=queue_couples,
             output_queue=queue_piv,
@@ -258,13 +258,13 @@ postfix : str
             kind="io",
         )
 
-    def save_piv_object(self,o):
+    def save_piv_object(self, o):
         ret = o.save(self.path_dir_result)
         return ret
 
     def save_piv(self, piv_object):
         self.save_piv_object(piv_object)
-        print('###PIV SAVED !!!!!###')
+        print("###PIV SAVED !!!!!###")
 
     def calcul(self, array_couple):
         return WorkPIV(self.params).calcul(array_couple)
@@ -335,44 +335,52 @@ postfix : str
         #
         # self.piv_work._prepare_with_image(im)
 
-    def fill_name_couple_and_path(self,input_queue, output_queues):
+    def fill_name_couple_and_path(self, input_queue, output_queues):
         previous_name = None
         input_queue.queue = sorted(input_queue.queue)
 
         for name in input_queue.queue:
-            output_queues[1].queue[name[:-4]] = os.path.join(self.params.series.path,name)
+            output_queues[1].queue[name[:-4]] = os.path.join(
+                self.params.series.path, name
+            )
             if previous_name is not None:
-                output_queues[0].queue[previous_name] = (str(previous_name),name[:-4])
+                output_queues[0].queue[previous_name] = (
+                    str(previous_name),
+                    name[:-4],
+                )
                 previous_name = name[:-4]
             else:
                 previous_name = name[:-4]
         input_queue.queue = {}
-
 
     def make_couple(self, input_queue, output_queue):
         try:
             params_mask = self.params.mask
         except AttributeError:
             params_mask = None
-        if ( input_queue[0].queue and input_queue[1].queue):
-            key, couple = input_queue[1].queue.popitem() #pop a couple
+        if input_queue[0].queue and input_queue[1].queue:
+            key, couple = input_queue[1].queue.popitem()  # pop a couple
 
-            if couple[0] in input_queue[0].queue and couple[1] in input_queue[0].queue:
+            if (
+                couple[0] in input_queue[0].queue
+                and couple[1] in input_queue[0].queue
+            ):
                 array1 = input_queue[0].queue[couple[0]]
                 array2 = input_queue[0].queue[couple[1]]
                 couple = ArrayCouple(
                     names=(couple[0], couple[1]),
                     arrays=(array1, array2),
                     params_mask=params_mask,
-                    serie=self.series.get_next_serie() #TODO link with real serie
+                    serie=self.series.get_next_serie(),  # TODO link with real serie
                 )
                 output_queue.queue[key] = couple
             else:
                 input_queue[1].queue[key] = couple
         else:
-            logger.error('Array or name couple is empty')
+            logger.error("Array or name couple is empty")
 
         print(output_queue.queue)
+
     def _print_at_exit(self, time_since_start):
 
         txt = "Stop compute after t = {:.2f} s".format(time_since_start)

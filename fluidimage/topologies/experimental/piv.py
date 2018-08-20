@@ -23,7 +23,6 @@ from .. import image2image
 import scipy.io
 
 
-
 class TopologyPIV(TopologyBase):
     """Topology for PIV.
 
@@ -165,7 +164,7 @@ postfix : str
 
     def __init__(self, params=None, logging_level="info", nb_max_workers=None):
 
-        #TEMP : FOR PIV SERIE NAME PROBLEM
+        # TEMP : FOR PIV SERIE NAME PROBLEM
         self.tmp_name = 0
 
         if params is None:
@@ -249,11 +248,11 @@ postfix : str
 
         self.add_work(
             "couples -> piv",
-            func_or_cls = self.calcul,
+            func_or_cls=self.calcul,
             params_cls=params,
             input_queue=queue_couples,
             output_queue=queue_piv,
-            kind="server"
+            kind="server",
         )
 
         self.add_work(
@@ -263,13 +262,13 @@ postfix : str
             kind="io",
         )
 
-        #imag
+        # imag
 
-    def save_piv_object(self,o):
+    def save_piv_object(self, o):
         print()
         self.tmp_name += 1
-        ret = o.save(self.path_dir_result+'/piv_'+str(self.tmp_name)+".h5")
-        print('###PIV SAVED !!!!!###')
+        ret = o.save(self.path_dir_result + "/piv_" + str(self.tmp_name) + ".h5")
+        print("###PIV SAVED !!!!!###")
         print(ret)
         return ret
 
@@ -329,19 +328,23 @@ postfix : str
         for name in names:
             output_queue.queue[name] = name
 
-    def fill_name_couple_and_path(self,input_queue, output_queues):
+    def fill_name_couple_and_path(self, input_queue, output_queues):
         previous_name = None
         input_queue.queue = sorted(input_queue.queue)
 
         for name in input_queue.queue:
-            output_queues[1].queue[name[:-4]] = os.path.join(self.params.series.path,name)
+            output_queues[1].queue[name[:-4]] = os.path.join(
+                self.params.series.path, name
+            )
             if previous_name is not None:
-                output_queues[0].queue[previous_name] = (str(previous_name),name[:-4])
+                output_queues[0].queue[previous_name] = (
+                    str(previous_name),
+                    name[:-4],
+                )
                 previous_name = name[:-4]
             else:
                 previous_name = name[:-4]
         input_queue.queue = {}
-
 
     def make_couple(self, input_queue, output_queue):
         try:
@@ -351,12 +354,15 @@ postfix : str
 
         keys = ""
         for key, couple in input_queue[0].queue.items():
-            keys += str(key)+" "
+            keys += str(key) + " "
         print(keys)
-        #for each name couple
+        # for each name couple
         for key, couple in input_queue[1].queue.items():
             # if correspondant arrays are avaible, make an array couple
-            if couple[0] in input_queue[0].queue and couple[1] in input_queue[0].queue:
+            if (
+                couple[0] in input_queue[0].queue
+                and couple[1] in input_queue[0].queue
+            ):
                 array1 = input_queue[0].queue[couple[0]]
                 array2 = input_queue[0].queue[couple[1]]
                 # serie = self.get_associated_series(key, series=self.series)
@@ -365,23 +371,23 @@ postfix : str
                     names=(couple[0], couple[1]),
                     arrays=(array1, array2),
                     params_mask=params_mask,
-                    serie=self.series.get_serie_from_name(couple)
+                    serie=self.series.get_serie_from_name(couple),
                 )
 
                 output_queue.queue[key] = array_couple
-                #remove names_couple
+                # remove names_couple
                 del input_queue[1].queue[key]
-                #remove the image_array if it not will be used anymore
-                if not self.still_is_in_dict(couple[0],input_queue[1].queue):
+                # remove the image_array if it not will be used anymore
+                if not self.still_is_in_dict(couple[0], input_queue[1].queue):
                     del input_queue[0].queue[couple[0]]
-                if not self.still_is_in_dict(couple[1],input_queue[1].queue):
+                if not self.still_is_in_dict(couple[1], input_queue[1].queue):
                     del input_queue[0].queue[couple[1]]
                 return True
         return False
 
     @staticmethod
     def still_is_in_dict(image_name, dict):
-        for key,t in dict.items():
+        for key, t in dict.items():
             if image_name in t:
                 return True
         return False
@@ -390,10 +396,12 @@ postfix : str
         stop = series.nb_series
         for index in range(0, stop):
             print(series.get_serie_from_index(index).filename_given[:-4])
-            if series.get_serie_from_index(index).filename_given[:-4] is image_name:
+            if (
+                series.get_serie_from_index(index).filename_given[:-4]
+                is image_name
+            ):
                 print(series.get_serie_from_index(index))
                 return series.get_serie_from_index(index)
-
 
     def _print_at_exit(self, time_since_start):
 

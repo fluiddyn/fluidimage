@@ -33,7 +33,6 @@ class ExecutorClassic(ExecutorBase):
         self.do_one_shot_job()
         print("One shot jobs done")
 
-
         if hasattr(self, "path_output"):
             logger.info("path results:\n" + self.path_output)
             if hasattr(self, "params"):
@@ -72,9 +71,7 @@ class ExecutorClassic(ExecutorBase):
                 print("threads loop")
                 t_tmp = time()
                 for worker in workers:
-                    if (
-                        worker.finished
-                    ):
+                    if worker.finished:
                         print("#######removed worker {}".format(worker))
                         workers.remove(worker)
                 t_tmp = time() - t_tmp
@@ -84,7 +81,6 @@ class ExecutorClassic(ExecutorBase):
                         "done in {:.3f} s".format(t_tmp)
                     )
                 sleep(dt_update)
-
 
             def run(self):
                 try:
@@ -113,11 +109,11 @@ class ExecutorClassic(ExecutorBase):
                             worker.really_started = (
                                 worker.comm_started.get_nowait()
                             )
-                        except: # TODO queue.Empty:
+                        except:  # TODO queue.Empty:
                             pass
                         if (
-                                not worker.really_started
-                                and time() - worker.t_start > 10
+                            not worker.really_started
+                            and time() - worker.t_start > 10
                         ):
                             # bug! The worker does not work. We kill it! :-)
                             logger.error(
@@ -167,7 +163,9 @@ class ExecutorClassic(ExecutorBase):
                     # global function
                     if work.kind is not None and "global" in work.kind:
                         if len(workers) < self.nb_max_workers:
-                            workers.append(GlobalWorker(self.t_start, work, item_number))
+                            workers.append(
+                                GlobalWorker(self.t_start, work, item_number)
+                            )
                             item_number += 1
                     # I/O
                     elif (
@@ -227,7 +225,7 @@ class ExecutorClassic(ExecutorBase):
         return not any([len(q.queue) != 0 for q in self.topology.queues])
 
 
-class Worker():
+class Worker:
     @staticmethod
     def _Queue(*args, **kwargs):
         return multiprocessing.Queue(*args, **kwargs)
@@ -280,8 +278,8 @@ class Worker():
 
 
 class GlobalWorker(Worker):
-    def __init__(self,t_start, work, key, obj=None):
-        super().__init__(t_start ,work, key)
+    def __init__(self, t_start, work, key, obj=None):
+        super().__init__(t_start, work, key)
 
     def job(self):
         t_start = time()
@@ -302,4 +300,3 @@ class GlobalWorker(Worker):
         )
         # TODO self.nb_working_worker -= 1
         self.finished = True
-

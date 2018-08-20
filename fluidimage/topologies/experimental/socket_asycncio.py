@@ -137,14 +137,12 @@ Postfix from which the output file is computed.
     return params
 
 
-
 async def run_server():
     params = create_default_params()
-    workpiv=WorkPIV(params)
-
+    workpiv = WorkPIV(params)
 
     server = trio.socket.socket()
-    await server.bind(('localhost', 8888))
+    await server.bind(("localhost", 8888))
     server.listen(80)
     while True:
         conn, adr = await server.accept()
@@ -171,6 +169,5 @@ async def start_server():
     async with trio.open_nursery() as nursery:
         nursery.start_soon(run_server)
 
+
 trio.run(start_server)
-
-

@@ -189,6 +189,7 @@ class TopologyExample(TopologyBase):
 
         print(txt)
 
+
 if __name__ == "__main__":
     topo = TopologyExample(logging_level="info")
     # topo.make_code_graphviz("tmp.dot")

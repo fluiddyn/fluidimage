@@ -292,17 +292,13 @@ class TopologyBase:
         code += '\n node [height="0px", width="0px",shape=none,];'
         code += "\n edge [ minlen = 1,];"
         code += '\n label = "Legend";'
-        code += (
-            '\n key [label=<<table border="0" cellpadding="2" cellspacing="0" cellborder="0">'
-        )
+        code += '\n key [label=<<table border="0" cellpadding="2" cellspacing="0" cellborder="0">'
         code += '\n <tr><td align="right" port="i1">Global</td></tr>'
         code += '\n <tr><td align="right" port="i2">One Shot</td></tr>'
         code += '\n <tr><td align="right" port="i3">Multiple Shot</td></tr>'
         code += '\n <tr><td align="right" port="i4">I/O</td></tr>'
         code += "\n </table>>]"
-        code += (
-            '\n key2 [label=<<table border="0" cellpadding="2" cellspacing="0" cellborder="0">'
-        )
+        code += '\n key2 [label=<<table border="0" cellpadding="2" cellspacing="0" cellborder="0">'
         code += '\n<tr><td port="i1">&nbsp;</td></tr>'
         code += '\n<tr><td port="i2">&nbsp;</td></tr>'
         code += '\n<tr><td port="i3">&nbsp;</td></tr>'

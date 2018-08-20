@@ -177,7 +177,6 @@ postfix : str
             output_queue=self.queue_array_path,
         )
 
-
         self.add_work(
             "im2im",
             self.im2im_func,
@@ -185,11 +184,7 @@ postfix : str
             output_queue=self.queue_out,
         )
 
-        self.add_work(
-            "save",
-            self.save_image,
-            input_queue=self.queue_out,
-        )
+        self.add_work("save", self.save_image, input_queue=self.queue_out)
 
     def init_im2im(self, params_im2im):
         self.im2im_obj, self.im2im_func = init_im2im_function(
@@ -216,18 +211,15 @@ postfix : str
 
         names = series.get_name_all_arrays()
 
-
         for name in names:
             if self.how_saving == "complete":
-                  if not os.path.exists(os.path.join(self.path_dir_result, name)):
-                        output_queue[name] = os.path.join(self.path_dir_src, name)
+                if not os.path.exists(os.path.join(self.path_dir_result, name)):
+                    output_queue[name] = os.path.join(self.path_dir_src, name)
             else:
                 output_queue.queue[name] = os.path.join(self.path_dir_src, name)
 
         if len(names) == 0:
-            logger.warning(
-                'topology in mode "complete" and work already done.'
-            )
+            logger.warning('topology in mode "complete" and work already done.')
             return
 
         nb_names = len(names)
@@ -236,4 +228,3 @@ postfix : str
         logger.debug(repr(names))
 
         print("First files to process:", names[:4])
-

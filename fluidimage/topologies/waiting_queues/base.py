@@ -320,8 +320,8 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
         p.fill_destination = fill_destination
         return p
 
-class WaitingQueueMultiprocessingSpe(WaitingQueueMultiprocessing):
 
+class WaitingQueueMultiprocessingSpe(WaitingQueueMultiprocessing):
     def _launch_worker(self):
 
         k = self._keys[0]
@@ -508,6 +508,7 @@ class WaitingQueueMakeCouple(WaitingQueueBase):
                         params_mask=self.topology.params.mask,
                     )
 
+
 class WaitingQueueOneShot(WaitingQueueBase):
     def __init__(
         self,
@@ -541,12 +542,10 @@ class WaitingQueueOneShot(WaitingQueueBase):
     def is_empty(self):
         return WaitingQueueBase.is_empty(WaitingQueueBase)
 
-
     def check_and_act(self, sequential=None):
         if self.is_destination_full():
             return
         print(type(self.work))
-
 
 
 class WaitingQueueMakeCoupleBOS(WaitingQueueBase):
