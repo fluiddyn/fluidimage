@@ -70,7 +70,8 @@ install_requires.extend([
     'matplotlib >= 1.4.2',
     'pyfftw >= 0.10.4',
     # 'scikit-image >= 0.12.3',
-    'h5py', 'h5netcdf'])
+    'h5py', 'h5netcdf',
+    'imageio', 'pims'])
 
 
 def modification_date(filename):
@@ -100,7 +101,8 @@ if use_pythran:
     ext_modules = make_pythran_extensions(
         ['fluidimage.calcul.correl_pythran',
          'fluidimage.calcul.interpolate.tps_pythran',
-         'fluidimage.calcul.subpix_pythran'
+         'fluidimage.calcul.subpix_pythran',
+         'fluidimage.experimental.cpu_bounded_task_examples_pythran'
          ])
 else:
     ext_modules = []

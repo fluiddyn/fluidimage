@@ -10,6 +10,8 @@ from fluiddyn.io import stdout_redirected
 from fluidimage.topologies.preproc import TopologyPreproc
 from fluiddyn.io.image import imread, imsave
 
+here = os.path.abspath(os.path.dirname(__file__))
+
 
 class TestPreprocKarman(unittest.TestCase):
 
