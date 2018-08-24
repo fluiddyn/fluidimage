@@ -19,11 +19,11 @@ black:
 	black -l 82 fluidimage
 
 tests:
-	python -m unittest discover
+	OMP_NUM_THREADS=1 python -m unittest discover
 
 _tests_coverage:
 	mkdir -p .coverage
-	coverage run -p -m unittest discover
+	OMP_NUM_THREADS=1 coverage run -p -m unittest discover
 
 _report_coverage:
 	coverage combine

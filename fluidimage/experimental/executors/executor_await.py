@@ -1,13 +1,27 @@
 """Executor async/await
 =======================
 
-Used to compute the topology given. This executer uses await/async with trio library to put topology tasks in concurrency.
-Depends on the topology, parameters (worker_limit, queues_limit, sleep_time) can be set to improve the computation.
-Two mode of computation are available :
+This executer uses await/async with trio library to put topology tasks in
+concurrency.  Depending on the topology, parameters (worker_limit, queues_limit,
+sleep_time) can be set to improve the performance.  Two modes of computation are
+available:
 
-* The single executor mode. A single executor is created. Meaning that the work will be done in a single thread, exept if the topology computed has C code in it. In this case, the GIL is bypass and computation can use many CPU.
+- The single executor mode.
 
-* The multi-executor mode. Many executors are created, each executor works in a process from multiprocessing with a part of the work to do. The work split is done in the class "ExecutorAwaitMultiproc". Usefull for full python written topology. See "ExecutorAwaitMultiproc" for more information.
+  A single executor (in one process) is created.  If CPU bounded tasks are limited
+  by the Python GIL, the threads won't use at the same time the CPU.
+
+
+Meaning that the work will be
+  done in a single thread, except if the topology computed has C code in it. In
+  this case, the GIL is bypassed and computation can use many CPU.
+
+- The multi-executor mode.
+
+  Many executors are created, each executor works in a process from
+  multiprocessing with a part of the work to do. The work split is done in the
+  class "ExecutorAwaitMultiproc". Usefull for full python written topology. See
+  "ExecutorAwaitMultiproc" for more information.
 
 .. autoclass:: ExecutorAwait
    :members:
@@ -32,7 +46,9 @@ from itertools import islice
 
 
 class ExecutorAwait(ExecutorBase):
-    """Executor async/await. Work in a single thread, except if the computed topology has C code.
+    """Executor async/await.
+
+    Work in a single thread, except if the computed topology has C code.
 
     Parameters
     ----------

@@ -1,11 +1,10 @@
-"""Base for executors
-=====================
-
-Executors inherit from this Class. Define best numbers of workers for the local computer and export OMP_NUM_THREADS=1
+"""Base class for executors
+===========================
 
 .. autoclass:: ExecutorBase
    :members:
    :private-members:
+
 """
 
 import os
@@ -16,7 +15,10 @@ from warnings import warn
 
 
 class ExecutorBase:
-    """
+    """Base class for executors.
+
+    It defines best numbers of workers for the local computer and exports
+    OMP_NUM_THREADS=1 if needed.
 
     Parameters
     ----------
@@ -38,9 +40,9 @@ class ExecutorBase:
 
         config = get_config()
 
-        dt = 0.25  # s
-        dt_small = 0.02
-        dt_update = 0.1
+        # dt = 0.25  # s
+        # dt_small = 0.02
+        # dt_update = 0.1
 
         if "OMP_NUM_THREADS" not in os.environ:
             warn(
@@ -105,8 +107,8 @@ class ExecutorBase:
                 pass
 
         # default nb_max_workers
-        # Difficult: trade off between overloading and limitation due to input output.
-        # The user can do much better for a specific case.
+        # Difficult: trade off between overloading and limitation due to input
+        # output.  The user can do much better for a specific case.
         if nb_max_workers is None:
             if nb_cores < 16:
                 nb_max_workers = nb_cores + 2
