@@ -12,6 +12,7 @@
 """
 import glob
 from math import sqrt
+import warnings
 
 import numpy as np
 import pylab
@@ -212,7 +213,7 @@ class CalibDirect:
 
     def pixel2line(self, indx, indy):
         """Compute parameters of the optical path for a pixel
-        
+
         An optical path is defined with a point x0, y0, z0 and a vector dx, dy,
         dz.
 
@@ -227,7 +228,9 @@ class CalibDirect:
         X = np.array(X)
         Y = np.array(Y)
         XYZ = np.vstack([X, Y, Z]).transpose()
-        XYZ0 = np.nanmean(XYZ, 0)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=RuntimeWarning)
+            XYZ0 = np.nanmean(XYZ, 0)
         XYZ -= XYZ0
         ind = ~np.isnan(X + Y)
         XYZ = XYZ[ind, :]
@@ -641,12 +644,12 @@ class DirectStereoReconstruction:
             dcam[2, :, :] = d1ycam
             tmp.append(np.tensordot(self.invM3, dcam, axes=([1], [0])))
         tmp = np.array(tmp)
-        dX = np.nanmean(tmp, 0)[0]
-        Errorx = np.nanstd(tmp, 0)[0]
-        dY = np.nanmean(tmp, 0)[1]
-        Errory = np.nanstd(tmp, 0)[1]
-        dZ = np.nanmean(tmp, 0)[2]
-        Errorz = np.nanstd(tmp, 0)[2]
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=RuntimeWarning)
+            tmp_mean = np.nanmean(tmp, 0)
+        tmp_std = np.nanstd(tmp, 0)
+        dX, dY, dZ = tmp_mean
+        Errorx, Errory, Errorz = tmp_std
 
         # dXx = np.zeros(d0xcam.shape)
         # dXy = np.zeros(d0xcam.shape)
