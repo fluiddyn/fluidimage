@@ -1,4 +1,4 @@
-import os
+
 import unittest
 from shutil import rmtree
 from pathlib import Path
@@ -14,7 +14,6 @@ here = Path(__file__).parent.absolute()
 
 
 class TestPivNew(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         cls.path_Oseen = here / "../../../image_samples/Oseen/Images/Oseen*"
@@ -46,7 +45,7 @@ class TestPivNew(unittest.TestCase):
         params.saving.postfix = self.postfix
 
         with stdout_redirected():
-            topology = TopologyPIV(params, logging_level=None)
+            topology = TopologyPIV(params, logging_level="info")
             # topology.make_code_graphviz('topo.dot')
 
             executer = ExecutorAwaitMultiprocs(
@@ -57,7 +56,8 @@ class TestPivNew(unittest.TestCase):
                 queues_limit=5,
             )
 
-            executer.compute()
+            topology.compute(executer)
+            # executer.compute()
 
     def test_piv_new_multiproc(self):
         params = TopologyPIV.create_default_params()
@@ -77,7 +77,7 @@ class TestPivNew(unittest.TestCase):
         params.saving.postfix = self.postfix
 
         with stdout_redirected():
-            topology = TopologyPIV(params, logging_level=None)
+            topology = TopologyPIV(params, logging_level="info")
             # topology.make_code_graphviz('topo.dot')
 
             executer = ExecutorAwaitMultiprocs(
@@ -87,7 +87,8 @@ class TestPivNew(unittest.TestCase):
                 worker_limit=4,
                 queues_limit=5,
             )
-            executer.compute()
+            topology.compute(executer)
+            # executer.compute()
 
 
 if __name__ == "__main__":

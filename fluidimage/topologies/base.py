@@ -5,6 +5,10 @@
    :members:
    :private-members:
 
+.. todo::
+
+   Solve problem OMP_NUM_THREADS.
+
 """
 from __future__ import print_function
 

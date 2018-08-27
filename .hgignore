@@ -66,3 +66,5 @@ image_samples/4th_PIV-Challenge_Case_E/E_Calibration_Images/Camera_0*/calib*.npy
 .coverage/*
 
 */test_fluidimage*
+
+.pytest_cache/*

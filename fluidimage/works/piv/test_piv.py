@@ -2,6 +2,8 @@
 import unittest
 import os
 
+from fluiddyn.io import stdout_redirected
+
 from fluidimage import SeriesOfArrays
 from fluidimage.works.piv import WorkPIV
 
@@ -38,7 +40,8 @@ class TestPIV(unittest.TestCase):
 
         piv = WorkPIV(params=params)
 
-        piv.calcul(self.serie)
+        with stdout_redirected():
+            piv.calcul(self.serie)
 
     def test_piv_list(self):
 
@@ -52,7 +55,8 @@ class TestPIV(unittest.TestCase):
 
         piv = WorkPIV(params=params)
 
-        piv.calcul(self.serie)
+        with stdout_redirected():
+            piv.calcul(self.serie)
 
 
 if __name__ == "__main__":

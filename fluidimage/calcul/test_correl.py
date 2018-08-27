@@ -14,7 +14,7 @@ from fluidimage.calcul.correl import (
     CorrelPythran,
     CorrelPyCuda,
     CorrelFFTBase,
-    CorrelBase,
+    # CorrelBase,
 )
 
 # config_logging('debug')
@@ -77,7 +77,7 @@ class TestCorrel(unittest.TestCase):
 
 for k, cls in classes.items():
 
-    def test(self, cls=cls, k=k):
+    def _test(self, cls=cls, k=k):
 
         if issubclass(cls, CorrelFFTBase):
             displacement_max = "50%"
@@ -124,7 +124,7 @@ for k, cls in classes.items():
             np.allclose(self.displacements, displacement_computed, atol=0.8)
         )
 
-    exec("TestCorrel.test_correl_square_image_" + k + " = test")
+    exec("TestCorrel.test_correl_square_image_" + k + " = _test")
 
 
 class TestCorrel1(unittest.TestCase):
@@ -151,7 +151,7 @@ class TestCorrel1(unittest.TestCase):
 
 for k, cls in classes.items():
 
-    def test1(self, cls=cls, k=k):
+    def _test1(self, cls=cls, k=k):
         correl = cls(self.im0.shape, self.im1.shape)
 
         # first, no displacement
@@ -190,7 +190,7 @@ for k, cls in classes.items():
             np.allclose(self.displacements, displacement_computed, atol=0.8)
         )
 
-    exec("TestCorrel1.test_correl_rectangular_image_" + k + " = test1")
+    exec("TestCorrel1.test_correl_rectangular_image_" + k + " = _test1")
 
 
 class TestCorrel2(unittest.TestCase):
@@ -225,7 +225,7 @@ class TestCorrel2(unittest.TestCase):
 
 for k, cls in classes2.items():
 
-    def test2(self, cls=cls, k=k):
+    def _test2(self, cls=cls, k=k):
         correl = cls(self.im0.shape, self.im1.shape, mode="valid")
 
         # with the 2 figures with displacements
@@ -248,7 +248,7 @@ for k, cls in classes2.items():
             np.allclose(self.displacements, displacement_computed, atol=0.8)
         )
 
-    exec("TestCorrel2.test_correl_images_diff_sizes" + k + " = test2")
+    exec("TestCorrel2.test_correl_images_diff_sizes" + k + " = _test2")
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,15 +1,15 @@
+"""Griddata wrapper function
+============================
 
+
+"""
 import numpy as np
-
-# import scipy as sc
 
 from matplotlib import mlab
 from scipy import interpolate
 
-# from fluiddyn import ipydebug
 
-
-def griddata(centers, values, new_positions, using="matplotlib"):
+def griddata(centers, values, new_positions, using="scipy"):
     xnew = new_positions[1]
     ynew = new_positions[0]
     grid_y, grid_x = np.meshgrid(ynew, xnew)

@@ -5,8 +5,7 @@
 .. autosummary::
    :toctree:
 
-    executors
     topologies
-
+    executors
 
 """

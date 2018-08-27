@@ -155,6 +155,10 @@ class SubPix(object):
             deplx = deply = 0.
 
         if deplx ** 2 + deply ** 2 > 2 * (0.5 + nsubpix) ** 2:
+            if method == "2d_gaussian2":
+                return self.compute_subpix(
+                    correl, ix, iy, method="centroid", nsubpix=nsubpix
+                )
             print(
                 (
                     "Wrong subpix for one vector:"

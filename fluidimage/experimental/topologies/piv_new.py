@@ -236,9 +236,11 @@ postfix : str
             kind="global",
         )
 
+        self.work_piv = WorkPIV(self.params)
+
         self.add_work(
             "couples -> piv",
-            func_or_cls=self.calcul,
+            func_or_cls=self.work_piv.calcul,
             params_cls=params,
             input_queue=queue_array_couples,
             output_queue=queue_piv,
@@ -254,9 +256,6 @@ postfix : str
     def save_piv_object(self, o):
         ret = o.save(self.path_dir_result)
         return ret
-
-    def calcul(self, array_couple):
-        return WorkPIV(self.params).calcul(array_couple)
 
     def fill_series_name_couple_and_path(self, input_queue, output_queues):
         queue_series_name_couple = output_queues[0].queue

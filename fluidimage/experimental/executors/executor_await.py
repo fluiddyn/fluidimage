@@ -53,18 +53,19 @@ class ExecutorAwait(ExecutorBase):
     Parameters
     ----------
 
-    Worker_limit : None, int
+    worker_limit : None, int
 
       Limits the numbers of workers working in the same time.
 
-    Queue_limit : None, int
+    queue_limit : None, int
 
       Limits the numbers of items that can be in a output_queue.
 
-    Sleep_time : None, float
+    sleep_time : None, float
 
-      defines the waiting time (from trio.sleep) of a function. Functions await "trio.sleep"
-      when they have done a work on an item, and when there is nothing in there input_queue.
+      Defines the waiting time (from trio.sleep) of a function. Functions await
+      "trio.sleep" when they have done a work on an item, and when there is
+      nothing in there input_queue.
 
     """
 
