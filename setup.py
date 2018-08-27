@@ -80,6 +80,7 @@ install_requires.extend(
         "h5netcdf",
         "imageio",
         "pims",
+        "trio",
     ]
 )
 
