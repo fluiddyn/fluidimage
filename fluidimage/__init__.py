@@ -8,9 +8,6 @@ import sys
 import os
 from warnings import warn
 
-
-from ._version import __version__
-
 if "OMP_NUM_THREADS" not in os.environ:
     if "numpy" in sys.modules:
         warn(
@@ -27,6 +24,9 @@ if "OMP_NUM_THREADS" not in os.environ:
         )
         os.environ["OMP_NUM_THREADS"] = "1"
 
+import numpy as np
+
+from ._version import __version__
 
 from fluiddyn.io.image import imread as _imread, imsave as _imsave, imsave_h5
 
@@ -67,4 +67,5 @@ __all__ = [
     "path_image_samples",
     "SeriesOfArrays",
     "SerieOfArraysFromFiles",
+    "np"
 ]

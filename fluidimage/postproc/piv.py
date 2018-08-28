@@ -15,8 +15,6 @@
 
 """
 
-from __future__ import print_function, division
-
 from numbers import Number
 from copy import deepcopy
 
@@ -128,7 +126,7 @@ class PIV2d(object):
 
     vy : np.array (2d)
 
-    vy : np.array (2d), optional
+    vz : np.array (2d), optional
 
     namevx : str, 'vx'
     namevy : str, 'vy'
@@ -313,7 +311,10 @@ class PIV2d(object):
         ret.vy = _medianf(self.vy)
 
         if hasattr(self, "vz"):
-            ret.vz = _medianf(self.vz)
+            if isinstance(self.vz, Number):
+                ret.vz = self.vz
+            else:
+                ret.vz = _medianf(self.vz)
 
         if valid:
             mf = int(np.floor(max(size) / 2))
@@ -425,10 +426,10 @@ class ArrayPIV(object):
     def __init__(self, l=None):
         if l is None:
             l = []
-        elif not isinstance(l, list):
+        elif not isinstance(l, (list, tuple)):
             raise TypeError
 
-        self._list = l
+        self._list = list(l)
 
     def append(self, v):
         self._list.append(v)
@@ -445,9 +446,14 @@ class ArrayPIV(object):
     def __radd__(self, other):
         if other == 0:
             return self
-
         else:
             return self.__add__(other)
+
+    def __sub__(self, other):
+        result = type(self)()
+        for v in self._list:
+            result.append(v - other)
+        return result
 
     def __mul__(self, other):
         result = type(self)()
@@ -461,7 +467,7 @@ class ArrayPIV(object):
             result.append(other * v)
         return result
 
-    def __div__(self, other):
+    def __rdiv__(self, other):
         result = type(self)()
         for v in self._list:
             result.append(v / other)
