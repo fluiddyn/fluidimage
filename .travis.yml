@@ -32,11 +32,13 @@ addons:
 install:
     - pip install -U pip setuptools wheel six colorlog
     - pip install -U tox coverage
+    - pip install -U numpy
 
 before_script:
     - |
       mkdir -p $HOME/.config/matplotlib
       echo 'backend      : agg' > $HOME/.config/matplotlib/matplotlibrc
+      echo -e "[pythran]\ncomplex_hook=True\n\n[compiler]\nCXX = clang++-5.0.0\nCC = clang-5.0.0\n" > $HOME/.pythranrc
 
 script:
     - tox -vv
