@@ -10,10 +10,9 @@ from fluidimage.calibration import Calibration
 
 plt.show = lambda: 0
 
-here = os.path.abspath(os.path.dirname(__file__))
-path_fluidimage = os.path.split(os.path.split(here)[0])[0]
+from fluidimage import path_image_samples
 
-pathbase = os.path.join(path_fluidimage, "image_samples", "Milestone")
+pathbase = path_image_samples / "Milestone"
 
 
 def get_piv_field(path):
@@ -38,8 +37,8 @@ class TestCalib(unittest.TestCase):
     """Test fluidimage.calibration DirectStereoReconstruction, CalibDirect."""
 
     def test(self):
-        path_calib = os.path.join(pathbase, "PCO_top.xml")
-        path_v = os.path.join(pathbase, "piv_0000a-b.h5")
+        path_calib = pathbase / "PCO_top.xml"
+        path_v = pathbase / "piv_0000a-b.h5"
         nbypix = 2160
 
         calib = Calibration(path_calib)

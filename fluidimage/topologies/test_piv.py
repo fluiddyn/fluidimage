@@ -1,22 +1,18 @@
 
 import unittest
 
-import os
-
 from fluiddyn.io import stdout_redirected
 
 from fluidimage.topologies.piv import TopologyPIV
 
-here = os.path.abspath(os.path.dirname(__file__))
+from fluidimage import path_image_samples
 
 
 class TestPIV(unittest.TestCase):
     def test_piv(self):
         params = TopologyPIV.create_default_params()
 
-        params.series.path = os.path.join(
-            here, "..", "..", "image_samples", "Karman", "Images"
-        )
+        params.series.path = str(path_image_samples / "Karman/Images")
         params.series.ind_start = 1
 
         # temporary, avoid a bug on Windows

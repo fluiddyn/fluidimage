@@ -1,22 +1,18 @@
 
 import unittest
 
-import os
-
 from fluiddyn.io import stdout_redirected
 
 from fluidimage.topologies.image2image import TopologyImage2Image as Topo
 
-here = os.path.abspath(os.path.dirname(__file__))
+from fluidimage import path_image_samples
 
 
 class TestPIV(unittest.TestCase):
     def test_piv(self):
         params = Topo.create_default_params()
+        params.series.path = str(path_image_samples / "Karman/Images")
 
-        params.series.path = os.path.join(
-            here, "..", "..", "image_samples", "Karman", "Images"
-        )
         params.series.ind_start = 1
 
         params.im2im = "fluidimage.preproc.image2image.Im2ImExample"

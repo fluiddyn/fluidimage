@@ -29,7 +29,7 @@ import pims
 
 
 from .. import BaseWork
-from ...data_objects.surfaceTracking import SurfaceTrackingObject
+from ...data_objects.surface_tracking import SurfaceTrackingObject
 
 
 class WorkSurfaceTracking(BaseWork):
@@ -138,7 +138,7 @@ class WorkSurfaceTracking(BaseWork):
         :type data_objects.piv.ArrayCouple
         :return:
         """
-        surfaceTracking = SurfaceTrackingObject(params=self.params)
+        surface_tracking = SurfaceTrackingObject(params=self.params)
         H, H_filt, a_filt = self.processAFrame(
             self.path,
             self.l_x,
@@ -164,12 +164,12 @@ class WorkSurfaceTracking(BaseWork):
             offset=2.5,
         )
 
-        surfaceTracking.H = H
-        surfaceTracking.H_filt = H_filt
-        surfaceTracking.a_filt = a_filt
-        surfaceTracking.pix_size = self.pix_size
-        surfaceTracking.nameFrame = frameCouple.arrays[0][1].split("/")[-1]
-        return surfaceTracking
+        surface_tracking.H = H
+        surface_tracking.H_filt = H_filt
+        surface_tracking.a_filt = a_filt
+        surface_tracking.pix_size = self.pix_size
+        surface_tracking.nameFrame = frameCouple.arrays[0][1].split("/")[-1]
+        return surface_tracking
         # offset = thickness/2 #of the reference plate (in order to find the origin)
 
     def processAFrame(

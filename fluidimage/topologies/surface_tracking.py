@@ -1,5 +1,5 @@
-"""Topology for SurfaceTracking computation (:mod:`fluidimage.topologies.surface_tracking`)
-===========================================================================================
+"""Topology for surface tracking (:mod:`fluidimage.topologies.surface_tracking`)
+================================================================================
 
 .. autoclass:: TopologySurfaceTracking
    :members:
@@ -20,10 +20,8 @@ from .waiting_queues.base import (
 
 from ..data_objects.piv import ArrayCouple
 from .. import ParamContainer
-from .. import SeriesOfArrays
-from ..data_objects.surfaceTracking import *
+from .. import SeriesOfArrays, SerieOfArraysFromFiles
 from ..util.util import logger
-from fluiddyn.util.paramcontainer import ParamContainer
 from ..works.surfaceTracking.surface_tracking import WorkSurfaceTracking
 
 
@@ -128,12 +126,11 @@ postfix : str
         params.mask._set_doc(
             """
             Parameters describing how images are masked.
-            
+
             strcrop : None, str
-            
-                Two-dimensional slice (for example '100:600, :'). If None, the whole image
-                is used.
-            """
+
+                Two-dimensional slice (for example '100:600, :'). If None, the
+                whole image is used.  """
         )
 
         return params
@@ -201,7 +198,7 @@ postfix : str
             nb_max_workers=nb_max_workers,
         )
 
-        self.add_series(self.series)  # similar to add
+        self.add_series(self.series)
 
     def add_series(self, series):
         """

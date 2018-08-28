@@ -17,8 +17,7 @@ from warnings import warn
 class ExecutorBase:
     """Base class for executors.
 
-    It defines best numbers of workers for the local computer and exports
-    OMP_NUM_THREADS=1 if needed.
+    It defines best numbers of workers for the local computer.
 
     Parameters
     ----------
@@ -43,19 +42,6 @@ class ExecutorBase:
         # dt = 0.25  # s
         # dt_small = 0.02
         # dt_update = 0.1
-
-        if "OMP_NUM_THREADS" not in os.environ:
-            warn(
-                "The environment variable OMP_NUM_THREADS "
-                'was not set so we fix it to "1", '
-                "which is needed for fluidimage topologies."
-            )
-            os.environ["OMP_NUM_THREADS"] = "1"
-
-        OMP_NUM_THREADS = int(os.environ.get("OMP_NUM_THREADS", 1))
-
-        if OMP_NUM_THREADS > 1:
-            warn("OMP_NUM_THREADS is greater than 1!")
 
         nb_cores = cpu_count()
 

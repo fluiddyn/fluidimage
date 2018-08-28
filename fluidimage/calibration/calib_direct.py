@@ -92,7 +92,7 @@ class CalibDirect:
         if path_file:
             self.load(path_file)
         else:
-            self.paths_xml = glob.glob(glob_str_xml)
+            self.paths_xml = glob.glob(str(glob_str_xml))
             if len(self.paths_xml) == 0:
                 raise ValueError(
                     "No xml file found. \n"

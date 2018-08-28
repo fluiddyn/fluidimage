@@ -10,12 +10,9 @@ from fluidimage.calibration import DirectStereoReconstruction, CalibDirect
 
 plt.show = lambda: 0
 
-here = os.path.abspath(os.path.dirname(__file__))
-path_fluidimage = os.path.split(os.path.split(here)[0])[0]
+from fluidimage import path_image_samples
 
-pathbase = os.path.join(
-    path_fluidimage, "image_samples", "4th_PIV-Challenge_Case_E"
-)
+pathbase = path_image_samples / "4th_PIV-Challenge_Case_E"
 
 long_test = False
 
@@ -47,15 +44,13 @@ class TestCalib(unittest.TestCase):
 
         nbline_x, nbline_y = 32, 32
 
-        path_cam1 = os.path.join(pathbase, "E_Calibration_Images", "Camera_01")
-        path_cam3 = os.path.join(pathbase, "E_Calibration_Images", "Camera_03")
+        path_cam1 = pathbase / "E_Calibration_Images" / "Camera_01"
+        path_cam3 = pathbase / "E_Calibration_Images" / "Camera_03"
 
-        path_calib1 = os.path.join(path_cam1, "calib1.npy")
-        path_calib3 = os.path.join(path_cam3, "calib3.npy")
+        path_calib1 = path_cam1 / "calib1.npy"
+        path_calib3 = path_cam3 / "calib3.npy"
 
-        calib = CalibDirect(
-            os.path.join(path_cam1, "img*"), (nb_pixelx, nb_pixely)
-        )
+        calib = CalibDirect(path_cam1 / "img*", (nb_pixelx, nb_pixely))
         calib.compute_interpolents()
         calib.compute_interpolents_pixel2line(nbline_x, nbline_y, test=False)
         calib.save(path_calib1)
@@ -75,10 +70,10 @@ class TestCalib(unittest.TestCase):
 
         postfix = ".piv"
         name = "piv_00001-00002.h5"
-        path_im = os.path.join(pathbase, "E_Particle_Images")
+        path_im = pathbase / "E_Particle_Images"
 
-        path_piv1 = os.path.join(path_im, "Camera_01" + postfix, name)
-        path_piv3 = os.path.join(path_im, "Camera_03" + postfix, name)
+        path_piv1 = path_im / ("Camera_01" + postfix) / name
+        path_piv3 = path_im / ("Camera_03" + postfix) / name
 
         z0 = 0
         alpha = 0

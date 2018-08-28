@@ -10,7 +10,7 @@ from fluiddyn.io import stdout_redirected
 from fluidimage.topologies.preproc import TopologyPreproc
 from fluiddyn.io.image import imread, imsave
 
-here = os.path.abspath(os.path.dirname(__file__))
+from fluidimage import path_image_samples
 
 
 class TestPreprocKarman(unittest.TestCase):
@@ -19,9 +19,7 @@ class TestPreprocKarman(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        path_in = os.path.join(
-            here, "..", "..", "image_samples", cls.name, "Images"
-        )
+        path_in = str(path_image_samples / cls.name / "Images")
 
         cls._work_dir = os.path.join(
             "test_fluidimage_topo_preproc_" + cls.name, "Images"

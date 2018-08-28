@@ -1,30 +1,19 @@
 
 import unittest
-import os
 
 from fluiddyn.io import stdout_redirected
 
 from fluidimage import SeriesOfArrays
 from fluidimage.works.piv import WorkPIV
 
-here = os.path.abspath(os.path.dirname(__file__))
+from fluidimage import path_image_samples
 
 
 class TestPIV(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         series = SeriesOfArrays(
-            os.path.join(
-                here,
-                "..",
-                "..",
-                "..",
-                "image_samples",
-                "Oseen",
-                "Images",
-                "Oseen*",
-            ),
-            "i+1:i+3",
+            str(path_image_samples / "Oseen/Images/Oseen*"), "i+1:i+3"
         )
         cls.serie = series.get_serie_from_index(0)
 

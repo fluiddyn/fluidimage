@@ -4,7 +4,29 @@ FluidImage
 
 """
 
+import sys
+import os
+from warnings import warn
+
+
 from ._version import __version__
+
+if "OMP_NUM_THREADS" not in os.environ:
+    if "numpy" in sys.modules:
+        warn(
+            "The environment variable OMP_NUM_THREADS "
+            "was not set and numpy is already imported "
+            'so fluidimage can not set OMP_NUM_THREADS to "1". '
+            "It can be very bad for the performance of fluidimage topologies!"
+        )
+    else:
+        warn(
+            "The environment variable OMP_NUM_THREADS "
+            'was not set so fluidimage fixes it to "1", '
+            "which is needed for fluidimage topologies."
+        )
+        os.environ["OMP_NUM_THREADS"] = "1"
+
 
 from fluiddyn.io.image import imread as _imread, imsave as _imsave, imsave_h5
 

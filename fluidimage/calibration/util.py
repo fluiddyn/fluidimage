@@ -74,7 +74,7 @@ def make_params_calibration(path_file):
     """
     params = ParamContainer(tag="calib")
 
-    calib_uvmat = ParamContainer(path_file=path_file)
+    calib_uvmat = ParamContainer(path_file=str(path_file))
     tidy_container(calib_uvmat)
 
     calib_uvmat = calib_uvmat["geometry_calib"]
