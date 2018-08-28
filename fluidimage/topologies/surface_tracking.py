@@ -22,7 +22,7 @@ from ..data_objects.piv import ArrayCouple
 from .. import ParamContainer
 from .. import SeriesOfArrays, SerieOfArraysFromFiles
 from ..util.util import logger
-from ..works.surfaceTracking.surface_tracking import WorkSurfaceTracking
+from ..works.surface_tracking.surface_tracking import WorkSurfaceTracking
 
 
 class TopologySurfaceTracking(TopologyBase):
