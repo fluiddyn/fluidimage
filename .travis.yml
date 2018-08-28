@@ -38,9 +38,7 @@ before_script:
     - |
       mkdir -p $HOME/.config/matplotlib
       echo 'backend      : agg' > $HOME/.config/matplotlib/matplotlibrc
-      echo -e "[pythran]\ncomplex_hook=True\n\n[compiler]\nCXX = clang++-5.0\nCC = clang-5.0\n" > $HOME/.pythranrc
-      ls /usr/local/clang-5.0.0/bin
-      cat $HOME/.pythranrc
+      echo -e "[pythran]\ncomplex_hook=True\n\n[compiler]\nCXX = clang++\nCC = clang\n" > $HOME/.pythranrc
 
 script:
     - tox -vv
