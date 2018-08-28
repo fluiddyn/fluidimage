@@ -22,9 +22,9 @@ class TestPIV(unittest.TestCase):
         piv1 = (2 * piv0 + 1) / 3 + piv0
         arr = ArrayPIV((piv0,))
         arr.append(piv1)
-        arr.extend((piv0 - 1, piv1 - piv0, 0 + piv0*3 + 1))
+        arr.extend((piv0 - 1, piv1 - piv0, 0 + piv0 * 3 + 1))
 
-        arr1 = 0 + 2*arr*3 + 1 - 2
+        arr1 = 0 + 2 * arr * 3 + 1 - 2
 
         arr1 = (1 + arr1).median_filter(3).gaussian_filter(0.5)
 

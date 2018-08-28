@@ -67,5 +67,5 @@ __all__ = [
     "path_image_samples",
     "SeriesOfArrays",
     "SerieOfArraysFromFiles",
-    "np"
+    "np",
 ]
