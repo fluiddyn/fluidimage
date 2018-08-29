@@ -14,6 +14,8 @@
 import sys
 import os
 
+os.environ["OMP_NUM_THREADS"] = "1"
+
 # to be able to build the doc without h5py with Read the docs
 
 import fluiddoc
