@@ -6,11 +6,9 @@
 
 """
 
-from __future__ import division
-
 import sys
 
-from matplotlib.backends.qt_compat import QtGui, QtWidgets
+from matplotlib.backends.qt_compat import QtWidgets
 
 from .mainwindow import Ui_MainWindow
 

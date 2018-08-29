@@ -26,7 +26,6 @@ obtained as ``dot(U_tps, EMDX)`` and ``dot(U_tps, EMDY)``, where
 
 
 """
-from __future__ import print_function
 
 import numpy as np
 

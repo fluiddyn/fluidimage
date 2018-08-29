@@ -8,7 +8,6 @@ Coded with matplotlib GUI!
    :private-members:
 
 """
-from __future__ import print_function, division
 
 import argparse
 import os

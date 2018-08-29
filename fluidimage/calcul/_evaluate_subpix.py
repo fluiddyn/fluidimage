@@ -1,8 +1,4 @@
 
-from __future__ import print_function
-
-import unittest
-
 import numpy as np
 
 from fluidimage.synthetic import make_synthetic_images

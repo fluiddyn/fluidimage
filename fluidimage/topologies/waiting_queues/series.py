@@ -12,8 +12,6 @@ Waiting queues for series (:mod:`fluidimage.topologies.waiting_queues.series`)
 
 """
 
-
-from __future__ import print_function
 import os
 from copy import deepcopy, copy
 

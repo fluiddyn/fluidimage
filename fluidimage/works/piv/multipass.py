@@ -7,8 +7,6 @@
 
 """
 
-from __future__ import print_function
-
 from copy import copy
 
 from fluiddyn.util.paramcontainer import ParamContainer

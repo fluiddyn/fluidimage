@@ -6,7 +6,6 @@
    :private-members:
 
 """
-from __future__ import print_function
 
 from time import sleep, time
 from multiprocessing import cpu_count, Process

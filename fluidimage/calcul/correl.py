@@ -46,8 +46,6 @@ different methods.
 
 """
 
-from __future__ import division, print_function
-
 from future.utils import string_types
 
 import numpy as np

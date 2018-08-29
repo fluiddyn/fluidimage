@@ -19,7 +19,6 @@ Provides:
 .. autofunction:: raise_exception
 
 """
-from __future__ import print_function
 
 import sys
 import six
