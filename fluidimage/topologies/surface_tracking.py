@@ -5,6 +5,14 @@
    :members:
    :private-members:
 
+.. todo::
+
+   Make this code usable:
+
+   - good unittests
+   - tutorial with ipynb
+   - example integrated in the documentation
+
 """
 import json
 import os
@@ -22,7 +30,7 @@ from ..data_objects.piv import ArrayCouple
 from .. import ParamContainer
 from .. import SeriesOfArrays, SerieOfArraysFromFiles
 from ..util.util import logger
-from ..works.surface_tracking.surface_tracking import WorkSurfaceTracking
+from ..works.surface_tracking import WorkSurfaceTracking
 
 
 class TopologySurfaceTracking(TopologyBase):
@@ -72,7 +80,7 @@ class TopologySurfaceTracking(TopologyBase):
             attribs={
                 "fileName": "",
                 "path": "",
-                "pathRef": "",
+                "path_ref": "",
                 "ind_start": 0,
                 "ind_stop": None,
                 "ind_step": 1,

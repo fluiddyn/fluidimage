@@ -4,6 +4,7 @@ import unittest
 from fluiddyn.io import stdout_redirected
 
 from fluidimage.topologies.piv import TopologyPIV
+from fluidimage.topologies.log import LogTopology
 
 from fluidimage import path_image_samples
 
@@ -29,8 +30,13 @@ class TestPIV(unittest.TestCase):
         params.saving.postfix = "piv_test"
 
         with stdout_redirected():
-            topology = TopologyPIV(params, logging_level=False)
+            topology = TopologyPIV(params, logging_level="info")
             topology.compute()
+
+            log = LogTopology(topology.path_dir_result)
+        log.plot_durations()
+        log.plot_nb_workers()
+        log.plot_memory()
 
 
 if __name__ == "__main__":

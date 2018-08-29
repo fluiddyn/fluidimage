@@ -26,6 +26,20 @@ if "OMP_NUM_THREADS" not in os.environ:
 
 import numpy as np
 
+
+if any(
+    any(test_tool in arg for arg in sys.argv)
+    for test_tool in ("pytest", "unittest")
+):
+    print(
+        "Fluidimage guesses that it is tested so it"
+        " loads the Agg Matplotlib backend."
+    )
+    import matplotlib
+
+    matplotlib.use("Agg")
+
+
 from ._version import __version__
 
 from fluiddyn.io.image import imread as _imread, imsave as _imsave, imsave_h5

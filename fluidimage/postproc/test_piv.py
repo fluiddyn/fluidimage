@@ -19,7 +19,12 @@ class TestPIV(unittest.TestCase):
         ys1d = np.linspace(-1, 1, ny)
         xs2d, ys2d = np.meshgrid(xs1d, ys1d)
         piv0 = PIV2d(xs1d, ys1d, 0, xs2d, ys2d)
+
+        piv0.display()
+        piv0.extract(0, 0.5, 0, 0.8, phys=True)
+
         piv1 = (2 * piv0 + 1) / 3 + piv0
+
         arr = ArrayPIV((piv0,))
         arr.append(piv1)
         arr.extend((piv0 - 1, piv1 - piv0, 0 + piv0 * 3 + 1))

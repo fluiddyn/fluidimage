@@ -31,7 +31,7 @@ class TestPivNew(unittest.TestCase):
     def test_piv_new(self):
         params = TopologyPIV.create_default_params()
 
-        params.series.path = self.path_Oseen.as_posix()
+        params.series.path = str(self.path_Oseen)
         params.series.ind_start = 1
         params.series.ind_step = 1
 
@@ -46,7 +46,8 @@ class TestPivNew(unittest.TestCase):
 
         with stdout_redirected():
             topology = TopologyPIV(params, logging_level="info")
-            # topology.make_code_graphviz('topo.dot')
+
+            topology.make_code_graphviz(topology.path_dir_result + "/topo.dot")
 
             executer = ExecutorAwaitMultiprocs(
                 topology,
@@ -62,7 +63,7 @@ class TestPivNew(unittest.TestCase):
     def test_piv_new_multiproc(self):
         params = TopologyPIV.create_default_params()
 
-        params.series.path = self.path_Jet.as_posix()
+        params.series.path = str(self.path_Jet)
         params.series.ind_start = 60
         params.series.ind_step = 1
         params.series.strcouple = "i, 0:2"

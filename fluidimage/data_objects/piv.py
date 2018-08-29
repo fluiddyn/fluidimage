@@ -339,7 +339,7 @@ class HeavyPIVResults(DataObject):
         elif kind == "bos":
             return get_name_bos(self.couple.name, serie)
 
-    def save(self, path=None, out_format="uvmat", kind=None):
+    def save(self, path=None, out_format=None, kind=None):
 
         name = self._get_name(kind)
 
@@ -356,8 +356,6 @@ class HeavyPIVResults(DataObject):
                 f.attrs["class_name"] = "MultipassPIVResults"
                 f.attrs["module_name"] = "fluidimage.data_objects.piv"
 
-                for i, r in enumerate(self.passes):
-                    r._save_in_hdf5_object(f, tag="piv{}".format(i))
         return path_file
 
     def _save_in_hdf5_object(self, f, tag="piv0"):
@@ -783,7 +781,7 @@ class LightPIVResults(DataObject):
         name = "piv_" + serie.base_name + str_ind0 + "-" + str_ind1 + "_light.h5"
         return name
 
-    def save(self, path=None, out_format="uvmat", kind=None):
+    def save(self, path=None, out_format=None, kind=None):
         name = self._get_name(kind)
 
         if path is not None:
@@ -814,7 +812,8 @@ class LightPIVResults(DataObject):
         g_piv.attrs["module_name"] = "fluidimage.data_objects.piv"
 
         for k in self._keys_to_be_saved:
-            g_piv.create_dataset(k, data=self.__dict__[k])
+            if k in self.__dict__:
+                g_piv.create_dataset(k, data=self.__dict__[k])
 
     def _load(self, path):
         with h5py.File(path, "r") as f:
@@ -844,5 +843,6 @@ class LightPIVResults(DataObject):
             self.couple = ArrayCouple(hdf5_parent=f, params_mask=params_mask)
 
         for k in self._keys_to_be_saved:
-            dataset = g_piv[k]
-            self.__dict__[k] = dataset[:]
+            if k in g_piv:
+                dataset = g_piv[k]
+                self.__dict__[k] = dataset[:]

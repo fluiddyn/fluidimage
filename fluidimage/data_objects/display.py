@@ -270,7 +270,7 @@ class DisplayPIV(object):
             ind_all = self.inds_isnan[ind]
             q = self.q_isnan
         else:
-            print("other artist", artist)
+            raise NotImplementedError("other artist" + str(artist))
 
         if ind >= len(q.X) or ind < 0:
             return

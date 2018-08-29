@@ -1,3 +1,12 @@
+"""Surface tracking (:mod:`fluidimage.works.surface_tracking`)
+==============================================================
+
+.. autoclass:: WorkSurfaceTracking
+   :members:
+   :private-members:
+
+"""
+
 ###############################################################################
 # !/usr/bin/env python                                                        #
 #  -*- coding: utf-8 -*-                                                      #
@@ -28,41 +37,95 @@ import scipy.io
 import pims
 
 
-from .. import BaseWork
-from ...data_objects.surface_tracking import SurfaceTrackingObject
+from . import BaseWork
+from ..data_objects.surface_tracking import SurfaceTrackingObject
 
 
 class WorkSurfaceTracking(BaseWork):
-    """Base class for SurfaceTracking
-
-    ? This class is meant to be subclassed, not instantiated directly.
+    """Base class for surface tracking
 
     """
 
     @classmethod
     def _complete_params_with_default(cls, params):
         params._set_child(
-            "surface_tracking_params",
+            "surface_tracking",
             attribs={
-                "xmin": 475,  # 25  # x axis pixel range to crop the image imx[min:max]
-                "xmax": 640,  # 275  # x axis pixel range to crop the image imx[min:max]
-                "ymin": 50,  # y axis pixel range to crop the image imy[min:max]
-                "ymax": 700,  # y axis pixel range to crop the image imy[min:max]
-                "distance_lens": 0.36,  # distance in [m] lenses of camera/projetor
-                "distance_object": 1.07,  # distance in [m] camera/projector and surface
+                "xmin": 475,
+                "xmax": 640,
+                "ymin": 50,
+                "ymax": 700,
+                "distance_lens": 0.36,
+                "distance_object": 1.07,
                 "pix_size": 2.4 * 10 ** -4,
                 "startref_frame": 0,
                 "lastref_frame": 49,
                 "sur": 16,
-                "k_x": 70.75,  # wave vector oj. grid (approx. value, will set accurate later)
-                "k_y": 0,  # wave vector of the grid y-axis
+                "k_x": 70.75,
+                "k_y": 0,
                 "slicer": 4,
-                "bo": 1,  # cut the borders
-                "red_factor": 1,  # reduction factor to for the pixels to take tp speed up
-                "n_frames_stock": 1,  # number of frames to stock in one file
+                "bo": 1,
+                "red_factor": 1,
+                "n_frames_stock": 1,
             },
         )
-        pass
+        params.surface_tracking._set_doc(
+            """
+- xmin: 475,
+
+  x axis pixel range to crop the image imx[min:max]
+
+- xmax: 640,
+
+  x axis pixel range to crop the image imx[min:max]
+
+- ymin: 50,
+
+  y axis pixel range to crop the image imy[min:max]
+
+- ymax: 700,
+
+  y axis pixel range to crop the image imy[min:max]
+
+- distance_lens: 0.36,
+
+  distance in [m] lenses of camera/projetor
+
+- distance_object: 1.07,
+
+  distance in [m] camera/projector and surface
+
+- pix_size: 2.4 * 10 ** -4,
+
+- startref_frame: 0,
+
+- lastref_frame: 49,
+
+- sur: 16,
+
+- k_x: 70.75,
+
+  wave vector oj. grid (approx. value, will set accurate later)
+
+- k_y: 0,
+
+  wave vector of the grid y-axis
+
+- slicer: 4,
+
+- bo: 1,
+
+  cut the borders
+
+- red_factor: 1,
+
+  reduction factor to for the pixels to take tp speed up
+
+- n_frames_stock: 1,
+
+  number of frames to stock in one file
+"""
+        )
 
     def __init__(self, params):
 
@@ -74,7 +137,7 @@ class WorkSurfaceTracking(BaseWork):
         self.nameFrame = None
 
         self.path = params.film.path
-        self.pathRef = params.film.pathRef
+        self.path_ref = params.film.path_ref
 
         self.verify_process = False
         self.ref_film = None
@@ -82,38 +145,38 @@ class WorkSurfaceTracking(BaseWork):
         self.save_png = True
         self.treshold = 0.16
 
-        self.xmin = self.params.surface_tracking_params.xmin
-        self.xmax = self.params.surface_tracking_params.xmax
-        self.ymin = self.params.surface_tracking_params.ymin
-        self.ymax = self.params.surface_tracking_params.ymax
+        self.xmin = self.params.surface_tracking.xmin
+        self.xmax = self.params.surface_tracking.xmax
+        self.ymin = self.params.surface_tracking.ymin
+        self.ymax = self.params.surface_tracking.ymax
 
-        self.distance_lens = self.params.surface_tracking_params.distance_lens
-        self.distance_object = self.params.surface_tracking_params.distance_object
-        self.pix_size = self.params.surface_tracking_params.pix_size
+        self.distance_lens = self.params.surface_tracking.distance_lens
+        self.distance_object = self.params.surface_tracking.distance_object
+        self.pix_size = self.params.surface_tracking.pix_size
 
-        self.startref_frame = self.params.surface_tracking_params.startref_frame
-        self.lastref_frame = self.params.surface_tracking_params.lastref_frame
-        self.sur = self.params.surface_tracking_params.sur
-        self.k_x = self.params.surface_tracking_params.k_x
-        self.k_y = self.params.surface_tracking_params.k_y
-        self.slicer = self.params.surface_tracking_params.slicer
+        self.startref_frame = self.params.surface_tracking.startref_frame
+        self.lastref_frame = self.params.surface_tracking.lastref_frame
+        self.sur = self.params.surface_tracking.sur
+        self.k_x = self.params.surface_tracking.k_x
+        self.k_y = self.params.surface_tracking.k_y
+        self.slicer = self.params.surface_tracking.slicer
 
-        self.bo = self.params.surface_tracking_params.bo
-        self.red_factor = self.params.surface_tracking_params.red_factor
-        self.n_frames_stock = self.params.surface_tracking_params.n_frames_stock
+        self.bo = self.params.surface_tracking.bo
+        self.red_factor = self.params.surface_tracking.red_factor
+        self.n_frames_stock = self.params.surface_tracking.n_frames_stock
 
         self.plot_reduction_factor = 10
         self.l_x = self.xmax - self.xmin
         self.l_y = self.ymax - self.ymin
 
         self.wave_proj = 1 / (self.k_x / self.l_x / self.pix_size)
-        wave_proj_pix = self.wave_proj / self.pix_size
+        # wave_proj_pix = self.wave_proj / self.pix_size
         self.kslicer = 2 * self.k_x
 
         self.kx = np.arange(-self.l_x / 2, self.l_x / 2) / self.l_x
         self.ky = np.arange(-self.l_y / 2, self.l_y / 2) / self.l_y
 
-        self.refraw = self.get_file(self.pathRef)
+        self.refraw = self.get_file(self.path_ref)
         refc, k_x = self.wave_vector(
             self.refraw,
             self.ymin,
@@ -170,7 +233,8 @@ class WorkSurfaceTracking(BaseWork):
         surface_tracking.pix_size = self.pix_size
         surface_tracking.nameFrame = frameCouple.arrays[0][1].split("/")[-1]
         return surface_tracking
-        # offset = thickness/2 #of the reference plate (in order to find the origin)
+        # of the reference plate (in order to find the origin)
+        # offset = thickness/2
 
     def processAFrame(
         self,

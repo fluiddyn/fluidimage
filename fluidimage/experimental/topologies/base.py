@@ -62,6 +62,8 @@ class Work(MyObj):
 class TopologyBase:
     """Base class for topologies of processing.
 
+    This class is meant to be subclassed, not instantiated directly.
+
     Parameters
     ----------
     path_output : None, str

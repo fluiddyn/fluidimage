@@ -4,7 +4,7 @@ params = TopologySurfaceTracking.create_default_params()
 
 params.film.fileName = 'film.cine'
 params.film.path = '../../../surfacetracking/111713'
-params.film.pathRef = '../../../surfacetracking/reference_water'
+params.film.path_ref = '../../../surfacetracking/reference_water'
 
 # params.saving.how has to be equal to 'complete' for idempotent jobs
 # # (on clusters)
@@ -18,6 +18,6 @@ topology = TopologySurfaceTracking(params, logging_level='info')
 seq = False
 topology.compute(sequential=seq)
 
-#Force not generating plots if seq mode is false
+# not generating plots if seq mode is false
 if seq == False:
     params.saving.plot = False
