@@ -5,7 +5,7 @@ python:
 
 env:
   - TOXENV=py,codecov-travis CC=gcc-6 CXX=g++-6
-  - TOXENV=py-pythran,codecov-travis CC=gcc-6 CXX=g++-6
+  - TOXENV=py-pythran,codecov-travis CC=clang CXX=clang++
 
 before_cache:
   - |
