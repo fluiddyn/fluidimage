@@ -44,13 +44,8 @@ class TopologyExample(TopologyBase):
     """
 
     def __init__(
-            self,
-            path_input=None,
-            logging_level="info",
-            nb_max_workers=None,
-            nloops=1
+        self, path_input=None, logging_level="info", nb_max_workers=None, nloops=1
     ):
-
         def func1(arrays):
             return cpu1(arrays[0], arrays[1], nloops)
 
@@ -65,9 +60,9 @@ class TopologyExample(TopologyBase):
 
         super().__init__(
             path_output=self.path_dir_result,
-            logging_level=logging_level, nb_max_workers=nb_max_workers
+            logging_level=logging_level,
+            nb_max_workers=nb_max_workers,
         )
-
 
         if not self.path_dir_result.exists():
             self.path_dir_result.mkdir()

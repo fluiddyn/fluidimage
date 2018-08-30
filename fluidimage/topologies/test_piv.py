@@ -1,5 +1,7 @@
 
 import unittest
+from shutil import rmtree
+from pathlib import Path
 
 from fluiddyn.io import stdout_redirected
 
@@ -10,10 +12,22 @@ from fluidimage import path_image_samples
 
 
 class TestPIV(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.path_input_files = path_image_samples / "Karman/Images"
+        cls.postfix = "test_piv"
+
+    @classmethod
+    def tearDownClass(cls):
+        path = cls.path_input_files
+        path_out = Path(str(path) + "." + cls.postfix)
+        if path_out.exists():
+            rmtree(path_out)
+
     def test_piv(self):
         params = TopologyPIV.create_default_params()
 
-        params.series.path = str(path_image_samples / "Karman/Images")
+        params.series.path = str(self.path_input_files)
         params.series.ind_start = 1
 
         # temporary, avoid a bug on Windows
@@ -27,7 +41,7 @@ class TestPIV(unittest.TestCase):
         params.multipass.use_tps = False
 
         params.saving.how = "recompute"
-        params.saving.postfix = "piv_test"
+        params.saving.postfix = self.postfix
 
         with stdout_redirected():
             topology = TopologyPIV(params, logging_level="info")

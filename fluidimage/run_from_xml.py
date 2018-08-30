@@ -20,14 +20,18 @@ import numpy as np
 import scipy
 
 from . import (
-    logger, reset_logger, config_logging, ParamContainer, SerieOfArraysFromFiles)
+    logger,
+    reset_logger,
+    config_logging,
+    ParamContainer,
+    SerieOfArraysFromFiles,
+)
 
 
 from fluiddyn.util.paramcontainer import tidy_container
 from fluiddyn.util import import_class
 
 from fluidimage.topologies.piv import TopologyPIV
-
 
 
 def tidy_uvmat_instructions(params):
@@ -187,15 +191,13 @@ def parse_args():
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
+    parser.add_argument("path", help="Path file.", type=str, nargs="?")
     parser.add_argument(
-        "path",
-        help="Path file.",
+        "-m",
+        "--mode",
+        help="‘ask’, ‘new_dir’, ‘complete’ or ‘recompute’.",
         type=str,
-        nargs="?"
-    )
-    parser.add_argument(
-        "-m", "--mode", help="‘ask’, ‘new_dir’, ‘complete’ or ‘recompute’.",
-        type=str, default="ask"
+        default="ask",
     )
 
     return parser.parse_args()
@@ -206,6 +208,7 @@ def modif_fluidimage_params(params, args):
         params.saving.how = args.mode
     except AttributeError:
         pass
+
 
 def main():
 

@@ -21,11 +21,10 @@ class TestBOSNew(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        paths = (cls.path_input_files,)
-        for path in paths:
-            path_out = Path(path.parent.as_posix() + "." + cls.postfix)
-            if path_out.exists():
-                rmtree(path_out)
+        path = cls.path_input_files
+        path_out = Path(str(path) + "." + cls.postfix)
+        if path_out.exists():
+            rmtree(path_out)
 
     def test_bos_new_multiproc(self):
         params = TopologyBOS.create_default_params()
@@ -38,7 +37,7 @@ class TestBOSNew(unittest.TestCase):
         params.multipass.number = 2
         params.multipass.use_tps = False
 
-        params.mask.strcrop = ':, 50:500'
+        params.mask.strcrop = ":, 50:500"
 
         # temporary, avoid a bug on Windows
         params.piv0.method_correl = "pythran"
@@ -48,7 +47,7 @@ class TestBOSNew(unittest.TestCase):
         params.piv0.grid.overlap = -8
 
         params.saving.how = "recompute"
-        params.saving.postfix = 'bos_test'
+        params.saving.postfix = self.postfix
 
         with stdout_redirected():
             topology = TopologyBOS(params, logging_level="info")
@@ -63,8 +62,8 @@ class TestBOSNew(unittest.TestCase):
             topology.compute(executer)
 
             # remove one file
-            path_file = next(Path(topology.path_dir_result).glob("bos*"))
-            path_file.unlink()
+            path_files = list(Path(topology.path_dir_result).glob("piv*"))
+            path_files[0].unlink()
 
             params.saving.how = "complete"
             topology = TopologyBOS(params, logging_level="info")

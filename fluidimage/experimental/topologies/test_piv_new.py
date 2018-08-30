@@ -24,7 +24,7 @@ class TestPivNew(unittest.TestCase):
     def tearDownClass(cls):
         paths = (cls.path_Oseen, cls.path_Jet)
         for path in paths:
-            path_out = Path(path.parent.as_posix() + "." + cls.postfix)
+            path_out = Path(str(path.parent) + "." + cls.postfix)
             if path_out.exists():
                 rmtree(path_out)
 

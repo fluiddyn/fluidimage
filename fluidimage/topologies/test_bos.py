@@ -1,6 +1,9 @@
 
 import unittest
 
+from shutil import rmtree
+from pathlib import Path
+
 from fluiddyn.io import stdout_redirected
 
 from fluidimage.topologies.bos import TopologyBOS
@@ -9,11 +12,23 @@ from fluidimage.topologies.log import LogTopology
 from fluidimage import path_image_samples
 
 
-class TestPIV(unittest.TestCase):
-    def test_piv(self):
+class TestBOS(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.path_input_files = path_image_samples / "Karman/Images"
+        cls.postfix = "test_bos"
+
+    @classmethod
+    def tearDownClass(cls):
+        path = cls.path_input_files
+        path_out = Path(str(path) + "." + cls.postfix)
+        if path_out.exists():
+            rmtree(path_out)
+
+    def test_bos(self):
         params = TopologyBOS.create_default_params()
 
-        params.series.path = str(path_image_samples / "Karman/Images")
+        params.series.path = str(self.path_input_files)
         params.series.ind_start = 1
         params.series.ind_step = 2
 
@@ -21,7 +36,7 @@ class TestPIV(unittest.TestCase):
         params.multipass.number = 2
         params.multipass.use_tps = False
 
-        params.mask.strcrop = ':, 50:500'
+        params.mask.strcrop = ":, 50:500"
 
         # temporary, avoid a bug on Windows
         params.piv0.method_correl = "pythran"
@@ -31,7 +46,7 @@ class TestPIV(unittest.TestCase):
         params.piv0.grid.overlap = -8
 
         params.saving.how = "recompute"
-        params.saving.postfix = 'bos_test'
+        params.saving.postfix = self.postfix
 
         with stdout_redirected():
             topology = TopologyBOS(params, logging_level="info")

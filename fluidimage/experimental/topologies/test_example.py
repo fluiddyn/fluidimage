@@ -15,7 +15,6 @@ path_input = path_image_samples / "Karman/Images"
 
 
 class TestPivNew(unittest.TestCase):
-
     def tearDown(self):
         path_out = self.topology.path_dir_result
         if path_out.exists():
@@ -24,10 +23,7 @@ class TestPivNew(unittest.TestCase):
     def test_piv_new(self):
 
         with stdout_redirected():
-            self.topology = TopologyExample(
-                path_input,
-                logging_level="info"
-            )
+            self.topology = TopologyExample(path_input, logging_level="info")
 
             executer = ExecutorAwaitMultiprocs(
                 self.topology,
