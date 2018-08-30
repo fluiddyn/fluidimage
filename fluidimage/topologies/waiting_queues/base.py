@@ -104,7 +104,7 @@ class WaitingQueueBase(dict):
         if key in self._keys:
             self._keys.remove(key)
         self._keys.append(key)
-        super(WaitingQueueBase, self).__setitem__(key, value)
+        super().__setitem__(key, value)
 
     def is_empty(self):
         return not bool(self)
@@ -141,11 +141,11 @@ class WaitingQueueBase(dict):
             raise ValueError
 
         self._keys += keys
-        super(WaitingQueueBase, self).update(d)
+        super().update(d)
 
     def popitem(self):
         k = self._keys.pop(0)
-        o = super(WaitingQueueBase, self).pop(k)
+        o = super().pop(k)
         return k, o
 
     def is_destination_full(self):
@@ -359,13 +359,13 @@ class WaitingQueueMultiprocessingSpe(WaitingQueueMultiprocessing):
 class ThreadWork(threading.Thread):
     def __init__(self, *args, **kwargs):
         self.exitcode = None
-        super(ThreadWork, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     # self.daemon = True
 
     def run(self):
         try:
-            super(ThreadWork, self).run()
+            super().run()
         except Exception as e:
             self.exitcode = 1
             self.exception = e
@@ -395,7 +395,7 @@ class WaitingQueueLoadFile(WaitingQueueThreading):
 
     def __init__(self, *args, **kwargs):
         self.path_dir = kwargs.pop("path_dir")
-        super(WaitingQueueLoadFile, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.work_name = __name__ + ".load"
 
     def add_name_files(self, names):
@@ -406,9 +406,7 @@ class WaitingQueueLoadFile(WaitingQueueThreading):
 
 class WaitingQueueLoadImage(WaitingQueueLoadFile):
     def __init__(self, *args, **kwargs):
-        super(WaitingQueueLoadImage, self).__init__(
-            "image file", load_image, *args, **kwargs
-        )
+        super().__init__("image file", load_image, *args, **kwargs)
         self.work_name = __name__ + ".load_image"
 
 
@@ -419,9 +417,7 @@ def load_image_path(path):
 
 class WaitingQueueLoadImagePath(WaitingQueueLoadFile):
     def __init__(self, *args, **kwargs):
-        super(WaitingQueueLoadImagePath, self).__init__(
-            "image file", load_image_path, *args, **kwargs
-        )
+        super().__init__("image file", load_image_path, *args, **kwargs)
         self.work_name = __name__ + ".load_image"
 
 
@@ -436,9 +432,7 @@ class WaitingQueueMakeCouple(WaitingQueueBase):
         self.topology = topology
         work = "make_couples"
 
-        super(WaitingQueueMakeCouple, self).__init__(
-            name, work, destination, work_name, topology
-        )
+        super().__init__(name, work, destination, work_name, topology)
 
     def is_empty(self):
         return len(self.couples) == 0
@@ -532,9 +526,7 @@ class WaitingQueueOneShot(WaitingQueueBase):
         self.path_reference = path_reference
         self.serie = serie
 
-        super(WaitingQueueOneShot, self).__init__(
-            name, work, destination, work_name, topology
-        )
+        super().__init__(name, work, destination, work_name, topology)
 
     def is_empty(self):
         return WaitingQueueBase.is_empty(WaitingQueueBase)
@@ -564,9 +556,7 @@ class WaitingQueueMakeCoupleBOS(WaitingQueueBase):
         self.path_reference = path_reference
         self.serie = serie
 
-        super(WaitingQueueMakeCoupleBOS, self).__init__(
-            name, work, destination, work_name, topology
-        )
+        super().__init__(name, work, destination, work_name, topology)
 
         self.topology = topology
         work = "make_couples"
@@ -575,9 +565,7 @@ class WaitingQueueMakeCoupleBOS(WaitingQueueBase):
         self.path_reference = path_reference
         self.serie = serie
 
-        super(WaitingQueueMakeCoupleBOS, self).__init__(
-            name, work, destination, work_name, topology
-        )
+        super().__init__(name, work, destination, work_name, topology)
 
     def check_and_act(self, sequential=None):
         if self.is_destination_full():

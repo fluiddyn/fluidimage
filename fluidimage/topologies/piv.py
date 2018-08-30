@@ -240,7 +240,7 @@ postfix : str
                 self.wq_piv,
             ]
 
-        super(TopologyPIV, self).__init__(
+        super().__init__(
             waiting_queues,
             path_output=path_dir_result,
             logging_level=logging_level,

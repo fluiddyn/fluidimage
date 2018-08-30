@@ -32,7 +32,7 @@ from fluidimage.topologies.piv import TopologyPIV
 
 class ParamListBase(list):
     def __init__(self, *args, **kwargs):
-        super(ParamListBase, self).__init__(*args)
+        super().__init__(*args)
         self.TopologyClass = None
 
         # Dictionary of functions which return parameters
@@ -124,7 +124,7 @@ class ParamListBase(list):
 
 class ParamListPreproc(ParamListBase):
     def __init__(self, *args, **kwargs):
-        super(ParamListPreproc, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.TopologyClass = TopologyPreproc
 
     def _set_complete_path(self, params, level):
@@ -137,7 +137,7 @@ class ParamListPreproc(ParamListBase):
 
 class ParamListPIV(ParamListBase):
     def __init__(self, *args, **kwargs):
-        super(ParamListPreproc, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.TopologyClass = TopologyPIV
 
     def _set_complete_path(self, params, level):

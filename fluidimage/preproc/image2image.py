@@ -39,7 +39,7 @@ def im2im_func_example(tuple_image_path):
     return image_out, path
 
 
-class Im2ImExample(object):
+class Im2ImExample:
     """Process one image
 
     This is just an example to show how to write classes which can be plugged

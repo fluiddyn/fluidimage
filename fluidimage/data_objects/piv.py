@@ -74,7 +74,7 @@ def get_name_bos(name, serie):
     return "bos" + name + ".h5"
 
 
-class DataObject(object):
+class DataObject:
     pass
 
 

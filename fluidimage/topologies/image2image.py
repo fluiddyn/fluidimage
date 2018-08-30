@@ -181,7 +181,7 @@ postfix : str
             destination=self.wq_images_in, path_dir=path_dir, topology=self
         )
 
-        super(TopologyImage2Image, self).__init__(
+        super().__init__(
             [self.wq0, self.wq_images_in, self.wq_images_out],
             path_output=path_dir_result,
             logging_level=logging_level,

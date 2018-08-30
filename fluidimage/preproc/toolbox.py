@@ -21,7 +21,7 @@ import inspect
 from ..util.util import logger
 
 
-class PreprocToolsBase(object):
+class PreprocToolsBase:
     """Base class for wrapping preprocessing functions into a class."""
 
     @classmethod

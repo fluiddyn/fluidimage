@@ -1,10 +1,7 @@
 
 import os
 
-try:  # python 3
-    from configparser import ConfigParser
-except:  # python 2.7
-    from ConfigParser import ConfigParser
+from configparser import ConfigParser
 
 
 def get_config():

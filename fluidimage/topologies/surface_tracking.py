@@ -199,7 +199,7 @@ postfix : str
 
         waiting_queues = [self.wq0, self.wq_images, self.wq_sf_in, self.wq_sf_out]
 
-        super(TopologySurfaceTracking, self).__init__(
+        super().__init__(
             waiting_queues,
             path_output=path_dir_result,
             logging_level=logging_level,

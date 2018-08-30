@@ -11,7 +11,7 @@ if is_run_from_ipython():
     plt.ion()
 
 
-class DisplayPIV(object):
+class DisplayPIV:
     def __init__(
         self,
         im0,
@@ -391,7 +391,7 @@ class DisplayPIV(object):
             self.fig.canvas.draw()
 
 
-class DisplayPreProc(object):
+class DisplayPreProc:
     def __init__(self, im0, im1, im0p, im1p, pourcent_histo=99, hist=False):
 
         fig = plt.figure()

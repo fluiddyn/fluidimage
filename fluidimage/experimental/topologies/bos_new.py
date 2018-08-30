@@ -186,7 +186,7 @@ postfix : str
         )
         self.path_dir_result = path_dir_result
 
-        super(TopologyBOS, self).__init__(
+        super().__init__(
             path_output=path_dir_result,
             logging_level=logging_level,
             nb_max_workers=nb_max_workers,

@@ -212,7 +212,7 @@ postfix : str
             destination=self.wq_images, path_dir=path_dir, topology=self
         )
 
-        super(TopologyBOS, self).__init__(
+        super().__init__(
             [self.wq0, self.wq_images, self.wq_couples, self.wq_piv],
             path_output=path_dir_result,
             logging_level=logging_level,

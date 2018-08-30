@@ -20,13 +20,13 @@ from .util import (
 )
 
 
-class DataObject(object):
+class DataObject:
     pass
 
 
 class PIV_Postproc(LightPIVResults):
     def __init__(self, path):
-        super(PIV_Postproc, self).__init__(str_path=path)
+        super().__init__(str_path=path)
         self.path = os.path.abspath(path)
         self.X, self.Y, self.dx, self.dy, self.U, self.V = self.compute_grid()
 
@@ -130,7 +130,7 @@ class PIV_PostProc_serie(LightPIVResults):
     def __init__(self, path=None):
         self.path = path
         path0 = path[0]
-        super(PIV_PostProc_serie, self).__init__(str_path=path0)
+        super().__init__(str_path=path0)
         for ti, pathi in enumerate(path[1:]):
             temp = PIV_Postproc(path=pathi)
             self.deltaxs = np.vstack([self.deltaxs, temp.deltaxs])

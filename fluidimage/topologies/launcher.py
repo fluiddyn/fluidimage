@@ -34,7 +34,7 @@ def _get_args_bound_method(method):
     return key_args, defaults
 
 
-class TopologyLauncher(object):
+class TopologyLauncher:
     """Launcher (class to be subclassed)."""
 
     Topology = TopologyPIV

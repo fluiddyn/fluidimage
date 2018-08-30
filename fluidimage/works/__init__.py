@@ -20,7 +20,7 @@ define input/output and computational works.
 from .. import imread
 
 
-class BaseWork(object):
+class BaseWork:
     def __init__(self, params=None):
         self.params = params
 

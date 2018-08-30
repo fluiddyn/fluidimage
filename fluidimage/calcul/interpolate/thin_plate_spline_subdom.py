@@ -27,7 +27,7 @@ import numpy as np
 from .thin_plate_spline import compute_tps_coeff, compute_tps_matrix
 
 
-class ThinPlateSplineSubdom(object):
+class ThinPlateSplineSubdom:
     """Helper class for thin plate interpolation."""
 
     def __init__(

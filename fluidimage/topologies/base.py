@@ -106,7 +106,7 @@ if nb_max_workers is None:
 _nb_max_workers = nb_max_workers
 
 
-class TopologyBase(object):
+class TopologyBase:
     """Base class for topologies of processing.
 
     Parameters
@@ -232,7 +232,7 @@ class TopologyBase(object):
 
             def __init__(self):
                 self.has_to_stop = False
-                super(CheckWorksThread, self).__init__()
+                super().__init__()
                 self.exitcode = None
                 self.daemon = True
 
@@ -295,7 +295,7 @@ class TopologyBase(object):
                             worker.really_started = True
                             worker.terminate()
 
-                super(CheckWorksProcess, self).in_time_loop()
+                super().in_time_loop()
 
         self.thread_check_works_t = CheckWorksThread()
         self.thread_check_works_t.start()

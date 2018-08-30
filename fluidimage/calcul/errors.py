@@ -12,4 +12,4 @@ class PIVError(Exception):
         self.explanation = "General no peak error"
         for k, v in kargs.items():
             self.__dict__[k] = v
-        super(PIVError, self).__init__(*args)
+        super().__init__(*args)

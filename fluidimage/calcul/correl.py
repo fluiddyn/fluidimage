@@ -108,7 +108,7 @@ def _compute_indices_max(correl, norm):
     return ix, iy, correl_max
 
 
-class CorrelBase(object):
+class CorrelBase:
     """This class is meant to be subclassed, not instantiated directly."""
 
     _tag = "base"
@@ -564,9 +564,7 @@ class CorrelFFTBase(CorrelBase):
             correl = correl.copy()
             correl[self.where_large_displacement] = np.nan
 
-        return super(CorrelFFTBase, self).compute_displacements_from_correl(
-            correl, norm=norm
-        )
+        return super().compute_displacements_from_correl(correl, norm=norm)
 
 
 class CorrelFFTNumpy(CorrelFFTBase):

@@ -72,4 +72,4 @@ class WorkPreproc(PreprocBase):
             for name in name_files[ind : ind + nb_images]
         }
 
-        return super(WorkPreproc, self).display(ind, hist, results)
+        return super().display(ind, hist, results)

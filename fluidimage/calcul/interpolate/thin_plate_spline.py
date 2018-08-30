@@ -315,7 +315,7 @@ def compute_tps_matrices_dxy(dsites, centers):
     return DMX, DMY
 
 
-class ThinPlateSpline(object):
+class ThinPlateSpline:
     """Helper class for thin plate interpolation."""
 
     def __init__(self, new_positions, centers):

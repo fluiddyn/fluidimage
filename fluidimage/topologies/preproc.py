@@ -290,7 +290,7 @@ postfix : str
             sequential=params.preproc.series.sequential_loading,
         )
 
-        super(TopologyPreproc, self).__init__(
+        super().__init__(
             [self.wq0, self.wq_images, self.wq_serie, self.wq_preproc],
             path_output=self.path_dir_result,
             logging_level=logging_level,

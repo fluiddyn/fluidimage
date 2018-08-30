@@ -11,7 +11,7 @@ import numpy as np
 from fluiddyn.io.image import imread
 
 
-class Calibration2DSimple(object):
+class Calibration2DSimple:
     """Simple 2D calibration
 
     The hypothesis are (at least):

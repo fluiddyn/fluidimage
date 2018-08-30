@@ -15,7 +15,7 @@ from .. import ParamContainer, SerieOfArraysFromFiles
 from fluidimage.data_objects.display import DisplayPreProc
 
 
-class PreprocBase(object):
+class PreprocBase:
     """Preprocess series of images with various tools. """
 
     @classmethod

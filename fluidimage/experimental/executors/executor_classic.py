@@ -63,7 +63,7 @@ class ExecutorClassic(ExecutorBase):
 
             def __init__(self):
                 self.has_to_stop = False
-                super(CheckWorksThread, self).__init__()
+                super().__init__()
                 self.exitcode = None
                 self.daemon = True
 
@@ -129,7 +129,7 @@ class ExecutorClassic(ExecutorBase):
                             # the case of this worker has been
                             workers.remove(worker)
 
-                super(CheckWorksProcess, self).in_time_loop()
+                super().in_time_loop()
 
         self.thread_check_works_t = CheckWorksThread()
         self.thread_check_works_t.start()

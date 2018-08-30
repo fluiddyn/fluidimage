@@ -82,7 +82,7 @@ def parse_args():
     return parser.parse_args()
 
 
-class ImageViewer(object):
+class ImageViewer:
     """Simple Image viewer."""
 
     def __init__(self, args):

@@ -15,7 +15,7 @@ except ImportError:
     )
 
 
-class PGWrapper(object):
+class PGWrapper:
     def __init__(self, win_type=None, title="FluidImage"):
         self._create_app()
         self._create_win(win_type, title)

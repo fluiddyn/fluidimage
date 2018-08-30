@@ -110,7 +110,7 @@ def get_grid_pixel(params, shape_images, index_pass=-1):
     return xs1d, ys1d
 
 
-class PIV2d(object):
+class PIV2d:
     """PIV field on a regular grid.
 
     Parameters
@@ -420,7 +420,7 @@ class PIV2d(object):
         return np.sqrt(self.vx ** 2 + self.vy ** 2)
 
 
-class ArrayPIV(object):
+class ArrayPIV:
     """Array of PIV fields on a regular grid."""
 
     def __init__(self, l=None):

@@ -81,7 +81,7 @@ def tidy_uvmat_instructions(params):
     params._set_attrib("ind_stop", ind_stop)
 
 
-class ActionBase(object):
+class ActionBase:
     def __init__(self, instructions):
         self.instructions = instructions
 

@@ -14,7 +14,7 @@ from .errors import PIVError
 from .subpix_pythran import compute_subpix_2d_gaussian2
 
 
-class SubPix(object):
+class SubPix:
     """Subpixel finder
 
     .. todo::

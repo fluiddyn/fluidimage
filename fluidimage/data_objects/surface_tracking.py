@@ -31,7 +31,7 @@ from .. import __version__ as fluidimage_version
 from .._hg_rev import hg_rev
 
 
-class DataObject(object):
+class DataObject:
     pass
 
 

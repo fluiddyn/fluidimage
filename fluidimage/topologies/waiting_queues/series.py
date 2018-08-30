@@ -30,7 +30,7 @@ class WaitingQueueLoadImageSeries(WaitingQueueLoadImage):
 
     def __init__(self, *args, **kwargs):
         self.sequential = kwargs.pop("sequential")
-        super(WaitingQueueLoadImageSeries, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def is_destination_full(self):
         cond_instance = isinstance(self.destination, WaitingQueueBase)
@@ -49,7 +49,7 @@ class WaitingQueueLoadImageSeries(WaitingQueueLoadImage):
 
     def check_and_act(self, *args, **kwargs):
         kwargs["sequential"] = self.sequential
-        super(WaitingQueueLoadImageSeries, self).check_and_act(*args, **kwargs)
+        super().check_and_act(*args, **kwargs)
 
 
 class WaitingQueueMakeSerie(WaitingQueueBase):
@@ -74,9 +74,7 @@ class WaitingQueueMakeSerie(WaitingQueueBase):
         self.series = {}
         self.topology = topology
         work = "make_serie"
-        super(WaitingQueueMakeSerie, self).__init__(
-            name, work, destination, work_name, topology
-        )
+        super().__init__(name, work, destination, work_name, topology)
 
     def is_empty(self):
         return len(self.serie_set) == 0

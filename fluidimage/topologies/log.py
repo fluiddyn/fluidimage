@@ -23,7 +23,7 @@ if is_run_from_ipython():
 colors = ["r", "b", "y", "g"]
 
 
-class LogTopology(object):
+class LogTopology:
     """Parse and analyze logging files.
 
     """
