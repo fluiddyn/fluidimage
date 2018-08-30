@@ -87,9 +87,7 @@ def sliding_minima(
     kernel = np.ones((window_size, window_size), np.uint8)
     border = getattr(cv2, f"BORDER_{boundary_condition.upper()}")
     img_out = img - weight * cv2.erode(
-        img.astype(np.uint8),
-        kernel=kernel,
-        borderType=border,
+        img.astype(np.uint8), kernel=kernel, borderType=border
     )
     return img_out
 

@@ -70,7 +70,16 @@ class SimpleCircleGrid:
         self.detector = cv2.SimpleBlobDetector_create(params_cv)
 
     def detect_all(self, image: np.ndarray, debug=False):
-        """Detects all blobs as per parameters without any constraint."""
+        """Detects all blobs as per parameters without any constraints.
+
+        Parameters
+        ----------
+        image: array
+            A calibration image of maximum intensity 255.
+        debug : bool
+            Plot the detected points and the bounding box
+
+        """
         image = image.astype(np.uint8)
         keypoints = self.detector.detect(image)
         if debug:
@@ -96,12 +105,16 @@ class SimpleCircleGrid:
 
         Parameters
         ----------
+        image: array
+            A calibration image of maximum intensity 255.
+        origin: tuple
+            Origin / Principal point location in pixel coordinates
         nx, ny : int
             Shape of the grid, i.e. number of points
-        z : float
-            z-location in world coordinates
         ds : float
             Grid spacing in pixel coordinates
+        debug : bool
+            Plot the detected points and the bounding box
 
         """
         keypoints = self.detect_all(image)
@@ -134,8 +147,9 @@ class SimpleCircleGrid:
             ax.imshow(image, cmap="gray")
             ax.scatter(centers[..., 0], centers[..., 1])
             l, b, w, h = bbox.bounds
-            ax.add_patch(Rectangle(xy=(l, b), width=w, height=h,
-                                   edgecolor='r', fill=False,))
+            ax.add_patch(
+                Rectangle(xy=(l, b), width=w, height=h, edgecolor="r", fill=False)
+            )
 
         return centers
 
@@ -226,7 +240,28 @@ class CalibCV:
         """Calibrate a camera based on a list of image points (in pixel
         coordinates) and object points (in world coordinates) and the z-locations
         (in world coordinates).
-        
+ 
+        Parameters
+        ----------
+        imgpoints : list of arrays
+            Image points in pixel coordinates. Use `SimpleCircleGrid` to detect
+            them from a single calibration image. Append such image points
+            from multiple calibration images in a list.
+        objpoints : list of arrays
+            Object points as produced by function `construct_object_points`
+            constitute a single array. Likewise append them into a list for
+            multiple calibration images.
+        zs : list of float
+            List of z locations of the calibration targes in world coordinates.
+        im_shape : tuple of int
+            Image dimensions in pixels.
+        origin : tuple, optional
+            Origin / Principal point location in pixel coordinates
+        flags : int, optional
+            OpenCV specific calibration flags
+        debug : bool, optional
+            Return the result if true, else save it as an XML file.
+
         """
         # Initial guesses
         initial_mtx = np.eye(3)
@@ -243,12 +278,7 @@ class CalibCV:
             )
 
         result = cv2.calibrateCamera(
-            objpoints,
-            imgpoints,
-            im_shape,
-            initial_mtx,
-            initial_dist,
-            flags=flags
+            objpoints, imgpoints, im_shape, initial_mtx, initial_dist, flags=flags
         )
 
         if debug:
