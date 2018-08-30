@@ -18,6 +18,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.transforms import Bbox
+from matplotlib.patches import Rectangle
 from scipy.interpolate import griddata
 
 from fluiddyn.util.paramcontainer import ParamContainer
@@ -100,12 +101,13 @@ class SimpleCircleGrid:
         z : float
             z-location in world coordinates
         ds : float
-            Grid spacing
+            Grid spacing in pixel coordinates
 
         """
         keypoints = self.detect_all(image)
-        w = (nx + 0.5) * ds
-        h = (ny + 0.5) * ds
+        # Add 1 so that the points at the edge of the bounding box are included
+        w = (nx + 1) * ds
+        h = (ny + 1) * ds
         originx, originy = origin
         bbox = Bbox.from_bounds(originx - w // 2, originy - h // 2, w, h)
         if debug:
@@ -128,9 +130,12 @@ class SimpleCircleGrid:
             raise AssertionError(f"Only {len(centers[0])} points were found")
 
         if debug:
-            plt.figure()
-            plt.scatter(centers[..., 0], centers[..., 1])
-            plt.show()
+            fig, ax = plt.subplots()
+            ax.imshow(image, cmap="gray")
+            ax.scatter(centers[..., 0], centers[..., 1])
+            l, b, w, h = bbox.bounds
+            ax.add_patch(Rectangle(xy=(l, b), width=w, height=h,
+                                   edgecolor='r', fill=False,))
 
         return centers
 
@@ -138,7 +143,7 @@ class SimpleCircleGrid:
 def construct_object_points(nx: int, ny: int, z: float, ds: float):
     """Prepare object points in world coordinates, as flattened list of
     coordinates such as::
-    
+
         (0,0,z), (1,0,z), (2,0,z) ....,(6,5,z)
 
     This format is expected by OpenCV's ``calibrateCamera`` function.
@@ -150,7 +155,7 @@ def construct_object_points(nx: int, ny: int, z: float, ds: float):
     z : float
         z-location in world coordinates
     ds : float
-        Grid spacing
+        Grid spacing in world coordinates
 
     """
     objp = np.zeros((nx * ny, 3), np.float32)
@@ -169,13 +174,13 @@ class CalibCV:
     """Calibrate a camera and save them as XML files. Also use this to load saved
     calibrations and interpolate extrinsic parameters (rotation and translation)
     while reconstructing.
-    
+
     """
 
     def __init__(self, path_file="cam.xml"):
         self.path_file = path_file
         if os.path.exists(path_file):
-            print("Loading {path_file}.")
+            print(f"Loading {path_file}.")
             self.params = ParamContainer(path_file)
 
     def save(self, zs, ret, mtx, dist, rvecs, tvecs):
@@ -190,6 +195,8 @@ class CalibCV:
                 "zs": np.array(zs),
             }
         )
+        path_dir = os.path.dirname(self.path_file)
+        os.makedirs(path_dir, exist_ok=True)
         params._save_as_xml(self.path_file)
 
     def rotmtx_from_rotvec(self, rot_vec):
@@ -211,6 +218,7 @@ class CalibCV:
         imgpoints: list,
         objpoints: list,
         zs: list,
+        im_shape: tuple,
         origin=None,
         debug=False,
         flags=None,
@@ -237,10 +245,10 @@ class CalibCV:
         result = cv2.calibrateCamera(
             objpoints,
             imgpoints,
-            im.shape[::-1],
+            im_shape,
             initial_mtx,
             initial_dist,
-            flags=flags,
+            flags=flags
         )
 
         if debug:
