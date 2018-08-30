@@ -1,29 +1,28 @@
 """Topology example for testing (:mod:`fluidimage.experimental.topologies.example`)
 ===================================================================================
 
-This topology has two pythran cpu bounded tasks. It helps see executors behavior with C fonctions.
+This topology has two pythran cpu bounded tasks. It helps see executors behavior
+with C functions.
 
 .. autoclass:: TopologyExample
    :members:
    :private-members:
 
 """
+
 import os
-import sys
-import time
+
 import numpy as np
 import scipy.io
 
-from fluiddyn import time_as_str
-from fluiddyn.io.tee import MultiFile
-from fluidimage import config_logging
 
 from fluidimage.experimental.cpu_bounded_task_examples_pythran import cpu1, cpu2
-from .base import TopologyBase
-from ...util.util import logger, imread
 
-_stdout_at_import = sys.stdout
-_stderr_at_import = sys.stderr
+from .base import TopologyBase
+
+from ...util.util import imread
+
+from fluidimage import path_image_samples
 
 
 class TopologyExample(TopologyBase):
@@ -31,10 +30,6 @@ class TopologyExample(TopologyBase):
 
     Parameters
     ----------
-
-    params : None
-
-      A ParamContainer containing the parameters for the computation.
 
     logging_level : str, {'warning', 'info', 'debug', ...}
 
@@ -49,50 +44,33 @@ class TopologyExample(TopologyBase):
     """
 
     def __init__(
-        self,
-        path_dir=None,
-        path_output=None,
-        logging_level="info",
-        nb_max_workers=None,
+            self,
+            path_input=None,
+            logging_level="info",
+            nb_max_workers=None,
+            nloops=1
     ):
 
+        def func1(arrays):
+            return cpu1(arrays[0], arrays[1], nloops)
+
+        def func2(arrays):
+            return cpu2(arrays[0], arrays[1], nloops)
+
+        if path_input is None:
+            path_input = path_image_samples / "Karman/Images"
+        self.path_input = path_input
+
+        self.path_dir_result = path_input.parent / "Images.test"
+
         super().__init__(
+            path_output=self.path_dir_result,
             logging_level=logging_level, nb_max_workers=nb_max_workers
         )
 
-        if path_dir is None:
-            self.path_dir = "../../../image_samples/Karman/Images2"
-        else:
-            self.path_dir = path_dir
 
-        if path_output is not None:
-            if not os.path.exists(path_output):
-                os.makedirs(path_output)
-            self.path_output = path_output
-        log = os.path.join(
-            path_output, "log_" + time_as_str() + "_" + str(os.getpid()) + ".txt"
-        )
-
-        stdout = sys.stdout
-        if isinstance(stdout, MultiFile):
-            stdout = _stdout_at_import
-
-        stderr = sys.stderr
-        if isinstance(stderr, MultiFile):
-            stderr = _stderr_at_import
-
-        self._log_file = open(log, "w")
-        sys.stdout = MultiFile([stdout, self._log_file])
-        sys.stderr = MultiFile([stderr, self._log_file])
-
-        if logging_level is not None:
-            for handler in logger.handlers:
-                logger.removeHandler(handler)
-
-        config_logging(logging_level, file=sys.stdout)
-
-        if hasattr(self, "path_output"):
-            logger.info("path results:\n" + self.path_output)
+        if not self.path_dir_result.exists():
+            self.path_dir_result.mkdir()
 
         self.img_counter = 0
 
@@ -117,7 +95,7 @@ class TopologyExample(TopologyBase):
         )
         self.add_work(
             "cpu1",
-            func_or_cls=self.cpu1,
+            func_or_cls=func1,
             input_queue=queue_array_couple,
             output_queue=queue_cpu1,
             kind="server",
@@ -125,7 +103,7 @@ class TopologyExample(TopologyBase):
 
         self.add_work(
             "cpu2",
-            func_or_cls=self.cpu2,
+            func_or_cls=func2,
             params_cls=None,
             input_queue=queue_cpu1,
             output_queue=queue_cpu2,
@@ -137,11 +115,9 @@ class TopologyExample(TopologyBase):
         )
 
     def fill_names(self, input_queue, output_queues):
-
-        list_dir = os.listdir(self.path_dir)
-        for dir in list_dir:
-            output_queues[0].queue[dir] = dir
-            output_queues[1].queue[dir] = dir
+        for name in os.listdir(self.path_input):
+            output_queues[0].queue[name] = name
+            output_queues[1].queue[name] = name
         return
 
     def make_couple(self, input_queues, output_queue):
@@ -149,27 +125,18 @@ class TopologyExample(TopologyBase):
         if not input_queues[0].queue or not input_queues[1].queue:
             return False
         key1, obj1 = input_queues[0].queue.popitem()
-        start = time.time()
         key2, obj2 = input_queues[1].queue.popitem()
-        print(self.path_dir + str(obj1))
-        img1 = np.array(imread(self.path_dir + "/" + str(obj1)))
-        img2 = np.array(imread(self.path_dir + "/" + str(obj2)))
+        img1 = np.array(imread(self.path_input / obj1))
+        img2 = np.array(imread(self.path_input / obj2))
         output_queue.queue[str(key1 + "" + key2)] = [img1, img2]
         return True
 
-    def save(self, array):
+    def save(self, arr):
         self.img_counter += 1
         scipy.io.savemat(
-            self.path_dir + "/../test/array_" + str(self.img_counter),
-            mdict={"array": array},
+            self.path_dir_result / f"array_{self.img_counter}",
+            mdict={"array": arr},
         )
-        print("SAVED !!")
-
-    def cpu1(self, arrays):
-        return cpu1(arrays[0], arrays[1])
-
-    def cpu2(self, arrays):
-        return cpu2(arrays[0], arrays[1])
 
     def _print_at_exit(self, time_since_start):
 
@@ -185,12 +152,6 @@ class TopologyExample(TopologyBase):
         else:
             txt += "."
 
-        txt += "\npath results:\n" + self.path_dir_result
+        txt += "\npath results:\n" + str(self.path_dir_result)
 
         print(txt)
-
-
-if __name__ == "__main__":
-    topo = TopologyExample(logging_level="info")
-    # topo.make_code_graphviz("tmp.dot")
-    topo.compute()

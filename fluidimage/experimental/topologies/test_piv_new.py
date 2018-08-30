@@ -10,14 +10,14 @@ from fluidimage.experimental.executors.executor_await import (
     ExecutorAwaitMultiprocs
 )
 
-here = Path(__file__).parent.absolute()
+from fluidimage import path_image_samples
 
 
 class TestPivNew(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.path_Oseen = here / "../../../image_samples/Oseen/Images/Oseen*"
-        cls.path_Jet = here / "../../../image_samples/Jet/Images/c06*"
+        cls.path_Oseen = path_image_samples / "Oseen/Images/Oseen*"
+        cls.path_Jet = path_image_samples / "Jet/Images/c06*"
         cls.postfix = "test_piv_new"
 
     @classmethod

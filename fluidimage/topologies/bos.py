@@ -170,7 +170,10 @@ postfix : str
 
         self.path_dir_result = path_dir_result
 
-        reference = os.path.expanduser(params.reference)
+        if not isinstance(params.reference, int):
+            reference = os.path.expanduser(params.reference)
+        else:
+            reference = params.reference
 
         if isinstance(reference, int):
             names = self.series.get_name_all_arrays()

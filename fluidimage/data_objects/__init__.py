@@ -8,6 +8,7 @@ loaded from a file, saved into a file, displayed to the screen, etc.
    :toctree:
 
    piv
-   display
+   display_piv
+   display_pre
 
 """

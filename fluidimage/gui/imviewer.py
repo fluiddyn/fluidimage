@@ -146,7 +146,7 @@ class ImageViewer:
 
         self._image_changing = False
 
-        function_buttons = [self._do_nothing] * len(name_buttons)
+        function_buttons = [None] * len(name_buttons)
         function_buttons[0] = self._decrease_ifile_n
         function_buttons[1] = self._decrease_ifile
         function_buttons[2] = self._increase_ifile
@@ -275,9 +275,6 @@ class ImageViewer:
         else:
             self._increase_ifile_n()
         self._last_was_increase = not self._last_was_increase
-
-    def _do_nothing(self, event):
-        print("do nothing")
 
     def _increase_ifile(self, event=None):
         self.ifile += 1

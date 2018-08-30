@@ -28,13 +28,11 @@ except ImportError:
 from fluiddyn import time_as_str
 from fluiddyn.io.tee import MultiFile
 
-from ..util.util import cstring, logger, log_memory_usage
+from ..util.util import cstring, logger, reset_logger, log_memory_usage
 from ..config import get_config
 from .waiting_queues.base import WaitingQueueThreading
 from .. import config_logging
 
-_stdout_at_import = sys.stdout
-_stderr_at_import = sys.stderr
 
 config = get_config()
 
@@ -138,19 +136,17 @@ class TopologyBase:
 
             stdout = sys.stdout
             if isinstance(stdout, MultiFile):
-                stdout = _stdout_at_import
+                stdout = sys.__stdout__
 
             stderr = sys.stderr
             if isinstance(stderr, MultiFile):
-                stderr = _stderr_at_import
+                stderr = sys.__stderr__
 
             sys.stdout = MultiFile([stdout, self._log_file])
             sys.stderr = MultiFile([stderr, self._log_file])
 
         if logging_level is not None:
-            for handler in logger.handlers:
-                logger.removeHandler(handler)
-
+            reset_logger()
             config_logging(logging_level, file=sys.stdout)
 
         if nb_max_workers is None:
@@ -402,8 +398,9 @@ class TopologyBase:
         self._reset_std_as_default()
 
     def _reset_std_as_default(self):
-        sys.stdout = _stdout_at_import
-        sys.stderr = _stderr_at_import
+        sys.stdout = sys.__stdout__
+        sys.stderr = sys.__stderr__
+        reset_logger()
         self._log_file.close()
 
     def _clear_save_queue(self, workers, sequential):

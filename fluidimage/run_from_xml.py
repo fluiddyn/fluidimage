@@ -13,24 +13,21 @@ From matlab, something like::
 """
 
 import os
-import sys
-import logging
 from time import time
+import argparse
 
 import numpy as np
 import scipy
 
-from . import config_logging, ParamContainer, SerieOfArraysFromFiles
+from . import (
+    logger, reset_logger, config_logging, ParamContainer, SerieOfArraysFromFiles)
+
 
 from fluiddyn.util.paramcontainer import tidy_container
 from fluiddyn.util import import_class
 
 from fluidimage.topologies.piv import TopologyPIV
 
-
-config_logging("info")
-
-logger = logging.getLogger("fluidimage")
 
 
 def tidy_uvmat_instructions(params):
@@ -66,23 +63,23 @@ def tidy_uvmat_instructions(params):
         ir._set_attrib("last_i", None)
 
     if not hasattr(ir, "first_j"):
-        strcouple = "i+{}:i+{}:{}".format(
-            ir.first_i, ir.first_i + ir.incr_i + 1, ir.incr_i
-        )
+        strcouple = f"i:i+{ir.incr_i + 1}:{ir.incr_i}"
+        ind_start = ir.first_i
 
         if ir.last_i is None:
             ind_stop = None
         else:
-            ind_stop = ir.last_i - ir.first_i + 1
+            ind_stop = ir.last_i - ir.incr_i + 1
     else:
         raise NotImplementedError
 
     params._set_attrib("strcouple", strcouple)
     params._set_attrib("ind_stop", ind_stop)
+    params._set_attrib("ind_start", ind_start)
 
 
 class ActionBase:
-    def __init__(self, instructions):
+    def __init__(self, instructions, args):
         self.instructions = instructions
 
         # create the serie of arrays
@@ -96,7 +93,7 @@ class ActionBase:
 class ActionAverage(ActionBase):
     """Compute the average and save as a png file."""
 
-    def run(self):
+    def compute(self):
         instructions = self.instructions
         serie = self.serie_arrays
         # compute the average
@@ -132,13 +129,14 @@ class ActionAverage(ActionBase):
         return mean
 
 
-def params_from_uvmat_xml(instructions):
+def params_piv_from_uvmat_xml(instructions, args):
     params = TopologyPIV.create_default_params()
 
     params.series.path = instructions.path_file_input
 
     params.series.strcouple = instructions.strcouple
     params.series.ind_stop = instructions.ind_stop
+    params.series.ind_start = instructions.ind_start
 
     params.saving.path = instructions.path_dir_output
 
@@ -158,20 +156,22 @@ def params_from_uvmat_xml(instructions):
     if hasattr(instructions.action_input, "civ2"):
         params.multipass.number = 2
 
+    modif_fluidimage_params(params, args)
+
     return params
 
 
 class ActionPIV(ActionBase):
     """Compute the average and save as a png file."""
 
-    def __init__(self, instructions):
+    def __init__(self, instructions, args):
         self.instructions = instructions
-        self.params = params_from_uvmat_xml(instructions)
+        self.params = params_piv_from_uvmat_xml(instructions, args)
         logger.info("Initialize fluidimage computations with parameters:")
         logger.info(self.params._make_xml_text())
         self.topology = TopologyPIV(self.params)
 
-    def run(self):
+    def compute(self):
         t = time()
         self.topology.compute(sequential=False)
         t = time() - t
@@ -183,12 +183,38 @@ actions_classes = {"aver_stat": ActionAverage, "civ_series": ActionPIV}
 programs = ["uvmat", "fluidimage"]
 
 
-def main():
-    if len(sys.argv) > 1:
-        path_instructions_xml = sys.argv[1]
-    else:
-        raise ValueError
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    parser.add_argument(
+        "path",
+        help="Path file.",
+        type=str,
+        nargs="?"
+    )
+    parser.add_argument(
+        "-m", "--mode", help="‘ask’, ‘new_dir’, ‘complete’ or ‘recompute’.",
+        type=str, default="ask"
+    )
 
+    return parser.parse_args()
+
+
+def modif_fluidimage_params(params, args):
+    try:
+        params.saving.how = args.mode
+    except AttributeError:
+        pass
+
+def main():
+
+    reset_logger()
+    config_logging("info")
+
+    args = parse_args()
+
+    path_instructions_xml = args.path
     logger.info(
         "\nFrom Python, start with instructions in xml file:\n%s",
         path_instructions_xml,
@@ -213,6 +239,10 @@ def main():
     if program not in programs:
         raise ValueError("Can not detect the program to launch.")
 
+    print(args)
+
+    print(f"using input file from {program}")
+
     if program == "uvmat":
         tidy_uvmat_instructions(params)
         action_name = params.action.action_name
@@ -224,19 +254,17 @@ def main():
                 'action "' + action_name + '" is not yet implemented.'
             )
 
-        Action = actions_classes[action_name]
-        action = Action(params)
-        return action.run()
+        cls = actions_classes[action_name]
+        action = cls(params, args)
 
     elif program == "fluidimage":
-        print(program)
-
         cls = import_class(
             params._value_text["module"], params._value_text["class"]
         )
+        modif_fluidimage_params(params, args)
+        action = cls(params)
 
-        obj = cls(params)
-        obj.compute()
+    return action.compute()
 
 
 if __name__ == "__main__":

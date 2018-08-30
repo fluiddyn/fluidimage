@@ -52,6 +52,7 @@ from .util.util import (
     imread,
     imsave,
     logger,
+    reset_logger,
     log_memory_usage,
     print_memory_usage,
 )
@@ -74,6 +75,7 @@ __all__ = [
     "imread",
     "imsave",
     "logger",
+    "reset_logger",
     "log_memory_usage",
     "print_memory_usage",
     "ParamContainer",

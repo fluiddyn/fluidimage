@@ -16,15 +16,12 @@ from warnings import warn
 from fluiddyn import time_as_str
 from fluiddyn.io.tee import MultiFile
 
-from fluidimage.util.util import logger
+from fluidimage.util.util import logger, reset_logger
 from fluidimage import config_logging
 from fluidimage.experimental.topologies.nb_workers import (
     nb_max_workers as _nb_max_workers,
     nb_cores,
 )
-
-_stdout_at_import = sys.stdout
-_stderr_at_import = sys.stderr
 
 
 class MyObj:
@@ -46,17 +43,6 @@ class Queue(MyObj):
 
 class Work(MyObj):
     """Represent a work"""
-
-    def have_to_work(self):
-        print("{} have to work ?".format(self.name))
-        if isinstance(self.input_queue, tuple):
-            for q in self.input_queue:
-                if not q.queue:  # if a queue is empty
-                    return False
-        else:
-            if not self.input_queue.queue:
-                return False
-        return True
 
 
 class TopologyBase:
@@ -90,11 +76,11 @@ class TopologyBase:
 
             stdout = sys.stdout
             if isinstance(stdout, MultiFile):
-                stdout = _stdout_at_import
+                stdout = sys.__stdout__
 
             stderr = sys.stderr
             if isinstance(stderr, MultiFile):
-                stderr = _stderr_at_import
+                stderr = sys.__stderr__
 
             sys.stdout = MultiFile([stdout, self._log_file])
             sys.stderr = MultiFile([stderr, self._log_file])
@@ -138,7 +124,6 @@ class TopologyBase:
                 self._has_to_stop = True
 
             signal.signal(12, handler_signals)
-        self.t_start = time()
 
     def add_queue(self, name: str, kind: str = None):
         """Create a new queue."""
@@ -173,14 +158,18 @@ class TopologyBase:
         """Compute (run all works to be done). """
         if executer is None:
             raise NotImplementedError
-
         self.executer = executer
+
+        self.t_start = time()
         self.executer.compute()
+
+        self._print_at_exit(time() - self.t_start)
         self._reset_std_as_default()
 
     def _reset_std_as_default(self):
-        sys.stdout = _stdout_at_import
-        sys.stderr = _stderr_at_import
+        sys.stdout = sys.__stdout__
+        sys.stderr = sys.__stderr__
+        reset_logger()
         self._log_file.close()
 
     def _print_at_exit(self, time_since_start):

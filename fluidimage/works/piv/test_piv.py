@@ -7,7 +7,7 @@ from fluiddyn.io import stdout_redirected
 from fluidimage import SeriesOfArrays
 from fluidimage.works.piv import WorkPIV
 
-from fluidimage.data_objects.display import DisplayPIV
+from fluidimage.data_objects.display_piv import DisplayPIV
 from fluidimage.data_objects.piv import MultipassPIVResults, LightPIVResults
 
 from fluidimage import path_image_samples

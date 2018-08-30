@@ -23,6 +23,7 @@ Provides:
 import sys
 import six
 import psutil
+from pathlib import Path
 
 from logging import getLogger
 from fluiddyn.util import get_memory_usage
@@ -31,7 +32,6 @@ from fluiddyn.io.image import imread as _imread, imsave as _imsave, imsave_h5
 from fluiddyn.util import terminal_colors as term
 
 
-logger = getLogger("fluidimage")
 color_dict = {
     "HEADER": term.HEADER,
     "OKBLUE": term.OKBLUE,
@@ -41,30 +41,30 @@ color_dict = {
     "ENDC": term.ENDC,
 }
 
+logger = getLogger("fluidimage")
+
+
+def reset_logger():
+    for handler in logger.handlers:
+        logger.removeHandler(handler)
+
 
 def imread(path):
     """Flatten image as a single gray-scale layer and
     loads as a numpy floating point array.
 
     """
+    if isinstance(path, Path):
+        path = str(path)
     try:
         array = _imread(path)
     except IOError as e:
         raise_exception(e, path)
-
-    # fname = os.path.basename(path)
-    # logger.debug('Load %s with intensity range (%d, %d) and type %s',
-    #              fname, array.min(), array.max(), array.dtype)
     return array
 
 
 def imsave(path, array, **kwargs):
     _imsave(path, array, **kwargs)
-
-
-# fname = os.path.basename(path)
-# logger.info('Save %s with intensity range (%d, %d) and type %s',
-#             fname, array.min(), array.max(), array.dtype)
 
 
 def _get_txt_memory_usage(string="Memory usage", color="OKGREEN"):
@@ -78,6 +78,7 @@ def _get_txt_memory_usage(string="Memory usage", color="OKGREEN"):
 def log_memory_usage(string="Memory usage", color="OKGREEN", mode="info"):
     """Log the memory usage."""
 
+    logger = getLogger("fluidimage")
     if mode == "debug":
         log = logger.debug
     elif mode == "error":

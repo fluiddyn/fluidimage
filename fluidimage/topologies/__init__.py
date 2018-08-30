@@ -35,6 +35,7 @@ These others modules defined classes and functions useful for developers.
 """
 
 import os
+import sys
 
 from fluiddyn.io.query import query
 
@@ -65,7 +66,8 @@ def prepare_path_dir_result(
                 )
 
             if answer == "s":
-                raise ValueError("Stopped by the user.")
+                print("Stopped by the user.")
+                sys.exit()
 
             elif answer == "n":
                 how = "new_dir"
