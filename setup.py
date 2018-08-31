@@ -83,6 +83,7 @@ install_requires.extend(
         "imageio",
         "pims",
         "trio",
+        "dask[array]",
     ]
 )
 
