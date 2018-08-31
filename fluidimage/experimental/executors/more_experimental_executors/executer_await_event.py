@@ -26,7 +26,7 @@ class ExecuterAwaitMultiprocs(ExecutorBase):
         self.server = None
         # self.start_server()
         # fonctions definition
-        self.get_async_works()
+        self.store_async_works()
         self.define_function()
         print("\nWhat's in function dicts ?\n ")
         for key, af in self.async_funcs.items():
@@ -206,7 +206,7 @@ class ExecuterAwaitMultiprocs(ExecutorBase):
             )
             func()
 
-    def get_async_works(self):
+    def store_async_works(self):
         for w in self.topology.works:
             if w.kind is None or "one shot" not in w.kind:
                 self.works.append(w)

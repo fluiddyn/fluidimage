@@ -16,7 +16,7 @@ from fluidimage.util.util import (
     get_memory_usage,
     log_memory_usage,
 )
-from .executor_base import ExecutorBase
+from .base import ExecutorBase
 
 dt = 0.25  # s
 dt_small = 0.02

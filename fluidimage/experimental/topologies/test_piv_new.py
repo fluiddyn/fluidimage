@@ -90,6 +90,21 @@ class TestPivNew(unittest.TestCase):
             topology.compute(executer)
             # executer.compute()
 
+            # remove one file
+            path_files = list(Path(topology.path_dir_result).glob("piv*"))
+            path_files[0].unlink()
+
+            params.saving.how = "complete"
+            topology = TopologyPIV(params, logging_level="info")
+            executer = ExecutorAwaitMultiprocs(
+                topology,
+                multi_executor=False,
+                sleep_time=0.1,
+                worker_limit=4,
+                queues_limit=5,
+            )
+            topology.compute(executer)
+
 
 if __name__ == "__main__":
     unittest.main()
