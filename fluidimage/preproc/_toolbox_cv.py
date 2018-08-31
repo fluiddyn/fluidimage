@@ -13,23 +13,7 @@ Provides:
 
 import numpy as np
 
-try:
-    import cv2
-
-    _border = {
-        "reflect": cv2.BORDER_REFLECT,
-        "default": cv2.BORDER_DEFAULT,
-        "constant": cv2.BORDER_CONSTANT,
-        "wrap": cv2.BORDER_WRAP,
-        "transparent": cv2.BORDER_TRANSPARENT,
-        "replicate": cv2.BORDER_REPLICATE,
-    }
-except ImportError:
-    print(
-        "Warning: OpenCV must be built and installed with python bindings "
-        "to use fluidimage.preproc with OpenCV => pip install opencv-python ?"
-    )
-
+from .._opencv import cv2
 from .io import iterate_multiple_imgs
 
 
@@ -95,15 +79,15 @@ def sliding_minima(
         Value of `weight` should be in the interval (0.0,1.0).
     window_size : scalar
         Sets the size of the sliding window.
-    boundary_condition : {'reflect', 'default', 'constant', 'wrap', 'transparent', 'replicate'}
+    boundary_condition : {'reflect', 'default', 'constant', 'wrap',
+                          'transparent', 'replicate'}
         Mode of handling array borders.
 
     """
     kernel = np.ones((window_size, window_size), np.uint8)
+    border = getattr(cv2, f"BORDER_{boundary_condition.upper()}")
     img_out = img - weight * cv2.erode(
-        img.astype(np.uint8),
-        kernel=kernel,
-        borderType=_border[boundary_condition],
+        img.astype(np.uint8), kernel=kernel, borderType=border
     )
     return img_out
 
