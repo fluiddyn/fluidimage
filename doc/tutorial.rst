@@ -10,3 +10,4 @@ Tutorials
    ipynb/tuto_stereo_reconstruction
    ipynb/tuto_tsai_calibration
    ipynb/tuto_opencv_calibration
+   ipynb/tuto_opencv_tomo_reconstruct
