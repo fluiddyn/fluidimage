@@ -163,10 +163,7 @@ postfix : str
 
         return params
 
-    def __init__(self, params=None, logging_level="info", nb_max_workers=None):
-
-        if params is None:
-            params = self.__class__.create_default_params()
+    def __init__(self, params, logging_level="info", nb_max_workers=None):
 
         self.params = params
 
@@ -357,7 +354,7 @@ postfix : str
         else:
             txt += "."
 
-        txt += "\npath results:\n" + self.path_dir_result
+        txt += "\npath results:\n" + str(self.path_dir_result)
 
         print(txt)
 

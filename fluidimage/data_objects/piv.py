@@ -26,7 +26,7 @@ import h5py
 import h5netcdf
 import numpy as np
 
-from .display import DisplayPIV
+from .display_piv import DisplayPIV
 from .. import imread, ParamContainer
 from .. import __version__ as fluidimage_version
 from .._hg_rev import hg_rev

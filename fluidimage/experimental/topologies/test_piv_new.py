@@ -10,21 +10,21 @@ from fluidimage.experimental.executors.executor_await import (
     ExecutorAwaitMultiprocs
 )
 
-here = Path(__file__).parent.absolute()
+from fluidimage import path_image_samples
 
 
 class TestPivNew(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.path_Oseen = here / "../../../image_samples/Oseen/Images/Oseen*"
-        cls.path_Jet = here / "../../../image_samples/Jet/Images/c06*"
+        cls.path_Oseen = path_image_samples / "Oseen/Images/Oseen*"
+        cls.path_Jet = path_image_samples / "Jet/Images/c06*"
         cls.postfix = "test_piv_new"
 
     @classmethod
     def tearDownClass(cls):
         paths = (cls.path_Oseen, cls.path_Jet)
         for path in paths:
-            path_out = Path(path.parent.as_posix() + "." + cls.postfix)
+            path_out = Path(str(path.parent) + "." + cls.postfix)
             if path_out.exists():
                 rmtree(path_out)
 
@@ -47,7 +47,7 @@ class TestPivNew(unittest.TestCase):
         with stdout_redirected():
             topology = TopologyPIV(params, logging_level="info")
 
-            topology.make_code_graphviz(topology.path_dir_result + "/topo.dot")
+            topology.make_code_graphviz(topology.path_dir_result / "topo.dot")
 
             executer = ExecutorAwaitMultiprocs(
                 topology,
@@ -79,7 +79,6 @@ class TestPivNew(unittest.TestCase):
 
         with stdout_redirected():
             topology = TopologyPIV(params, logging_level="info")
-            # topology.make_code_graphviz('topo.dot')
 
             executer = ExecutorAwaitMultiprocs(
                 topology,
@@ -90,6 +89,21 @@ class TestPivNew(unittest.TestCase):
             )
             topology.compute(executer)
             # executer.compute()
+
+            # remove one file
+            path_files = list(Path(topology.path_dir_result).glob("piv*"))
+            path_files[0].unlink()
+
+            params.saving.how = "complete"
+            topology = TopologyPIV(params, logging_level="info")
+            executer = ExecutorAwaitMultiprocs(
+                topology,
+                multi_executor=False,
+                sleep_time=0.1,
+                worker_limit=4,
+                queues_limit=5,
+            )
+            topology.compute(executer)
 
 
 if __name__ == "__main__":

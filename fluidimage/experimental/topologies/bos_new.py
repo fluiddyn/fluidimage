@@ -270,7 +270,8 @@ postfix : str
             names = []
             index_series = []
             for i, serie in enumerate(series):
-                name_bos = get_name_bos(serie, prefix="bos")
+                name = serie.get_name_arrays()[0]
+                name_bos = get_name_bos(name, serie)
                 if os.path.exists(os.path.join(self.path_dir_result, name_bos)):
                     continue
 
@@ -364,7 +365,7 @@ postfix : str
         else:
             txt += "."
 
-        txt += "\npath results:\n" + self.path_dir_result
+        txt += "\npath results:\n" + str(self.path_dir_result)
 
         print(txt)
 

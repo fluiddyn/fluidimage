@@ -34,7 +34,9 @@ These others modules defined classes and functions useful for developers.
 
 """
 
+from pathlib import Path
 import os
+import sys
 
 from fluiddyn.io.query import query
 
@@ -43,6 +45,8 @@ def prepare_path_dir_result(
     path_dir_input, path_saving, postfix_saving, how_saving
 ):
     """Makes new directory for results, if required, and returns its path."""
+
+    path_dir_input = str(path_dir_input)
 
     if path_saving is not None:
         path_dir_result = path_saving
@@ -65,7 +69,8 @@ def prepare_path_dir_result(
                 )
 
             if answer == "s":
-                raise ValueError("Stopped by the user.")
+                print("Stopped by the user.")
+                sys.exit()
 
             elif answer == "n":
                 how = "new_dir"
@@ -80,7 +85,6 @@ def prepare_path_dir_result(
                 i += 1
             path_dir_result += str(i)
 
-    if not os.path.exists(path_dir_result):
-        os.mkdir(path_dir_result)
-
+    path_dir_result = Path(path_dir_result)
+    path_dir_result.mkdir(exist_ok=True)
     return path_dir_result, how

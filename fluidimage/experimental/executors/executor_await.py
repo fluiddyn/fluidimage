@@ -40,7 +40,7 @@ import copy
 import trio
 from fluiddyn import time_as_str
 from fluidimage.util.util import logger, get_memory_usage, log_memory_usage
-from fluidimage.experimental.executors.executor_base import ExecutorBase
+from .base import ExecutorBase
 from multiprocessing import Process
 from itertools import islice
 
@@ -83,7 +83,6 @@ class ExecutorAwait(ExecutorBase):
             topology.queues[0].queue = new_dict
 
         # Oject variables
-        self.t_start = time.time()
         self.nb_working_worker = 0
 
         # Executor parameters
@@ -97,16 +96,17 @@ class ExecutorAwait(ExecutorBase):
         self.funcs = collections.OrderedDict()
 
         # Functions definition
-        self.get_async_works()
+        self.store_async_works()
         self.define_function()
         # Queue0
 
     def compute(self):
-        """
-        Compute the whole topology. Begin by executing one shot jobs,
-        then execute multiple shots jobs implemented as async functions.
-        Warning, one shot jobs must be ancestors of multiple shots jobs in the topology
-        :return:
+        """Compute the whole topology.
+
+        Begin by executing one shot jobs, then execute multiple shots jobs
+        implemented as async functions.  Warning, one shot jobs must be ancestors
+        of multiple shots jobs in the topology :return:
+
         """
 
         self.t_start = time.time()
@@ -114,9 +114,9 @@ class ExecutorAwait(ExecutorBase):
         trio.run(self.start_async_works)
 
     async def start_async_works(self):
-        """
-        Create a trio nursery and start soon all async functions (multiple shots functions)
-        :return:
+        """Create a trio nursery and start soon all async functions (multiple shots
+        functions) :return:
+
         """
         async with trio.open_nursery() as self.nursery:
             for key, af in reversed(self.async_funcs.items()):
@@ -124,12 +124,15 @@ class ExecutorAwait(ExecutorBase):
         return
 
     def define_function(self):
-        """
-        Define sync functions (one shot functions) and async functions (multiple shot functions),
-        and store them in "self.async_funcs". The behavior of the executor is mostly defined here.
-        To sum up : Each "multiple shot" works from the topology, waits
-        for an items to be avaible in there intput_queue. Then
-        :return:
+        """Define sync and async functions.
+
+        Define sync (one shot functions) and async functions (multiple shot
+        functions), and store them in `self.async_funcs`.
+
+        The behavior of the executor is mostly defined here.  To sum up : Each
+        "multiple shot" works from the topology, waits for an items to be
+        available in there input_queue. Then :return:
+
         """
         for w in reversed(self.topology.works):
             # One shot functions
@@ -282,11 +285,12 @@ class ExecutorAwait(ExecutorBase):
     async def worker(self, work, key, obj):
         """
         A worker is destined to be started with a "trio.start_soon".
-        It does the work on an item (key,obj) given in parameter,  and add the result on work.output_queue.
+
+        It does the work on an item (key,obj) given in parameter, and add the result on work.output_queue.
+
         :param work: A work from the topology
         :param key: The key of the dictionnary item to be process
         :param obj: The value of the dictionnary item to be process
-        :return:
         """
         t_start = time.time()
         log_memory_usage(
@@ -334,7 +338,7 @@ class ExecutorAwait(ExecutorBase):
         self.nb_working_worker -= 1
         return
 
-    def get_async_works(self):
+    def store_async_works(self):
         """
         Picks up async works and stores them in self.works
         :return:

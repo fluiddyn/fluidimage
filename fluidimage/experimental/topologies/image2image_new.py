@@ -8,6 +8,7 @@
 """
 import os
 import json
+from pathlib import Path
 
 
 from fluidimage.topologies import prepare_path_dir_result
@@ -125,10 +126,7 @@ postfix : str
 
         return params
 
-    def __init__(self, params=None, logging_level="info", nb_max_workers=None):
-
-        if params is None:
-            params = self.__class__.create_default_params()
+    def __init__(self, params, logging_level="info", nb_max_workers=None):
 
         self.params = params
 
@@ -149,7 +147,7 @@ postfix : str
         )
 
         self.path_dir_result = path_dir_result
-        self.path_dir_src = params.series.path
+        self.path_dir_src = Path(params.series.path)
 
         super().__init__(
             path_output=path_dir_result,
@@ -204,6 +202,8 @@ postfix : str
 
     def add_series(self, input_queue, output_queue):
 
+        output_queue = output_queue.queue
+
         series = self.series
         if len(series) == 0:
             logger.warning("add 0 image. No image to process.")
@@ -212,14 +212,21 @@ postfix : str
         names = series.get_name_all_arrays()
 
         for name in names:
+            path_name_output = self.path_dir_result / name
+            path_name_input = str(self.path_dir_src / name)
             if self.how_saving == "complete":
-                if not os.path.exists(os.path.join(self.path_dir_result, name)):
-                    output_queue[name] = os.path.join(self.path_dir_src, name)
+                if not path_name_output.exists():
+                    output_queue[name] = path_name_input
             else:
-                output_queue.queue[name] = os.path.join(self.path_dir_src, name)
+                output_queue[name] = path_name_input
 
         if len(names) == 0:
-            logger.warning('topology in mode "complete" and work already done.')
+            if self.how_saving == "complete":
+                logger.warning(
+                    'topology in mode "complete" and work already done.'
+                )
+            else:
+                logger.warning("Nothing to do")
             return
 
         nb_names = len(names)

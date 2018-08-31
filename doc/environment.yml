@@ -14,5 +14,6 @@ dependencies:
   - matplotlib
   - fftw
   - pyfftw
+  - scikit-image
   - pip:
     - sphinx_rtd_theme
