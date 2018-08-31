@@ -202,8 +202,6 @@ postfix : str
 
     def add_series(self, input_queue, output_queue):
 
-        output_queue = output_queue.queue
-
         series = self.series
         if len(series) == 0:
             logger.warning("add 0 image. No image to process.")

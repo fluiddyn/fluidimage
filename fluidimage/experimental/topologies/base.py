@@ -33,12 +33,12 @@ class MyObj:
         return super().__repr__() + "\n" + self._kwargs.__repr__()
 
 
-class Queue(MyObj):
+class Queue(dict):
     """Represent a queue"""
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.queue = None
+    def __init__(self, name, kind=None):
+        self.name = name
+        self.kind = kind
 
 
 class Work(MyObj):

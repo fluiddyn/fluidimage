@@ -22,8 +22,6 @@ from .base import TopologyBase
 
 from ...util.util import imread
 
-from fluidimage import path_image_samples
-
 
 class TopologyExample(TopologyBase):
     """Topology example for testing.
@@ -52,11 +50,9 @@ class TopologyExample(TopologyBase):
         def func2(arrays):
             return cpu2(arrays[0], arrays[1], nloops)
 
-        if path_input is None:
-            path_input = path_image_samples / "Karman/Images"
         self.path_input = path_input
 
-        self.path_dir_result = path_input.parent / "Images.test"
+        self.path_dir_result = path_input.parent / "Images.example_new"
 
         super().__init__(
             path_output=self.path_dir_result,
@@ -69,6 +65,7 @@ class TopologyExample(TopologyBase):
 
         self.img_counter = 0
 
+        queue_names_img0 = self.add_queue("names img 0")
         queue_names_img1 = self.add_queue("names img 1")
         queue_names_img2 = self.add_queue("names img 2")
         queue_array_couple = self.add_queue("array couples")
@@ -76,8 +73,16 @@ class TopologyExample(TopologyBase):
         queue_cpu2 = self.add_queue("queue_cpu2")
 
         self.add_work(
+            "fill names0",
+            func_or_cls=self.fill_names0,
+            output_queue=(queue_names_img0),
+            kind=("global", "one shot"),
+        )
+
+        self.add_work(
             "fill names",
             func_or_cls=self.fill_names,
+            input_queue=queue_names_img0,
             output_queue=(queue_names_img1, queue_names_img2),
             kind=("global", "one shot"),
         )
@@ -86,7 +91,7 @@ class TopologyExample(TopologyBase):
             func_or_cls=self.make_couple,
             input_queue=(queue_names_img1, queue_names_img2),
             output_queue=queue_array_couple,
-            kind=("global", "io"),
+            kind=("global", "one shot"),
         )
         self.add_work(
             "cpu1",
@@ -109,22 +114,27 @@ class TopologyExample(TopologyBase):
             "save", func_or_cls=self.save, params_cls=None, input_queue=queue_cpu2
         )
 
-    def fill_names(self, input_queue, output_queues):
+    def fill_names0(self, input_queue, output_queue):
         for name in os.listdir(self.path_input):
-            output_queues[0].queue[name] = name
-            output_queues[1].queue[name] = name
-        return
+            output_queue[name] = name
+
+    def fill_names(self, input_queue, output_queues):
+        for name in list(input_queue.keys()):
+            input_queue.pop(name)
+            output_queues[0][name] = name
+            output_queues[1][name] = name
 
     def make_couple(self, input_queues, output_queue):
 
-        if not input_queues[0].queue or not input_queues[1].queue:
-            return False
-        key1, obj1 = input_queues[0].queue.popitem()
-        key2, obj2 = input_queues[1].queue.popitem()
-        img1 = np.array(imread(self.path_input / obj1))
-        img2 = np.array(imread(self.path_input / obj2))
-        output_queue.queue[str(key1 + "" + key2)] = [img1, img2]
-        return True
+        if len(input_queues[0]) != len(input_queues[1]):
+            raise ValueError()
+
+        for _ in range(len(input_queues[0])):
+            key1, obj1 = input_queues[0].popitem()
+            key2, obj2 = input_queues[1].popitem()
+            img1 = np.array(imread(self.path_input / obj1))
+            img2 = np.array(imread(self.path_input / obj2))
+            output_queue[str(key1 + "-" + key2)] = [img1, img2]
 
     def save(self, arr):
         self.img_counter += 1
