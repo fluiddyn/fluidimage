@@ -64,7 +64,7 @@ class SimpleCircleGrid:
         params_cv.minArea = 0.
         return ParamContainerCV(params_cv, "SimpleBlobDetector")
 
-    def __init__(self, params: ParamContainerCV):
+    def __init__(self, params: ParamContainerCV) -> None:
         self.params = params
         params_cv = params._as_params_cv()
         self.detector = cv2.SimpleBlobDetector_create(params_cv)
@@ -126,12 +126,12 @@ class SimpleCircleGrid:
         if debug:
             print(bbox)
 
-        centers = []
+        center_list = []
         for k in keypoints:
             if bbox.contains(*k.pt):
-                centers.append(k.pt)
+                center_list.append(k.pt)
 
-        centers = np.array(centers)
+        centers = np.array(center_list)
         xround = np.round(centers[..., 0] / ds)
         yround = np.round(centers[..., 1] / ds)
         # Sort as a grid

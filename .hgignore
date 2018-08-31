@@ -68,3 +68,4 @@ image_samples/4th_PIV-Challenge_Case_E/E_Calibration_Images/Camera_0*/calib*.npy
 */test_fluidimage*
 
 .pytest_cache/*
+**/.mypy_cache
