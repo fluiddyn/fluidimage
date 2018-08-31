@@ -70,3 +70,4 @@ image_samples/Karman/Images.civ/*
 */test_fluidimage*
 
 .pytest_cache/*
+**/.mypy_cache

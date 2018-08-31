@@ -7,6 +7,7 @@
    calib2d_simple
    calib_tsai
    calib_direct
+   calib_cv
    util
 
 """

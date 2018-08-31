@@ -60,6 +60,7 @@ functions.
    fluidimage.calcul
    fluidimage.preproc
    fluidimage.calibration
+   fluidimage.reconstruct
    fluidimage.postproc
    fluidimage.util
    fluidimage.gui
