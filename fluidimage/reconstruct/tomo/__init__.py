@@ -1,6 +1,13 @@
 """Tomographic Reconstruction algorithms
 ========================================
 
+Provides:
+
+.. autosummary::
+   :toctree:
+
+   mlos
+
 .. autoclass:: TomoMLOSCV
    :members:
    :private-members:

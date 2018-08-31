@@ -2,11 +2,27 @@
 ======================================
 
 Reference::
-    
+
     C. Atkinson and J. Soria, “An efficient simultaneous reconstruction
     technique for tomographic particle image velocimetry,” Exp Fluids, vol. 47,
     no. 4–5, p. 553, Oct. 2009.
 
+
+.. autoclass:: TomoMLOSBase
+   :members:
+   :private-members:
+
+.. autoclass:: TomoMLOSRbf
+   :members:
+   :private-members:
+
+.. autoclass:: TomoMLOSNeighbour
+   :members:
+   :private-members:
+
+.. autoclass:: TomoMLOSCV
+   :members:
+   :private-members:
 
 """
 
@@ -27,7 +43,7 @@ from fluidimage.data_objects.tomo import ArrayTomoCV
 
 class TomoMLOSBase:
     """MLOS can be summarized in the following steps::
-        
+
         1. Project the world coordinates to pixel coordinates.
         #. Interpolate intensity of the neighbouring pixels.
         #. Project back the interpolated intesities onto world coordinates and
@@ -43,7 +59,19 @@ class TomoMLOSBase:
             self.cams.append(cam_name)
             setattr(self, cam_name, cls_calib(cam))
 
-    def reconstruct(self, pix, image, threshold, chunks, save):
+    def reconstruct(
+        self,
+        pix: dict,
+        image: np.ndarray,
+        threshold: float,
+        chunks: tuple,
+        save: bool,
+    ):
+        """Performs MLOS reconstruction parallely using Dask. The
+        reconstruction is done in memory when `save=False` and in the
+        filesystem when `save=True`.
+
+        """
         self.array.image_path = image
         interp = self.get_interpolator(image, threshold)
         with ProgressBar():
@@ -67,6 +95,7 @@ class TomoMLOSBase:
                 self.array.I *= i_vox.compute()
 
     def verify_projection(self, cam="cam0", skip=1):
+        """Graphically verify the projection performed by `phys2pix` method."""
         fig, axes = plt.subplots(1, 3, figsize=(15, 4))
         cmap = plt.get_cmap("gray")
 
@@ -132,7 +161,7 @@ class TomoMLOSCV(TomoMLOSNeighbour):
     def __init__(self, *cams, **kwargs):
         super().__init__(CalibCV, ArrayTomoCV, *cams, **kwargs)
 
-    def phys2pix(self, cam_name):
+    def phys2pix(self, cam_name: str):
         """Tranform the 'physical' world coordinates to 'pixel' coordinates."""
         cam = getattr(self, cam_name)
         grid3d = self.array.grid
@@ -154,7 +183,18 @@ class TomoMLOSCV(TomoMLOSNeighbour):
             )
         return {"x": pix[:, 0, 0], "y": pix[:, 0, 1]}
 
-    def reconstruct(self, pix, image, threshold=None, chunks=None, save=False):
+    def reconstruct(
+        self,
+        pix: dict,
+        image: np.ndarray,
+        threshold=None,
+        chunks=None,
+        save=False,
+    ):
+        """Estimate the maximum size of chunk which can fit in the memory and
+        execute the parent method.
+
+        """
         if chunks is None:
             chunks = len(pix["x"]) // os.cpu_count()
             nmax = int(_estimate_max_array_size(self.array.dtype)) // 6
