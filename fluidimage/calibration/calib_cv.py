@@ -185,24 +185,27 @@ def construct_object_points(nx: int, ny: int, z: float, ds: float):
 
 
 class CalibCV:
-    """Calibrate a camera and save them as XML files. Also use this to load saved
-    calibrations and interpolate extrinsic parameters (rotation and translation)
-    while reconstructing.
+    """Calibrate a camera and save them as HDF5 files. Also use this to load
+    saved calibrations and interpolate extrinsic parameters (rotation and
+    translation) while reconstructing.
 
     """
 
-    def __init__(self, path_file="cam.xml"):
-        self.path_file = path_file
+    def __init__(self, path_file="cam.h5"):
+        self.path_file = str(path_file)
         if os.path.exists(path_file):
             print(f"Loading {path_file}.")
-            self.params = ParamContainer(path_file)
+            self.params = ParamContainer(path_file=self.path_file)
 
     def save(self, zs, ret, mtx, dist, rvecs, tvecs):
         self.params = params = ParamContainer(tag="CalibCV")
         params._set_attribs(
             {
+                "class": self.__class__.__name__,
+                "module": self.__module__,
                 "f": np.diag(mtx)[:2],
                 "C": mtx[0:2, 2],
+                "cam_mtx": mtx,
                 "kc": dist.T[0],
                 "rotation": np.array(rvecs),
                 "translate": tvecs,
@@ -211,7 +214,10 @@ class CalibCV:
         )
         path_dir = os.path.dirname(self.path_file)
         os.makedirs(path_dir, exist_ok=True)
-        params._save_as_xml(self.path_file)
+        if os.path.exists(self.path_file):
+            print(f"WARNING: {self.path_file} already exists. Skipping save.")
+        else:
+            params._save_as_hdf5(self.path_file)
 
     def rotmtx_from_rotvec(self, rot_vec):
         rot_mtx, rot_jac = cv2.Rodrigues(rot_vec)
