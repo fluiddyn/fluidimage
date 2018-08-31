@@ -1,6 +1,5 @@
 import unittest
 from shutil import rmtree
-from pathlib import Path
 
 from fluiddyn.io import stdout_redirected
 

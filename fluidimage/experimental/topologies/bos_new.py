@@ -365,7 +365,7 @@ postfix : str
         else:
             txt += "."
 
-        txt += "\npath results:\n" + self.path_dir_result
+        txt += "\npath results:\n" + str(self.path_dir_result)
 
         print(txt)
 

@@ -29,7 +29,7 @@ from ..preproc.image2image import (
 )
 
 
-from fluiddyn.util import import_class
+# from fluiddyn.util import import_class
 from fluiddyn.io.image import imsave
 
 
@@ -240,7 +240,7 @@ postfix : str
         else:
             txt += "."
 
-        txt += "\npath results:\n" + self.path_dir_result
+        txt += "\npath results:\n" + str(self.path_dir_result)
 
         print(txt)
 

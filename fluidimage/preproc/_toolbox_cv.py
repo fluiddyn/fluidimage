@@ -79,8 +79,10 @@ def sliding_minima(
         Value of `weight` should be in the interval (0.0,1.0).
     window_size : scalar
         Sets the size of the sliding window.
+
     boundary_condition : {'reflect', 'default', 'constant', 'wrap',
                           'transparent', 'replicate'}
+
         Mode of handling array borders.
 
     """

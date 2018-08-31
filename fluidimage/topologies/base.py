@@ -199,11 +199,11 @@ class TopologyBase:
 
         """
         if hasattr(self, "path_output"):
-            logger.info("path results:\n" + self.path_output)
+            logger.info("path results:\n" + str(self.path_output))
             if hasattr(self, "params"):
-                tmp_path_params = os.path.join(
-                    self.path_output,
-                    "params_" + time_as_str() + "_" + str(os.getpid()),
+                tmp_path_params = str(
+                    self.path_output
+                    / ("params_" + time_as_str() + f"_{os.getpid()}")
                 )
 
                 if not os.path.exists(tmp_path_params + ".xml"):

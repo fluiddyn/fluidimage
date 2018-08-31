@@ -187,12 +187,13 @@ class TopologyBase:
             txt += "."
 
         if hasattr(self, "path_dir_result"):
-            txt += "\npath results:\n" + self.path_dir_result
+            txt += "\npath results:\n" + str(self.path_dir_result)
 
         print(txt)
 
     def make_code_graphviz(self, name_file):
         """Generate the graphviz / dot code."""
+        name_file = str(name_file)
 
         if name_file.endswith(".dot"):
             name_file = name_file[:-4]

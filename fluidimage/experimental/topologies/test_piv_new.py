@@ -47,7 +47,7 @@ class TestPivNew(unittest.TestCase):
         with stdout_redirected():
             topology = TopologyPIV(params, logging_level="info")
 
-            topology.make_code_graphviz(topology.path_dir_result + "/topo.dot")
+            topology.make_code_graphviz(topology.path_dir_result / "topo.dot")
 
             executer = ExecutorAwaitMultiprocs(
                 topology,
@@ -79,7 +79,6 @@ class TestPivNew(unittest.TestCase):
 
         with stdout_redirected():
             topology = TopologyPIV(params, logging_level="info")
-            # topology.make_code_graphviz('topo.dot')
 
             executer = ExecutorAwaitMultiprocs(
                 topology,

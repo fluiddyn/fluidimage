@@ -7,11 +7,9 @@
 
 """
 
-import os
 import re
 from multiprocessing import cpu_count
 from fluidimage.config import get_config
-from warnings import warn
 
 
 class ExecutorBase:

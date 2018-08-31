@@ -25,7 +25,7 @@ print(path_image_samples)
 if os.path.exists(path_image_samples):
     with open("fluidimage/_path_image_samples.py", "w") as f:
         f.write(
-            "from pathlib import Path\n"
+            "from pathlib import Path\n\n"
             'path_image_samples = Path("{}")\n'.format(path_image_samples))
 
 # I have not yet manage to use Pythran on Windows...
