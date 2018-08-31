@@ -22,14 +22,17 @@ class TestPivNew(unittest.TestCase):
     def test_piv_new(self):
 
         with stdout_redirected():
-            self.topology = TopologyExample(path_input, logging_level="info")
+            self.topology = TopologyExample(path_input, logging_level="debug")
 
             executer = ExecutorAwaitMultiprocs(
                 self.topology,
-                multi_executor=False,
+                multi_executor=True,
                 sleep_time=0.1,
                 worker_limit=4,
                 queues_limit=5,
             )
 
             self.topology.compute(executer)
+
+if __name__ == "__main__":
+    unittest.main()

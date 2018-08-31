@@ -255,8 +255,8 @@ postfix : str
         return ret
 
     def fill_series_name_couple_and_path(self, input_queue, output_queues):
-        queue_series_name_couple = output_queues[0].queue
-        queue_path = output_queues[1].queue
+        queue_series_name_couple = output_queues[0]
+        queue_path = output_queues[1]
 
         series = self.series
         if len(series) == 0:
@@ -300,8 +300,8 @@ postfix : str
 
     def make_couple(self, input_queues, output_queue):
         # for readablity
-        queue_series_name_couple = input_queues[0].queue
-        queue_array = input_queues[1].queue
+        queue_series_name_couple = input_queues[0]
+        queue_array = input_queues[1]
 
         try:
             params_mask = self.params.mask
@@ -323,7 +323,7 @@ postfix : str
                     params_mask=params_mask,
                     serie=serie,
                 )
-                output_queue.queue[key] = array_couple
+                output_queue[key] = array_couple
                 del queue_series_name_couple[key]
                 # remove the image_array if it not will be used anymore
                 if not self.still_is_in_dict(couple[0], queue_series_name_couple):
