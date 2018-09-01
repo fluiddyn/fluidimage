@@ -6,16 +6,15 @@ dependencies:
   - python=3.6
   - numpy
   - scipy
-  - mpi4py
   - h5py
-  - sphinx
-  - numpydoc
   - jupyter
   - matplotlib
   - fftw
   - pyfftw
-  - scikit-image
-  - dask
-  - opencv
   - pip:
     - sphinx_rtd_theme
+    - opencv-python
+    - dask[array]
+    - scikit-image
+    - sphinx
+    - numpydoc
