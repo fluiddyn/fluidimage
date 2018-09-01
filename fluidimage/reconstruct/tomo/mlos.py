@@ -42,12 +42,14 @@ from fluidimage.data_objects.tomo import ArrayTomoCV
 
 
 class TomoMLOSBase:
-    """MLOS can be summarized in the following steps::
+    """MLOS can be summarized in the following steps:
 
-        1. Project the world coordinates to pixel coordinates.
-        #. Interpolate intensity of the neighbouring pixels.
-        #. Project back the interpolated intesities onto world coordinates and
-           apply them multiplicatively.
+    1. Project the world coordinates to pixel coordinates.
+
+    2. Interpolate intensity of the neighbouring pixels.
+
+    3. Project back the interpolated intesities onto world coordinates and
+       apply them multiplicatively.
 
     """
 

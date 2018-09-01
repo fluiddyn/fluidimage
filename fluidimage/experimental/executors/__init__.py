@@ -8,7 +8,7 @@ executor compared to another.
 .. autosummary::
    :toctree:
 
-   executor_base
+   base
    executor_await
    executor_classic
 

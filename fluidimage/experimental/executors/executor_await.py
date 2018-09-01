@@ -101,7 +101,7 @@ class ExecutorAwait(ExecutorBase):
 
         Begin by executing one shot jobs, then execute multiple shots jobs
         implemented as async functions.  Warning, one shot jobs must be ancestors
-        of multiple shots jobs in the topology :return:
+        of multiple shots jobs in the topology.
 
         """
 
@@ -298,8 +298,7 @@ class ExecutorAwait(ExecutorBase):
 
     def store_async_works(self):
         """
-        Picks up async works and stores them in self.works
-        :return:
+        Picks up async works and stores them in `self.works`.
         """
         for w in self.topology.works:
             if w.kind is None or "one shot" not in w.kind:
@@ -308,8 +307,8 @@ class ExecutorAwait(ExecutorBase):
     def has_to_stop(self):
         """Work has to stop flag. Check if all works has been done.
 
-        :return: True if there are no workers in working and if there is no items
-        in all queues.  :type boolean
+        Return True if there are no workers in working and if there is no items in
+        all queues.
 
         """
         return (
@@ -321,8 +320,7 @@ class ExecutorAwait(ExecutorBase):
         Add an item (key, obj) in the output_queue
         :param key: A dictionnary key
         :param obj: A dictionnary value
-        :param output_queue: a dictionnary
-        :return:
+        :param output_queue: a dictionary
         """
         output_queue[key] = obj
         return
@@ -393,15 +391,15 @@ class ExecutorAwaitMultiprocs(ExecutorBase):
         There is two ways do do this :
 
         - If first self.topology has "series" attribute (from seriesOfArray), it
-        creates "self.nb_max_workers" topologies and changes "ind_start" and
-        "ind_stop" of topology.series. The split considers series.ind_step.
+          creates "self.nb_max_workers" topologies and changes "ind_start" and
+          "ind_stop" of topology.series. The split considers series.ind_step.
 
         - Else, if the first work of the topology has an unique output_queue, it
-        splits that queue in "self.nb_max_worker" slices and create as many
-        topologies. On these last, the first work will be removed and the first
-        queue will be filled with a partition of the first queue Then create as
-        many Executer_await as topologies, give each topology to each executors,
-        and call each Executor_await.compute in a process from multiprocessing.
+          splits that queue in "self.nb_max_worker" slices and create as many
+          topologies. On these last, the first work will be removed and the first
+          queue will be filled with a partition of the first queue Then create as
+          many Executer_await as topologies, give each topology to each executors,
+          and call each Executor_await.compute in a process from multiprocessing.
 
         Else, self.multi_executor is False, simply create an Executor_await, give
         it the topology and call Executor_await.compute
