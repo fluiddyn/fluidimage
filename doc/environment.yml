@@ -15,7 +15,7 @@ dependencies:
   - fftw
   - pyfftw
   - scikit-image
-  - dask[array]
+  - dask
   - opencv
   - pip:
     - sphinx_rtd_theme
