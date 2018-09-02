@@ -9,9 +9,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 try:
-    from ..pre_proc._toolbox_cv import adaptive_threshold
+    from ..preproc._toolbox_cv import adaptive_threshold
 except ImportError:
-    from ..pre_proc._toolbox_py import adaptive_threshold
+    from ..preproc._toolbox_py import adaptive_threshold
 
 
 def particle_count(img):

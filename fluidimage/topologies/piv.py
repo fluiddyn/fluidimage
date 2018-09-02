@@ -23,7 +23,7 @@ from .waiting_queues.base import (
 from . import prepare_path_dir_result
 from ..works.piv import WorkPIV
 from ..data_objects.piv import get_name_piv, ArrayCouple
-from ..util.util import logger
+from ..util import logger
 from . import image2image
 
 

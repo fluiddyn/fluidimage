@@ -6,9 +6,6 @@ from pathlib import Path
 from fluiddyn.io import stdout_redirected
 
 from fluidimage.experimental.topologies.image2image_new import TopologyImage2Image
-from fluidimage.experimental.executors.executor_await import (
-    ExecutorAwaitMultiprocs
-)
 
 from fluidimage import path_image_samples
 
@@ -42,16 +39,7 @@ class TestPivNew(unittest.TestCase):
             topology = TopologyImage2Image(params, logging_level="info")
 
             topology.make_code_graphviz(topology.path_dir_result / "topo.dot")
-
-            executer = ExecutorAwaitMultiprocs(
-                topology,
-                multi_executor=False,
-                sleep_time=0.1,
-                worker_limit=4,
-                queues_limit=5,
-            )
-
-            topology.compute(executer)
+            topology.compute()
 
 
 if __name__ == "__main__":

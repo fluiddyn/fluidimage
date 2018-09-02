@@ -8,16 +8,14 @@
 """
 
 from time import sleep, time
-from multiprocessing import cpu_count, Process
+from multiprocessing import Process
 import signal
-import re
 import sys
 import os
 import gc
 
 # from copy import copy
 import threading
-from warnings import warn
 
 try:
     import queue
@@ -28,10 +26,12 @@ except ImportError:
 from fluiddyn import time_as_str
 from fluiddyn.io.tee import MultiFile
 
-from ..util.util import cstring, logger, reset_logger, log_memory_usage
+from ..util import cstring, logger, reset_logger, log_memory_usage
 from ..config import get_config
 from .waiting_queues.base import WaitingQueueThreading
 from .. import config_logging
+
+from .nb_cpu_cores import nb_cores
 
 
 config = get_config()
@@ -40,50 +40,6 @@ dt = 0.25  # s
 dt_small = 0.02
 dt_update = 0.1
 
-if "OMP_NUM_THREADS" not in os.environ:
-    warn("OMP_NUM_THREADS not set")
-else:
-    OMP_NUM_THREADS = int(os.environ["OMP_NUM_THREADS"])
-    if OMP_NUM_THREADS > 1:
-        warn("OMP_NUM_THREADS is greater than 1!")
-
-nb_cores = cpu_count()
-
-if config is not None:
-    try:
-        allow_hyperthreading = eval(config["topology"]["allow_hyperthreading"])
-    except KeyError:
-        allow_hyperthreading = True
-
-try:  # should work on UNIX
-    # found in http://stackoverflow.com/questions/1006289/how-to-find-out-the-number-of-cpus-using-python # noqa
-    with open("/proc/self/status") as f:
-        status = f.read()
-    m = re.search(r"(?m)^Cpus_allowed:\s*(.*)$", status)
-    if m:
-        nb_cpus_allowed = bin(int(m.group(1).replace(",", ""), 16)).count("1")
-
-    if nb_cpus_allowed > 0:
-        nb_cores = nb_cpus_allowed
-
-    with open("/proc/cpuinfo") as f:
-        cpuinfo = f.read()
-
-    nb_proc_tot = 0
-    siblings = None
-    for line in cpuinfo.split("\n"):
-        if line.startswith("processor"):
-            nb_proc_tot += 1
-        if line.startswith("siblings") and siblings is None:
-            siblings = int(line.split()[-1])
-
-    if nb_proc_tot == siblings * 2:
-        if allow_hyperthreading is False:
-            print("We do not use hyperthreading.")
-            nb_cores //= 2
-
-except IOError:
-    pass
 
 nb_max_workers = None
 if config is not None:

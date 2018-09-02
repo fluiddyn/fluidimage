@@ -29,7 +29,7 @@ from .waiting_queues.base import (
 from ..data_objects.piv import ArrayCouple
 from .. import ParamContainer
 from .. import SeriesOfArrays, SerieOfArraysFromFiles
-from ..util.util import logger
+from ..util import logger
 from ..works.surface_tracking import WorkSurfaceTracking
 
 

@@ -18,7 +18,7 @@ Provides:
 """
 
 import inspect
-from ..util.util import logger
+from ..util import logger
 
 
 class PreprocToolsBase:

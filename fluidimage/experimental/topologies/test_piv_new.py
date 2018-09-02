@@ -6,9 +6,6 @@ from pathlib import Path
 from fluiddyn.io import stdout_redirected
 
 from fluidimage.experimental.topologies.piv_new import TopologyPIV
-from fluidimage.experimental.executors.executor_await import (
-    ExecutorAwaitMultiprocs
-)
 
 from fluidimage import path_image_samples
 
@@ -48,17 +45,7 @@ class TestPivNew(unittest.TestCase):
             topology = TopologyPIV(params, logging_level="info")
 
             topology.make_code_graphviz(topology.path_dir_result / "topo.dot")
-
-            executer = ExecutorAwaitMultiprocs(
-                topology,
-                multi_executor=False,
-                sleep_time=0.1,
-                worker_limit=4,
-                queues_limit=5,
-            )
-
-            topology.compute(executer)
-            # executer.compute()
+            topology.compute()
 
     def test_piv_new_multiproc(self):
         params = TopologyPIV.create_default_params()
@@ -77,18 +64,9 @@ class TestPivNew(unittest.TestCase):
         params.saving.how = "recompute"
         params.saving.postfix = self.postfix
 
-        with stdout_redirected():
+        with stdout_redirected(0):
             topology = TopologyPIV(params, logging_level="info")
-
-            executer = ExecutorAwaitMultiprocs(
-                topology,
-                multi_executor=True,
-                sleep_time=0.1,
-                worker_limit=4,
-                queues_limit=5,
-            )
-            topology.compute(executer)
-            # executer.compute()
+            topology.compute("multi_exec_async")
 
             # remove one file
             path_files = list(Path(topology.path_dir_result).glob("piv*"))
@@ -96,14 +74,7 @@ class TestPivNew(unittest.TestCase):
 
             params.saving.how = "complete"
             topology = TopologyPIV(params, logging_level="info")
-            executer = ExecutorAwaitMultiprocs(
-                topology,
-                multi_executor=False,
-                sleep_time=0.1,
-                worker_limit=4,
-                queues_limit=5,
-            )
-            topology.compute(executer)
+            topology.compute()
 
 
 if __name__ == "__main__":

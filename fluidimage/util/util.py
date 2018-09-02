@@ -6,8 +6,6 @@ Provides:
 
 .. autofunction:: imread
 
-.. autofunction:: log_memory_usage
-
 .. autofunction:: print_memory_usage
 
 .. autofunction:: cstring
@@ -21,16 +19,15 @@ Provides:
 """
 
 import sys
-import six
 import psutil
 from pathlib import Path
 
-from logging import getLogger
-from fluiddyn.util import get_memory_usage
-from fluiddyn.io.image import imread as _imread, imsave as _imsave, imsave_h5
+import six
 
+from fluiddyn.util import get_memory_usage
 from fluiddyn.util import terminal_colors as term
 
+from fluiddyn.io.image import imread as _imread, imsave as _imsave
 
 color_dict = {
     "HEADER": term.HEADER,
@@ -40,13 +37,6 @@ color_dict = {
     "FAIL": term.FAIL,
     "ENDC": term.ENDC,
 }
-
-logger = getLogger("fluidimage")
-
-
-def reset_logger():
-    for handler in logger.handlers:
-        logger.removeHandler(handler)
 
 
 def imread(path):
@@ -73,20 +63,6 @@ def _get_txt_memory_usage(string="Memory usage", color="OKGREEN"):
         (string + ": ").ljust(30) + "{:.3f} Mb".format(mem), color=color
     )
     return cstr
-
-
-def log_memory_usage(string="Memory usage", color="OKGREEN", mode="info"):
-    """Log the memory usage."""
-
-    logger = getLogger("fluidimage")
-    if mode == "debug":
-        log = logger.debug
-    elif mode == "error":
-        log = logger.error
-    else:
-        log = logger.info
-
-    log(_get_txt_memory_usage(string, color))
 
 
 def print_memory_usage(string="Memory usage", color="OKGREEN"):
@@ -122,6 +98,8 @@ def is_memory_full():
         `True` if memory usage > 90 % and available memory < 500 MB.
         `False` otherwise
     """
+    from .log import log_memory_usage
+
     mem = psutil.virtual_memory()
 
     if mem.percent > 90 or mem.available < 500 * 1024 ** 2:

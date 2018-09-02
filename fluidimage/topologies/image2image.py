@@ -21,16 +21,12 @@ from .waiting_queues.base import (
     WaitingQueueLoadImagePath,
 )
 
-from ..util.util import logger
+from ..util import logger, imsave
 
 from ..preproc.image2image import (
     complete_im2im_params_with_default,
     init_im2im_function,
 )
-
-
-# from fluiddyn.util import import_class
-from fluiddyn.io.image import imsave
 
 
 class TopologyImage2Image(TopologyBase):

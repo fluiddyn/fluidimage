@@ -16,7 +16,7 @@ import h5py
 import math
 
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
-from fluidimage.util.util import imsave, imsave_h5
+from fluidimage.util import imsave, imsave_h5
 from .piv import ArrayCouple, LightPIVResults
 
 

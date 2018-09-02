@@ -4,9 +4,6 @@ from shutil import rmtree
 from fluiddyn.io import stdout_redirected
 
 from fluidimage.experimental.topologies.example import TopologyExample
-from fluidimage.experimental.executors.executor_await import (
-    ExecutorAwaitMultiprocs
-)
 
 from fluidimage import path_image_samples
 
@@ -23,16 +20,7 @@ class TestPivNew(unittest.TestCase):
 
         with stdout_redirected():
             self.topology = TopologyExample(path_input, logging_level="debug")
-
-            executer = ExecutorAwaitMultiprocs(
-                self.topology,
-                multi_executor=True,
-                sleep_time=0.1,
-                worker_limit=4,
-                queues_limit=5,
-            )
-
-            self.topology.compute(executer)
+            self.topology.compute()
 
 
 if __name__ == "__main__":

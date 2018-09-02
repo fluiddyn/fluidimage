@@ -15,7 +15,7 @@ from fluidimage.topologies import prepare_path_dir_result
 from .base import TopologyBase
 
 from fluidimage import ParamContainer, SeriesOfArrays
-from fluidimage.util.util import logger, imread
+from fluidimage.util import logger, imread
 
 from fluidimage.preproc.image2image import (
     complete_im2im_params_with_default,
@@ -150,7 +150,7 @@ postfix : str
         self.path_dir_src = Path(params.series.path)
 
         super().__init__(
-            path_output=path_dir_result,
+            path_dir_result=path_dir_result,
             logging_level=logging_level,
             nb_max_workers=nb_max_workers,
         )

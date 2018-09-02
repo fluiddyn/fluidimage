@@ -28,15 +28,18 @@ Reference::
 
 import os
 from pathlib import Path
+
+from psutil import virtual_memory
+
 import numpy as np
 from scipy import interpolate, sparse
 import matplotlib.pyplot as plt
 import dask.array as da
 from dask.diagnostics import ProgressBar
-from psutil import virtual_memory
+
 import cv2
 
-from fluidimage.util.util import imread
+from fluidimage.util import imread
 from fluidimage.calibration.calib_cv import CalibCV
 from fluidimage.data_objects.tomo import ArrayTomoCV
 

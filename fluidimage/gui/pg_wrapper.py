@@ -1,7 +1,7 @@
 import sys
 import numpy as np
 from fluiddyn.io.image import imread
-from fluidimage.util.util import logger
+from fluidimage.util import logger
 
 try:
     import pyqtgraph as pg

@@ -23,7 +23,7 @@ from . import prepare_path_dir_result
 from ..data_objects.display_pre import DisplayPreProc
 from ..data_objects.preproc import get_name_preproc
 
-from ..util.util import logger
+from ..util import logger
 
 from .base import TopologyBase
 

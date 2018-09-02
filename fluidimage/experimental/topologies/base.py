@@ -7,21 +7,9 @@
 
 """
 
-from time import time
-import signal
-import sys
-import os
 from warnings import warn
 
-from fluiddyn import time_as_str
-from fluiddyn.io.tee import MultiFile
-
-from fluidimage.util.util import logger, reset_logger
-from fluidimage import config_logging
-from fluidimage.experimental.topologies.nb_workers import (
-    nb_max_workers as _nb_max_workers,
-    nb_cores,
-)
+from ..executors import executors, ExecutorBase
 
 
 class MyObj:
@@ -52,7 +40,7 @@ class TopologyBase:
 
     Parameters
     ----------
-    path_output : None, str
+    path_dir_result : None, str
 
     logging_level : None,  {'warning', 'info', 'debug', ...}
 
@@ -61,69 +49,15 @@ class TopologyBase:
     """
 
     def __init__(
-        self, path_output=None, logging_level="info", nb_max_workers=None
+        self, path_dir_result=None, logging_level="info", nb_max_workers=None
     ):
 
-        if path_output is not None:
-            if not os.path.exists(path_output):
-                os.makedirs(path_output)
-            self.path_output = path_output
-            log = os.path.join(
-                path_output,
-                "log_" + time_as_str() + "_" + str(os.getpid()) + ".txt",
-            )
-            self._log_file = open(log, "w")
-
-            stdout = sys.stdout
-            if isinstance(stdout, MultiFile):
-                stdout = sys.__stdout__
-
-            stderr = sys.stderr
-            if isinstance(stderr, MultiFile):
-                stderr = sys.__stderr__
-
-            sys.stdout = MultiFile([stdout, self._log_file])
-            sys.stderr = MultiFile([stderr, self._log_file])
-
-        if logging_level is not None:
-            for handler in logger.handlers:
-                logger.removeHandler(handler)
-
-            config_logging(logging_level, file=sys.stdout)
+        self.path_dir_result = path_dir_result
+        self.logging_level = logging_level
+        self.nb_max_workers = nb_max_workers
 
         self.queues = []
         self.works = []
-
-        if nb_max_workers is None:
-            nb_max_workers = _nb_max_workers
-
-        self.nb_max_workers_io = max(int(nb_max_workers * 0.8), 2)
-        self.nb_max_launch = max(int(self.nb_max_workers_io), 1)
-
-        if nb_max_workers < 1:
-            raise ValueError("nb_max_workers < 1")
-
-        print("nb_cpus_allowed = {}".format(nb_cores))
-        print("nb_max_workers = ", nb_max_workers)
-        print("nb_max_workers_io = ", self.nb_max_workers_io)
-
-        self.nb_max_workers = nb_max_workers
-        self.nb_cores = nb_cores
-        self.nb_items_lim = max(2 * nb_max_workers, 2)
-
-        self._has_to_stop = False
-
-        if sys.platform != "win32":
-
-            def handler_signals(signal_number, stack):
-                print(
-                    "signal {} received: set _has_to_stop to True".format(
-                        signal_number
-                    )
-                )
-                self._has_to_stop = True
-
-            signal.signal(12, handler_signals)
 
     def add_queue(self, name: str, kind: str = None):
         """Create a new queue."""
@@ -134,7 +68,7 @@ class TopologyBase:
     def add_work(
         self,
         name: str,
-        func_or_cls=None,
+        func_or_cls,
         params_cls=None,
         input_queue=None,
         output_queue=None,
@@ -154,23 +88,23 @@ class TopologyBase:
         )
         self.works.append(work)
 
-    def compute(self, executer=None):
+    def compute(self, executor="exec_async", nb_max_workers=None):
         """Compute (run all works to be done). """
-        if executer is None:
-            raise NotImplementedError
-        self.executer = executer
+        if executor is None:
+            executor = "exec_async"
 
-        self.t_start = time()
-        self.executer.compute()
+        if not isinstance(executor, ExecutorBase):
+            if executor not in executors:
+                raise NotImplementedError
 
-        self._print_at_exit(time() - self.t_start)
-        self._reset_std_as_default()
+            exec_class = executors[executor]
+            self.executor = exec_class(
+                self,
+                path_dir_result=self.path_dir_result,
+                nb_max_workers=nb_max_workers,
+            )
 
-    def _reset_std_as_default(self):
-        sys.stdout = sys.__stdout__
-        sys.stderr = sys.__stderr__
-        reset_logger()
-        self._log_file.close()
+        self.executor.compute()
 
     def _print_at_exit(self, time_since_start):
         """Print information before exit."""
@@ -337,3 +271,11 @@ if __name__ == "__main__":
     topo.add_work("save piv", input_queue=queue_piv, kind="io")
 
     topo.make_code_graphviz("tmp.dot")
+
+    def print_queues(self):
+        """
+        Print the length of all queues
+        """
+        for queue in self.topology.queues:
+            print(f"queue {queue.name}, length: {len(queue)}")
+        print("\n")

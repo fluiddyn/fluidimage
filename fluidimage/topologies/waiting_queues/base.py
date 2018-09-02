@@ -46,7 +46,7 @@ except ImportError:
 
 from ...data_objects.piv import ArrayCouple, ArrayCoupleBOS
 from ...works import load_image
-from ...util.util import logger, log_memory_usage, cstring
+from ...util import logger, log_memory_usage, cstring
 
 
 class WaitingQueueBase(dict):

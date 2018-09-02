@@ -18,7 +18,7 @@ from fluidimage.experimental.topologies.base import TopologyBase
 from fluidimage.topologies import prepare_path_dir_result
 from fluidimage.works.piv import WorkPIV
 from fluidimage.data_objects.piv import get_name_bos, ArrayCoupleBOS
-from fluidimage.util.util import logger, imread
+from fluidimage.util import logger, imread
 from fluidimage.topologies import image2image
 
 
@@ -184,10 +184,9 @@ postfix : str
         path_dir_result, self.how_saving = prepare_path_dir_result(
             path_dir, params.saving.path, params.saving.postfix, params.saving.how
         )
-        self.path_dir_result = path_dir_result
 
         super().__init__(
-            path_output=path_dir_result,
+            path_dir_result=path_dir_result,
             logging_level=logging_level,
             nb_max_workers=nb_max_workers,
         )

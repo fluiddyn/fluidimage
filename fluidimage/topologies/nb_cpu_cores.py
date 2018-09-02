@@ -52,18 +52,18 @@ try:  # should work on UNIX
 except IOError:
     pass
 
-nb_max_workers = None
-if config is not None:
-    try:
-        nb_max_workers = eval(config["topology"]["nb_max_workers"])
-    except KeyError:
-        pass
+# nb_max_workers = None
+# if config is not None:
+#     try:
+#         nb_max_workers = eval(config["topology"]["nb_max_workers"])
+#     except KeyError:
+#         pass
 
-# default nb_max_workers
-# Difficult: trade off between overloading and limitation due to input output.
-# The user can do much better for a specific case.
-if nb_max_workers is None:
-    if nb_cores < 16:
-        nb_max_workers = nb_cores + 2
-    else:
-        nb_max_workers = nb_cores
+# # default nb_max_workers
+# # Difficult: trade off between overloading and limitation due to input output.
+# # The user can do much better for a specific case.
+# if nb_max_workers is None:
+#     if nb_cores < 16:
+#         nb_max_workers = nb_cores + 2
+#     else:
+#         nb_max_workers = nb_cores

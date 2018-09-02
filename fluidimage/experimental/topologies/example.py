@@ -20,7 +20,7 @@ from fluidimage.experimental.cpu_bounded_task_examples_pythran import cpu1, cpu2
 
 from .base import TopologyBase
 
-from ...util.util import imread
+from ...util import imread
 
 
 class TopologyExample(TopologyBase):
@@ -55,7 +55,7 @@ class TopologyExample(TopologyBase):
         self.path_dir_result = path_input.parent / "Images.example_new"
 
         super().__init__(
-            path_output=self.path_dir_result,
+            path_dir_result=self.path_dir_result,
             logging_level=logging_level,
             nb_max_workers=nb_max_workers,
         )
