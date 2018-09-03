@@ -112,6 +112,8 @@ class ArrayTomoBase:
     def load(self, h5file_path=None):
         if h5file_path is None:
             h5file_path = self.h5file_path
+        else:
+            self.h5file_path = h5file_path
 
         with h5py.File(h5file_path) as f:
             grp = f["tomo"]
