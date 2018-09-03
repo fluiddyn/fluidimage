@@ -42,12 +42,12 @@ class TopologyExample(TopologyBase):
     """
 
     def __init__(
-            self,
-            path_input=None,
-            path_dir_result=None,
-            logging_level="info",
-            nb_max_workers=None,
-            nloops=1
+        self,
+        path_input=None,
+        path_dir_result=None,
+        logging_level="info",
+        nb_max_workers=None,
+        nloops=1,
     ):
         def func1(arrays):
             key = arrays[0]

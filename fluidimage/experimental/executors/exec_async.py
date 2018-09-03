@@ -354,8 +354,10 @@ class ExecutorAsync(ExecutorBase):
             if self.logging_level == "debug":
                 logger.debug(f"self.topology.queues: {self.topology.queues}")
                 logger.debug(
-                    f"self.nb_working_workers_cpu: {self.nb_working_workers_cpu}")
+                    f"self.nb_working_workers_cpu: {self.nb_working_workers_cpu}"
+                )
                 logger.debug(
-                    f"self.nb_working_workers_io: {self.nb_working_workers_io}")
+                    f"self.nb_working_workers_io: {self.nb_working_workers_io}"
+                )
 
             await trio.sleep(self.sleep_time)

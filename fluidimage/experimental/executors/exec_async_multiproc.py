@@ -18,8 +18,6 @@ from fluidimage.util import logger, log_memory_usage
 from .exec_async import ExecutorAsync
 
 
-
-
 class ExecutorAsyncMultiproc(ExecutorAsync):
     """Async executor using multiprocessing to launch CPU-bounded tasks"""
 
@@ -67,7 +65,7 @@ class ExecutorAsyncMultiproc(ExecutorAsync):
             )
             process.start()
             result = parent_conn.recv()
-            process.join(10*self.sleep_time)
+            process.join(10 * self.sleep_time)
             if process.exitcode != 0:
                 logger.info(f"process.exitcode: {process.exitcode}")
                 process.terminate()

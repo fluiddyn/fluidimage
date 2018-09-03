@@ -3,7 +3,10 @@ from numpy.testing import assert_array_equal, assert_almost_equal
 
 from fluiddyn.io import stdout_redirected
 from fluidimage.calibration.calib_cv import (
-    construct_object_points, SimpleCircleGrid, CalibCV)
+    construct_object_points,
+    SimpleCircleGrid,
+    CalibCV,
+)
 
 from fluidimage.util import imread
 from fluidimage import path_image_samples
@@ -21,8 +24,7 @@ def construct_image_points(path, origin):
 
     params = SimpleCircleGrid.create_default_params()
     circle_grid = SimpleCircleGrid(params)
-    centers = circle_grid.detect_grid(
-        image, origin, nx=7, ny=7, ds=50)
+    centers = circle_grid.detect_grid(image, origin, nx=7, ny=7, ds=50)
 
     return centers
 
@@ -55,7 +57,8 @@ class TestCalib(unittest.TestCase):
         zs = [0]
         im_shape = imread(str(path_input)).shape[::-1]
         ret, mtx, dist, rvecs, tvecs = calib.calibrate(
-            imgpoints, objpoints, zs, im_shape, origin, debug=True)
+            imgpoints, objpoints, zs, im_shape, origin, debug=True
+        )
 
         assert_array_equal(mtx, result_cache.cam_mtx)
         assert_almost_equal(rvecs[0], result_cache.rotation[2])

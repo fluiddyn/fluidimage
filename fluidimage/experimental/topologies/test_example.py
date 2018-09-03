@@ -23,9 +23,7 @@ class TestTopoExample(unittest.TestCase):
             path_dir_result = path_input.parent / f"Images.{executor}"
 
             topology = TopologyExample(
-                path_input,
-                path_dir_result=path_dir_result,
-                logging_level="debug",
+                path_input, path_dir_result=path_dir_result, logging_level="debug"
             )
             self.topologies.append(topology)
             topology.compute(executor, nb_max_workers=2)
