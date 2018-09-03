@@ -31,7 +31,7 @@ addons:
 
 install:
     - pip install -U pip setuptools wheel six colorlog
-    - pip install -U tox coverage
+    - pip install -U tox coverage pytest
     - pip install -U numpy
 
 before_script:
