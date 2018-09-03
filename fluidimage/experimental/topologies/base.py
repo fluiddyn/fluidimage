@@ -40,6 +40,7 @@ class TopologyBase:
 
     Parameters
     ----------
+
     path_dir_result : None, str
 
     logging_level : None,  {'warning', 'info', 'debug', ...}
@@ -102,6 +103,7 @@ class TopologyBase:
                 self,
                 path_dir_result=self.path_dir_result,
                 nb_max_workers=nb_max_workers,
+                logging_level=self.logging_level,
             )
 
         self.executor.compute()

@@ -24,9 +24,11 @@ from .exec_async import ExecutorAsync
 
 class ExecutorAsyncForMulti(ExecutorAsync):
     """Slightly modified ExecutorAsync"""
+
     def compute(self):
         self.exec_one_shot_job()
         trio.run(self.start_async_works)
+
 
 class MultiExecutorAsync(ExecutorBase):
     """Manage the multi-executor mode
@@ -60,9 +62,14 @@ class MultiExecutorAsync(ExecutorBase):
         nb_max_workers=None,
         nb_items_queue_max=None,
         sleep_time=0.1,
+        logging_level="info",
     ):
         super().__init__(
-            topology, path_dir_result, nb_max_workers, nb_items_queue_max
+            topology,
+            path_dir_result,
+            nb_max_workers,
+            nb_items_queue_max,
+            logging_level=logging_level,
         )
 
         self.sleep_time = sleep_time
@@ -90,7 +97,7 @@ class MultiExecutorAsync(ExecutorBase):
         # topology doesn't have series
         if not hasattr(self.topology, "series"):
             self.start_mutiprocess_first_queue()
-        # topology heas series
+        # topology has series
         else:
             self.start_multiprocess_series()
         self._finalize_compute()
@@ -115,7 +122,7 @@ class MultiExecutorAsync(ExecutorBase):
         nb_keys_per_process = max(1, int(len(keys) / self.nb_processes))
 
         keys_for_processes = [
-            keys[iproc : iproc + nb_keys_per_process]
+            keys[iproc : iproc + nb_keys_per_process + 1]
             for iproc in range(self.nb_processes)
         ]
 

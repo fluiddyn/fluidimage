@@ -3,8 +3,6 @@ import unittest
 from shutil import rmtree
 from pathlib import Path
 
-from fluiddyn.io import stdout_redirected
-
 from fluidimage.experimental.topologies.piv_new import TopologyPIV
 
 from fluidimage import path_image_samples
@@ -41,11 +39,10 @@ class TestPivNew(unittest.TestCase):
         params.saving.how = "recompute"
         params.saving.postfix = self.postfix
 
-        with stdout_redirected():
-            topology = TopologyPIV(params, logging_level="info")
+        topology = TopologyPIV(params, logging_level="info")
 
-            topology.make_code_graphviz(topology.path_dir_result / "topo.dot")
-            topology.compute()
+        topology.make_code_graphviz(topology.path_dir_result / "topo.dot")
+        topology.compute()
 
     def test_piv_new_multiproc(self):
         params = TopologyPIV.create_default_params()
@@ -64,17 +61,19 @@ class TestPivNew(unittest.TestCase):
         params.saving.how = "recompute"
         params.saving.postfix = self.postfix
 
-        with stdout_redirected(0):
-            topology = TopologyPIV(params, logging_level="info")
-            topology.compute("multi_exec_async")
+        topology = TopologyPIV(params, logging_level="info")
+        topology.compute("multi_exec_async")
 
-            # remove one file
-            path_files = list(Path(topology.path_dir_result).glob("piv*"))
-            path_files[0].unlink()
+        topology = TopologyPIV(params, logging_level="info")
+        topology.compute("exec_async_multi", nb_max_workers=2)
 
-            params.saving.how = "complete"
-            topology = TopologyPIV(params, logging_level="info")
-            topology.compute()
+        # remove one file
+        path_files = list(Path(topology.path_dir_result).glob("piv*"))
+        path_files[0].unlink()
+
+        params.saving.how = "complete"
+        topology = TopologyPIV(params, logging_level="info")
+        topology.compute()
 
 
 if __name__ == "__main__":

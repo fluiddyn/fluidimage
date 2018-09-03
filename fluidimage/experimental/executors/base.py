@@ -46,6 +46,7 @@ class ExecutorBase:
         logging_level="info",
     ):
         self.topology = topology
+        self.logging_level = logging_level
 
         if path_dir_result is not None:
             path_dir_result = Path(path_dir_result)

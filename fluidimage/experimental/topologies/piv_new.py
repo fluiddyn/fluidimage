@@ -25,6 +25,13 @@ from fluidimage.util.log import logger
 from fluidimage.topologies import image2image
 
 
+def still_is_in_dict(image_name, dictio):
+    for key, names in dictio.items():
+        if image_name in names:
+            return True
+    return False
+
+
 class TopologyPIV(TopologyBase):
     """Topology for PIV.
 
@@ -326,17 +333,10 @@ postfix : str
                 output_queue[key] = array_couple
                 del queue_series_name_couple[key]
                 # remove the image_array if it not will be used anymore
-                if not self.still_is_in_dict(couple[0], queue_series_name_couple):
+                if not still_is_in_dict(couple[0], queue_series_name_couple):
                     del queue_array[couple[0]]
-                if not self.still_is_in_dict(couple[1], queue_series_name_couple):
+                if not still_is_in_dict(couple[1], queue_series_name_couple):
                     del queue_array[couple[1]]
-                return True
-        return False
-
-    @staticmethod
-    def still_is_in_dict(image_name, dict):
-        for key, names in dict.items():
-            if image_name in names:
                 return True
         return False
 

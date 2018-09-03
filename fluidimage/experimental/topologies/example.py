@@ -1,5 +1,5 @@
-"""Topology example for testing (:mod:`fluidimage.experimental.topologies.example`)
-===================================================================================
+"""Topology example (:mod:`fluidimage.experimental.topologies.example`)
+=======================================================================
 
 This topology has two pythran cpu bounded tasks. It helps see executors behavior
 with C functions.
@@ -42,20 +42,30 @@ class TopologyExample(TopologyBase):
     """
 
     def __init__(
-        self, path_input=None, logging_level="info", nb_max_workers=None, nloops=1
+            self,
+            path_input=None,
+            path_dir_result=None,
+            logging_level="info",
+            nb_max_workers=None,
+            nloops=1
     ):
         def func1(arrays):
-            return cpu1(arrays[0], arrays[1], nloops)
+            key = arrays[0]
+            arr0, arr1 = cpu1(arrays[1], arrays[2], nloops)
+            return key, arr0, arr1
 
         def func2(arrays):
-            return cpu2(arrays[0], arrays[1], nloops)
+            key = arrays[0]
+            result = cpu2(arrays[1], arrays[2], nloops)
+            return key, result
 
         self.path_input = path_input
 
-        self.path_dir_result = path_input.parent / "Images.example_new"
+        if path_dir_result is None:
+            path_dir_result = path_input.parent / "Images.example_new"
 
         super().__init__(
-            path_dir_result=self.path_dir_result,
+            path_dir_result=path_dir_result,
             logging_level=logging_level,
             nb_max_workers=nb_max_workers,
         )
@@ -134,14 +144,14 @@ class TopologyExample(TopologyBase):
             key2, obj2 = input_queues[1].popitem()
             img1 = np.array(imread(self.path_input / obj1))
             img2 = np.array(imread(self.path_input / obj2))
-            output_queue[str(key1 + "-" + key2)] = [img1, img2]
+            key = key1 + "-" + key2
+            output_queue[key] = [key, img1, img2]
 
-    def save(self, arr):
-        self.img_counter += 1
-        scipy.io.savemat(
-            self.path_dir_result / f"array_{self.img_counter}",
-            mdict={"array": arr},
-        )
+    def save(self, inputs):
+        key = inputs[0]
+        arr = inputs[1]
+        name = key.replace(".bmp", "") + ".h5"
+        scipy.io.savemat(self.path_dir_result / name, mdict={"array": arr})
 
     def _print_at_exit(self, time_since_start):
 

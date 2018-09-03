@@ -1,8 +1,6 @@
 import unittest
 from shutil import rmtree
 
-from fluiddyn.io import stdout_redirected
-
 from fluidimage.experimental.topologies.example import TopologyExample
 
 from fluidimage import path_image_samples
@@ -10,17 +8,27 @@ from fluidimage import path_image_samples
 path_input = path_image_samples / "Karman/Images"
 
 
-class TestPivNew(unittest.TestCase):
+class TestTopoExample(unittest.TestCase):
     def tearDown(self):
-        path_out = self.topology.path_dir_result
-        if path_out.exists():
-            rmtree(path_out)
+        for topology in self.topologies:
+            path_out = topology.path_dir_result
+            if path_out.exists():
+                rmtree(path_out)
 
-    def test_piv_new(self):
+    def test_example(self):
 
-        with stdout_redirected():
-            self.topology = TopologyExample(path_input, logging_level="debug")
-            self.topology.compute()
+        self.topologies = []
+        executors = [None, "multi_exec_async", "exec_async_multi"]
+        for executor in executors:
+            path_dir_result = path_input.parent / f"Images.{executor}"
+
+            topology = TopologyExample(
+                path_input,
+                path_dir_result=path_dir_result,
+                logging_level="debug",
+            )
+            self.topologies.append(topology)
+            topology.compute(executor, nb_max_workers=2)
 
 
 if __name__ == "__main__":

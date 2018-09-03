@@ -4,23 +4,12 @@
 This executer uses await/async with trio library to put topology tasks in
 concurrency.
 
-Two modes of computation are available:
+A single executor (in one process) is created.  If CPU bounded tasks are limited
+by the Python GIL, the threads won't use at the same time the CPU.
 
-- The single executor mode.
-
-  A single executor (in one process) is created.  If CPU bounded tasks are limited
-  by the Python GIL, the threads won't use at the same time the CPU.
-
-  Meaning that the work will be done in a single thread, except if the topology
-  computed has C code in it. In this case, the GIL is bypassed and computation can
-  use many CPU.
-
-- The multi-executor mode.
-
-  Many executors are created, each executor works in a process from
-  multiprocessing with a part of the work to do. The work split is done in the
-  class "ExecutorAsyncMultiproc". Usefull for full python written topology. See
-  "ExecutorAsyncMultiproc" for more information.
+This means that the work will run on one CPU at a time, except if the topology
+uses compiled code releasing the GIL. In this case, the GIL can be bypassed and
+computation can use many CPU at a time.
 
 .. autoclass:: ExecutorAsync
    :members:
@@ -32,6 +21,7 @@ import time
 import collections
 
 import trio
+from IPython.lib.pretty import pretty
 
 from fluidimage.util import logger, log_memory_usage
 
@@ -44,21 +34,10 @@ def popitem(input_queue):
     return key, obj
 
 
-def push(key, obj, output_queue):
-    """
-    Add an item (key, obj) in the output_queue
-    :param key: A dictionnary key
-    :param obj: A dictionnary value
-    :param output_queue: a dictionary
-    """
-    output_queue[key] = obj
-    return
-
-
 class ExecutorAsync(ExecutorBase):
     """Executor async/await.
 
-    Work in a single thread, except if the computed topology has C code.
+    The work in performed in a single process.
 
     Parameters
     ----------
@@ -86,13 +65,18 @@ class ExecutorAsync(ExecutorBase):
         nb_max_workers=None,
         nb_items_queue_max=None,
         sleep_time=0.1,
+        logging_level="info",
     ):
         super().__init__(
-            topology, path_dir_result, nb_max_workers, nb_items_queue_max
+            topology,
+            path_dir_result,
+            nb_max_workers,
+            nb_items_queue_max,
+            logging_level=logging_level,
         )
 
-        # Object variables
-        self.nb_working_worker = 0
+        self.nb_working_workers_cpu = 0
+        self.nb_working_workers_io = 0
 
         # Executor parameters
         self.sleep_time = sleep_time
@@ -105,7 +89,6 @@ class ExecutorAsync(ExecutorBase):
         # Functions definition
         self.store_async_works()
         self.define_functions()
-        # Queue0
 
     def compute(self):
         """Compute the whole topology.
@@ -128,17 +111,19 @@ class ExecutorAsync(ExecutorBase):
         async with trio.open_nursery() as self.nursery:
             for af in reversed(self.async_funcs.values()):
                 self.nursery.start_soon(af)
+
+            self.nursery.start_soon(self.update_has_to_stop)
         return
 
     def define_functions(self):
         """Define sync and async functions.
 
-        Define sync (one shot functions) and async functions (multiple shot
+        Define sync ("one shot" functions) and async functions (multiple shot
         functions), and store them in `self.async_funcs`.
 
         The behavior of the executor is mostly defined here.  To sum up : Each
-        "multiple shot" works from the topology, waits for an items to be
-        available in there input_queue. Then :return:
+        "multiple shot" waits for an items to be available in there input_queue
+        and process the items as soon as they are available.
 
         """
         for w in reversed(self.topology.works):
@@ -148,7 +133,7 @@ class ExecutorAsync(ExecutorBase):
                 def func(work=w):
                     work.func_or_cls(work.input_queue, work.output_queue)
 
-                func.func_or_cls = w.func_or_cls
+                func._pretty = pretty(w.func_or_cls.__func__)
 
                 self.funcs[w.name] = func
                 continue
@@ -165,7 +150,7 @@ class ExecutorAsync(ExecutorBase):
                         while not work.func_or_cls(
                             work.input_queue, work.output_queue
                         ):
-                            if self.has_to_stop():
+                            if self._has_to_stop:
                                 return
                             await trio.sleep(self.sleep_time)
                             t_start = time.time()
@@ -196,30 +181,15 @@ class ExecutorAsync(ExecutorBase):
                     while True:
                         while (
                             not work.input_queue
-                            or self.nb_working_worker >= self.nb_max_workers
+                            or self.nb_working_workers_io >= self.nb_max_workers
                             or len(work.output_queue) >= self.nb_items_queue_max
                         ):
-                            if self.has_to_stop():
+                            if self._has_to_stop:
                                 return
                             await trio.sleep(self.sleep_time)
-                        t_start = time.time()
                         key, obj = popitem(work.input_queue)
-                        log_memory_usage(
-                            "{:.2f} s. ".format(time.time() - self.t_start)
-                            + "Launch work "
-                            + work.name.replace(" ", "_")
-                            + " ({}). mem usage".format(key)
-                        )
-                        ret = await trio.run_sync_in_worker_thread(
-                            work.func_or_cls, obj
-                        )
-                        push(key, ret, work.output_queue)
-                        logger.info(
-                            "work {} {} done in {:.3f} s".format(
-                                work.name.replace(" ", "_"),
-                                key,
-                                time.time() - t_start,
-                            )
+                        self.nursery.start_soon(
+                            self.async_run_work_io, work, key, obj
                         )
                         await trio.sleep(self.sleep_time)
 
@@ -230,15 +200,16 @@ class ExecutorAsync(ExecutorBase):
                     while True:
                         while (
                             not work.input_queue
-                            or self.nb_working_worker >= self.nb_max_workers
+                            or self.nb_working_workers_cpu >= self.nb_max_workers
                             or len(work.output_queue) >= self.nb_items_queue_max
                         ):
-                            if self.has_to_stop():
+                            if self._has_to_stop:
                                 return
                             await trio.sleep(self.sleep_time)
                         key, obj = popitem(work.input_queue)
-                        self.nb_working_worker += 1
-                        self.nursery.start_soon(self.async_worker, work, key, obj)
+                        self.nursery.start_soon(
+                            self.async_run_work_cpu, work, key, obj
+                        )
                         await trio.sleep(self.sleep_time)
 
             # There is no output_queue
@@ -248,14 +219,15 @@ class ExecutorAsync(ExecutorBase):
                     while True:
                         while (
                             not work.input_queue
-                            or self.nb_working_worker >= self.nb_max_workers
+                            or self.nb_working_workers_cpu >= self.nb_max_workers
                         ):
-                            if self.has_to_stop():
+                            if self._has_to_stop:
                                 return
                             await trio.sleep(self.sleep_time)
                         key, obj = popitem(work.input_queue)
-                        self.nb_working_worker += 1
-                        self.nursery.start_soon(self.async_worker, work, key, obj)
+                        self.nursery.start_soon(
+                            self.async_run_work_cpu, work, key, obj
+                        )
                         await trio.sleep(self.sleep_time)
 
             self.async_funcs[w.name] = func
@@ -267,21 +239,30 @@ class ExecutorAsync(ExecutorBase):
         """
         for key, func in reversed(self.funcs.items()):
             logger.info(
-                "Does one_shot_job, key func : {} with function {}".format(
-                    key, func.func_or_cls
-                )
+                'Running "one_shot" job "{}" ({})'.format(key, func._pretty)
             )
             func()
 
-    async def async_worker(self, work, key, obj):
-        """A worker is destined to be started with a "trio.start_soon".
+    async def async_run_work_io(self, work, key, obj):
+        """Is destined to be started with a "trio.start_soon".
 
-        It does the work on an item (key,obj) given in parameter, and add the
-        result on work.output_queue.
+        Executes the work on an item (key, obj), and add the result on
+        work.output_queue.
 
-        :param work: A work from the topology
-        :param key: The key of the dictionnary item to be process
-        :param obj: The value of the dictionnary item to be process
+        Parameters
+        ----------
+
+        work :
+
+          A work from the topology
+
+        key : hashable
+
+          The key of the dictionnary item to be process
+
+        obj : object
+
+          The value of the dictionnary item to be process
 
         """
         t_start = time.time()
@@ -291,17 +272,56 @@ class ExecutorAsync(ExecutorBase):
             + work.name.replace(" ", "_")
             + " ({}). mem usage".format(key)
         )
+        self.nb_working_workers_io += 1
         ret = await trio.run_sync_in_worker_thread(work.func_or_cls, obj)
         if work.output_queue is not None:
-            push(key, obj, work.output_queue)
             work.output_queue[key] = ret
+        self.nb_working_workers_io -= 1
         logger.info(
             "work {} ({}) done in {:.3f} s".format(
                 work.name.replace(" ", "_"), key, time.time() - t_start
             )
         )
-        self.nb_working_worker -= 1
-        return
+
+    async def async_run_work_cpu(self, work, key, obj):
+        """Is destined to be started with a "trio.start_soon".
+
+        Executes the work on an item (key, obj), and add the result on
+        work.output_queue.
+
+        Parameters
+        ----------
+
+        work :
+
+          A work from the topology
+
+        key : hashable
+
+          The key of the dictionnary item to be process
+
+        obj : object
+
+          The value of the dictionnary item to be process
+
+        """
+        t_start = time.time()
+        log_memory_usage(
+            "{:.2f} s. ".format(time.time() - self.t_start)
+            + "Launch work "
+            + work.name.replace(" ", "_")
+            + " ({}). mem usage".format(key)
+        )
+        self.nb_working_workers_cpu += 1
+        ret = await trio.run_sync_in_worker_thread(work.func_or_cls, obj)
+        if work.output_queue is not None:
+            work.output_queue[key] = ret
+        self.nb_working_workers_cpu -= 1
+        logger.info(
+            "work {} ({}) done in {:.3f} s".format(
+                work.name.replace(" ", "_"), key, time.time() - t_start
+            )
+        )
 
     def store_async_works(self):
         """
@@ -311,15 +331,31 @@ class ExecutorAsync(ExecutorBase):
             if w.kind is None or "one shot" not in w.kind:
                 self.works.append(w)
 
-    def has_to_stop(self):
+    async def update_has_to_stop(self):
         """Work has to stop flag. Check if all works has been done.
 
         Return True if there are no workers in working and if there is no items in
         all queues.
 
         """
-        return (
-            self._has_to_stop
-            or (not any([len(queue) != 0 for queue in self.topology.queues]))
-            and self.nb_working_worker == 0
-        )
+
+        while not self._has_to_stop:
+
+            result = (
+                (not any([len(queue) != 0 for queue in self.topology.queues]))
+                and self.nb_working_workers_cpu == 0
+                and self.nb_working_workers_io == 0
+            )
+
+            if result:
+                self._has_to_stop = True
+                logger.debug(f"has_to_stop!")
+
+            if self.logging_level == "debug":
+                logger.debug(f"self.topology.queues: {self.topology.queues}")
+                logger.debug(
+                    f"self.nb_working_workers_cpu: {self.nb_working_workers_cpu}")
+                logger.debug(
+                    f"self.nb_working_workers_io: {self.nb_working_workers_io}")
+
+            await trio.sleep(self.sleep_time)
