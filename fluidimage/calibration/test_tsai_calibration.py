@@ -1,6 +1,5 @@
 
 import unittest
-import os
 
 import h5py
 import matplotlib.pyplot as plt
