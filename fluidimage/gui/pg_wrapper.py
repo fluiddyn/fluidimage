@@ -1,7 +1,7 @@
 import sys
+from pathlib import Path
 import numpy as np
-from fluiddyn.io.image import imread
-from fluidimage.util import logger
+from fluidimage.util import logger, imread
 
 try:
     import pyqtgraph as pg
@@ -95,15 +95,22 @@ class PGWrapper:
         win = self._win(title)
         self._add_gfx_item(win, imv)
 
-        if hasattr(path, "__iter__"):
+        if not isinstance(path, str):
             data = []
             for p in path:
+                logger.info(f"Viewing {p}")
                 data.append(imread(p).transpose())
 
             data = np.array(data)
             imv.setImage(data, xvals=np.linspace(0, len(path), data.shape[0]))
+        elif Path(path).is_dir():
+            raise ValueError("Expected files not directory.")
         else:
-            data = imread(path).transpose()
+            logger.info(f"Viewing {path}")
+            try:
+                data = imread(path).transpose()
+            except AttributeError:
+                raise ValueError(f"Is {path} an image?")
             imv.setImage(data)
 
         vb = imv.imageItem.getViewBox()

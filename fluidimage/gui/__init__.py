@@ -11,5 +11,6 @@ This sub-package contains the code for the fluidimage GUI:
 
    imviewer
    launcher
+   pg_main
 
 """

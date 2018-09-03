@@ -157,8 +157,9 @@ setup(
     scripts=[
         "bin/fluidimviewer",
         "bin/fluidimlauncher",
-        "bin/fluidimviewer-pg",
-        "bin/fluidimslideshow-pg",
     ],
+    entry_points={
+        'console_scripts':
+        ['fluidimviewer-pg = fluidimage.gui.pg_main:main']},
     ext_modules=ext_modules,
 )
