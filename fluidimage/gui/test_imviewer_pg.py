@@ -4,12 +4,22 @@ import unittest
 # import sys
 # from pyqtgraph.Qt import QTest
 
+try:
+    import pyqtgraph
+    from fluidimage.gui.pg_main import parse_args, main
+
+    use_pyqtgraph = True
+except ImportError:
+    use_pyqtgraph = False
+
 from fluiddyn.io import stdout_redirected
 
-from fluidimage.gui.pg_main import parse_args, main
 from fluidimage import path_image_samples
 
 
+@unittest.skip(
+    "PyQtGraph is not installed. Test disabled because it is not " "automated"
+)
 class TestImageViewerPG(unittest.TestCase):
     def test_main(self):
         with stdout_redirected():
