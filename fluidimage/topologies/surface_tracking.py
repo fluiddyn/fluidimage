@@ -150,6 +150,11 @@ postfix : str
 
         self.params = params
         self.path = params.film.path
+        self.path_ref = params.film.path_ref
+        serie_arrays_ref = SerieOfArraysFromFiles(
+            params.film.path_ref
+        )
+
         self.surface_tracking_work = WorkSurfaceTracking(params)
 
         serie_arrays = SerieOfArraysFromFiles(
@@ -172,7 +177,7 @@ postfix : str
         self.results = {}
 
         def save_surface_tracking_object(o):
-            ret = o.save(path_dir_result + "/results/" + o.nameFrame)
+            ret = o.save(path_dir_result / "results" / o.nameFrame)
             return ret
 
         self.wq_sf_out = WaitingQueueThreading(
@@ -181,7 +186,6 @@ postfix : str
             self.results,
             topology=self,
         )
-
         self.wq_sf_in = WaitingQueueMultiprocessing(
             "surface_tracking_work",
             self.surface_tracking_work.compute,
@@ -224,15 +228,15 @@ postfix : str
             index_series = []
             for i, serie in enumerate(series):
                 name_sf = serie.get_name_arrays()
-                if os.path.exists(os.path.join(self.path_dir_result, name_sf[0])):
-                    continue
+#                if os.path.exists(os.path.join(self.path_dir_result, name_sf[0])):
+#                    print(os.path.join(self.path_dir_result, name_sf[0]))
+#                    continue
 
                 for name in serie.get_name_arrays():
                     if name not in names:
                         names.append(name)
 
                 index_series.append(i * series.ind_step + series.ind_start)
-
             if len(index_series) == 0:
                 logger.warning(
                     'topology in mode "complete" and work already done.'

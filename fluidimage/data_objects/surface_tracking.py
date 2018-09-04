@@ -81,7 +81,7 @@ class SurfaceTrackingObject(SerieOfArraysFromFiles):
         :type str
         :return:
         """
-        nameFrame = nameFrame.split("/")[-1]
+        nameFrame = str(nameFrame).split("/")[-1]
         if self.params.saving.plot == True:
             self.generate_plot(
                 -self.a_filt,
@@ -109,7 +109,8 @@ class SurfaceTrackingObject(SerieOfArraysFromFiles):
         :return:
         """
         # Managing how many results to put in a single hdf5 file
-        numFrame = int(nameFrame.split("[")[1].split("]")[0])  # get the index
+        #numFrame = int(nameFrame.split("[")[1].split("]")[0])  # get the index?
+        numFrame = int(nameFrame.split(".")[0].split("image")[-1])  # get the index?
         suffix_save = str(
             (math.floor(numFrame / self.params.saving.how_many)) + 1
         )

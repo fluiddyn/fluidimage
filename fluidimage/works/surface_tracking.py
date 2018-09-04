@@ -176,17 +176,19 @@ class WorkSurfaceTracking(BaseWork):
         self.kx = np.arange(-self.l_x / 2, self.l_x / 2) / self.l_x
         self.ky = np.arange(-self.l_y / 2, self.l_y / 2) / self.l_y
 
-        self.refraw = self.get_file(self.path_ref)
-        refc, k_x = self.wave_vector(
-            self.refraw,
-            self.ymin,
-            self.ymax,
-            self.xmin,
-            self.xmax,
-            self.sur,
-            self.startref_frame,
-            self.lastref_frame,
-        )
+        #self.refraw = self.get_file(self.path_ref)
+        #self.refraw = self.sum_frame_from(self.path_ref)
+        #refc, k_x = self.wave_vector(
+        #    self.refraw,
+        #    self.ymin,
+        #    self.ymax,
+        #    self.xmin,
+        #    self.xmax,
+        #    self.sur,
+        #    self.startref_frame,
+        #    self.lastref_frame,
+        #)
+        k_x = 70.75
 
         self.kxx = self.kx / self.pix_size
         self.gain, self.filt = self.create_gainfilter(
@@ -226,7 +228,6 @@ class WorkSurfaceTracking(BaseWork):
             verify_process=False,
             offset=2.5,
         )
-
         surface_tracking.H = H
         surface_tracking.H_filt = H_filt
         surface_tracking.a_filt = a_filt
@@ -332,10 +333,6 @@ class WorkSurfaceTracking(BaseWork):
             )
             + 1
         )
-        # filt4 = np.fft.fftshift(-np.exp(-(((kxgrid+k_x))**2 +
-        #                        kygrid**2)/2/(k_x)**2)+1)
-        # filt5 = np.fft.fftshift(-np.exp(-(((kxgrid+2*k_x/3))**2 +
-        #                        kygrid**2)/2/(2*k_x/3)**2)+1)
         return gain, filt1 * filt2 * filt3
 
     def filters(self, frame, gain, filt):
@@ -352,8 +349,8 @@ class WorkSurfaceTracking(BaseWork):
     def process_frame(
         self, frame, ymin, ymax, xmin, xmax, gain, filt, bo, red_factor
     ):
-        frame1 = frame[ymin:ymax, xmin:xmax].astype(float)
-        frame1 = self.frame_adimx(frame1)
+        frame1 = frame[ymin:ymax, xmin:xmax]
+        frame1 = self.frame_adimx(frame1).astype(float)
         Fref_filtre = self.filters(frame1, gain, filt)
         iFref_filtre = np.fft.ifft2(Fref_filtre)
         iFref_filtre = iFref_filtre[bo:-bo:red_factor, bo:-bo:red_factor]
@@ -406,15 +403,28 @@ class WorkSurfaceTracking(BaseWork):
                 frame1 = frame[ymin:ymax, xmin:xmax].astype(float)
                 frame1 = self.frame_adimx(frame1)
                 ref = ref + frame1
-                ref = ref / (
-                    lastref_frame + 1 - startref_frame
-                )  # STRANGE... I think it is not good... BONAMY
             ii += 1
+        ref = ref / (lastref_frame + 1 - startref_frame)
         Fref = np.fft.fft2(ref, ((ymax - ymin) * sur, (xmax - xmin) * sur))
         kxma = np.arange(-(xmax - xmin) * sur / 2, (xmax - xmin) * sur / 2) / sur
         # kyma = np.arange(-l_y*sur/2, l_y*sur/2)/sur
         indc = np.max(np.fft.fftshift(abs(Fref)), axis=0).argmax()
         return ref, abs(kxma[indc])
+
+    def sum_frame_from(self, path="./", fn=None):
+        """read the frames from file in 
+        path or from a specified file if fn-arg is given
+        and make the mean of the frame"""
+        film = self.get_file(self.path)
+        path = self.path
+        if fn is None:
+            # print(path + '/*')
+            film = self.get_file(path, "film.cine")
+            # film = pims.open(path + '/*')
+        else:
+            print("####" + path + "/" + fn)
+            film = pims.open(str(path) + "/" + fn)
+        return frame
 
     def get_file(self, path="./", fn=None):
         """read the files in path or a specified file if fn-arg is given"""
