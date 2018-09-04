@@ -56,7 +56,7 @@ class SurfaceTrackingObject(SerieOfArraysFromFiles):
             params.film.path + "." + params.saving.postfix + "/plot/"
         )
         self.path_save = (
-            params.film.path + "." + params.saving.postfix + "/results/"
+            params.film.path + "." + params.saving.postfix + "/"
         )
         self.file_name = params.film.fileName
 

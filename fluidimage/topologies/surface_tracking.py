@@ -177,7 +177,7 @@ postfix : str
         self.results = {}
 
         def save_surface_tracking_object(o):
-            ret = o.save(path_dir_result / "results" / o.nameFrame)
+            ret = o.save(path_dir_result / o.nameFrame)
             return ret
 
         self.wq_sf_out = WaitingQueueThreading(
