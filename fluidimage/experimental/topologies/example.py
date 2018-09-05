@@ -15,7 +15,6 @@ import os
 import numpy as np
 import scipy.io
 
-
 from fluidimage.experimental.cpu_bounded_task_examples_pythran import cpu1, cpu2
 
 from .base import TopologyBase
@@ -41,20 +40,25 @@ class TopologyExample(TopologyBase):
 
     """
 
-    def __init__(
-        self,
-        path_input=None,
-        path_dir_result=None,
-        logging_level="info",
-        nb_max_workers=None,
-        nloops=1,
-    ):
+    @classmethod
+    def create_default_params(cls):
+        params = dict(path_input=None, path_dir_result=None, nloops=1)
+        return params
+
+    def __init__(self, params, logging_level="info", nb_max_workers=None):
+        self.params = params
+
+        path_input = params["path_input"]
+        path_dir_result = params["path_dir_result"]
+        nloops = params["nloops"]
+
         def func1(arrays):
             key = arrays[0]
             arr0, arr1 = cpu1(arrays[1], arrays[2], nloops)
             return key, arr0, arr1
 
         def func2(arrays):
+            print("in func2", arrays)
             key = arrays[0]
             result = cpu2(arrays[1], arrays[2], nloops)
             return key, result

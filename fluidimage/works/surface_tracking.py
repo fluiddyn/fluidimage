@@ -176,9 +176,9 @@ class WorkSurfaceTracking(BaseWork):
         self.kx = np.arange(-self.l_x / 2, self.l_x / 2) / self.l_x
         self.ky = np.arange(-self.l_y / 2, self.l_y / 2) / self.l_y
 
-        #self.refraw = self.get_file(self.path_ref)
-        #self.refraw = self.sum_frame_from(self.path_ref)
-        #refc, k_x = self.wave_vector(
+        # self.refraw = self.get_file(self.path_ref)
+        # self.refraw = self.sum_frame_from(self.path_ref)
+        # refc, k_x = self.wave_vector(
         #    self.refraw,
         #    self.ymin,
         #    self.ymax,
@@ -187,7 +187,7 @@ class WorkSurfaceTracking(BaseWork):
         #    self.sur,
         #    self.startref_frame,
         #    self.lastref_frame,
-        #)
+        # )
         k_x = 70.75
 
         self.kxx = self.kx / self.pix_size

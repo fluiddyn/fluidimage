@@ -55,9 +55,7 @@ class SurfaceTrackingObject(SerieOfArraysFromFiles):
         self.path_save_plot = (
             params.film.path + "." + params.saving.postfix + "/plot/"
         )
-        self.path_save = (
-            params.film.path + "." + params.saving.postfix + "/"
-        )
+        self.path_save = params.film.path + "." + params.saving.postfix + "/"
         self.file_name = params.film.fileName
 
         # Matrix results
@@ -109,8 +107,10 @@ class SurfaceTrackingObject(SerieOfArraysFromFiles):
         :return:
         """
         # Managing how many results to put in a single hdf5 file
-        #numFrame = int(nameFrame.split("[")[1].split("]")[0])  # get the index?
-        numFrame = int(nameFrame.split(".")[0].split("image")[-1])  # get the index?
+        # numFrame = int(nameFrame.split("[")[1].split("]")[0])  # get the index?
+        numFrame = int(
+            nameFrame.split(".")[0].split("image")[-1]
+        )  # get the index?
         suffix_save = str(
             (math.floor(numFrame / self.params.saving.how_many)) + 1
         )

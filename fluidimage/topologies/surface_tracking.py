@@ -151,9 +151,7 @@ postfix : str
         self.params = params
         self.path = params.film.path
         self.path_ref = params.film.path_ref
-        serie_arrays_ref = SerieOfArraysFromFiles(
-            params.film.path_ref
-        )
+        serie_arrays_ref = SerieOfArraysFromFiles(params.film.path_ref)
 
         self.surface_tracking_work = WorkSurfaceTracking(params)
 
@@ -228,9 +226,9 @@ postfix : str
             index_series = []
             for i, serie in enumerate(series):
                 name_sf = serie.get_name_arrays()
-#                if os.path.exists(os.path.join(self.path_dir_result, name_sf[0])):
-#                    print(os.path.join(self.path_dir_result, name_sf[0]))
-#                    continue
+                #                if os.path.exists(os.path.join(self.path_dir_result, name_sf[0])):
+                #                    print(os.path.join(self.path_dir_result, name_sf[0]))
+                #                    continue
 
                 for name in serie.get_name_arrays():
                     if name not in names:

@@ -18,13 +18,21 @@ class TestTopoExample(unittest.TestCase):
     def test_example(self):
 
         self.topologies = []
-        executors = [None, "multi_exec_async", "exec_async_multi"]
+        executors = [
+            None,
+            "multi_exec_async",
+            "exec_async_multi",
+            "exec_async_servers",
+            "exec_async_servers_threading",
+        ]
+        params = TopologyExample.create_default_params()
+        params["path_input"] = path_input
+
         for executor in executors:
             path_dir_result = path_input.parent / f"Images.{executor}"
+            params["path_dir_result"] = path_dir_result
 
-            topology = TopologyExample(
-                path_input, path_dir_result=path_dir_result, logging_level="debug"
-            )
+            topology = TopologyExample(params, logging_level="debug")
             self.topologies.append(topology)
             topology.compute(executor, nb_max_workers=2)
 

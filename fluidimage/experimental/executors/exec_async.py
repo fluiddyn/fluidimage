@@ -113,7 +113,6 @@ class ExecutorAsync(ExecutorBase):
                 self.nursery.start_soon(af)
 
             self.nursery.start_soon(self.update_has_to_stop)
-        return
 
     def define_functions(self):
         """Define sync and async functions.
@@ -215,9 +214,7 @@ class ExecutorAsync(ExecutorBase):
                         return
                     await trio.sleep(self.sleep_time)
                 key, obj = popitem(work.input_queue)
-                self.nursery.start_soon(
-                    self.async_run_work_cpu, work, key, obj
-                )
+                self.nursery.start_soon(self.async_run_work_cpu, work, key, obj)
                 await trio.sleep(self.sleep_time)
 
         return func
@@ -233,9 +230,7 @@ class ExecutorAsync(ExecutorBase):
                         return
                     await trio.sleep(self.sleep_time)
                 key, obj = popitem(work.input_queue)
-                self.nursery.start_soon(
-                    self.async_run_work_cpu, work, key, obj
-                )
+                self.nursery.start_soon(self.async_run_work_cpu, work, key, obj)
                 await trio.sleep(self.sleep_time)
 
         return func

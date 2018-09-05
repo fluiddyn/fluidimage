@@ -6,9 +6,9 @@ from pathlib import Path
 from fluiddyn.io import stdout_redirected
 
 from fluidimage.topologies.surface_tracking import TopologySurfaceTracking
-from fluidimage.topologies.log import LogTopology
 
 from fluidimage import path_image_samples
+
 
 class TestSurftrack(unittest.TestCase):
     @classmethod
@@ -29,30 +29,31 @@ class TestSurftrack(unittest.TestCase):
         params.film.path = str(self.path_input_files)
         params.film.ind_start = 1
         params.film.path_ref = str(self.path_input_files)
-        params.surface_tracking.xmin = 125 
-        params.surface_tracking.xmax = 290 
+        params.surface_tracking.xmin = 125
+        params.surface_tracking.xmax = 290
         params.series.ind_start = 1
- 
+
         # params.saving.how has to be equal to 'complete' for idempotent jobs
         # (on clusters)
         params.saving.plot = False
         params.saving.how_many = 100
-        params.saving.how = 'complete'
-        params.saving.postfix = 'surface_tracking_complete'
+        params.saving.how = "complete"
+        params.saving.postfix = "surface_tracking_complete"
         print(params)
-        topology = TopologySurfaceTracking(params, logging_level='info')
-        #topology.make_code_graphviz('topo.dot')
+        topology = TopologySurfaceTracking(params, logging_level="info")
+        # topology.make_code_graphviz('topo.dot')
         seq = False
         with stdout_redirected():
             topology = TopologySurfaceTracking(params, logging_level="info")
             topology.compute(sequential=seq)
-#            print(topology.path_dir_result)
-#            log = LogTopology(topology.path_dir_result)
-#        topology.compute(sequential=seq)
+        #            print(topology.path_dir_result)
+        #            log = LogTopology(topology.path_dir_result)
+        #        topology.compute(sequential=seq)
 
         # not generating plots if seq mode is false
         if seq == False:
             params.saving.plot = False
+
 
 #        log.plot_durations()
 #        log.plot_nb_workers()

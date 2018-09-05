@@ -59,6 +59,7 @@ class TopologyBase:
 
         self.queues = []
         self.works = []
+        self.works_dict = {}
 
     def add_queue(self, name: str, kind: str = None):
         """Create a new queue."""
@@ -88,6 +89,10 @@ class TopologyBase:
             kind=kind,
         )
         self.works.append(work)
+
+        if name in self.works_dict:
+            raise ValueError(f"The name {name} is already used.")
+        self.works_dict[name] = work
 
     def compute(self, executor="exec_async", nb_max_workers=None):
         """Compute (run all works to be done). """
