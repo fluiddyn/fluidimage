@@ -15,7 +15,6 @@
 
 """
 import json
-import os
 
 from . import prepare_path_dir_result
 from .base import TopologyBase

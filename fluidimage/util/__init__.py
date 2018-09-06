@@ -14,7 +14,7 @@
 from fluiddyn.io.image import imsave_h5
 
 from .log import logger, reset_logger, log_memory_usage
-from .util import imread, imsave, print_memory_usage, cstring
+from .util import imread, imsave, print_memory_usage, cstring, str_short
 
 __all__ = [
     "imread",
@@ -25,4 +25,5 @@ __all__ = [
     "reset_logger",
     "log_memory_usage",
     "cstring",
+    "str_short",
 ]

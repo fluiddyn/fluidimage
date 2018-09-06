@@ -20,6 +20,7 @@ class TestTopoExample(unittest.TestCase):
         self.topologies = []
         executors = [
             None,
+            "exec_async_sequential",
             "multi_exec_async",
             "exec_async_multi",
             "exec_async_servers",

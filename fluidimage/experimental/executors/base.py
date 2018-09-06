@@ -18,7 +18,7 @@ from fluiddyn.io.tee import MultiFile
 
 from fluidimage.config import get_config
 from fluidimage.topologies.nb_cpu_cores import nb_cores
-from fluidimage.util.log import logger, reset_logger
+from fluidimage.util import logger, reset_logger, str_short
 
 from fluidimage import config_logging
 
@@ -111,6 +111,10 @@ class ExecutorBase:
 
     def _init_compute(self):
         self.t_start = time()
+        logger.info(
+            f"Starting execution of a {str_short(type(self.topology))} "
+            f"with executor {str_short(type(self))}"
+        )
 
     def _reset_std_as_default(self):
         sys.stdout = sys.__stdout__

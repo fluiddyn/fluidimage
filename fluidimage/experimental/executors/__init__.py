@@ -20,6 +20,8 @@ hardware, it can be more efficient to chose an executor compared to another.
 from .base import ExecutorBase
 
 from .exec_async import ExecutorAsync
+from .exec_async_sequential import ExecutorAsyncSequential
+
 from .multiexec_async import MultiExecutorAsync
 from .exec_async_multiproc import ExecutorAsyncMultiproc
 from .exec_async_servers import (
@@ -29,6 +31,7 @@ from .exec_async_servers import (
 
 executors = {
     "exec_async": ExecutorAsync,
+    "exec_async_sequential": ExecutorAsyncSequential,
     "multi_exec_async": MultiExecutorAsync,
     "exec_async_multi": ExecutorAsyncMultiproc,
     "exec_async_servers": ExecutorAsyncServers,

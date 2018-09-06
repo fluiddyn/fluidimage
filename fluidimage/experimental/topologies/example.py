@@ -58,7 +58,6 @@ class TopologyExample(TopologyBase):
             return key, arr0, arr1
 
         def func2(arrays):
-            print("in func2", arrays)
             key = arrays[0]
             result = cpu2(arrays[1], arrays[2], nloops)
             return key, result

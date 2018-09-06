@@ -16,6 +16,8 @@ Provides:
 
 .. autofunction:: raise_exception
 
+.. autofunction:: str_short
+
 """
 
 import sys
@@ -117,3 +119,12 @@ def raise_exception(exc, msg=""):
     """
     traceback = sys.exc_info()[2]
     six.reraise(type(exc), msg, traceback)
+
+
+def str_short(obj):
+    """Give a short str for classes, function, etc."""
+
+    if isinstance(obj, type):
+        return obj.__module__ + "." + obj.__name__
+
+    return str(obj)

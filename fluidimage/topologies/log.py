@@ -119,6 +119,7 @@ class LogTopology:
                     if work["name"] not in names_works:
                         names_works.append(work["name"])
 
+        print("\rparsing done")
         self.durations = durations = {}
         self.times = times = {}
         self.keys = keys = {}
