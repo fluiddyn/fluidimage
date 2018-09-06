@@ -64,7 +64,6 @@ class WorkSurfaceTracking(BaseWork):
                 "k_x": 70.75,
                 "k_y": 0,
                 "slicer": 4,
-                "bo": 1,
                 "red_factor": 1,
                 "n_frames_stock": 1,
             },
@@ -113,8 +112,6 @@ class WorkSurfaceTracking(BaseWork):
 
 - slicer: 4,
 
-- bo: 1,
-
   cut the borders
 
 - red_factor: 1,
@@ -161,7 +158,6 @@ class WorkSurfaceTracking(BaseWork):
         self.k_y = self.params.surface_tracking.k_y
         self.slicer = self.params.surface_tracking.slicer
 
-        self.bo = self.params.surface_tracking.bo
         self.red_factor = self.params.surface_tracking.red_factor
         self.n_frames_stock = self.params.surface_tracking.n_frames_stock
 
@@ -191,8 +187,8 @@ class WorkSurfaceTracking(BaseWork):
         k_x = 70.75
 
         self.kxx = self.kx / self.pix_size
-        self.gain, self.filt = self.create_gainfilter(
-            self.ky, self.kx, self.k_y, k_x, self.l_y, self.l_x, self.slicer
+        self.gain, self.filt = self.set_gain_filter(
+            k_x, self.l_y, self.l_x, self.slicer
         )
         self.a1_tmp = None
 
@@ -204,7 +200,7 @@ class WorkSurfaceTracking(BaseWork):
         :return:
         """
         surface_tracking = SurfaceTrackingObject(params=self.params)
-        H, H_filt, a_filt = self.processAFrame(
+        H, H_filt = self.processAFrame(
             self.path,
             self.l_x,
             self.l_y,
@@ -214,7 +210,6 @@ class WorkSurfaceTracking(BaseWork):
             self.ymax,
             self.gain,
             self.filt,
-            self.bo,
             self.red_factor,
             self.pix_size,
             self.distance_object,
@@ -226,16 +221,13 @@ class WorkSurfaceTracking(BaseWork):
             self.ky,
             frameCouple,
             verify_process=False,
-            offset=2.5,
         )
         surface_tracking.H = H
         surface_tracking.H_filt = H_filt
-        surface_tracking.a_filt = a_filt
         surface_tracking.pix_size = self.pix_size
         surface_tracking.nameFrame = frameCouple.arrays[0][1].split("/")[-1]
         return surface_tracking
         # of the reference plate (in order to find the origin)
-        # offset = thickness/2
 
     def processAFrame(
         self,
@@ -248,7 +240,6 @@ class WorkSurfaceTracking(BaseWork):
         ymax,
         gain,
         filt,
-        bo,
         red_factor,
         pix_size,
         distance_object,
@@ -262,7 +253,6 @@ class WorkSurfaceTracking(BaseWork):
         save_png=True,
         verify_process=False,
         filmName=None,
-        offset=0,
     ):
         arrays1 = frame.arrays[0][0]
         arrays2 = frame.arrays[1][0]
@@ -271,12 +261,12 @@ class WorkSurfaceTracking(BaseWork):
         fix_x = int(np.fix(l_x / 2 / red_factor))
         if self.a1_tmp is None:
             a1 = self.process_frame(
-                arrays1, ymin, ymax, xmin, xmax, gain, filt, bo, red_factor
+                arrays1, ymin, ymax, xmin, xmax, gain, filt, red_factor
             )
         else:
             a1 = self.a1_tmp
         a2 = self.process_frame(
-            arrays2, ymin, ymax, xmin, xmax, gain, filt, bo, red_factor
+            arrays2, ymin, ymax, xmin, xmax, gain, filt, red_factor
         )
         self.a1_tmp = a2
 
@@ -295,21 +285,22 @@ class WorkSurfaceTracking(BaseWork):
             "True",
             red_factor,
         )
-        H = H[4:-4, 4:-4]
+        # this line removes flickering from the projector
         Hfilt = H - np.mean(H)
-        afilt = a2 - np.mean(a2) - offset
 
-        return H, Hfilt, afilt
+        return H, Hfilt
 
-    def create_gainfilter(self, ky, kx, k_y, k_x, l_y, l_x, slicer):
+    def set_gain_filter(self, k_x, l_y, l_x, slicer):
+        kx = np.arange(-l_x/2, l_x/2)/l_x
+        ky = np.arange(-l_y/2, l_y/2)/l_y
         kxgrid, kygrid = np.meshgrid(kx, ky)
         X, Y = np.meshgrid(kx * l_x, ky * l_y)
-        gain = np.exp(-1.j * 2 * np.pi * (k_x / l_x * X + k_y / l_y * Y))
+        gain = np.exp(-1.j * 2 * np.pi * (k_x / l_x * X))
         filt1 = np.fft.fftshift(
             np.exp(-((kxgrid ** 2 + kygrid ** 2) / 2 / (k_x / slicer / l_x) ** 2))
             * np.exp(
                 1
-                - 1 / (1 + ((kxgrid + k_x) ** 2 + (kygrid + k_y) ** 2) / k_x ** 2)
+                - 1 / (1 + ((kxgrid + k_x) ** 2 + kygrid ** 2) / k_x ** 2)
             )
         )
 
@@ -335,28 +326,28 @@ class WorkSurfaceTracking(BaseWork):
         )
         return gain, filt1 * filt2 * filt3
 
-    def filters(self, frame, gain, filt):
+    def rectify_frame(self, frame, gain, filt):
         return np.fft.fft2(frame * gain) * filt
 
-    def frame_adimx(self, frame):
-        """ """
+    def frame_normalize(self, frame):
+        '''normalize the frame values by its mean value'''
         meanx_frame = np.mean(frame, axis=1)
-        for zz in range(np.shape(frame)[1]):
-            frame[:, zz] = frame[:, zz] / meanx_frame
-        frame = frame - np.mean(frame)
-        return frame
+        for y in range(np.shape(frame)[1]):
+            frame[:, y] = frame[:, y] / meanx_frame
+        normalized_frame = frame - np.mean(frame)
+        return normalized_frame
 
     def process_frame(
-        self, frame, ymin, ymax, xmin, xmax, gain, filt, bo, red_factor
+        self, frame, ymin, ymax, xmin, xmax, gain, filt, red_factor
     ):
         frame1 = frame[ymin:ymax, xmin:xmax]
-        frame1 = self.frame_adimx(frame1).astype(float)
-        Fref_filtre = self.filters(frame1, gain, filt)
-        iFref_filtre = np.fft.ifft2(Fref_filtre)
-        iFref_filtre = iFref_filtre[bo:-bo:red_factor, bo:-bo:red_factor]
-        aref = np.unwrap(np.angle(iFref_filtre), axis=1)  # by lines
-        aref = np.unwrap(aref, axis=0)  # by colums
-        return aref
+        frame1 = self.frame_normalize(frame1).astype(float)
+        frame_filtered = self.rectify_frame(frame1, gain, filt)
+        inversed_filt = np.fft.ifft2(frame_filtered)
+        inversed_filt = inversed_filt[::red_factor, ::red_factor]
+        a = np.unwrap(np.angle(inversed_filt), axis=1)  # by lines
+        a = np.unwrap(a, axis=0)  # by colums
+        return a
 
     def convphase(self, ph, pix_size, l, d, p, correct_pos, red_factor):
         """converts phase into height [m]
@@ -401,7 +392,7 @@ class WorkSurfaceTracking(BaseWork):
         for frame in ref_film:
             if ii < lastref_frame - startref_frame:
                 frame1 = frame[ymin:ymax, xmin:xmax].astype(float)
-                frame1 = self.frame_adimx(frame1)
+                frame1 = self.frame_normalize(frame1)
                 ref = ref + frame1
             ii += 1
         ref = ref / (lastref_frame + 1 - startref_frame)
