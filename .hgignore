@@ -61,6 +61,7 @@ image_samples/*/*.pre*
 image_samples/*/*.piv
 image_samples/*/*/log_*.txt
 image_samples/*/*/params_*.xml
+image_samples/*/Images.bench
 image_samples/4th_PIV-Challenge_Case_E/E_Calibration_Images/Camera_0*/calib*.npy
 
 image_samples/Karman/Images.civ/*

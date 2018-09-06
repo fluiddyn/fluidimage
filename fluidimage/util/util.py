@@ -26,6 +26,8 @@ from pathlib import Path
 
 import six
 
+from IPython.lib.pretty import pretty
+
 from fluiddyn.util import get_memory_usage
 from fluiddyn.util import terminal_colors as term
 
@@ -124,7 +126,7 @@ def raise_exception(exc, msg=""):
 def str_short(obj):
     """Give a short str for classes, function, etc."""
 
-    if isinstance(obj, type):
+    try:
         return obj.__module__ + "." + obj.__name__
-
-    return str(obj)
+    except AttributeError:
+        return pretty(obj)

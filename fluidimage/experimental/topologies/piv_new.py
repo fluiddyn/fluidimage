@@ -340,7 +340,7 @@ postfix : str
                 return True
         return False
 
-    def _print_at_exit(self, time_since_start):
+    def _make_text_at_exit(self, time_since_start):
 
         txt = "Stop compute after t = {:.2f} s".format(time_since_start)
         try:
@@ -356,7 +356,7 @@ postfix : str
 
         txt += "\npath results:\n" + str(self.path_dir_result)
 
-        print(txt)
+        return txt
 
 
 if "sphinx" in sys.modules:

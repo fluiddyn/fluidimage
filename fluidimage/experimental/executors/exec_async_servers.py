@@ -13,6 +13,8 @@ import numpy as np
 
 from fluidimage.util import logger, log_memory_usage
 
+# from fluidimage.topologies.nb_cpu_cores import nb_cores
+
 from .exec_async import ExecutorAsync
 from .servers import launch_server
 
@@ -49,14 +51,19 @@ class ExecutorAsyncServers(ExecutorAsync):
         path_dir_result,
         nb_max_workers=None,
         nb_items_queue_max=None,
-        sleep_time=0.1,
+        sleep_time=0.01,
         logging_level="info",
     ):
+
+        # if nb_max_workers is None:
+        #     nb_max_workers = nb_cores
+
         super().__init__(
             topology,
             path_dir_result,
             nb_max_workers,
             nb_items_queue_max,
+            sleep_time=sleep_time,
             logging_level=logging_level,
         )
 

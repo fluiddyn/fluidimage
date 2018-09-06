@@ -15,19 +15,49 @@ Multi executors async (:mod:`fluidimage.experimental.executors.multiexec_async`)
 from multiprocessing import Process
 import copy
 import math
+from time import time
+from pathlib import Path
 
-import trio
+from fluidimage.util import logger
 
 from .base import ExecutorBase
-from .exec_async import ExecutorAsync
+from .exec_async_sequential import ExecutorAsyncSequential
 
 
-class ExecutorAsyncForMulti(ExecutorAsync):
+class ExecutorAsyncForMulti(ExecutorAsyncSequential):
     """Slightly modified ExecutorAsync"""
 
-    def compute(self):
-        self.exec_one_shot_job()
-        trio.run(self.start_async_works)
+    def __init__(
+        self,
+        topology,
+        path_dir_result,
+        log_path,
+        sleep_time=0.01,
+        logging_level="info",
+    ):
+
+        self._log_path = log_path
+        super().__init__(
+            topology,
+            path_dir_result,
+            nb_max_workers=1,
+            nb_items_queue_max=2,
+            sleep_time=sleep_time,
+            logging_level=logging_level,
+        )
+
+    def _init_log_path(self):
+        pass
+
+    def _init_compute(self):
+        self._init_compute_log()
+
+    def _finalize_compute(self):
+        self._reset_std_as_default()
+
+        txt = self.topology._make_text_at_exit(time() - self.t_start)
+        with open(self._log_file.name, "a") as file:
+            file.write(txt)
 
 
 class MultiExecutorAsync(ExecutorBase):
@@ -61,7 +91,7 @@ class MultiExecutorAsync(ExecutorBase):
         path_dir_result,
         nb_max_workers=None,
         nb_items_queue_max=None,
-        sleep_time=0.1,
+        sleep_time=0.01,
         logging_level="info",
     ):
         super().__init__(
@@ -74,6 +104,7 @@ class MultiExecutorAsync(ExecutorBase):
 
         self.sleep_time = sleep_time
         self.nb_processes = self.nb_max_workers
+        self.processes = []
 
     def compute(self):
         """Compute the topology.
@@ -93,6 +124,7 @@ class MultiExecutorAsync(ExecutorBase):
 
         """
         self._init_compute()
+        self.log_paths = []
 
         # topology doesn't have series
         if not hasattr(self.topology, "series"):
@@ -100,9 +132,11 @@ class MultiExecutorAsync(ExecutorBase):
         # topology has series
         else:
             self.start_multiprocess_series()
+
         self._finalize_compute()
 
     def start_mutiprocess_first_queue(self):
+
         first_work = self.topology.works[0]
         if first_work.input_queue is not None:
             raise NotImplementedError
@@ -133,8 +167,7 @@ class MultiExecutorAsync(ExecutorBase):
         del topology.works[0]
         old_queue = topology.first_queue
 
-        processes = []
-        for iproc, keys_proc in enumerate(keys_for_processes):
+        for ind_process, keys_proc in enumerate(keys_for_processes):
             topology_this_process = copy.copy(self.topology)
             new_queue = copy.copy(topology.first_queue)
             topology_this_process.first_queue = new_queue
@@ -166,24 +199,11 @@ class MultiExecutorAsync(ExecutorBase):
 
             old_queue = new_queue
 
-            # Create an executor and start it in a process
-            executor = ExecutorAsyncForMulti(
-                topology_this_process,
-                self.path_dir_result,
-                nb_max_workers=1,
-                nb_items_queue_max=self.nb_items_queue_max,
-                sleep_time=self.sleep_time,
-            )
-            executor.t_start = self.t_start
-            p = Process(target=executor.compute)
-            processes.append(p)
-            p.start()
-        for p in processes:
-            p.join()
+            self.launch_process(topology_this_process, ind_process)
+
+        self.wait_for_all_processes()
 
     def start_multiprocess_series(self):
-
-        process = []
         ind_stop_limit = self.topology.series.ind_stop
         # Defining split values
         ind_start = self.topology.series.ind_start
@@ -194,7 +214,7 @@ class MultiExecutorAsync(ExecutorBase):
         remainder = nb_image_computed % self.nb_processes
         step_process = math.floor(nb_image_computed / self.nb_processes)
         # change topology
-        for i in range(self.nb_processes):
+        for ind_process in range(self.nb_processes):
             new_topology = copy.copy(self.topology)
             new_topology.series.ind_start = ind_start
             add_rest = 0
@@ -214,18 +234,42 @@ class MultiExecutorAsync(ExecutorBase):
             else:
                 new_topology.series.ind_stop = ind_stop
             ind_start = self.topology.series.ind_stop
-            # Create an executor and launch it in a process
+
+            self.launch_process(new_topology, ind_process)
+
+        self.wait_for_all_processes()
+
+    def launch_process(self, topology, ind_process):
+        """Launch one process"""
+
+        def init_and_compute(topology_this_process, log_path):
+            """Create an executor and start it in a process"""
             executor = ExecutorAsyncForMulti(
-                new_topology,
+                topology_this_process,
                 self.path_dir_result,
-                nb_max_workers=1,
-                nb_items_queue_max=self.nb_items_queue_max,
                 sleep_time=self.sleep_time,
+                log_path=log_path,
             )
             executor.t_start = self.t_start
-            p = Process(target=executor.compute)
-            process.append(p)
-            p.start()
+            executor.compute()
+
+        log_path = Path(
+            str(self._log_path).split(".txt")[0] + f"_multi{ind_process:02}.txt"
+        )
+
+        self.log_paths.append(log_path)
+
+        process = Process(target=init_and_compute, args=(topology, log_path))
+
+        process.start()
+        self.processes.append(process)
+
+    def wait_for_all_processes(self):
+        """logging + wait for all processes to finish"""
+        logger.info(
+            f"logging files: {[log_path.name for log_path in self.log_paths]}"
+        )
+
         # wait until end of all processes
-        for p in process:
-            p.join()
+        for process in self.processes:
+            process.join()

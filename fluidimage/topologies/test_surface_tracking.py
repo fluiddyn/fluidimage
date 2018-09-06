@@ -13,7 +13,7 @@ from fluidimage import path_image_samples
 class TestSurftrack(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.path_input_files = path_image_samples / "SurfTracking"
+        cls.path_input_files = path_image_samples / "SurfTracking/Images"
         cls.postfix = "test_surftrack"
 
     @classmethod
@@ -38,7 +38,7 @@ class TestSurftrack(unittest.TestCase):
         params.saving.plot = False
         params.saving.how_many = 100
         params.saving.how = "complete"
-        params.saving.postfix = "surface_tracking_complete"
+        params.saving.postfix = self.postfix
         print(params)
         topology = TopologySurfaceTracking(params, logging_level="info")
         # topology.make_code_graphviz('topo.dot')

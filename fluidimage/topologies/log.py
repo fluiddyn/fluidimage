@@ -47,8 +47,11 @@ class LogTopology:
     def _parse_log(self, path):
         self.works = works = []
         self.works_ended = works_ended = []
-        nb_cpus = None
-        nb_max_workers = None
+        self.nb_cpus_allowed = None
+        self.nb_max_workers = None
+        self.log_files = None
+        self.executor_name = None
+        self.topology_name = None
         with open(path, "r") as f:
             print("Parsing log file: ", path)
             for iline, line in enumerate(f):
@@ -59,15 +62,32 @@ class LogTopology:
                 if line.startswith("ERROR: "):
                     continue
 
-                if nb_cpus is None and line.startswith("nb_cpus_allowed = "):
-                    self.nb_cpus_allowed = nb_cpus = int(line.split()[2])
-                    self._title += ", nb_cpus_allowed = {}".format(nb_cpus)
-
-                if nb_max_workers is None and line.startswith(
-                    "nb_max_workers = "
+                if self.nb_cpus_allowed is None and line.startswith(
+                    "INFO:   nb_cpus_allowed = "
                 ):
-                    self.nb_max_workers = nb_max_workers = int(line.split()[2])
-                    self._title += ", nb_max_workers = {}".format(nb_max_workers)
+                    self.nb_cpus_allowed = int(line.split()[3])
+                    self._title += f", nb_cpus_allowed = {self.nb_cpus_allowed}"
+
+                if self.nb_max_workers is None and line.startswith(
+                    "INFO:   nb_max_workers = "
+                ):
+                    self.nb_max_workers = int(line.split()[3])
+                    self._title += f", nb_max_workers = {self.nb_max_workers}"
+
+                if self.topology_name is None:
+                    begin = "INFO:   topology: "
+                    if line.startswith(begin):
+                        self.topology_name = line.split(begin)[1].strip()
+
+                if self.executor_name is None:
+                    begin = "INFO:   executor: "
+                    if line.startswith(begin):
+                        self.executor_name = line.split(begin)[1].strip()
+
+                if self.log_files is None:
+                    begin = "INFO: logging files: "
+                    if line.startswith(begin):
+                        self.log_files = eval(line.split(begin)[1].strip())
 
                 if line.startswith("INFO: ") and ". mem usage: " in line:
                     line = line[11:]
@@ -96,7 +116,7 @@ class LogTopology:
                             time.strptime(date[:-3], "%Y-%m-%d_%H-%M-%S")
                         ) + float(date[-3:])
 
-                    if "start compute. mem usage:" in line:
+                    if ": starting execution. mem usage" in line:
                         self.date_start = date
                         self.mem_start = mem
                         time_start = t
@@ -114,10 +134,10 @@ class LogTopology:
                         {"name": name, "key": key, "duration": duration}
                     )
 
-                self.names_works = names_works = []
-                for work in works:
-                    if work["name"] not in names_works:
-                        names_works.append(work["name"])
+        self.names_works = names_works = []
+        for work in works:
+            if work["name"] not in names_works:
+                names_works.append(work["name"])
 
         print("\rparsing done")
         self.durations = durations = {}
@@ -185,7 +205,7 @@ class LogTopology:
 
             d = np.nanmean(durations)
             ax.plot(
-                [times.min(), times.max()], [d, d], colors[i] + "-", linewidth=2
+                [times.min(), times.max()], [d, d], colors[i] + ":", linewidth=2
             )
 
         ax.legend(lines, self.names_works, loc="center left", fontsize="x-small")

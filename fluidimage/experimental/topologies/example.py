@@ -42,7 +42,12 @@ class TopologyExample(TopologyBase):
 
     @classmethod
     def create_default_params(cls):
-        params = dict(path_input=None, path_dir_result=None, nloops=1)
+        params = dict(
+            path_input=None,
+            path_dir_result=None,
+            nloops=1,
+            multiplicator_nb_images=1,
+        )
         return params
 
     def __init__(self, params, logging_level="info", nb_max_workers=None):
@@ -51,6 +56,7 @@ class TopologyExample(TopologyBase):
         path_input = params["path_input"]
         path_dir_result = params["path_dir_result"]
         nloops = params["nloops"]
+        self.multiplicator_nb_images = params["multiplicator_nb_images"]
 
         def func1(arrays):
             key = arrays[0]
@@ -78,98 +84,89 @@ class TopologyExample(TopologyBase):
 
         self.img_counter = 0
 
-        queue_names_img0 = self.add_queue("names img 0")
-        queue_names_img1 = self.add_queue("names img 1")
-        queue_names_img2 = self.add_queue("names img 2")
-        queue_array_couple = self.add_queue("array couples")
-        queue_cpu1 = self.add_queue("queue_cpu1")
-        queue_cpu2 = self.add_queue("queue_cpu2")
-
-        self.add_work(
-            "fill names0",
-            func_or_cls=self.fill_names0,
-            output_queue=(queue_names_img0),
-            kind=("global", "one shot"),
-        )
+        queue_names = self.add_queue("names images")
+        queue_couples_names = self.add_queue("names couples")
+        queue_arrays = self.add_queue("arrays")
+        queue_couples_arrays = self.add_queue("couples arrays")
+        queue_cpu1 = self.add_queue("queue cpu1")
+        queue_cpu2 = self.add_queue("queue cpu2")
 
         self.add_work(
             "fill names",
             func_or_cls=self.fill_names,
-            input_queue=queue_names_img0,
-            output_queue=(queue_names_img1, queue_names_img2),
+            output_queue=queue_names,
             kind=("global", "one shot"),
         )
         self.add_work(
-            "make couple",
-            func_or_cls=self.make_couple,
-            input_queue=(queue_names_img1, queue_names_img2),
-            output_queue=queue_array_couple,
+            "fill names couples",
+            func_or_cls=self.fill_couples_names,
+            input_queue=queue_names,
+            output_queue=queue_couples_names,
             kind=("global", "one shot"),
+        )
+
+        self.add_work(
+            "read array",
+            func_or_cls=self.read_array,
+            input_queue=queue_names,
+            output_queue=queue_arrays,
+            kind="io",
+        )
+        self.add_work(
+            "fill couples arrays",
+            func_or_cls=self.fill_couples_arrays,
+            input_queue=(queue_couples_names, queue_arrays),
+            output_queue=queue_couples_arrays,
+            kind=("global"),
         )
         self.add_work(
             "cpu1",
             func_or_cls=func1,
-            input_queue=queue_array_couple,
+            input_queue=queue_couples_arrays,
             output_queue=queue_cpu1,
-            kind="server",
+            kind="cpu",
         )
-
         self.add_work(
             "cpu2",
             func_or_cls=func2,
             params_cls=None,
             input_queue=queue_cpu1,
             output_queue=queue_cpu2,
-            kind="server",
+            kind="cpu",
         )
-
         self.add_work(
-            "save", func_or_cls=self.save, params_cls=None, input_queue=queue_cpu2
+            "save",
+            func_or_cls=self.save,
+            params_cls=None,
+            input_queue=queue_cpu2,
+            kind="io",
         )
 
-    def fill_names0(self, input_queue, output_queue):
-        for name in os.listdir(self.path_input):
-            output_queue[name] = name
+    def fill_names(self, input_queue, output_queue):
+        for ind in range(self.multiplicator_nb_images):
+            for name in os.listdir(self.path_input):
+                key = name.split(".bmp")[0] + f"_{ind:02}"
+                output_queue[key] = name
 
-    def fill_names(self, input_queue, output_queues):
-        for name in list(input_queue.keys()):
-            input_queue.pop(name)
-            output_queues[0][name] = name
-            output_queues[1][name] = name
+    def fill_couples_names(self, input_queue, output_queue):
+        for key, name in list(input_queue.items()):
+            output_queue[key] = [key, (name, name)]
 
-    def make_couple(self, input_queues, output_queue):
+    def read_array(self, name):
+        image = imread(self.path_input / name)
+        return image
 
-        if len(input_queues[0]) != len(input_queues[1]):
-            raise ValueError()
+    def fill_couples_arrays(self, input_queues, output_queue):
+        queue_couples_names, queue_arrays = input_queues
+        queue_couples_arrays = output_queue
 
-        for _ in range(len(input_queues[0])):
-            key1, obj1 = input_queues[0].popitem()
-            key2, obj2 = input_queues[1].popitem()
-            img1 = np.array(imread(self.path_input / obj1))
-            img2 = np.array(imread(self.path_input / obj2))
-            key = key1 + "-" + key2
-            output_queue[key] = [key, img1, img2]
+        for key, array in list(queue_arrays.items()):
+            queue_arrays.pop(key)
+            queue_couples_names.pop(key)
+            queue_couples_arrays[key] = [key, array, array]
 
     def save(self, inputs):
         key = inputs[0]
         arr = inputs[1]
-        name = key.replace(".bmp", "") + ".h5"
+        name = key + ".h5"
         scipy.io.savemat(self.path_dir_result / name, mdict={"array": arr})
-
-    def _print_at_exit(self, time_since_start):
-
-        txt = "Stop compute after t = {:.2f} s".format(time_since_start)
-        try:
-            nb_results = len(self.results)
-        except AttributeError:
-            nb_results = None
-        if nb_results is not None and nb_results > 0:
-            txt += " ({} piv fields, {:.2f} s/field).".format(
-                nb_results, time_since_start / nb_results
-            )
-        else:
-            txt += "."
-
-        txt += "\npath results:\n" + str(self.path_dir_result)
-
-        print(txt)

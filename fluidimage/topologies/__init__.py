@@ -40,6 +40,10 @@ import sys
 
 from fluiddyn.io.query import query
 
+from .log import LogTopology
+
+__all__ = ["LogTopology"]
+
 
 def prepare_path_dir_result(
     path_dir_input, path_saving, postfix_saving, how_saving

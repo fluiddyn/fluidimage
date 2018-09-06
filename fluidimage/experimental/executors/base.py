@@ -18,7 +18,7 @@ from fluiddyn.io.tee import MultiFile
 
 from fluidimage.config import get_config
 from fluidimage.topologies.nb_cpu_cores import nb_cores
-from fluidimage.util import logger, reset_logger, str_short
+from fluidimage.util import logger, reset_logger, str_short, log_memory_usage
 
 from fluidimage import config_logging
 
@@ -37,6 +37,11 @@ class ExecutorBase:
 
     """
 
+    def _init_log_path(self):
+        self._log_path = self.path_dir_result / (
+            "_".join(("log", time_as_str(), str(os.getpid()) + ".txt"))
+        )
+
     def __init__(
         self,
         topology,
@@ -52,10 +57,8 @@ class ExecutorBase:
             path_dir_result = Path(path_dir_result)
             path_dir_result.mkdir(exist_ok=True)
             self.path_dir_result = path_dir_result
-            log = path_dir_result / (
-                "log_" + time_as_str() + "_" + str(os.getpid()) + ".txt"
-            )
-            self._log_file = open(log, "w")
+            self._init_log_path()
+            self._log_file = open(self._log_path, "w")
 
             stdout = sys.stdout
             if isinstance(stdout, MultiFile):
@@ -111,10 +114,14 @@ class ExecutorBase:
 
     def _init_compute(self):
         self.t_start = time()
-        logger.info(
-            f"Starting execution of a {str_short(type(self.topology))} "
-            f"with executor {str_short(type(self))}"
-        )
+        self._init_compute_log()
+
+    def _init_compute_log(self):
+        log_memory_usage(time_as_str(2) + ": starting execution. mem usage")
+        logger.info(f"  topology: {str_short(type(self.topology))}")
+        logger.info(f"  executor: {str_short(type(self))}")
+        logger.info(f"  nb_cpus_allowed = {nb_cores}")
+        logger.info(f"  nb_max_workers = {self.nb_max_workers}")
 
     def _reset_std_as_default(self):
         sys.stdout = sys.__stdout__
@@ -123,5 +130,6 @@ class ExecutorBase:
         self._log_file.close()
 
     def _finalize_compute(self):
+        log_memory_usage(time_as_str(2) + ": end of `compute`. mem usage")
         self.topology._print_at_exit(time() - self.t_start)
         self._reset_std_as_default()

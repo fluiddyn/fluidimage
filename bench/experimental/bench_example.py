@@ -15,14 +15,15 @@ def bench():
 
     params["path_input"] = path_input
     params["path_dir_result"] = path_dir_result
-    params["nloops"] = 10000
+    params["nloops"] = 20000
+    params["multiplicator_nb_images"] = 3
 
     executors = [
-        "exec_async",
         "exec_async_sequential",
-        # "multi_exec_async",
-        # "exec_async_multi",
-        # "exec_async_servers",
+        "exec_async",
+        "multi_exec_async",
+        "exec_async_multi",
+        "exec_async_servers",
     ]
 
     durations = []
@@ -30,11 +31,16 @@ def bench():
     for executor in executors:
         t_start = time()
         topology = TopologyExample(params, logging_level="info")
-        topology.compute(executor)
+        topology.compute(executor, sleep_time=0.01)
         durations.append(time() - t_start)
 
+    duration_seq = durations[0]
+
     for executor, duration in zip(executors, durations):
-        print(f"{executor + ':':30s}{duration}")
+        print(
+            f"{executor + ':':30s}{duration:8.2f} s, "
+            f"speedup: {duration_seq/duration:5.2f}"
+        )
 
     # if path_dir_result.exists():
     #     rmtree(path_dir_result)

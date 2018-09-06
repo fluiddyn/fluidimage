@@ -28,6 +28,9 @@ class Queue(dict):
         self.name = name
         self.kind = kind
 
+    def __repr__(self):
+        return f'\nqueue "{self.name}": ' + super().__repr__()
+
 
 class Work(MyObj):
     """Represent a work"""
@@ -94,7 +97,9 @@ class TopologyBase:
             raise ValueError(f"The name {name} is already used.")
         self.works_dict[name] = work
 
-    def compute(self, executor="exec_async", nb_max_workers=None):
+    def compute(
+        self, executor="exec_async", nb_max_workers=None, sleep_time=0.01
+    ):
         """Compute (run all works to be done). """
         if executor is None:
             executor = "exec_async"
@@ -108,14 +113,15 @@ class TopologyBase:
                 self,
                 path_dir_result=self.path_dir_result,
                 nb_max_workers=nb_max_workers,
+                sleep_time=sleep_time,
                 logging_level=self.logging_level,
             )
 
         self.executor.compute()
 
-    def _print_at_exit(self, time_since_start):
-        """Print information before exit."""
-        txt = "Stop compute after t = {:.2f} s".format(time_since_start)
+    def _make_text_at_exit(self, time_since_start):
+        """Text information before exit."""
+        txt = f"Stop compute after t = {time_since_start:.2f} s"
         try:
             nb_results = len(self.results)
         except AttributeError:
@@ -130,7 +136,11 @@ class TopologyBase:
         if hasattr(self, "path_dir_result"):
             txt += "\npath results:\n" + str(self.path_dir_result)
 
-        print(txt)
+        return txt
+
+    def _print_at_exit(self, time_since_start):
+        """Print information before exit."""
+        print(self._make_text_at_exit(time_since_start))
 
     def make_code_graphviz(self, name_file):
         """Generate the graphviz / dot code."""

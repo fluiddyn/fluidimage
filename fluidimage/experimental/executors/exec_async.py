@@ -21,9 +21,8 @@ import time
 import collections
 
 import trio
-from IPython.lib.pretty import pretty
 
-from fluidimage.util import logger, log_memory_usage
+from fluidimage.util import logger, log_memory_usage, str_short
 
 from .base import ExecutorBase
 
@@ -64,7 +63,7 @@ class ExecutorAsync(ExecutorBase):
         path_dir_result,
         nb_max_workers=None,
         nb_items_queue_max=None,
-        sleep_time=0.1,
+        sleep_time=0.01,
         logging_level="info",
     ):
         super().__init__(
@@ -132,7 +131,7 @@ class ExecutorAsync(ExecutorBase):
                 def func(work=w):
                     work.func_or_cls(work.input_queue, work.output_queue)
 
-                func._pretty = pretty(w.func_or_cls.__func__)
+                func._pretty = str_short(w.func_or_cls.__func__)
 
                 self.funcs[w.name] = func
                 continue

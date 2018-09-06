@@ -10,8 +10,6 @@ A executor using async for IO and multiprocessing for CPU bounded tasks.
 
 import time
 
-import trio
-
 from fluidimage.util import logger, log_memory_usage
 
 from .exec_async import ExecutorAsync

@@ -69,7 +69,7 @@ class WorkerMultiprocessing(Worker):
 
 
 class WorkerServer:
-    def __init__(self, sleep_time=0.1):
+    def __init__(self, sleep_time=0.01):
         self.sleep_time = sleep_time
         self.to_be_processed = []
         self.to_be_resent = []

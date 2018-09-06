@@ -114,9 +114,9 @@ class TopologyBase:
         if nb_max_workers < 1:
             raise ValueError("nb_max_workers < 1")
 
-        print("nb_cpus_allowed = {}".format(nb_cores))
-        print("nb_max_workers = ", nb_max_workers)
-        print("nb_max_workers_io = ", self.nb_max_workers_io)
+        logger.info(f"  nb_cpus_allowed = {nb_cores}")
+        logger.info(f"  nb_max_workers = {nb_max_workers}")
+        logger.info(f"  nb_max_workers_io = {self.nb_max_workers_io}")
 
         self.queues = queues
         self.nb_max_workers = nb_max_workers
@@ -173,7 +173,7 @@ class TopologyBase:
 
         self.t_start = time()
 
-        log_memory_usage(time_as_str(2) + ": start compute. mem usage")
+        log_memory_usage(time_as_str(2) + ": starting execution. mem usage")
 
         self.nb_workers_cpu = 0
         self.nb_workers_io = 0

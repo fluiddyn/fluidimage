@@ -291,17 +291,14 @@ class WorkSurfaceTracking(BaseWork):
         return H, Hfilt
 
     def set_gain_filter(self, k_x, l_y, l_x, slicer):
-        kx = np.arange(-l_x/2, l_x/2)/l_x
-        ky = np.arange(-l_y/2, l_y/2)/l_y
+        kx = np.arange(-l_x / 2, l_x / 2) / l_x
+        ky = np.arange(-l_y / 2, l_y / 2) / l_y
         kxgrid, kygrid = np.meshgrid(kx, ky)
         X, Y = np.meshgrid(kx * l_x, ky * l_y)
         gain = np.exp(-1.j * 2 * np.pi * (k_x / l_x * X))
         filt1 = np.fft.fftshift(
             np.exp(-((kxgrid ** 2 + kygrid ** 2) / 2 / (k_x / slicer / l_x) ** 2))
-            * np.exp(
-                1
-                - 1 / (1 + ((kxgrid + k_x) ** 2 + kygrid ** 2) / k_x ** 2)
-            )
+            * np.exp(1 - 1 / (1 + ((kxgrid + k_x) ** 2 + kygrid ** 2) / k_x ** 2))
         )
 
         filt2 = np.fft.fftshift(
@@ -330,7 +327,7 @@ class WorkSurfaceTracking(BaseWork):
         return np.fft.fft2(frame * gain) * filt
 
     def frame_normalize(self, frame):
-        '''normalize the frame values by its mean value'''
+        """normalize the frame values by its mean value"""
         meanx_frame = np.mean(frame, axis=1)
         for y in range(np.shape(frame)[1]):
             frame[:, y] = frame[:, y] / meanx_frame
