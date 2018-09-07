@@ -4,16 +4,28 @@
 
 """
 
-from multiprocessing import Process, Pipe, Event
-
-from threading import Thread
-
+import sys
 import signal
+import time
+
+from multiprocessing import Process, Pipe, Event
+from threading import Thread
 
 import trio
 
+from fluiddyn.io.tee import MultiFile
+from fluidimage.util import logger, log_memory_usage
 
-def launch_server(topology, type_server="multiprocessing", sleep_time=0.1):
+from fluidimage import config_logging
+
+
+def launch_server(
+    topology,
+    log_path,
+    type_server="multiprocessing",
+    sleep_time=0.1,
+    logging_level="info",
+):
 
     parent_conn, child_conn = Pipe()
 
@@ -38,6 +50,8 @@ def launch_server(topology, type_server="multiprocessing", sleep_time=0.1):
             topology.params,
             sleep_time,
             in_process,
+            log_path,
+            logging_level,
         ),
     )
     process.daemon = True
@@ -70,6 +84,9 @@ class WorkerMultiprocessing(Worker):
     def send_job(self, obj):
         self.is_unoccupied = False
         self.nb_items_to_process += 1
+        self.send(obj)
+
+    def send(self, obj):
         self.conn.send(obj)
 
     def new_pipe(self):
@@ -115,8 +132,10 @@ class WorkerServerMultiprocessing(WorkerServer):
         event_has_to_stop,
         topology_cls,
         params,
-        sleep_time=0.1,
-        in_process=True,
+        sleep_time,
+        in_process,
+        log_path,
+        logging_level,
     ):
 
         if in_process:
@@ -130,6 +149,26 @@ class WorkerServerMultiprocessing(WorkerServer):
         self.conn = conn
         self.event_has_to_stop = event_has_to_stop
         self.topology = topology_cls(params)
+
+        self._log_file = open(log_path, "w")
+
+        stdout = sys.stdout
+        if isinstance(stdout, MultiFile):
+            stdout = sys.__stdout__
+
+        stderr = sys.stderr
+        if isinstance(stderr, MultiFile):
+            stderr = sys.__stderr__
+
+        sys.stdout = MultiFile([stdout, self._log_file])
+        sys.stderr = MultiFile([stderr, self._log_file])
+
+        if logging_level:
+            for handler in logger.handlers:
+                logger.removeHandler(handler)
+
+            config_logging(logging_level, file=sys.stdout)
+
         super().__init__(sleep_time=sleep_time)
 
     async def check_event_has_to_stop(self):
@@ -142,8 +181,11 @@ class WorkerServerMultiprocessing(WorkerServer):
     async def receive(self):
         while self._has_to_continue:
             ret = await trio.run_sync_in_worker_thread(self.conn.recv)
-            print("receive", ret)
-            self.to_be_processed.append(ret)
+            logger.info(f"receive: {ret}")
+            if isinstance(ret, tuple) and ret[0] == "__t_start__":
+                self.t_start = ret[1]
+            else:
+                self.to_be_processed.append(ret)
 
     async def launch_works(self):
         while self._has_to_continue:
@@ -156,12 +198,21 @@ class WorkerServerMultiprocessing(WorkerServer):
             def do_the_job(work, obj):
                 return work.func_or_cls(obj)
 
-            print("launch", work_name, key)
+            t_start = time.time()
 
-            await trio.run_sync_in_worker_thread(
-                child_conn.send, "computation started"
+            log_memory_usage(
+                f"{t_start - self.t_start:.2f} s. Launch work "
+                + work_name.replace(" ", "_")
+                + f" ({key}). mem usage"
             )
             result = await trio.run_sync_in_worker_thread(do_the_job, work, obj)
+
+            logger.info(
+                "work {} ({}) done in {:.3f} s".format(
+                    work.name.replace(" ", "_"), key, time.time() - t_start
+                )
+            )
+
             self.to_be_resent.append((work_name, key, result, child_conn))
 
     async def send(self):

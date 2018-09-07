@@ -17,6 +17,9 @@ import copy
 import math
 from time import time
 from pathlib import Path
+import os
+
+from fluiddyn import time_as_str
 
 from fluidimage.util import logger
 
@@ -105,6 +108,12 @@ class MultiExecutorAsync(ExecutorBase):
         self.sleep_time = sleep_time
         self.nb_processes = self.nb_max_workers
         self.processes = []
+
+    def _init_log_path(self):
+        name = "_".join(("log", time_as_str(), str(os.getpid())))
+        path_dir_log = self.path_dir_result / name
+        path_dir_log.mkdir(exist_ok=True)
+        self._log_path = path_dir_log / (name + ".txt")
 
     def compute(self):
         """Compute the topology.
@@ -254,7 +263,7 @@ class MultiExecutorAsync(ExecutorBase):
             executor.compute()
 
         log_path = Path(
-            str(self._log_path).split(".txt")[0] + f"_multi{ind_process:02}.txt"
+            str(self._log_path).split(".txt")[0] + f"_multi{ind_process:03}.txt"
         )
 
         self.log_paths.append(log_path)

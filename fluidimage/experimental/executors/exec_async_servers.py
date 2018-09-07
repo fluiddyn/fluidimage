@@ -6,15 +6,16 @@ Not implemented!
 
 """
 
-import time
 import signal
+import os
+from pathlib import Path
 
 import trio
 import numpy as np
 
-from fluidimage.util import logger, log_memory_usage
+from fluiddyn import time_as_str
 
-# from fluidimage.topologies.nb_cpu_cores import nb_cores
+from fluidimage.util import logger
 
 from .exec_async import ExecutorAsync
 from .servers import launch_server
@@ -46,6 +47,12 @@ class ExecutorAsyncServers(ExecutorAsync):
 
     _type_server = "multiprocessing"
 
+    def _init_log_path(self):
+        name = "_".join(("log", time_as_str(), str(os.getpid())))
+        path_dir_log = self.path_dir_result / name
+        path_dir_log.mkdir(exist_ok=True)
+        self._log_path = path_dir_log / (name + ".txt")
+
     def __init__(
         self,
         topology,
@@ -55,9 +62,6 @@ class ExecutorAsyncServers(ExecutorAsync):
         sleep_time=0.01,
         logging_level="info",
     ):
-
-        # if nb_max_workers is None:
-        #     nb_max_workers = nb_cores
 
         super().__init__(
             topology,
@@ -69,10 +73,22 @@ class ExecutorAsyncServers(ExecutorAsync):
         )
 
         # create nb_max_workers servers
-        self.workers = [
-            launch_server(topology, self._type_server, sleep_time)
-            for _ in range(self.nb_max_workers)
-        ]
+        self.workers = []
+
+        for ind_worker in range(self.nb_max_workers):
+            log_path = Path(
+                str(self._log_path).split(".txt")[0]
+                + f"_multi{ind_worker:03}.txt"
+            )
+            self.workers.append(
+                launch_server(
+                    topology,
+                    log_path,
+                    self._type_server,
+                    sleep_time,
+                    logging_level,
+                )
+            )
 
         def signal_handler(sig, frame):
             logger.info("Ctrl+C signal received...")
@@ -86,6 +102,21 @@ class ExecutorAsyncServers(ExecutorAsync):
             raise KeyboardInterrupt
 
         signal.signal(signal.SIGINT, signal_handler)
+
+    def compute(self):
+        """Compute the whole topology.
+
+        Begin by executing one shot jobs, then execute multiple shots jobs
+        implemented as async functions.  Warning, one shot jobs must be ancestors
+        of multiple shots jobs in the topology.
+
+        """
+        self._init_compute()
+        for worker in self.workers:
+            worker.send(("__t_start__", self.t_start))
+        self.exec_one_shot_job()
+        trio.run(self.start_async_works)
+        self._finalize_compute()
 
     async def start_async_works(self):
         """Create a trio nursery and start all async functions.
@@ -159,7 +190,6 @@ class ExecutorAsyncServers(ExecutorAsync):
           The value of the dictionnary item to be process
 
         """
-        t_start = time.time()
 
         def run_process():
 
@@ -168,21 +198,6 @@ class ExecutorAsyncServers(ExecutorAsync):
             # send (work, key, obj, comm) to the server
             worker.send_job((work.name, key, obj, child_conn))
             worker.is_available = True
-
-            # wait for the signal of the start of the computation
-            signal = parent_conn.recv()
-
-            # check the value of signal
-            if not signal == "computation started":
-                raise Exception
-
-            # log launch work
-            log_memory_usage(
-                "{:.2f} s. ".format(time.time() - self.t_start)
-                + "Launch work "
-                + work.name.replace(" ", "_")
-                + " ({}). mem usage".format(key)
-            )
 
             # wait for the end of the computation
             work_name_received, key_received, result = parent_conn.recv()
@@ -196,12 +211,6 @@ class ExecutorAsyncServers(ExecutorAsync):
         ret = await trio.run_sync_in_worker_thread(run_process)
         if work.output_queue is not None:
             work.output_queue[key] = ret
-
-        logger.info(
-            "work {} ({}) done in {:.3f} s".format(
-                work.name.replace(" ", "_"), key, time.time() - t_start
-            )
-        )
 
     def def_async_func_work_cpu_with_output_queue(self, work):
         async def func(work=work):

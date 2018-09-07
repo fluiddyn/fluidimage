@@ -11,6 +11,7 @@ from glob import glob
 import os
 import time
 import sys
+from pathlib import Path
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -32,15 +33,16 @@ class LogTopology:
 
         if os.path.isdir(path):
             pattern = os.path.join(path, "log_*.txt")
-            paths = glob(pattern)
-            paths.sort()
+            paths = sorted(glob(pattern))
+            paths = [path for path in paths if "_multi" not in path]
             if len(paths) == 0:
                 raise ValueError("No log files found in the current directory.")
 
             path = paths[-1]
 
+        self.log_dir_path = Path(path).parent
         self.log_file = os.path.basename(path)
-        self._title = self.log_file
+        self._title = str(self.log_file)
 
         self._parse_log(path)
 
@@ -52,12 +54,11 @@ class LogTopology:
         self.log_files = None
         self.executor_name = None
         self.topology_name = None
-        with open(path, "r") as f:
+        with open(path, "r") as logfile:
             print("Parsing log file: ", path)
-            for iline, line in enumerate(f):
+            for iline, line in enumerate(logfile):
                 if iline % 100 == 0:
-                    print("\rparse line {}".format(iline), end="")
-                    sys.stdout.flush()
+                    print(f"\rparse line {iline}", end="", flush=True)
 
                 if line.startswith("ERROR: "):
                     continue
@@ -133,6 +134,65 @@ class LogTopology:
                     works_ended.append(
                         {"name": name, "key": key, "duration": duration}
                     )
+
+        if self.log_files is not None:
+            path_dir = self.log_dir_path
+            for file_name in self.log_files:
+                path = path_dir / file_name
+                print("poum", path_dir, path)
+                with open(path, "r") as logfile:
+                    print("Parsing log file: ", path)
+                    for iline, line in enumerate(logfile):
+                        if iline % 100 == 0:
+                            print(f"\rparse line {iline}", end="", flush=True)
+
+                        if line.startswith("ERROR: "):
+                            continue
+
+                        if line.startswith("INFO: ") and ". mem usage: " in line:
+                            line = line[11:]
+                            words = line.split()
+
+                            try:
+                                mem = float(words[-2])
+                            except ValueError:
+                                pass
+
+                            if ". Launch work " in line:
+                                name = words[4]
+                                key = words[5][1:-2]
+                                t = float(words[0])
+                                works.append(
+                                    {
+                                        "name": name,
+                                        "key": key,
+                                        "mem_start": mem,
+                                        "time": t,
+                                    }
+                                )
+                            else:
+                                date = words[0][:-1]
+                                t = time.mktime(
+                                    time.strptime(date[:-3], "%Y-%m-%d_%H-%M-%S")
+                                ) + float(date[-3:])
+
+                            if ": starting execution. mem usage" in line:
+                                self.date_start = date
+                                self.mem_start = mem
+                                time_start = t
+                            elif ": end of `compute`. mem usage" in line:
+                                self.date_end = date
+                                self.duration = t - time_start
+                                self.mem_end = mem
+
+                        if line.startswith("INFO: work "):
+                            words = line.split()
+                            name = words[2]
+                            key = words[3][1:-1]
+                            duration = float(words[-2])
+                            works_ended.append(
+                                {"name": name, "key": key, "duration": duration}
+                            )
 
         self.names_works = names_works = []
         for work in works:
