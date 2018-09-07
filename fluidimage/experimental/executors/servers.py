@@ -4,16 +4,20 @@
 
 """
 
-from multiprocessing import Process, Pipe
+from multiprocessing import Process, Pipe, Event
 
 from threading import Thread
+
+import signal
 
 import trio
 
 
-def launch_server(topology, type_server="multiprocessing"):
+def launch_server(topology, type_server="multiprocessing", sleep_time=0.1):
 
     parent_conn, child_conn = Pipe()
+
+    event_has_to_stop = Event()
 
     # for testing
     if type_server == "multiprocessing":
@@ -23,21 +27,31 @@ def launch_server(topology, type_server="multiprocessing"):
     else:
         raise ValueError
 
+    in_process = Process_ == Process
+
     process = Process_(
         target=WorkerServerMultiprocessing,
-        args=(child_conn, type(topology), topology.params),
+        args=(
+            child_conn,
+            event_has_to_stop,
+            type(topology),
+            topology.params,
+            sleep_time,
+            in_process,
+        ),
     )
     process.daemon = True
 
     process.start()
-    worker = WorkerMultiprocessing(parent_conn, process)
+    worker = WorkerMultiprocessing(parent_conn, event_has_to_stop, process)
 
     return worker
 
 
 class Worker:
-    def __init__(self, conn, process):
+    def __init__(self, conn, event_has_to_stop, process):
         self.conn = conn
+        self.event_has_to_stop = event_has_to_stop
         self.process = process
         self.nb_items_to_process = 0
         self.is_available = True
@@ -62,7 +76,8 @@ class WorkerMultiprocessing(Worker):
         return Pipe()
 
     def terminate(self):
-        self.conn.send("__terminate__")
+        # self.conn.send("__terminate__")
+        self.event_has_to_stop.set()
         if hasattr(self.process, "terminate"):
             self.process.terminate()
 
@@ -78,6 +93,7 @@ class WorkerServer:
 
     async def _start_async(self):
         async with trio.open_nursery() as self.nursery:
+            self.nursery.start_soon(self.check_event_has_to_stop)
             self.nursery.start_soon(self.receive)
             self.nursery.start_soon(self.launch_works)
             self.nursery.start_soon(self.send)
@@ -93,18 +109,40 @@ class WorkerServer:
 
 
 class WorkerServerMultiprocessing(WorkerServer):
-    def __init__(self, conn, topology_cls, params, sleep_time=0.1):
+    def __init__(
+        self,
+        conn,
+        event_has_to_stop,
+        topology_cls,
+        params,
+        sleep_time=0.1,
+        in_process=True,
+    ):
+
+        if in_process:
+
+            def signal_handler(sig, frame):
+                self._has_to_continue = False
+                self.nursery.cancel_scope.cancel()
+
+            signal.signal(signal.SIGINT, signal_handler)
+
         self.conn = conn
+        self.event_has_to_stop = event_has_to_stop
         self.topology = topology_cls(params)
         super().__init__(sleep_time=sleep_time)
+
+    async def check_event_has_to_stop(self):
+        while self._has_to_continue:
+            if self.event_has_to_stop.is_set():
+                self._has_to_continue = False
+                break
+            await trio.sleep(self.sleep_time)
 
     async def receive(self):
         while self._has_to_continue:
             ret = await trio.run_sync_in_worker_thread(self.conn.recv)
             print("receive", ret)
-            if ret == "__terminate__":
-                self._has_to_continue = False
-                break
             self.to_be_processed.append(ret)
 
     async def launch_works(self):

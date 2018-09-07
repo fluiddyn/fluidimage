@@ -41,7 +41,7 @@ class ExecutorAsyncForMulti(ExecutorAsyncSequential):
             topology,
             path_dir_result,
             nb_max_workers=1,
-            nb_items_queue_max=2,
+            nb_items_queue_max=3,
             sleep_time=sleep_time,
             logging_level=logging_level,
         )

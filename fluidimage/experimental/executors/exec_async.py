@@ -19,6 +19,7 @@ computation can use many CPU at a time.
 
 import time
 import collections
+import signal
 
 import trio
 
@@ -88,6 +89,15 @@ class ExecutorAsync(ExecutorBase):
         # Functions definition
         self.store_async_works()
         self.define_functions()
+
+        def signal_handler(sig, frame):
+            logger.info("Ctrl+C signal received...")
+            self._has_to_stop = True
+            self.nursery.cancel_scope.cancel()
+            # it seems that we don't need to raise the exception
+            # raise KeyboardInterrupt
+
+        signal.signal(signal.SIGINT, signal_handler)
 
     def compute(self):
         """Compute the whole topology.

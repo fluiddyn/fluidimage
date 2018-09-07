@@ -7,6 +7,7 @@ Not implemented!
 """
 
 import time
+import signal
 
 import trio
 import numpy as np
@@ -69,9 +70,22 @@ class ExecutorAsyncServers(ExecutorAsync):
 
         # create nb_max_workers servers
         self.workers = [
-            launch_server(topology, self._type_server)
+            launch_server(topology, self._type_server, sleep_time)
             for _ in range(self.nb_max_workers)
         ]
+
+        def signal_handler(sig, frame):
+            logger.info("Ctrl+C signal received...")
+
+            for worker in self.workers:
+                worker.terminate()
+
+            self._has_to_stop = True
+            self.nursery.cancel_scope.cancel()
+            # we need to raise the exception
+            raise KeyboardInterrupt
+
+        signal.signal(signal.SIGINT, signal_handler)
 
     async def start_async_works(self):
         """Create a trio nursery and start all async functions.
