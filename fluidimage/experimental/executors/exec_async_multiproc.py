@@ -63,6 +63,7 @@ class ExecutorAsyncMultiproc(ExecutorAsync):
                 target=exec_work_and_comm,
                 args=(work.func_or_cls, obj, child_conn),
             )
+            process.daemon = True
             process.start()
             result = parent_conn.recv()
             process.join(10 * self.sleep_time)

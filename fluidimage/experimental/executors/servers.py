@@ -27,8 +27,7 @@ def launch_server(topology, type_server="multiprocessing"):
         target=WorkerServerMultiprocessing,
         args=(child_conn, type(topology), topology.params),
     )
-    if type_server == "threading":
-        process.daemon = True
+    process.daemon = True
 
     process.start()
     worker = WorkerMultiprocessing(parent_conn, process)
@@ -102,20 +101,24 @@ class WorkerServerMultiprocessing(WorkerServer):
     async def receive(self):
         while self._has_to_continue:
             ret = await trio.run_sync_in_worker_thread(self.conn.recv)
+            print("receive", ret)
             if ret == "__terminate__":
                 self._has_to_continue = False
                 break
             self.to_be_processed.append(ret)
 
-    async def send(self):
+    async def launch_works(self):
         while self._has_to_continue:
             while not self.to_be_processed:
                 await trio.sleep(self.sleep_time)
+
             work_name, key, obj, child_conn = self.to_be_processed.pop(0)
             work = self.topology.works_dict[work_name]
 
             def do_the_job(work, obj):
                 return work.func_or_cls(obj)
+
+            print("launch", work_name, key)
 
             await trio.run_sync_in_worker_thread(
                 child_conn.send, "computation started"
@@ -123,12 +126,13 @@ class WorkerServerMultiprocessing(WorkerServer):
             result = await trio.run_sync_in_worker_thread(do_the_job, work, obj)
             self.to_be_resent.append((work_name, key, result, child_conn))
 
-    async def launch_works(self):
+    async def send(self):
         while self._has_to_continue:
             while not self.to_be_resent:
                 await trio.sleep(self.sleep_time)
             work_name, key, result, child_conn = self.to_be_resent.pop(0)
 
+            print("send", work_name, key)
             await trio.run_sync_in_worker_thread(
                 child_conn.send, (work_name, key, result)
             )

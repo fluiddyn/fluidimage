@@ -260,7 +260,7 @@ class MultiExecutorAsync(ExecutorBase):
         self.log_paths.append(log_path)
 
         process = Process(target=init_and_compute, args=(topology, log_path))
-
+        process.daemon = True
         process.start()
         self.processes.append(process)
 
