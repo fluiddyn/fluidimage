@@ -12,7 +12,7 @@ import os
 import json
 import copy
 import sys
-from typing import List, Tuple
+from typing import List, Tuple, Dict, Any
 
 from fluidimage import SeriesOfArrays
 from fluidimage.util import imread
@@ -189,7 +189,7 @@ strcouple : str or None
 
     ..todo::
 
-        rename this parameter to strsubset / strslice
+        rename this parameter to strsubset / strslice 
 
 how : str {'ask', 'new_dir', 'complete', 'recompute'}
     How preprocessed images must be saved if it already exists or not.
@@ -254,11 +254,9 @@ postfix : str
         self.results = self.preproc_work.results
         self.display = self.preproc_work.display
 
-
-
         # Define Queues
         queue_name_series = self.add_queue("filename series")
-        queue_paths = self.add_queue("image paths")
+        queue_path = self.add_queue("image paths")
         queue_array = self.add_queue("arrays")
         queue_array_series = self.add_queue("array series")
         queue_preproc = self.add_queue("preproc")
@@ -266,13 +264,70 @@ postfix : str
         self.add_work(
             "fill (series name couple, paths)",
             func_or_cls=self.fill_name_series_and_paths,
-            output_queue=(queue_name_series, queue_paths),
+            output_queue=(queue_name_series, queue_path),
             kind=("global", "one shot"),
         )
 
         def save_preproc_results_object(self, o):
             return o.save(path=self.path_dir_result)
-    
 
+        def init_series(self) -> List[str]:
+            """Initializes the SeriesOfArrays object `self.series` based on input
+            parameters."""
+            series = self.series
+            if len(series) == 0:
+                logger.warning(
+                    "encountered empty series. No images to preprocess."
+                )
+                return
 
-    
+            if self.how_saving == "complete":
+                names = []
+                index_series = []
+                for i, serie in enumerate(series):
+                    names_serie = serie.get_name_arrays()
+                    name_preproc = get_name_preproc(
+                        serie,
+                        names_serie,
+                        i,
+                        series.nb_series,
+                        self.params.saving.format,
+                    )
+                    if os.path.exists(
+                        os.path.join(self.path_dir_result, name_preproc)
+                    ):
+                        continue
+
+                    for name in names_serie:
+                        if name not in names:
+                            names.append(name)
+
+                    index_series.append(i + series.ind_start)
+
+                if len(index_series) == 0:
+                    logger.warning(
+                        'topology in mode "complete" and work already done.'
+                    )
+                    return
+
+                series.set_index_series(index_series)
+
+                logger.debug(repr(names))
+                logger.debug(repr([serie.get_name_arrays() for serie in series]))
+            else:
+                names = series.get_name_all_arrays()
+
+            logger.info("Add {} image serie(s) to compute.".format(len(series)))
+            return names
+
+        def fill_name_series_and_paths(
+            self, input_queue: None, output_queues: Tuple[List[Any]]
+        ) -> None:
+            queue_name_series, queue_path = output_queues
+
+            names = self.init_series()
+            for i, serie in enumerate(self.series):
+                inew = i * self.series.ind_step + series.ind_start
+                queue_name_series[inew] = serie.get_name_arrays()
+                queue_path[serie.get_name_arrays()[0]] = serie.get_path_files()[0]
+                queue_path[serie.get_name_arrays()[1]] = serie.get_path_files()[1]
