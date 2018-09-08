@@ -19,8 +19,7 @@ from fluidimage.topologies import prepare_path_dir_result
 from fluidimage.works.piv import WorkPIV
 from fluidimage.data_objects.piv import get_name_bos, ArrayCoupleBOS
 from fluidimage.util import logger, imread
-from fluidimage.topologies import image2image
-
+from . import image2image_new as image2image
 
 from .piv_new import still_is_in_dict
 

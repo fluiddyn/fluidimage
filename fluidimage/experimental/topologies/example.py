@@ -12,7 +12,6 @@ with C functions.
 
 import os
 
-import numpy as np
 import scipy.io
 
 from fluidimage.experimental.cpu_bounded_task_examples_pythran import cpu1, cpu2

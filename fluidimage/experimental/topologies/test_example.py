@@ -38,12 +38,12 @@ class TestTopoExample(unittest.TestCase):
             self.topologies.append(topology)
             topology.compute(executor, nb_max_workers=2)
 
-            if executors != "exec_async_servers_threading":
+            if executor != "exec_async_servers_threading":
                 # there is a logging problem with this class but we don't mind.
                 log = LogTopology(path_dir_result)
                 self.assertTrue(log.topology_name is not None)
 
-                rmtree(path_dir_result, ignore_errors=True)
+            rmtree(path_dir_result, ignore_errors=True)
 
 
 if __name__ == "__main__":
