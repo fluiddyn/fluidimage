@@ -16,11 +16,13 @@ else:
 
 nb_cores = cpu_count()
 
+allow_hyperthreading = False
+
 if config is not None:
     try:
         allow_hyperthreading = eval(config["topology"]["allow_hyperthreading"])
     except KeyError:
-        allow_hyperthreading = True
+        pass
 
 try:  # should work on UNIX
     # found in http://stackoverflow.com/questions/1006289/how-to-find-out-the-number-of-cpus-using-python # noqa
@@ -44,26 +46,12 @@ try:  # should work on UNIX
         if line.startswith("siblings") and siblings is None:
             siblings = int(line.split()[-1])
 
-    if nb_proc_tot == siblings * 2:
-        if allow_hyperthreading is False:
+    if nb_cores == siblings * 2:
+        if not allow_hyperthreading:
             print("We do not use hyperthreading.")
             nb_cores //= 2
 
+    print(nb_proc_tot, siblings, nb_cores)
+
 except IOError:
     pass
-
-# nb_max_workers = None
-# if config is not None:
-#     try:
-#         nb_max_workers = eval(config["topology"]["nb_max_workers"])
-#     except KeyError:
-#         pass
-
-# # default nb_max_workers
-# # Difficult: trade off between overloading and limitation due to input output.
-# # The user can do much better for a specific case.
-# if nb_max_workers is None:
-#     if nb_cores < 16:
-#         nb_max_workers = nb_cores + 2
-#     else:
-#         nb_max_workers = nb_cores

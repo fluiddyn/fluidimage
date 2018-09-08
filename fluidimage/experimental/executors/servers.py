@@ -181,7 +181,7 @@ class WorkerServerMultiprocessing(WorkerServer):
     async def receive(self):
         while self._has_to_continue:
             ret = await trio.run_sync_in_worker_thread(self.conn.recv)
-            logger.info(f"receive: {ret}")
+            logger.debug(f"receive: {ret}")
             if isinstance(ret, tuple) and ret[0] == "__t_start__":
                 self.t_start = ret[1]
             else:
@@ -221,7 +221,7 @@ class WorkerServerMultiprocessing(WorkerServer):
                 await trio.sleep(self.sleep_time)
             work_name, key, result, child_conn = self.to_be_resent.pop(0)
 
-            print("send", work_name, key)
+            logger.debug(f"send {work_name}, {key}")
             await trio.run_sync_in_worker_thread(
                 child_conn.send, (work_name, key, result)
             )

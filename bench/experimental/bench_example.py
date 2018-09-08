@@ -15,7 +15,7 @@ def bench():
 
     params["path_input"] = path_input
     params["path_dir_result"] = path_dir_result
-    params["nloops"] = 20000
+    params["nloops"] = 30000
     params["multiplicator_nb_images"] = 3
 
     executors = [

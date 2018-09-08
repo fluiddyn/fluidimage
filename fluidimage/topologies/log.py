@@ -10,7 +10,6 @@
 from glob import glob
 import os
 import time
-import sys
 from pathlib import Path
 
 import numpy as np
@@ -30,18 +29,26 @@ class LogTopology:
     """
 
     def __init__(self, path):
+        path = Path(path)
 
-        if os.path.isdir(path):
-            pattern = os.path.join(path, "log_*.txt")
-            paths = sorted(glob(pattern))
-            paths = [path for path in paths if "_multi" not in path]
+        if path.is_dir():
+            paths = sorted(glob(str(path / "log_*")))
+            paths = [path for path in paths if "_multi" not in Path(path).name]
             if len(paths) == 0:
                 raise ValueError("No log files found in the current directory.")
 
-            path = paths[-1]
+            path = Path(paths[-1])
+            if path.is_dir():
+                path = Path(
+                    next(
+                        path
+                        for path in glob(str(path / "log*"))
+                        if "_multi" not in path
+                    )
+                )
 
-        self.log_dir_path = Path(path).parent
-        self.log_file = os.path.basename(path)
+        self.log_dir_path = path.parent
+        self.log_file = path.name
         self._title = str(self.log_file)
 
         self._parse_log(path)
