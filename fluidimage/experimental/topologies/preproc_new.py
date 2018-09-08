@@ -1,0 +1,215 @@
+"""Topology for PIV computation (:mod:`fluidimage.experimental.topologies.piv`)
+===============================================================================
+
+New topology for PIV computation.
+
+.. autoclass:: TopologyPIV
+   :members:
+   :private-members:
+
+"""
+import os
+import json
+import copy
+import sys
+from fluidimage import SeriesOfArrays
+from fluidimage.util import imread
+
+from fluidimage.works.preproc import WorkPreproc
+
+from fluidimage.topologies import prepare_path_dir_result
+from fluidimage.data_objects.display_pre import DisplayPreProc
+from fluidimage.data_objects.preproc import get_name_preproc
+
+from fluidimage.util.log import logger
+from fluidimage.experimental.topologies.base import TopologyBase
+
+
+class TopologyPreproc(TopologyBase):
+    """Preprocess series of images and provides interface for I/O and
+    multiprocessing.
+
+    Parameters
+    ----------
+
+    params: None
+
+      A ParamContainer containing the parameters for the computation.
+
+    logging_level: str, {'warning', 'info', 'debug', ...}
+
+      Logging level.
+
+    nb_max_workers: None, int
+
+      Maximum numbers of "workers". If None, a number is computed from the
+      number of cores detected. If there are memory errors, you can try to
+      decrease the number of workers.
+
+    """
+
+    @classmethod
+    def create_default_params(cls, backend="python"):
+        """Class method returning the default parameters.
+
+        Parameters
+        ----------
+
+        backend : {'python', 'opencv'}
+
+            Specifies which backend to use.
+
+        """
+        params = WorkPreproc.create_default_params(backend)
+        params.preproc.series._set_attribs(
+            {
+                "strcouple": "i:i+1",
+                "ind_start": 0,
+                "ind_stop": None,
+                "ind_step": 1,
+                "sequential_loading": True,
+            }
+        )
+        params.preproc.series._set_doc(
+            """
+Parameters indicating the input series of images.
+
+path : str, {''}
+
+    String indicating the input images (can be a full path towards an image
+    file or a string given to `glob`).
+
+strcouple : str, {'i:i+1'}
+
+    Determines the subset from the whole series of images that should be loaded
+    and preprocessed together. Particularly useful when temporal filtering requires
+    loading multiple neighbouring images at a time.
+
+    For example, for a series of images with just one index,
+
+    >>> params.preproc.series.strcouple = 'i:i+1'   # load one image at a time
+    >>> params.preproc.series.strcouple = 'i-2:i+3'  # loads 5 images at a time
+
+    Similarly for two indices,
+
+    >>> params.preproc.series.strcouple = 'i:i+1,0'   # load one image at a time, with second index fixed
+    >>> params.preproc.series.strcouple = 'i-2:i+3,i'  # loads 5 images at a time, with second index free
+
+    ..todo::
+
+        rename this parameter to strsubset / strslice
+
+ind_start : int, {0}
+
+    Start index for the whole series of images being loaded.
+    For more details: see `class SeriesOfArrays`.
+
+ind_stop : int or None
+
+    Stop index for the whole series of images being loaded.
+    For more details: see `class SeriesOfArrays`.
+
+ind_step : int, {1}
+
+    Step index for the whole series of images being loaded.
+    For more details: see `class SeriesOfArrays`.
+
+sequential_loading : bool, {True}
+
+    When set as `true` the image loading waiting queue `WaitingQueueLoadImageSeries`
+    is processed sequentially. i.e. only one subset of the whole series is loaded at a time.
+"""
+        )
+
+        params.preproc.series._set_doc(
+            """
+Parameters describing image loading prior to preprocessing.
+
+strcouple : str
+    Determines the subset from the whole series of images that should be loaded
+    and preprocessed together. Particularly useful when temporal filtering requires
+    multiple images.
+
+    For example, for a series of images with just one index,
+
+        >>> strcouple = 'i:i+1'   # load one image at a time
+        >>> strcouple = 'i-2:i+3'  # loads 5 images at a time
+
+    Similarly for two indices,
+
+        >>> strcouple = 'i:i+1,0'   # load one image at a time, with second index fixed
+        >>> strcouple = 'i-2:i+3,0'  # loads 5 images at a time, with second index fixed
+
+    ..todo::
+
+        rename this parameter to strsubset / strslice
+
+ind_start : int
+    Start index for the whole series of images being loaded.
+    For more details: see `class SeriesOfArrays`.
+
+ind_stop : int
+    Stop index for the whole series of images being loaded.
+    For more details: see `class SeriesOfArrays`.
+
+ind_step : int
+    Step index for the whole series of images being loaded.
+    For more details: see `class SeriesOfArrays`.
+
+sequential_loading : bool
+    When set as `true` the image loading waiting queue `WaitingQueueLoadImageSeries`
+    is processed sequentially. i.e. only one subset of the whole series is loaded at a time.
+
+"""
+        )
+
+        params.preproc._set_child(
+            "saving",
+            attribs={
+                "path": None,
+                "strcouple": None,
+                "how": "ask",
+                "format": "img",
+                "postfix": "pre",
+            },
+        )
+
+        params.preproc.saving._set_doc(
+            """
+Parameters describing image saving after preprocessing.
+
+path : str or None
+    Path to which preprocessed images are saved.
+
+strcouple : str or None
+    Determines the sub-subset of images must be saved from subset of images that were
+    loaded and preprocessed. When set as None, saves the middle image from every subset.
+
+    ..todo::
+
+        rename this parameter to strsubset / strslice
+
+how : str {'ask', 'new_dir', 'complete', 'recompute'}
+    How preprocessed images must be saved if it already exists or not.
+
+format : str {'img', 'hdf5'}
+    Format in which preprocessed image data must be saved.
+
+postfix : str
+    A suffix added to the new directory where preprocessed images are saved.
+
+"""
+        )
+
+        params._set_internal_attr(
+            "_value_text",
+            json.dumps(
+                {
+                    "program": "fluidimage",
+                    "module": "fluidimage.topologies.preproc",
+                    "class": "TopologyPreproc",
+                }
+            ),
+        )
+
+        return params
