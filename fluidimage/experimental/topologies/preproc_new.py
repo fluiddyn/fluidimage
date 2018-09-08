@@ -12,6 +12,8 @@ import os
 import json
 import copy
 import sys
+from typing import List, Tuple
+
 from fluidimage import SeriesOfArrays
 from fluidimage.util import imread
 
@@ -213,3 +215,64 @@ postfix : str
         )
 
         return params
+
+    def __init__(self, params, logging_level="info", nb_max_workers=None):
+        self.params = params.preproc
+        self.preproc_work = WorkPreproc(params)
+        serie_arrays = self.preproc_work.serie_arrays
+        self.series = SeriesOfArrays(
+            serie_arrays,
+            params.preproc.series.strcouple,
+            ind_start=params.preproc.series.ind_start,
+            ind_stop=params.preproc.series.ind_stop,
+            ind_step=params.preproc.series.ind_step,
+        )
+
+        serie = self.series.get_serie_from_index(0)
+        self.nb_items_per_serie = serie.get_nb_arrays()
+
+        if os.path.isdir(params.preproc.series.path):
+            path_dir = params.preproc.series.path
+        else:
+            path_dir = os.path.dirname(params.preproc.series.path)
+        self.path_dir_input = path_dir
+
+        path_dir_result, self.how_saving = prepare_path_dir_result(
+            path_dir,
+            params.preproc.saving.path,
+            params.preproc.saving.postfix,
+            params.preproc.saving.how,
+        )
+
+        super().__init__(
+            path_dir_result=path_dir_result,
+            logging_level=logging_level,
+            nb_max_workers=nb_max_workers,
+        )
+
+        self.params.saving.path = self.path_dir_result
+        self.results = self.preproc_work.results
+        self.display = self.preproc_work.display
+
+
+
+        # Define Queues
+        queue_name_series = self.add_queue("filename series")
+        queue_paths = self.add_queue("image paths")
+        queue_array = self.add_queue("arrays")
+        queue_array_series = self.add_queue("array series")
+        queue_preproc = self.add_queue("preproc")
+
+        self.add_work(
+            "fill (series name couple, paths)",
+            func_or_cls=self.fill_name_series_and_paths,
+            output_queue=(queue_name_series, queue_paths),
+            kind=("global", "one shot"),
+        )
+
+        def save_preproc_results_object(self, o):
+            return o.save(path=self.path_dir_result)
+    
+
+
+    
