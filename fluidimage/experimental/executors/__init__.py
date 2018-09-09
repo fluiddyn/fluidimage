@@ -19,6 +19,8 @@ hardware, it can be more efficient to chose an executor compared to another.
 
 from .base import ExecutorBase
 
+from .exec_sequential import ExecutorSequential
+
 from .exec_async import ExecutorAsync
 from .exec_async_sequential import ExecutorAsyncSequential
 
@@ -30,6 +32,7 @@ from .exec_async_servers import (
 )
 
 executors = {
+    "exec_sequential": ExecutorSequential,
     "exec_async": ExecutorAsync,
     "exec_async_sequential": ExecutorAsyncSequential,
     "multi_exec_async": MultiExecutorAsync,

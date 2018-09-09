@@ -114,7 +114,7 @@ class ExecutorAsyncServers(ExecutorAsync):
         self._init_compute()
         for worker in self.workers:
             worker.send(("__t_start__", self.t_start))
-        self.exec_one_shot_job()
+        self.exec_one_shot_works()
         trio.run(self.start_async_works)
         self._finalize_compute()
 

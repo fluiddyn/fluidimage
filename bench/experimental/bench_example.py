@@ -16,9 +16,10 @@ def bench():
     params["path_input"] = path_input
     params["path_dir_result"] = path_dir_result
     params["nloops"] = 30000
-    params["multiplicator_nb_images"] = 3
+    params["multiplicator_nb_images"] = 2
 
     executors = [
+        "exec_sequential",
         "exec_async_sequential",
         "exec_async",
         "multi_exec_async",
@@ -31,7 +32,7 @@ def bench():
     for executor in executors:
         t_start = time()
         topology = TopologyExample(params, logging_level="info")
-        topology.compute(executor, sleep_time=0.01)
+        topology.compute(executor, sleep_time=0.01, nb_max_workers=3)
         durations.append(time() - t_start)
 
     duration_seq = durations[0]

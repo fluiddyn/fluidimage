@@ -142,13 +142,14 @@ class LogTopology:
                         {"name": name, "key": key, "duration": duration}
                     )
 
+        print("\rdone" + 20 * " ")
+
         if self.log_files is not None:
             path_dir = self.log_dir_path
             for file_name in self.log_files:
                 path = path_dir / file_name
-                print("poum", path_dir, path)
                 with open(path, "r") as logfile:
-                    print("Parsing log file: ", path)
+                    print("Parsing log file: ", path.name)
                     for iline, line in enumerate(logfile):
                         if iline % 100 == 0:
                             print(f"\rparse line {iline}", end="", flush=True)
@@ -200,13 +201,13 @@ class LogTopology:
                             works_ended.append(
                                 {"name": name, "key": key, "duration": duration}
                             )
+                    print("\rdone" + 20 * " ")
 
         self.names_works = names_works = []
         for work in works:
             if work["name"] not in names_works:
                 names_works.append(work["name"])
 
-        print("\rparsing done")
         self.durations = durations = {}
         self.times = times = {}
         self.keys = keys = {}

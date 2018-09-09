@@ -8,6 +8,7 @@
 """
 
 from warnings import warn
+from collections import OrderedDict
 
 from ..executors import executors, ExecutorBase
 
@@ -21,7 +22,7 @@ class MyObj:
         return super().__repr__() + "\n" + self._kwargs.__repr__()
 
 
-class Queue(dict):
+class Queue(OrderedDict):
     """Represent a queue"""
 
     def __init__(self, name, kind=None):
@@ -30,6 +31,18 @@ class Queue(dict):
 
     def __repr__(self):
         return f'\nqueue "{self.name}": ' + super().__repr__()
+
+    def __copy__(self):
+        newone = type(self)(self.name, kind=self.kind)
+        newone.__dict__.update(self.__dict__)
+
+        for key, values in self.items():
+            newone[key] = values
+
+        return newone
+
+    def pop_first_item(self):
+        return self.popitem(last=False)
 
 
 class Work(MyObj):
@@ -98,9 +111,19 @@ class TopologyBase:
         self.works_dict[name] = work
 
     def compute(
-        self, executor="exec_async", nb_max_workers=None, sleep_time=0.01
+        self,
+        executor="exec_async",
+        nb_max_workers=None,
+        sleep_time=0.01,
+        sequential=False,
     ):
         """Compute (run all works to be done). """
+
+        if sequential:
+            if executor != "exec_sequential":
+                raise ValueError
+            executor = "exec_sequential"
+
         if executor is None:
             executor = "exec_async"
 

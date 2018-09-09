@@ -51,7 +51,5 @@ try:  # should work on UNIX
             print("We do not use hyperthreading.")
             nb_cores //= 2
 
-    print(nb_proc_tot, siblings, nb_cores)
-
 except IOError:
     pass

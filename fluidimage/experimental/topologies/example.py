@@ -143,7 +143,7 @@ class TopologyExample(TopologyBase):
 
     def fill_names(self, input_queue, output_queue):
         for ind in range(self.multiplicator_nb_images):
-            for name in os.listdir(self.path_input):
+            for name in sorted(os.listdir(self.path_input)):
                 key = name.split(".bmp")[0] + f"_{ind:02}"
                 output_queue[key] = name
 
@@ -160,6 +160,8 @@ class TopologyExample(TopologyBase):
         queue_couples_arrays = output_queue
 
         for key, array in list(queue_arrays.items()):
+            if key not in queue_couples_names:
+                continue
             queue_arrays.pop(key)
             queue_couples_names.pop(key)
             queue_couples_arrays[key] = [key, array, array]

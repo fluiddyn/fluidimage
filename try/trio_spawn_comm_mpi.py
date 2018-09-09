@@ -7,22 +7,26 @@ import trio
 import numpy as np
 from mpi4py import MPI
 
+
 async def sleep():
     print("enter sleep")
     await trio.sleep(0.2)
     print("end sleep")
 
+
 def cpu_bounded_task(input_data):
     print("cpu_bounded_task starting")
     result = input_data.copy()
-    for i in range(1000000-1):
+    for i in range(1000000 - 1):
         result += input_data
     print("cpu_bounded_task finished ")
     return result
 
+
 if "server" not in sys.argv:
-    comm = MPI.COMM_WORLD.Spawn(sys.executable,
-                                args=['trio_spawn_comm_mpi.py', 'server'])
+    comm = MPI.COMM_WORLD.Spawn(
+        sys.executable, args=["trio_spawn_comm_mpi.py", "server"]
+    )
 
     async def client():
         input_data = np.arange(4)
