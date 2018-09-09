@@ -152,6 +152,9 @@ class TopologyExample(TopologyBase):
             output_queue[key] = [key, (name, name)]
 
     def read_array(self, name):
+        if name == "Karman_03.bmp":
+            raise ValueError("For testing")
+
         image = imread(self.path_input / name)
         return image
 
@@ -164,7 +167,11 @@ class TopologyExample(TopologyBase):
                 continue
             queue_arrays.pop(key)
             queue_couples_names.pop(key)
-            queue_couples_arrays[key] = [key, array, array]
+            # propagating possible exceptions...
+            if isinstance(array, Exception):
+                queue_couples_arrays[key] = array
+            else:
+                queue_couples_arrays[key] = [key, array, array]
 
     def save(self, inputs):
         key = inputs[0]

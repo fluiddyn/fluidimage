@@ -14,7 +14,7 @@ from threading import Thread
 import trio
 
 from fluiddyn.io.tee import MultiFile
-from fluidimage.util import logger, log_memory_usage
+from fluidimage.util import logger, log_memory_usage, cstring
 
 from fluidimage import config_logging
 
@@ -201,17 +201,28 @@ class WorkerServerMultiprocessing(WorkerServer):
             t_start = time.time()
 
             log_memory_usage(
-                f"{t_start - self.t_start:.2f} s. Launch work "
-                + work_name.replace(" ", "_")
+                f"{time.time() - self.t_start:.2f} s. Launch work "
+                + work.name.replace(" ", "_")
                 + f" ({key}). mem usage"
             )
-            result = await trio.run_sync_in_worker_thread(do_the_job, work, obj)
-
-            logger.info(
-                "work {} ({}) done in {:.3f} s".format(
-                    work.name.replace(" ", "_"), key, time.time() - t_start
+            try:
+                result = await trio.run_sync_in_worker_thread(
+                    do_the_job, work, obj
                 )
-            )
+            except Exception as error:
+                logger.error(
+                    cstring(
+                        "error during work "
+                        f"{work.name.replace(' ', '_')} ({key})",
+                        color="FAIL",
+                    )
+                )
+                result = error
+            else:
+                logger.info(
+                    f"work {work.name.replace(' ', '_')} ({key}) "
+                    f"done in {time.time() - t_start:.3f} s"
+                )
 
             self.to_be_resent.append((work_name, key, result, child_conn))
 

@@ -23,7 +23,7 @@ import signal
 
 import trio
 
-from fluidimage.util import logger, log_memory_usage
+from fluidimage.util import logger, log_memory_usage, cstring
 
 from .base import ExecutorBase
 
@@ -265,23 +265,35 @@ class ExecutorAsync(ExecutorBase):
           The value of the dictionnary item to be process
 
         """
+        if work.check_exception(key, obj):
+            return
+
         t_start = time.time()
         log_memory_usage(
-            "{:.2f} s. ".format(time.time() - self.t_start)
-            + "Launch work "
+            f"{time.time() - self.t_start:.2f} s. Launch work "
             + work.name.replace(" ", "_")
-            + " ({}). mem usage".format(key)
+            + f" ({key}). mem usage"
         )
         self.nb_working_workers_io += 1
-        ret = await trio.run_sync_in_worker_thread(work.func_or_cls, obj)
+        try:
+            ret = await trio.run_sync_in_worker_thread(work.func_or_cls, obj)
+        except Exception as error:
+            logger.error(
+                cstring(
+                    "error during work " f"{work.name.replace(' ', '_')} ({key})",
+                    color="FAIL",
+                )
+            )
+            ret = error
+        else:
+            logger.info(
+                f"work {work.name.replace(' ', '_')} ({key}) "
+                f"done in {time.time() - t_start:.3f} s"
+            )
+
+        self.nb_working_workers_io -= 1
         if work.output_queue is not None:
             work.output_queue[key] = ret
-        self.nb_working_workers_io -= 1
-        logger.info(
-            "work {} ({}) done in {:.3f} s".format(
-                work.name.replace(" ", "_"), key, time.time() - t_start
-            )
-        )
 
     async def async_run_work_cpu(self, work, key, obj):
         """Is destined to be started with a "trio.start_soon".
@@ -305,6 +317,9 @@ class ExecutorAsync(ExecutorBase):
           The value of the dictionnary item to be process
 
         """
+        if work.check_exception(key, obj):
+            return
+
         t_start = time.time()
         log_memory_usage(
             f"{time.time() - self.t_start:.2f} s. Launch work "
@@ -312,14 +327,25 @@ class ExecutorAsync(ExecutorBase):
             + f" ({key}). mem usage"
         )
         self.nb_working_workers_cpu += 1
-        ret = await trio.run_sync_in_worker_thread(work.func_or_cls, obj)
+        try:
+            ret = await trio.run_sync_in_worker_thread(work.func_or_cls, obj)
+        except Exception as error:
+            logger.error(
+                cstring(
+                    "error during work " f"{work.name.replace(' ', '_')} ({key})",
+                    color="FAIL",
+                )
+            )
+            ret = error
+        else:
+            logger.info(
+                f"work {work.name.replace(' ', '_')} ({key}) "
+                f"done in {time.time() - t_start:.3f} s"
+            )
+
+        self.nb_working_workers_cpu -= 1
         if work.output_queue is not None:
             work.output_queue[key] = ret
-        self.nb_working_workers_cpu -= 1
-        logger.info(
-            f"work {work.name.replace(' ', '_')} ({key}) "
-            f"done in {time.time() - t_start:.3f} s"
-        )
 
     async def update_has_to_stop(self):
         """Work has to stop flag. Check if all works has been done.

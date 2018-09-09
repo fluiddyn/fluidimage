@@ -9,7 +9,7 @@
 
 import time
 
-from fluidimage.util import logger, log_memory_usage
+from fluidimage.util import logger, log_memory_usage, cstring
 
 from .base import ExecutorBase
 
@@ -53,16 +53,32 @@ class ExecutorSequential(ExecutorBase):
                         continue
 
                     key, obj = work.input_queue.pop_first_item()
+
+                    if work.check_exception(key, obj):
+                        continue
+
                     t_start = time.time()
                     log_memory_usage(
                         f"{time.time() - self.t_start:.2f} s. Launch work "
                         + work.name.replace(" ", "_")
                         + f" ({key}). mem usage"
                     )
-                    ret = work.func_or_cls(obj)
+                    try:
+                        ret = work.func_or_cls(obj)
+                    except Exception as error:
+                        logger.error(
+                            cstring(
+                                "error during work "
+                                f"{work.name.replace(' ', '_')} ({key})",
+                                color="FAIL",
+                            )
+                        )
+                        ret = error
+                    else:
+                        logger.info(
+                            f"work {work.name.replace(' ', '_')} ({key}) "
+                            f"done in {time.time() - t_start:.3f} s"
+                        )
+
                     if work.output_queue is not None:
                         work.output_queue[key] = ret
-                    logger.info(
-                        f"work {work.name.replace(' ', '_')} ({key}) "
-                        f"done in {time.time() - t_start:.3f} s"
-                    )

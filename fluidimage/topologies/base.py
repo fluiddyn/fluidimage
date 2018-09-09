@@ -14,14 +14,8 @@ import sys
 import os
 import gc
 
-# from copy import copy
 import threading
-
-try:
-    import queue
-except ImportError:
-    # python 2
-    import Queue as queue
+import queue
 
 from fluiddyn import time_as_str
 from fluiddyn.io.tee import MultiFile

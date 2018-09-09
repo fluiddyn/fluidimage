@@ -10,16 +10,39 @@
 from warnings import warn
 from collections import OrderedDict
 
+from fluidimage.util import logger, log_memory_usage, cstring
+
 from ..executors import executors, ExecutorBase
 
 
-class MyObj:
+class Work:
+    """Represent a work"""
+
     def __init__(self, **kwargs):
         self._kwargs = kwargs
         self.__dict__.update(kwargs)
 
+        if hasattr(self, "name"):
+            self.name_no_space = self.name.replace(" ", "_")
+
     def __repr__(self):
         return super().__repr__() + "\n" + self._kwargs.__repr__()
+
+    def check_exception(self, key, obj):
+        if isinstance(obj, Exception):
+            if self.output_queue is not None:
+                self.output_queue[key] = obj
+            else:
+                logger.error(
+                    cstring(
+                        f"work {self.name_no_space} ({key}) "
+                        "can not be done because of a previously "
+                        "raised exception.",
+                        color="FAIL",
+                    )
+                )
+            return True
+        return False
 
 
 class Queue(OrderedDict):
@@ -43,10 +66,6 @@ class Queue(OrderedDict):
 
     def pop_first_item(self):
         return self.popitem(last=False)
-
-
-class Work(MyObj):
-    """Represent a work"""
 
 
 class TopologyBase:

@@ -40,7 +40,7 @@ def _test(self, executor=None):
     path_files = tuple(path_dir_result.glob("Karman*"))
 
     assert len(path_files) > 0, "No files saved"
-    assert len(path_files) == 4, "Bad number of saved files"
+    assert len(path_files) == 3, "Bad number of saved files"
 
 
 class TestTopoExample(unittest.TestCase):
