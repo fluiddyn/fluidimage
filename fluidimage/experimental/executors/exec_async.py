@@ -60,6 +60,7 @@ class ExecutorAsync(ExecutorBase):
         nb_items_queue_max=None,
         sleep_time=0.01,
         logging_level="info",
+        stop_if_error=False,
     ):
         super().__init__(
             topology,
@@ -67,6 +68,7 @@ class ExecutorAsync(ExecutorBase):
             nb_max_workers,
             nb_items_queue_max,
             logging_level=logging_level,
+            stop_if_error=stop_if_error,
         )
 
         self.nb_working_workers_cpu = 0
@@ -132,32 +134,30 @@ class ExecutorAsync(ExecutorBase):
             if w.kind is not None and "global" in w.kind:
 
                 async def func(work=w):
-                    item_number = 1
                     while True:
-                        while len(work.output_queue) > self.nb_items_queue_max:
+                        while (
+                            isinstance(work.input_queue, tuple)
+                            and all(len(q) == 0 for q in work.input_queue)
+                        ) or len(work.input_queue) == 0:
                             await trio.sleep(self.sleep_time)
-                        t_start = time.time()
-                        while not work.func_or_cls(
-                            work.input_queue, work.output_queue
-                        ):
                             if self._has_to_stop:
                                 return
-                            await trio.sleep(self.sleep_time)
-                            t_start = time.time()
-                        item_number += 1
+                        t_start = time.time()
                         log_memory_usage(
-                            "{:.2f} s. ".format(time.time() - self.t_start)
-                            + "Launch work "
-                            + work.name.replace(" ", "_")
-                            + " ({}). mem usage".format(item_number)
+                            f"{time.time() - self.t_start:.2f} s. Launch work "
+                            + work.name_no_space
+                            + f" (?). mem usage"
                         )
+                        work.func_or_cls(work.input_queue, work.output_queue)
+                        if self._has_to_stop:
+                            return
+                        await trio.sleep(self.sleep_time)
+
                         logger.info(
-                            "work {} ({}) done in {:.3f} s".format(
-                                work.name.replace(" ", "_"),
-                                "item" + str(item_number),
-                                time.time() - t_start,
-                            )
+                            f"work {work.name_no_space} "
+                            f"done in {time.time() - t_start:.3f} s"
                         )
+
                         await trio.sleep(self.sleep_time)
 
             # I/O
@@ -271,7 +271,7 @@ class ExecutorAsync(ExecutorBase):
         t_start = time.time()
         log_memory_usage(
             f"{time.time() - self.t_start:.2f} s. Launch work "
-            + work.name.replace(" ", "_")
+            + work.name_no_space
             + f" ({key}). mem usage"
         )
         self.nb_working_workers_io += 1
@@ -280,14 +280,16 @@ class ExecutorAsync(ExecutorBase):
         except Exception as error:
             logger.error(
                 cstring(
-                    "error during work " f"{work.name.replace(' ', '_')} ({key})",
+                    "error during work " f"{work.name_no_space} ({key})",
                     color="FAIL",
                 )
             )
+            if self.stop_if_error:
+                raise
             ret = error
         else:
             logger.info(
-                f"work {work.name.replace(' ', '_')} ({key}) "
+                f"work {work.name_no_space} ({key}) "
                 f"done in {time.time() - t_start:.3f} s"
             )
 
@@ -323,7 +325,7 @@ class ExecutorAsync(ExecutorBase):
         t_start = time.time()
         log_memory_usage(
             f"{time.time() - self.t_start:.2f} s. Launch work "
-            + work.name.replace(" ", "_")
+            + work.name_no_space
             + f" ({key}). mem usage"
         )
         self.nb_working_workers_cpu += 1
@@ -332,14 +334,16 @@ class ExecutorAsync(ExecutorBase):
         except Exception as error:
             logger.error(
                 cstring(
-                    "error during work " f"{work.name.replace(' ', '_')} ({key})",
+                    "error during work " f"{work.name_no_space} ({key})",
                     color="FAIL",
                 )
             )
+            if self.stop_if_error:
+                raise
             ret = error
         else:
             logger.info(
-                f"work {work.name.replace(' ', '_')} ({key}) "
+                f"work {work.name_no_space} ({key}) "
                 f"done in {time.time() - t_start:.3f} s"
             )
 

@@ -61,7 +61,10 @@ class ExecutorAsyncServers(ExecutorAsync):
         nb_items_queue_max=None,
         sleep_time=0.01,
         logging_level="info",
+        stop_if_error=False,
     ):
+        if stop_if_error:
+            raise NotImplementedError
 
         super().__init__(
             topology,

@@ -3,8 +3,6 @@ import unittest
 from shutil import rmtree
 from pathlib import Path
 
-from fluiddyn.io import stdout_redirected
-
 from fluidimage.experimental.topologies.bos_new import TopologyBOS
 
 from fluidimage import path_image_samples
@@ -26,9 +24,8 @@ class TestBOSNew(unittest.TestCase):
     def test_bos_new_multiproc(self):
         params = TopologyBOS.create_default_params()
 
-        params.series.path = str(self.path_input_files)
-        params.series.ind_start = 1
-        params.series.ind_step = 2
+        params.images.path = str(self.path_input_files)
+        params.images.str_slice = "1:3"
 
         params.piv0.shape_crop_im0 = 32
         params.multipass.number = 2
@@ -46,17 +43,16 @@ class TestBOSNew(unittest.TestCase):
         params.saving.how = "recompute"
         params.saving.postfix = self.postfix
 
-        with stdout_redirected():
-            topology = TopologyBOS(params, logging_level="info")
-            topology.compute()
+        topology = TopologyBOS(params, logging_level="info")
+        topology.compute(stop_if_error=True)
 
-            # remove one file
-            path_files = list(Path(topology.path_dir_result).glob("piv*"))
-            path_files[0].unlink()
+        # remove one file
+        path_files = list(Path(topology.path_dir_result).glob("bos*"))
+        path_files[0].unlink()
 
-            params.saving.how = "complete"
-            topology = TopologyBOS(params, logging_level="info")
-            topology.compute()
+        params.saving.how = "complete"
+        topology = TopologyBOS(params, logging_level="info")
+        topology.compute()
 
 
 if __name__ == "__main__":

@@ -6,15 +6,14 @@
    :private-members:
 
 """
-import os
+
 import json
 from pathlib import Path
-
 
 from fluidimage.topologies import prepare_path_dir_result
 from .base import TopologyBase
 
-from fluidimage import ParamContainer, SeriesOfArrays
+from fluidimage import ParamContainer, SerieOfArraysFromFiles
 from fluidimage.util import logger, imread
 
 from fluidimage.preproc.image2image import (
@@ -57,36 +56,22 @@ class TopologyImage2Image(TopologyBase):
         params = ParamContainer(tag="params")
         complete_im2im_params_with_default(params)
 
-        params._set_child(
-            "series",
-            attribs={
-                "path": "",
-                "strslice": None,
-                "ind_start": 0,
-                "ind_stop": None,
-                "ind_step": 1,
-            },
-        )
+        params._set_child("images", attribs={"path": "", "str_slice": None})
 
-        params.series._set_doc(
+        params.images._set_doc(
             """
-Parameters indicating the input series of images.
+Parameters indicating the input image set.
 
 path : str, {''}
 
     String indicating the input images (can be a full path towards an image
     file or a string given to `glob`).
 
-strslice : None
+str_slice : None
 
-    String indicating as a Python slicing how series of images are formed.
-    See the parameters the PIV topology.
-
-ind_start : int, {0}
-
-ind_step : int, {1}
-
-int_stop : None
+    String indicating as a Python slicing how to select images from the serie of
+    images on the disk. If None, no selection so all images are going to be
+    processed.
 
 """
         )
@@ -133,21 +118,17 @@ postfix : str
         if params.im2im is None:
             raise ValueError("params.im2im has to be set.")
 
-        self.series = SeriesOfArrays(
-            params.series.path,
-            params.series.strslice,
-            ind_start=params.series.ind_start,
-            ind_stop=params.series.ind_stop,
-            ind_step=params.series.ind_step,
+        self.serie = SerieOfArraysFromFiles(
+            params.images.path, params.images.str_slice
         )
 
-        path_dir = self.series.serie.path_dir
+        path_dir = self.serie.path_dir
         path_dir_result, self.how_saving = prepare_path_dir_result(
             path_dir, params.saving.path, params.saving.postfix, params.saving.how
         )
 
         self.path_dir_result = path_dir_result
-        self.path_dir_src = Path(params.series.path)
+        self.path_dir_src = Path(path_dir)
 
         super().__init__(
             path_dir_result=path_dir_result,
@@ -155,36 +136,36 @@ postfix : str
             nb_max_workers=nb_max_workers,
         )
 
-        self.queue_path = self.add_queue("queue_names")
-        self.queue_array_path = self.add_queue("queue_array_path")
-        self.queue_result = self.add_queue("queue_result")
+        self.queue_paths = self.add_queue("paths")
+        self.queue_arrays = self.add_queue("arrays")
+        self.queue_results = self.add_queue("results")
 
         self.add_work(
             "fill_path",
-            self.add_series,
-            output_queue=self.queue_path,
+            self.fill_queue_paths,
+            output_queue=self.queue_paths,
             kind="one shot",
         )
-
-        self.im2im_func = self.init_im2im(params)
 
         self.add_work(
             "read_array",
             self.imread,
-            input_queue=self.queue_path,
-            output_queue=self.queue_array_path,
+            input_queue=self.queue_paths,
+            output_queue=self.queue_arrays,
             kind="io",
         )
 
+        im2im_func = self.init_im2im(params)
+
         self.add_work(
             "im2im",
-            self.im2im_func,
-            input_queue=self.queue_array_path,
-            output_queue=self.queue_result,
+            im2im_func,
+            input_queue=self.queue_arrays,
+            output_queue=self.queue_results,
         )
 
         self.add_work(
-            "save", self.save_image, input_queue=self.queue_result, kind="io"
+            "save", self.save_image, input_queue=self.queue_results, kind="io"
         )
 
     def init_im2im(self, params_im2im):
@@ -199,27 +180,29 @@ postfix : str
 
     def save_image(self, tuple_image_path):
         image, path = tuple_image_path
-        nfile = os.path.split(path)[-1]
-        path_out = os.path.join(self.path_dir_result, nfile)
+        name_file = Path(path).name
+        path_out = self.path_dir_result / name_file
         imsave(path_out, image)
 
-    def add_series(self, input_queue, output_queue):
+    def fill_queue_paths(self, input_queue, output_queue):
 
-        series = self.series
-        if len(series) == 0:
+        assert input_queue is None
+
+        serie = self.serie
+        if len(serie) == 0:
             logger.warning("add 0 image. No image to process.")
             return
 
-        names = series.get_name_all_arrays()
+        names = serie.get_name_arrays()
 
         for name in names:
-            path_name_output = self.path_dir_result / name
-            path_name_input = str(self.path_dir_src / name)
+            path_im_output = self.path_dir_result / name
+            path_im_input = str(self.path_dir_src / name)
             if self.how_saving == "complete":
-                if not path_name_output.exists():
-                    output_queue[name] = path_name_input
+                if not path_im_output.exists():
+                    output_queue[name] = path_im_input
             else:
-                output_queue[name] = path_name_input
+                output_queue[name] = path_im_input
 
         if len(names) == 0:
             if self.how_saving == "complete":
@@ -231,8 +214,7 @@ postfix : str
             return
 
         nb_names = len(names)
-        print("Add {} images to compute.".format(nb_names))
+        logger.info(f"Add {nb_names} images to compute.")
+        logger.info("First files to process: " + str(names[:4]))
 
-        logger.debug(repr(names))
-
-        print("First files to process:", names[:4])
+        logger.debug("All files: " + str(names))

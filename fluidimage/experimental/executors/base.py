@@ -50,9 +50,11 @@ class ExecutorBase:
         nb_items_queue_max=4,
         logging_level="info",
         sleep_time=None,
+        stop_if_error=False,
     ):
         self.topology = topology
         self.logging_level = logging_level
+        self.stop_if_error = stop_if_error
 
         if path_dir_result is not None:
             path_dir_result = Path(path_dir_result)
@@ -113,9 +115,9 @@ class ExecutorBase:
 
         # Picks up async works
         self.works = [
-            w
-            for w in self.topology.works
-            if w.kind is None or "one shot" not in w.kind
+            work
+            for work in self.topology.works
+            if work.kind is None or "one shot" not in work.kind
         ]
 
     def _init_compute(self):

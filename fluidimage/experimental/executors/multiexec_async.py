@@ -37,7 +37,10 @@ class ExecutorAsyncForMulti(ExecutorAsyncSequential):
         log_path,
         sleep_time=0.01,
         logging_level="info",
+        stop_if_error=False,
     ):
+        if stop_if_error:
+            raise NotImplementedError
 
         self._log_path = log_path
         super().__init__(
@@ -96,7 +99,11 @@ class MultiExecutorAsync(ExecutorBase):
         nb_items_queue_max=None,
         sleep_time=0.01,
         logging_level="info",
+        stop_if_error=False,
     ):
+        if stop_if_error:
+            raise NotImplementedError
+
         super().__init__(
             topology,
             path_dir_result,

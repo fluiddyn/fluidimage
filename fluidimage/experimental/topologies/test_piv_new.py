@@ -72,7 +72,7 @@ class TestPivNew(unittest.TestCase):
         path_files[0].unlink()
 
         params.saving.how = "complete"
-        topology = TopologyPIV(params, logging_level="info")
+        topology = TopologyPIV(params, logging_level="debug")
         topology.compute()
 
 

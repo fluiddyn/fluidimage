@@ -49,7 +49,7 @@ class ExecutorAsyncMultiproc(ExecutorAsync):
         t_start = time.time()
         log_memory_usage(
             f"{time.time() - self.t_start:.2f} s. Launch work "
-            + work.name.replace(" ", "_")
+            + work.name_no_space
             + f" ({key}). mem usage"
         )
 
@@ -89,12 +89,14 @@ class ExecutorAsyncMultiproc(ExecutorAsync):
         if isinstance(ret, Exception):
             logger.error(
                 cstring(
-                    "error during work " f"{work.name.replace(' ', '_')} ({key})",
+                    "error during work " f"{work.name_no_space} ({key})",
                     color="FAIL",
                 )
             )
+            if self.stop_if_error:
+                raise (ret)
         else:
             logger.info(
-                f"work {work.name.replace(' ', '_')} ({key}) "
+                f"work {work.name_no_space} ({key}) "
                 f"done in {time.time() - t_start:.3f} s"
             )

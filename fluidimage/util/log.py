@@ -9,9 +9,11 @@
 
 """
 
-from logging import getLogger
+from logging import getLogger, DEBUG
 
 from .util import _get_txt_memory_usage
+
+__all__ = ["logger", "DEBUG", "reset_logger", "log_memory_usage"]
 
 logger = getLogger("fluidimage")
 

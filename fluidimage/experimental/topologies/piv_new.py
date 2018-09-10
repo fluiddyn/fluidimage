@@ -12,7 +12,7 @@ import os
 import json
 import copy
 import sys
-from fluidimage import ParamContainer, SerieOfArraysFromFiles, SeriesOfArrays
+from fluidimage import ParamContainer, SeriesOfArrays
 
 from fluidimage.experimental.topologies.base import TopologyBase
 
@@ -20,8 +20,7 @@ from fluidimage.experimental.topologies.base import TopologyBase
 from fluidimage.topologies import prepare_path_dir_result
 from fluidimage.works.piv import WorkPIV
 from fluidimage.data_objects.piv import get_name_piv, ArrayCouple
-from fluidimage.util import imread
-from fluidimage.util.log import logger
+from fluidimage.util import imread, logger, DEBUG
 from . import image2image_new as image2image
 
 
@@ -175,10 +174,8 @@ postfix : str
 
         self.params = params
 
-        serie_arrays = SerieOfArraysFromFiles(params.series.path)
-
         self.series = SeriesOfArrays(
-            serie_arrays,
+            params.series.path,
             params.series.strcouple,
             ind_start=params.series.ind_start,
             ind_stop=params.series.ind_stop,
@@ -196,23 +193,23 @@ postfix : str
             nb_max_workers=nb_max_workers,
         )
 
-        queue_series_names_couples = self.add_queue("series_names_couple")
+        queue_couples_of_names = self.add_queue("couples of names")
         queue_paths = self.add_queue("paths")
         queue_arrays = queue_arrays1 = self.add_queue("arrays")
-        queue_array_couples = self.add_queue("couples of arrays")
+        queue_couples_of_arrays = self.add_queue("couples of arrays")
         queue_piv = self.add_queue("piv")
 
         if params.preproc.im2im is not None:
             queue_arrays1 = self.add_queue("arrays1")
 
         self.add_work(
-            "fill (series name couple, paths)",
-            func_or_cls=self.fill_series_name_couple_and_path,
-            output_queue=(queue_series_names_couples, queue_paths),
+            "fill (couples of names, paths)",
+            func_or_cls=self.fill_couples_of_names_and_paths,
+            output_queue=(queue_couples_of_names, queue_paths),
             kind=("global", "one shot"),
         )
         self.add_work(
-            "path -> arrays",
+            "read array",
             func_or_cls=imread,
             input_queue=queue_paths,
             output_queue=queue_arrays,
@@ -225,28 +222,28 @@ postfix : str
             )
 
             self.add_work(
-                "image -> image",
+                "image2image",
                 func_or_cls=im2im_func,
                 input_queue=queue_arrays,
                 output_queue=queue_arrays1,
             )
 
         self.add_work(
-            "make couples arrays",
-            func_or_cls=self.make_couple,
+            "make couples of arrays",
+            func_or_cls=self.make_couples,
             params_cls=None,
-            input_queue=(queue_series_names_couples, queue_arrays),
-            output_queue=queue_array_couples,
+            input_queue=(queue_couples_of_names, queue_arrays),
+            output_queue=queue_couples_of_arrays,
             kind="global",
         )
 
         self.work_piv = WorkPIV(self.params)
 
         self.add_work(
-            "couples -> piv",
+            "compute piv",
             func_or_cls=self.work_piv.calcul,
             params_cls=params,
-            input_queue=queue_array_couples,
+            input_queue=queue_couples_of_arrays,
             output_queue=queue_piv,
         )
 
@@ -261,9 +258,9 @@ postfix : str
         ret = o.save(self.path_dir_result)
         return ret
 
-    def fill_series_name_couple_and_path(self, input_queue, output_queues):
-        queue_series_name_couple = output_queues[0]
-        queue_path = output_queues[1]
+    def fill_couples_of_names_and_paths(self, input_queue, output_queues):
+        queue_couples_of_names = output_queues[0]
+        queue_paths = output_queues[1]
 
         series = self.series
         if len(series) == 0:
@@ -291,38 +288,37 @@ postfix : str
 
             series.set_index_series(index_series)
 
-            logger.debug(repr(names))
-            logger.debug(repr([serie.get_name_arrays() for serie in series]))
+            if logger.isEnabledFor(DEBUG):
+                logger.debug(repr(names))
+                logger.debug(repr([serie.get_name_arrays() for serie in series]))
         else:
             names = series.get_name_all_arrays()
 
         nb_series = len(series)
         print("Add {} PIV fields to compute.".format(nb_series))
 
-        for i, serie in enumerate(series):
-            inew = i * self.series.ind_step + series.ind_start
-            queue_series_name_couple[inew] = serie.get_name_arrays()
-            queue_path[serie.get_name_arrays()[0]] = serie.get_path_files()[0]
-            queue_path[serie.get_name_arrays()[1]] = serie.get_path_files()[1]
+        for ind_serie, serie in series.items():
+            queue_couples_of_names[ind_serie] = serie.get_name_arrays()
+            for name, path in serie.get_name_path_arrays():
+                queue_paths[name] = path
 
-    def make_couple(self, input_queues, output_queue):
-        # for readablity
-        queue_series_name_couple = input_queues[0]
-        queue_array = input_queues[1]
+    def make_couples(self, input_queues, output_queue):
+        queue_couples_of_names = input_queues[0]
+        queue_arrays = input_queues[1]
 
         try:
             params_mask = self.params.mask
         except AttributeError:
             params_mask = None
         # for each name couple
-        for key, couple in queue_series_name_couple.items():
-            # if correspondant arrays are avaible, make an array couple
+        for key, couple in tuple(queue_couples_of_names.items()):
+            # if correspondant arrays are available, make an array couple
             if (
-                couple[0] in queue_array.keys()
-                and couple[1] in queue_array.keys()
+                couple[0] in queue_arrays.keys()
+                and couple[1] in queue_arrays.keys()
             ):
-                array1 = queue_array[couple[0]]
-                array2 = queue_array[couple[1]]
+                array1 = queue_arrays[couple[0]]
+                array2 = queue_arrays[couple[1]]
                 serie = copy.copy(self.series.get_serie_from_index(key))
                 array_couple = ArrayCouple(
                     names=(couple[0], couple[1]),
@@ -331,14 +327,12 @@ postfix : str
                     serie=serie,
                 )
                 output_queue[key] = array_couple
-                del queue_series_name_couple[key]
+                del queue_couples_of_names[key]
                 # remove the image_array if it not will be used anymore
-                if not still_is_in_dict(couple[0], queue_series_name_couple):
-                    del queue_array[couple[0]]
-                if not still_is_in_dict(couple[1], queue_series_name_couple):
-                    del queue_array[couple[1]]
-                return True
-        return False
+                if not still_is_in_dict(couple[0], queue_couples_of_names):
+                    del queue_arrays[couple[0]]
+                if not still_is_in_dict(couple[1], queue_couples_of_names):
+                    del queue_arrays[couple[1]]
 
     def _make_text_at_exit(self, time_since_start):
 

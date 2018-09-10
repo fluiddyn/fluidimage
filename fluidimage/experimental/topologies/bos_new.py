@@ -10,18 +10,17 @@ New Topology for BOS computation.
 """
 import os
 import json
-import copy
 import sys
+from pathlib import Path
 
-from fluidimage import ParamContainer, SerieOfArraysFromFiles, SeriesOfArrays
+from fluidimage import ParamContainer, SerieOfArraysFromFiles
 from fluidimage.experimental.topologies.base import TopologyBase
 from fluidimage.topologies import prepare_path_dir_result
 from fluidimage.works.piv import WorkPIV
 from fluidimage.data_objects.piv import get_name_bos, ArrayCoupleBOS
 from fluidimage.util import logger, imread
-from . import image2image_new as image2image
 
-from .piv_new import still_is_in_dict
+from . import image2image_new as image2image
 
 
 class TopologyBOS(TopologyBase):
@@ -57,70 +56,35 @@ class TopologyBOS(TopologyBase):
         """
         params = ParamContainer(tag="params")
 
-        params._set_child(
-            "series",
-            attribs={
-                "path": "",
-                "strcouple": "i:i+2",
-                "ind_start": 0,
-                "ind_stop": None,
-                "ind_step": 1,
-            },
-        )
+        params._set_child("images", attribs={"path": "", "str_slice": None})
 
-        params.series._set_doc(
+        params.images._set_doc(
             """
-Parameters indicating the input series of images.
+Parameters indicating the input image set.
 
 path : str, {''}
 
     String indicating the input images (can be a full path towards an image
     file or a string given to `glob`).
 
-strcouple : 'i:i+2'
+str_slice : None
 
-    String indicating as a Python slicing how couples of images are formed.
-    There is one couple per value of `i`. The values of `i` are set with the
-    other parameters `ind_start`, `ind_step` and `ind_stop` approximately with
-    the function range (`range(ind_start, ind_stop, ind_step)`).
+    String indicating as a Python slicing how to select images from the serie of
+    images on the disk. If None, no selection so all images are going to be
+    processed.
 
-    Python slicing is a very powerful notation to define subset from a
-    (possibly multidimensional) set of images. For a user, an alternative is to
-    understand how Python slicing works. See for example this page:
-    http://stackoverflow.com/questions/509211/explain-pythons-slice-notation.
+"""
+        )
 
-    Another possibility is to follow simple examples:
+        params._set_attrib("reference", 0)
 
-    For single-frame images (im0, im1, im2, im3, ...), we keep the default
-    value 'i:i+2' to form the couples (im0, im1), (im1, im2), ...
+        params._set_doc(
+            """
+reference : str or int, {0}
 
-    To see what it gives, one can use ipython and range:
-
-    >>> i = 0
-    >>> list(range(10))[i:i+2]
-    [0, 1]
-
-    >>> list(range(10))[i:i+4:2]
-    [0, 2]
-
-    We see that we can also use the value 'i:i+4:2' to form the couples (im0,
-    im2), (im1, im3), ...
-
-    For double-frame images (im1a, im1b, im2a, im2b, ...) you can write
-
-    >>> params.series.strcouple = 'i, 0:2'
-
-    In this case, the first couple will be (im1a, im1b).
-
-    To get the first couple (im1a, im1a), we would have to write
-
-    >>> params.series.strcouple = 'i:i+2, 0'
-
-ind_start : int, {0}
-
-ind_step : int, {1}
-
-int_stop : None
+    Reference file (from which the displacements will be computed). Can be an
+    absolute file path, a file name or the index in the list of files found
+    from the parameters in ``params.images``.
 
 """
         )
@@ -155,7 +119,7 @@ postfix : str
                 {
                     "program": "fluidimage",
                     "module": "fluidimage.topologies.bos",
-                    "class": "Topologybos",
+                    "class": "TopologyBOS",
                 }
             ),
         )
@@ -169,20 +133,39 @@ postfix : str
 
         self.params = params
 
-        serie_arrays = SerieOfArraysFromFiles(params.series.path)
-
-        self.series = SeriesOfArrays(
-            serie_arrays,
-            params.series.strcouple,
-            ind_start=params.series.ind_start,
-            ind_stop=params.series.ind_stop,
-            ind_step=params.series.ind_step,
+        self.serie = SerieOfArraysFromFiles(
+            params.images.path, params.images.str_slice
         )
 
-        path_dir = self.series.serie.path_dir
+        path_dir = Path(self.serie.path_dir)
         path_dir_result, self.how_saving = prepare_path_dir_result(
             path_dir, params.saving.path, params.saving.postfix, params.saving.how
         )
+
+        self.path_dir_result = path_dir_result
+        self.path_dir_src = Path(path_dir)
+
+        if not isinstance(params.reference, int):
+            reference = Path(params.reference).expanduser()
+        else:
+            reference = params.reference
+
+        if isinstance(reference, int):
+            names = self.serie.get_name_arrays()
+            names = sorted(names)
+            path_reference = path_dir / names[reference]
+        elif os.path.isfile(reference):
+            path_reference = reference
+        else:
+            path_reference = path_dir_result / reference
+            if not path_reference.is_file():
+                raise ValueError(
+                    "Bad value of params.reference:" + path_reference
+                )
+
+        self.name_reference = path_reference.name
+        self.path_reference = path_reference
+        self.image_reference = imread(path_reference)
 
         super().__init__(
             path_dir_result=path_dir_result,
@@ -190,24 +173,27 @@ postfix : str
             nb_max_workers=nb_max_workers,
         )
 
-        queue_series_names_couples = self.add_queue("series_names_couple")
         queue_paths = self.add_queue("paths")
         queue_arrays = queue_arrays1 = self.add_queue("arrays")
-        queue_array_couples = self.add_queue("couples of arrays")
         queue_bos = self.add_queue("bos")
 
         if params.preproc.im2im is not None:
             queue_arrays1 = self.add_queue("arrays1")
 
         self.add_work(
-            "fill (series name couple, paths)",
-            func_or_cls=self.fill_series_name_couple_and_path,
-            output_queue=(queue_series_names_couples, queue_paths),
+            "fill paths",
+            func_or_cls=self.fill_queue_paths,
+            output_queue=queue_paths,
             kind=("global", "one shot"),
         )
+
+        def _imread(path):
+            image = imread(path)
+            return image, Path(path).name
+
         self.add_work(
-            "path -> arrays",
-            func_or_cls=imread,
+            "read array",
+            func_or_cls=_imread,
             input_queue=queue_paths,
             output_queue=queue_arrays,
             kind="io",
@@ -219,26 +205,17 @@ postfix : str
             )
 
             self.add_work(
-                "image -> image",
+                "image2image",
                 func_or_cls=im2im_func,
                 input_queue=queue_arrays,
                 output_queue=queue_arrays1,
             )
 
         self.add_work(
-            "make couples arrays",
-            func_or_cls=self.make_couple,
-            params_cls=None,
-            input_queue=(queue_series_names_couples, queue_arrays),
-            output_queue=queue_array_couples,
-            kind="global",
-        )
-
-        self.add_work(
-            "couples -> bos",
+            "compute bos",
             func_or_cls=self.calcul,
             params_cls=params,
-            input_queue=queue_array_couples,
+            input_queue=queue_arrays,
             output_queue=queue_bos,
         )
 
@@ -250,97 +227,59 @@ postfix : str
         )
 
     def save_bos_object(self, o):
-        ret = o.save(self.path_dir_result)
+        ret = o.save(self.path_dir_result, kind="bos")
         return ret
 
-    def calcul(self, array_couple):
+    def calcul(self, tuple_image_path):
+        image, name = tuple_image_path
+        array_couple = ArrayCoupleBOS(
+            names=(self.name_reference, name),
+            arrays=(self.image_reference, image),
+            params_mask=self.params.mask,
+            serie=self.serie,
+            paths=[self.path_reference, self.path_dir_src / name],
+        )
         return WorkPIV(self.params).calcul(array_couple)
 
-    def fill_series_name_couple_and_path(self, input_queue, output_queues):
-        queue_series_name_couple = output_queues[0]
-        queue_path = output_queues[1]
+    def fill_queue_paths(self, input_queue, output_queue):
 
-        series = self.series
-        if len(series) == 0:
-            logger.warning("add 0 couple. No bos to compute.")
+        assert input_queue is None
+
+        serie = self.serie
+        if len(serie) == 0:
+            logger.warning("add 0 image. No image to process.")
             return
-        if self.how_saving == "complete":
-            names = []
-            index_series = []
-            for i, serie in enumerate(series):
-                name = serie.get_name_arrays()[0]
-                name_bos = get_name_bos(name, serie)
-                if os.path.exists(os.path.join(self.path_dir_result, name_bos)):
-                    continue
 
-                for name in serie.get_name_arrays():
-                    if name not in names:
-                        names.append(name)
+        names = serie.get_name_arrays()
 
-                index_series.append(i * series.ind_step + series.ind_start)
+        for name in names:
+            path_im_output = self.path_dir_result / name
+            path_im_input = str(self.path_dir_src / name)
+            if self.how_saving == "complete":
+                if not path_im_output.exists():
+                    output_queue[name] = path_im_input
+            else:
+                output_queue[name] = path_im_input
 
-            if len(index_series) == 0:
+        if len(names) == 0:
+            if self.how_saving == "complete":
                 logger.warning(
                     'topology in mode "complete" and work already done.'
                 )
-                return
+            else:
+                logger.warning("Nothing to do")
+            return
 
-            series.set_index_series(index_series)
-
-            logger.debug(repr(names))
-            logger.debug(repr([serie.get_name_arrays() for serie in series]))
-
-        nb_series = len(series)
-        print("Add {} bos fields to compute.".format(nb_series))
-
-        first_array_name = self.series.get_serie_from_index(1).filename_given
-        self.first_array = imread(
-            os.path.join(self.params.series.path, first_array_name)
-        )
-        for i, serie in enumerate(series):
-            inew = i * self.series.ind_step + series.ind_start
-            queue_series_name_couple[inew] = (
-                first_array_name,
-                serie.get_name_arrays()[1],
-            )
-            queue_path[serie.get_name_arrays()[1]] = serie.get_path_files()[1]
         try:
-            del queue_path[first_array_name]
+            del output_queue[self.path_reference]
         except:
             pass
-        print(queue_path)
 
-    def make_couple(self, input_queues, output_queue):
-        # for readablity
-        queue_series_name_couple = input_queues[0]
-        queue_array = input_queues[1]
+        nb_names = len(names)
+        logger.info(f"Add {nb_names} images to compute.")
+        logger.info("First files to process: " + str(names[:4]))
 
-        try:
-            params_mask = self.params.mask
-        except AttributeError:
-            params_mask = None
-        # for each name couple
-        for key, couple in queue_series_name_couple.items():
-            # if corresponding arrays are available, make an array couple
-            if couple[1] in queue_array.keys():
-                array2 = queue_array[couple[1]]
-                serie = copy.copy(self.series.get_serie_from_index(key))
-                paths = self.params.series.path
-
-                array_couple = ArrayCoupleBOS(
-                    names=(couple[0], couple[1]),
-                    arrays=(self.first_array, array2),
-                    params_mask=params_mask,
-                    paths=paths,
-                    serie=serie,
-                )
-                output_queue[key] = array_couple
-                del queue_series_name_couple[key]
-                # remove the image_array if it will not be used anymore
-                if not still_is_in_dict(couple[1], queue_series_name_couple):
-                    del queue_array[couple[1]]
-                return True
-        return False
+        logger.debug("All files: " + str(names))
 
     def _make_text_at_exit(self, time_since_start):
 

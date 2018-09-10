@@ -10,7 +10,7 @@
 from warnings import warn
 from collections import OrderedDict
 
-from fluidimage.util import logger, log_memory_usage, cstring
+from fluidimage.util import logger, cstring
 
 from ..executors import executors, ExecutorBase
 
@@ -135,6 +135,7 @@ class TopologyBase:
         nb_max_workers=None,
         sleep_time=0.01,
         sequential=False,
+        stop_if_error=False,
     ):
         """Compute (run all works to be done). """
 
@@ -157,6 +158,7 @@ class TopologyBase:
                 nb_max_workers=nb_max_workers,
                 sleep_time=sleep_time,
                 logging_level=self.logging_level,
+                stop_if_error=stop_if_error,
             )
 
         self.executor.compute()
