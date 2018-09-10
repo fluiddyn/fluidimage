@@ -21,10 +21,15 @@ from fluidimage.works.preproc import WorkPreproc
 
 from fluidimage.topologies import prepare_path_dir_result
 from fluidimage.data_objects.display_pre import DisplayPreProc
-from fluidimage.data_objects.preproc import get_name_preproc
+from fluidimage.data_objects.preproc import (
+    get_name_preproc,
+    ArraySerie as ArraySubset,
+)
 
 from fluidimage.util.log import logger
 from fluidimage.experimental.topologies.base import TopologyBase
+
+from .piv_new import still_is_in_dict
 
 
 class TopologyPreproc(TopologyBase):
@@ -228,8 +233,8 @@ postfix : str
             ind_step=params.preproc.series.ind_step,
         )
 
-        serie = self.series.get_serie_from_index(0)
-        self.nb_items_per_serie = serie.get_nb_arrays()
+        subset = self.series.get_serie_from_index(0)
+        self.nb_items_per_serie = subset.get_nb_arrays()
 
         if os.path.isdir(params.preproc.series.path):
             path_dir = params.preproc.series.path
@@ -255,79 +260,141 @@ postfix : str
         self.display = self.preproc_work.display
 
         # Define Queues
-        queue_name_series = self.add_queue("filename series")
-        queue_path = self.add_queue("image paths")
-        queue_array = self.add_queue("arrays")
-        queue_array_series = self.add_queue("array series")
+        queue_name_subsets = self.add_queue("subsets of filename series")
+        queue_paths = self.add_queue("image paths")
+        queue_arrays = self.add_queue("arrays")
+        queue_array_subsets = self.add_queue("subsets of array series")
         queue_preproc = self.add_queue("preproc")
 
         self.add_work(
-            "fill (series name couple, paths)",
+            "fill (name subsets, paths)",
             func_or_cls=self.fill_name_series_and_paths,
-            output_queue=(queue_name_series, queue_path),
+            output_queue=(queue_name_subsets, queue_paths),
             kind=("global", "one shot"),
         )
 
-        def save_preproc_results_object(self, o):
-            return o.save(path=self.path_dir_result)
+        self.add_work(
+            "path -> arrays",
+            func_or_cls=imread,
+            input_queue=queue_paths,
+            output_queue=queue_arrays,
+            kind="io",
+        )
 
-        def init_series(self) -> List[str]:
-            """Initializes the SeriesOfArrays object `self.series` based on input
-            parameters."""
-            series = self.series
-            if len(series) == 0:
+        self.add_work(
+            "make subsets of array series",
+            func_or_cls=self.make_subset,
+            input_queue=(queue_name_subsets, queue_arrays),
+            output_queue=queue_array_subsets,
+            kind="global",
+        )
+
+        self.work_preproc = WorkPreproc(params)
+
+        self.add_work(
+            "couples -> piv",
+            func_or_cls=self.work_preproc.calcul,
+            params_cls=params,
+            input_queue=queue_array_subsets,
+            output_queue=queue_preproc,
+        )
+
+        self.add_work(
+            "save preprocessed arrays",
+            func_or_cls=self.save_preproc_results_object,
+            input_queue=queue_preproc,
+            kind="io",
+        )
+
+    def save_preproc_results_object(self, o):
+        return o.save(path=self.path_dir_result)
+
+    def init_series(self) -> List[str]:
+        """Initializes the SeriesOfArrays object `self.series` based on input
+        parameters."""
+        series = self.series
+        if len(series) == 0:
+            logger.warning("encountered empty series. No images to preprocess.")
+            return
+
+        if self.how_saving == "complete":
+            names = []
+            index_series = []
+            for i, subset in enumerate(series):
+                names_serie = subset.get_name_arrays()
+                name_preproc = get_name_preproc(
+                    serie,
+                    names_serie,
+                    i,
+                    series.nb_series,
+                    self.params.saving.format,
+                )
+                if os.path.exists(
+                    os.path.join(self.path_dir_result, name_preproc)
+                ):
+                    continue
+
+                for name in names_serie:
+                    if name not in names:
+                        names.append(name)
+
+                index_series.append(i + series.ind_start)
+
+            if len(index_series) == 0:
                 logger.warning(
-                    "encountered empty series. No images to preprocess."
+                    'topology in mode "complete" and work already done.'
                 )
                 return
 
-            if self.how_saving == "complete":
-                names = []
-                index_series = []
-                for i, serie in enumerate(series):
-                    names_serie = serie.get_name_arrays()
-                    name_preproc = get_name_preproc(
-                        serie,
-                        names_serie,
-                        i,
-                        series.nb_series,
-                        self.params.saving.format,
-                    )
-                    if os.path.exists(
-                        os.path.join(self.path_dir_result, name_preproc)
-                    ):
-                        continue
+            series.set_index_series(index_series)
 
-                    for name in names_serie:
-                        if name not in names:
-                            names.append(name)
+            logger.debug(repr(names))
+            logger.debug(repr([subset.get_name_arrays() for serie in series]))
+        else:
+            names = series.get_name_all_arrays()
 
-                    index_series.append(i + series.ind_start)
+        logger.info("Add {} image serie(s) to compute.".format(len(series)))
+        return names
 
-                if len(index_series) == 0:
-                    logger.warning(
-                        'topology in mode "complete" and work already done.'
-                    )
-                    return
+    def fill_name_series_and_paths(
+        self, input_queue: None, output_queues: Tuple[List[Any]]
+    ) -> None:
+        queue_name_subsets, queue_paths = output_queues
 
-                series.set_index_series(index_series)
+        names = self.init_series()
+        # TODO: See if names have to be used or not
+        for i, subset in enumerate(self.series):
+            inew = i * self.series.ind_step + self.series.ind_start
+            queue_name_subsets[inew] = subset.get_name_arrays()
+            for name, path in zip(
+                subset.get_name_arrays(), subset.get_path_files()
+            ):
+                queue_paths[name] = path
 
-                logger.debug(repr(names))
-                logger.debug(repr([serie.get_name_arrays() for serie in series]))
-            else:
-                names = series.get_name_all_arrays()
+    def make_subset(self, input_queues, output_queue):
+        # for readablity
+        queue_name_subsets = input_queues[0]
+        queue_arrays = input_queues[1]
 
-            logger.info("Add {} image serie(s) to compute.".format(len(series)))
-            return names
+        # for each name subset
+        for key, names in queue_name_subsets.items():
+            # if correspondant arrays have been loaded from images,
+            # make an array subset
+            if all([name in queue_arrays for name in names]):
+                arrays = (queue_arrays[name] for name in names)
+                serie = copy.copy(self.series.get_serie_from_index(key))
 
-        def fill_name_series_and_paths(
-            self, input_queue: None, output_queues: Tuple[List[Any]]
-        ) -> None:
-            queue_name_series, queue_path = output_queues
+                array_subset = ArraySubset(
+                    names=names, arrays=arrays, serie=serie
+                )
+                output_queue[key] = array_subset
+                del queue_name_subsets[key]
+                # remove the image_array if it not will be used anymore
 
-            names = self.init_series()
-            for i, serie in enumerate(self.series):
-                inew = i * self.series.ind_step + series.ind_start
-                queue_name_series[inew] = serie.get_name_arrays()
-                queue_path[serie.get_name_arrays()[0]] = serie.get_path_files()[0]
-                queue_path[serie.get_name_arrays()[1]] = serie.get_path_files()[1]
+                key_arrays = list(queue_arrays.keys())
+                for key_array in key_arrays:
+                    if not still_is_in_dict(key_array, queue_name_subsets):
+                        del queue_arrays[key_array]
+
+                return True
+        return False
