@@ -1,9 +1,9 @@
-"""Topology for PIV computation (:mod:`fluidimage.experimental.topologies.piv`)
-===============================================================================
+"""Topology for preprocessing (:mod:`fluidimage.experimental.topologies.preproc_new`)
+=====================================================================================
 
-New topology for PIV computation.
+New topology for preprocessing images.
 
-.. autoclass:: TopologyPIV
+.. autoclass:: TopologyPreproc
    :members:
    :private-members:
 
@@ -13,6 +13,7 @@ import json
 import copy
 import sys
 from typing import List, Tuple, Dict, Any
+from fluiddyn.util.paramcontainer import ParamContainer
 
 from fluidimage import SeriesOfArrays
 from fluidimage.util import imread
@@ -221,7 +222,9 @@ postfix : str
 
         return params
 
-    def __init__(self, params, logging_level="info", nb_max_workers=None):
+    def __init__(
+        self, params: ParamContainer, logging_level="info", nb_max_workers=None
+    ):
         self.params = params.preproc
         self.preproc_work = WorkPreproc(params)
         serie_arrays = self.preproc_work.serie_arrays
@@ -306,7 +309,7 @@ postfix : str
             kind="io",
         )
 
-    def save_preproc_results_object(self, o):
+    def save_preproc_results_object(self, o: ArraySubset):
         return o.save(path=self.path_dir_result)
 
     def init_series(self) -> List[str]:
@@ -357,7 +360,7 @@ postfix : str
         return names
 
     def fill_name_series_and_paths(
-        self, input_queue: None, output_queues: Tuple[List[Any]]
+        self, input_queue: None, output_queues: Tuple[Dict]
     ) -> None:
         queue_name_subsets, queue_paths = output_queues
 
@@ -371,10 +374,9 @@ postfix : str
             ):
                 queue_paths[name] = path
 
-    def make_subset(self, input_queues, output_queue):
+    def make_subset(self, input_queues: Tuple[Dict], output_queue: Dict) -> bool:
         # for readablity
-        queue_name_subsets = input_queues[0]
-        queue_arrays = input_queues[1]
+        queue_name_subsets, queue_arrays = input_queues
 
         # for each name subset
         for key, names in queue_name_subsets.items():
