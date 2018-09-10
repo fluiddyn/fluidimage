@@ -1,40 +1,36 @@
-"""Topology for preprocessing images (:mod:`fluidimage.topologies.preproc`)
-===========================================================================
+"""Topology for preprocessing (:mod:`fluidimage.experimental.topologies.preproc_new`)
+=====================================================================================
 
-To preprocess series of images using multiprocessing and waiting queues.
-
-Provides:
+New topology for preprocessing images.
 
 .. autoclass:: TopologyPreproc
    :members:
    :private-members:
 
 """
-
 import os
 import json
+import copy
+import sys
+from typing import List, Tuple, Dict, Any
+from fluiddyn.util.paramcontainer import ParamContainer
 
-from fluiddyn.util.serieofarrays import SeriesOfArrays
-from fluiddyn.io.image import imread
+from fluidimage import SeriesOfArrays
+from fluidimage.util import imread
 
-from ..works.preproc import WorkPreproc
+from fluidimage.works.preproc import WorkPreproc
 
-from . import prepare_path_dir_result
-from ..data_objects.display_pre import DisplayPreProc
-from ..data_objects.preproc import get_name_preproc
-
-from ..util import logger
-
-from .base import TopologyBase
-
-from .waiting_queues.base import (
-    WaitingQueueMultiprocessing,
-    WaitingQueueThreading,
+from fluidimage.topologies import prepare_path_dir_result
+from fluidimage.data_objects.display_pre import DisplayPreProc
+from fluidimage.data_objects.preproc import (
+    get_name_preproc,
+    ArraySerie as ArraySubset,
 )
-from .waiting_queues.series import (
-    WaitingQueueMakeSerie,
-    WaitingQueueLoadImageSeries,
-)
+
+from fluidimage.util.log import logger
+from fluidimage.experimental.topologies.base import TopologyBase
+
+from .piv_new import still_is_in_dict
 
 
 class TopologyPreproc(TopologyBase):
@@ -79,7 +75,6 @@ class TopologyPreproc(TopologyBase):
                 "ind_start": 0,
                 "ind_stop": None,
                 "ind_step": 1,
-                "sequential_loading": True,
             }
         )
 
@@ -118,10 +113,6 @@ ind_step : int
     Step index for the whole series of images being loaded.
     For more details: see `class SeriesOfArrays`.
 
-sequential_loading : bool
-    When set as `true` the image loading waiting queue `WaitingQueueLoadImageSeries`
-    is processed sequentially. i.e. only one subset of the whole series is loaded at a time.
-
 """
         )
 
@@ -149,7 +140,7 @@ strcouple : str or None
 
     ..todo::
 
-        rename this parameter to strsubset / strslice
+        rename this parameter to strsubset / strslice 
 
 how : str {'ask', 'new_dir', 'complete', 'recompute'}
     How preprocessed images must be saved if it already exists or not.
@@ -176,10 +167,9 @@ postfix : str
 
         return params
 
-    def __init__(self, params=None, logging_level="info", nb_max_workers=None):
-        if params is None:
-            params = self.__class__.create_default_params()
-
+    def __init__(
+        self, params: ParamContainer, logging_level="info", nb_max_workers=None
+    ):
         self.params = params.preproc
         self.preproc_work = WorkPreproc(params)
         serie_arrays = self.preproc_work.serie_arrays
@@ -191,66 +181,86 @@ postfix : str
             ind_step=params.preproc.series.ind_step,
         )
 
-        serie = self.series.get_serie_from_index(0)
-        self.nb_items_per_serie = serie.get_nb_arrays()
+        subset = self.series.get_serie_from_index(0)
+        self.nb_items_per_serie = subset.get_nb_arrays()
 
         if os.path.isdir(params.preproc.series.path):
             path_dir = params.preproc.series.path
         else:
             path_dir = os.path.dirname(params.preproc.series.path)
         self.path_dir_input = path_dir
-        self.path_dir_result, self.how_saving = prepare_path_dir_result(
+
+        path_dir_result, self.how_saving = prepare_path_dir_result(
             path_dir,
             params.preproc.saving.path,
             params.preproc.saving.postfix,
             params.preproc.saving.how,
         )
 
-        self.params.saving.path = self.path_dir_result
-        self.results = self.preproc_work.results
-        self.display = self.preproc_work.display
-
-        def save_preproc_results_object(o):
-            return o.save(path=self.path_dir_result)
-
-        self.wq_preproc = WaitingQueueThreading(
-            "save results",
-            save_preproc_results_object,
-            self.results,
-            work_name="save",
-            topology=self,
-        )
-
-        self.wq_serie = WaitingQueueMultiprocessing(
-            "apply preprocessing",
-            self.preproc_work.calcul,
-            self.wq_preproc,
-            work_name="preprocessing",
-            topology=self,
-        )
-
-        self.wq_images = WaitingQueueMakeSerie(
-            "make serie", self.wq_serie, topology=self
-        )
-
-        self.wq0 = WaitingQueueLoadImageSeries(
-            destination=self.wq_images,
-            path_dir=path_dir,
-            topology=self,
-            sequential=params.preproc.series.sequential_loading,
-        )
-
         super().__init__(
-            [self.wq0, self.wq_images, self.wq_serie, self.wq_preproc],
-            path_output=self.path_dir_result,
+            path_dir_result=path_dir_result,
             logging_level=logging_level,
             nb_max_workers=nb_max_workers,
         )
 
-        self.add_series(self.series)
+        self.params.saving.path = self.path_dir_result
+        self.results = self.preproc_work.results
+        self.display = self.preproc_work.display
 
-    def add_series(self, series):
+        # Define Queues
+        queue_name_subsets = self.add_queue("subsets of filename series")
+        queue_paths = self.add_queue("image paths")
+        queue_arrays = self.add_queue("arrays")
+        queue_array_subsets = self.add_queue("subsets of array series")
+        queue_preproc = self.add_queue("preproc")
 
+        self.add_work(
+            "fill (name subsets, paths)",
+            func_or_cls=self.fill_name_series_and_paths,
+            output_queue=(queue_name_subsets, queue_paths),
+            kind=("global", "one shot"),
+        )
+
+        self.add_work(
+            "path -> arrays",
+            func_or_cls=imread,
+            input_queue=queue_paths,
+            output_queue=queue_arrays,
+            kind="io",
+        )
+
+        self.add_work(
+            "make subsets of array series",
+            func_or_cls=self.make_subset,
+            input_queue=(queue_name_subsets, queue_arrays),
+            output_queue=queue_array_subsets,
+            kind="global",
+        )
+
+        self.work_preproc = WorkPreproc(params)
+
+        self.add_work(
+            "subsets -> preproc",
+            func_or_cls=self.work_preproc.calcul,
+            params_cls=params,
+            input_queue=queue_array_subsets,
+            output_queue=queue_preproc,
+        )
+
+        self.add_work(
+            "save preprocessed arrays",
+            func_or_cls=self.save_preproc_results_object,
+            input_queue=queue_preproc,
+            kind="io",
+        )
+
+    def save_preproc_results_object(self, o: ArraySubset):
+        return o.save(path=self.path_dir_result)
+
+    def init_series(self) -> List[str]:
+        """Initializes the SeriesOfArrays object `self.series` based on input
+        parameters."""
+        series = self.series
         if len(series) == 0:
             logger.warning("encountered empty series. No images to preprocess.")
             return
@@ -258,10 +268,10 @@ postfix : str
         if self.how_saving == "complete":
             names = []
             index_series = []
-            for i, serie in enumerate(series):
-                names_serie = serie.get_name_arrays()
+            for i, subset in enumerate(series):
+                names_serie = subset.get_name_arrays()
                 name_preproc = get_name_preproc(
-                    serie,
+                    subset,
                     names_serie,
                     i,
                     series.nb_series,
@@ -280,77 +290,58 @@ postfix : str
 
             if len(index_series) == 0:
                 logger.warning(
-                    'topology in mode "complete" and ' "work already done."
+                    'topology in mode "complete" and work already done.'
                 )
                 return
 
             series.set_index_series(index_series)
 
             logger.debug(repr(names))
-            logger.debug(repr([serie.get_name_arrays() for serie in series]))
+            logger.debug(repr([subset.get_name_arrays() for serie in series]))
         else:
             names = series.get_name_all_arrays()
 
         logger.info("Add {} image serie(s) to compute.".format(len(series)))
+        return names
 
-        self.wq0.add_name_files(names)
-        self.wq_images.add_series(series)
+    def fill_name_series_and_paths(
+        self, input_queue: None, output_queues: Tuple[Dict]
+    ) -> None:
+        queue_name_subsets, queue_paths = output_queues
 
-        k, o = self.wq0.popitem()
-        im = self.wq0.work(o)
-        self.wq0.fill_destination(k, im)
+        names = self.init_series()
+        # TODO: See if names have to be used or not
+        for i, subset in enumerate(self.series):
+            inew = i * self.series.ind_step + self.series.ind_start
+            queue_name_subsets[inew] = subset.get_name_arrays()
+            for name, path in zip(
+                subset.get_name_arrays(), subset.get_path_files()
+            ):
+                queue_paths[name] = path
 
-    def compare(self, indices=[0, 1], suffix=None, hist=False):
-        if not suffix:
-            suffix = "." + self.params.saving.postfix
-        pathbase = self.params.series.path + "/"
+    def make_subset(self, input_queues: Tuple[Dict], output_queue: Dict) -> bool:
+        # for readablity
+        queue_name_subsets, queue_arrays = input_queues
 
-        names = self.series.get_name_all_arrays()
-        im0 = imread(pathbase + names[indices[0]])
-        im1 = imread(pathbase + names[indices[1]])
-        im0p = imread(pathbase[:-1] + suffix + "/" + names[indices[0]])
-        im1p = imread(pathbase[:-1] + suffix + "/" + names[indices[1]])
-        return DisplayPreProc(im0, im1, im0p, im1p, hist=hist)
+        # for each name subset
+        for key, names in queue_name_subsets.items():
+            # if correspondant arrays have been loaded from images,
+            # make an array subset
+            if all([name in queue_arrays for name in names]):
+                arrays = (queue_arrays[name] for name in names)
+                serie = copy.copy(self.series.get_serie_from_index(key))
 
-    def _print_at_exit(self, time_since_start):
-        """Print information before exit."""
-        txt = "Stop compute after t = {:.2f} s".format(time_since_start)
-        try:
-            nb_results = len(self.results)
-        except AttributeError:
-            nb_results = None
-        if nb_results is not None and nb_results > 0:
-            txt += " ({} results, {:.2f} s/result).".format(
-                nb_results, time_since_start / nb_results
-            )
-        else:
-            txt += "."
+                array_subset = ArraySubset(
+                    names=names, arrays=arrays, serie=serie
+                )
+                output_queue[key] = array_subset
+                del queue_name_subsets[key]
+                # remove the image_array if it not will be used anymore
 
-        if hasattr(self, "path_dir_result"):
-            txt += """
-To display the inputs, you can use:
-fluidimviewer {} &
-To display the results, you can use:
-fluidimviewer {} &""".format(
-                os.path.abspath(self.path_dir_input),
-                os.path.abspath(self.path_dir_result),
-            )
+                key_arrays = list(queue_arrays.keys())
+                for key_array in key_arrays:
+                    if not still_is_in_dict(key_array, queue_name_subsets):
+                        del queue_arrays[key_array]
 
-        print(txt)
-
-
-params = TopologyPreproc.create_default_params()
-
-doc = params._get_formatted_docs()
-
-strings_to_remove = ["Parameters\n    ----------", "References\n    ----------"]
-
-for string in strings_to_remove:
-    doc = doc.replace(string, "")
-
-lines = []
-for line in doc.split("\n"):
-    if not line.startswith("    - http"):
-        lines.append(line)
-
-__doc__ += "\n".join(lines)
+                return True
+        return False
