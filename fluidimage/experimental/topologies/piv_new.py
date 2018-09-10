@@ -22,7 +22,7 @@ from fluidimage.works.piv import WorkPIV
 from fluidimage.data_objects.piv import get_name_piv, ArrayCouple
 from fluidimage.util import imread
 from fluidimage.util.log import logger
-from fluidimage.topologies import image2image
+from . import image2image_new as image2image
 
 
 def still_is_in_dict(image_name, dictio):

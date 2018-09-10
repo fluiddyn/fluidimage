@@ -47,8 +47,9 @@ class ExecutorBase:
         topology,
         path_dir_result,
         nb_max_workers,
-        nb_items_queue_max,
+        nb_items_queue_max=4,
         logging_level="info",
+        sleep_time=None,
     ):
         self.topology = topology
         self.logging_level = logging_level
@@ -110,6 +111,13 @@ class ExecutorBase:
 
             signal.signal(12, handler_signals)
 
+        # Picks up async works
+        self.works = [
+            w
+            for w in self.topology.works
+            if w.kind is None or "one shot" not in w.kind
+        ]
+
     def _init_compute(self):
         self.t_start = time()
         self._init_compute_log()
@@ -131,3 +139,14 @@ class ExecutorBase:
         log_memory_usage(time_as_str(2) + ": end of `compute`. mem usage")
         self.topology._print_at_exit(time() - self.t_start)
         self._reset_std_as_default()
+
+    def exec_one_shot_works(self):
+        """
+        Execute all "one shot" functions.
+
+        """
+        for work in self.topology.works:
+            if work.kind is not None and "one shot" in work.kind:
+                pretty = str_short(work.func_or_cls.__func__)
+                logger.info(f'Running "one_shot" job "{work.name}" ({pretty})')
+                work.func_or_cls(work.input_queue, work.output_queue)

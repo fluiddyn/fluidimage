@@ -26,12 +26,13 @@ for iproc in range(nb_proc):
     long_func(n)
     print(f"end {iproc}:   {time()-t_start:.4f} s")
 
-duration_seq = time()-t_start
+duration_seq = time() - t_start
 print(f"sequentially: {duration_seq:.4f} s")
 
 t_start = time()
 
 i_task_global = 0
+
 
 async def calcul():
     global i_task_global
@@ -41,14 +42,16 @@ async def calcul():
     await trio.run_sync_in_worker_thread(long_func, n)
     print(f"end {i_task}:   {time()-t_start:.4f} s")
 
+
 async def main():
     async with trio.open_nursery() as nursery:
         for iproc in range(nb_proc):
             nursery.start_soon(calcul)
 
+
 trio.run(main)
 
-duration_par = time()-t_start
+duration_par = time() - t_start
 print(f"parallel: {duration_par:.4f} s")
 
 print(f"speedup: {duration_seq/duration_par}")

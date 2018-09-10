@@ -14,7 +14,7 @@ async def sleep():
 
 def cpu_bounded_task(input_data):
     result = input_data.copy()
-    for i in range(1000000-1):
+    for i in range(1000000 - 1):
         result += input_data
     return result
 
@@ -56,5 +56,6 @@ def main():
     trio.run(parent, q_c2s, q_s2c)
     p.join()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

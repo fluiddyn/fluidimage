@@ -157,7 +157,7 @@ postfix : str
 
         self.queue_path = self.add_queue("queue_names")
         self.queue_array_path = self.add_queue("queue_array_path")
-        self.queue_out = self.add_queue("queue_out")
+        self.queue_result = self.add_queue("queue_result")
 
         self.add_work(
             "fill_path",
@@ -169,20 +169,23 @@ postfix : str
         self.im2im_func = self.init_im2im(params)
 
         self.add_work(
-            "get_array",
+            "read_array",
             self.imread,
             input_queue=self.queue_path,
             output_queue=self.queue_array_path,
+            kind="io",
         )
 
         self.add_work(
             "im2im",
             self.im2im_func,
             input_queue=self.queue_array_path,
-            output_queue=self.queue_out,
+            output_queue=self.queue_result,
         )
 
-        self.add_work("save", self.save_image, input_queue=self.queue_out)
+        self.add_work(
+            "save", self.save_image, input_queue=self.queue_result, kind="io"
+        )
 
     def init_im2im(self, params_im2im):
         self.im2im_obj, self.im2im_func = init_im2im_function(

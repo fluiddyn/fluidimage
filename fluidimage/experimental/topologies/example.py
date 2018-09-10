@@ -12,7 +12,6 @@ with C functions.
 
 import os
 
-import numpy as np
 import scipy.io
 
 from fluidimage.experimental.cpu_bounded_task_examples_pythran import cpu1, cpu2
@@ -144,7 +143,7 @@ class TopologyExample(TopologyBase):
 
     def fill_names(self, input_queue, output_queue):
         for ind in range(self.multiplicator_nb_images):
-            for name in os.listdir(self.path_input):
+            for name in sorted(os.listdir(self.path_input)):
                 key = name.split(".bmp")[0] + f"_{ind:02}"
                 output_queue[key] = name
 
@@ -153,6 +152,9 @@ class TopologyExample(TopologyBase):
             output_queue[key] = [key, (name, name)]
 
     def read_array(self, name):
+        if name == "Karman_03.bmp":
+            raise ValueError("For testing")
+
         image = imread(self.path_input / name)
         return image
 
@@ -161,9 +163,15 @@ class TopologyExample(TopologyBase):
         queue_couples_arrays = output_queue
 
         for key, array in list(queue_arrays.items()):
+            if key not in queue_couples_names:
+                continue
             queue_arrays.pop(key)
             queue_couples_names.pop(key)
-            queue_couples_arrays[key] = [key, array, array]
+            # propagating possible exceptions...
+            if isinstance(array, Exception):
+                queue_couples_arrays[key] = array
+            else:
+                queue_couples_arrays[key] = [key, array, array]
 
     def save(self, inputs):
         key = inputs[0]

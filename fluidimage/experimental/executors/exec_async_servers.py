@@ -114,7 +114,7 @@ class ExecutorAsyncServers(ExecutorAsync):
         self._init_compute()
         for worker in self.workers:
             worker.send(("__t_start__", self.t_start))
-        self.exec_one_shot_job()
+        self.exec_one_shot_works()
         trio.run(self.start_async_works)
         self._finalize_compute()
 
@@ -128,7 +128,7 @@ class ExecutorAsyncServers(ExecutorAsync):
 
             self.nursery.start_soon(self.update_has_to_stop)
 
-        print("terminate the servers")
+        logger.info("terminate the servers")
         for worker in self.workers:
             worker.terminate()
 
@@ -157,6 +157,10 @@ class ExecutorAsyncServers(ExecutorAsync):
                 logger.debug(
                     "[worker.is_unoccupied for worker in self.workers]: "
                     f"{[worker.is_unoccupied for worker in self.workers]}"
+                )
+                logger.debug(
+                    "[worker.is_available for worker in self.workers]: "
+                    f"{[worker.is_available for worker in self.workers]}"
                 )
                 logger.debug(
                     "[worker.nb_items_to_process for worker in self.workers] "
@@ -190,6 +194,9 @@ class ExecutorAsyncServers(ExecutorAsync):
           The value of the dictionnary item to be process
 
         """
+        if work.check_exception(key, obj):
+            worker.is_available = True
+            return
 
         def run_process():
 
@@ -214,6 +221,7 @@ class ExecutorAsyncServers(ExecutorAsync):
 
     def def_async_func_work_cpu_with_output_queue(self, work):
         async def func(work=work):
+
             while True:
                 while (
                     not work.input_queue
@@ -230,7 +238,7 @@ class ExecutorAsyncServers(ExecutorAsync):
                     available_worker = self.get_available_worker()
                     await trio.sleep(self.sleep_time)
 
-                key, obj = work.input_queue.popitem()
+                key, obj = work.input_queue.pop_first_item()
                 self.nursery.start_soon(
                     self.async_run_work_cpu, work, key, obj, available_worker
                 )
@@ -253,7 +261,7 @@ class ExecutorAsyncServers(ExecutorAsync):
                     available_worker = self.get_available_worker()
                     await trio.sleep(self.sleep_time)
 
-                key, obj = work.input_queue.popitem()
+                key, obj = work.input_queue.pop_first_item()
                 self.nursery.start_soon(
                     self.async_run_work_cpu, work, key, obj, available_worker
                 )

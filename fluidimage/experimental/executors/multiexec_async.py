@@ -258,6 +258,7 @@ class MultiExecutorAsync(ExecutorBase):
                 self.path_dir_result,
                 sleep_time=self.sleep_time,
                 log_path=log_path,
+                logging_level=self.logging_level,
             )
             executor.t_start = self.t_start
             executor.compute()

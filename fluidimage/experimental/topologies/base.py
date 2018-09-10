@@ -8,20 +8,44 @@
 """
 
 from warnings import warn
+from collections import OrderedDict
+
+from fluidimage.util import logger, log_memory_usage, cstring
 
 from ..executors import executors, ExecutorBase
 
 
-class MyObj:
+class Work:
+    """Represent a work"""
+
     def __init__(self, **kwargs):
         self._kwargs = kwargs
         self.__dict__.update(kwargs)
 
+        if hasattr(self, "name"):
+            self.name_no_space = self.name.replace(" ", "_")
+
     def __repr__(self):
         return super().__repr__() + "\n" + self._kwargs.__repr__()
 
+    def check_exception(self, key, obj):
+        if isinstance(obj, Exception):
+            if self.output_queue is not None:
+                self.output_queue[key] = obj
+            else:
+                logger.error(
+                    cstring(
+                        f"work {self.name_no_space} ({key}) "
+                        "can not be done because of a previously "
+                        "raised exception.",
+                        color="FAIL",
+                    )
+                )
+            return True
+        return False
 
-class Queue(dict):
+
+class Queue(OrderedDict):
     """Represent a queue"""
 
     def __init__(self, name, kind=None):
@@ -31,9 +55,17 @@ class Queue(dict):
     def __repr__(self):
         return f'\nqueue "{self.name}": ' + super().__repr__()
 
+    def __copy__(self):
+        newone = type(self)(self.name, kind=self.kind)
+        newone.__dict__.update(self.__dict__)
 
-class Work(MyObj):
-    """Represent a work"""
+        for key, values in self.items():
+            newone[key] = values
+
+        return newone
+
+    def pop_first_item(self):
+        return self.popitem(last=False)
 
 
 class TopologyBase:
@@ -98,9 +130,19 @@ class TopologyBase:
         self.works_dict[name] = work
 
     def compute(
-        self, executor="exec_async", nb_max_workers=None, sleep_time=0.01
+        self,
+        executor="exec_async",
+        nb_max_workers=None,
+        sleep_time=0.01,
+        sequential=False,
     ):
         """Compute (run all works to be done). """
+
+        if sequential:
+            if executor != "exec_sequential":
+                raise ValueError
+            executor = "exec_sequential"
+
         if executor is None:
             executor = "exec_async"
 

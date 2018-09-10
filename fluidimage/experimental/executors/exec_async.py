@@ -18,20 +18,14 @@ computation can use many CPU at a time.
 """
 
 import time
-import collections
+from collections import OrderedDict
 import signal
 
 import trio
 
-from fluidimage.util import logger, log_memory_usage, str_short
+from fluidimage.util import logger, log_memory_usage, cstring
 
 from .base import ExecutorBase
-
-
-def popitem(input_queue):
-    """Get an item from the input_queue."""
-    key, obj = input_queue.popitem()
-    return key, obj
 
 
 class ExecutorAsync(ExecutorBase):
@@ -82,12 +76,10 @@ class ExecutorAsync(ExecutorBase):
         self.sleep_time = sleep_time
 
         # fonction containers
-        self.works = []
-        self.async_funcs = collections.OrderedDict()
-        self.funcs = collections.OrderedDict()
+        self.async_funcs = OrderedDict()
+        self.funcs = OrderedDict()
 
         # Functions definition
-        self.store_async_works()
         self.define_functions()
 
         def signal_handler(sig, frame):
@@ -109,7 +101,7 @@ class ExecutorAsync(ExecutorBase):
         """
 
         self._init_compute()
-        self.exec_one_shot_job()
+        self.exec_one_shot_works()
         trio.run(self.start_async_works)
         self._finalize_compute()
 
@@ -118,7 +110,7 @@ class ExecutorAsync(ExecutorBase):
 
         """
         async with trio.open_nursery() as self.nursery:
-            for af in reversed(self.async_funcs.values()):
+            for af in self.async_funcs.values():
                 self.nursery.start_soon(af)
 
             self.nursery.start_soon(self.update_has_to_stop)
@@ -134,20 +126,10 @@ class ExecutorAsync(ExecutorBase):
         and process the items as soon as they are available.
 
         """
-        for w in reversed(self.topology.works):
-            # One shot functions
-            if w.kind is not None and "one shot" in w.kind:
-
-                def func(work=w):
-                    work.func_or_cls(work.input_queue, work.output_queue)
-
-                func._pretty = str_short(w.func_or_cls.__func__)
-
-                self.funcs[w.name] = func
-                continue
+        for w in self.works:
 
             # global functions
-            elif w.kind is not None and "global" in w.kind:
+            if w.kind is not None and "global" in w.kind:
 
                 async def func(work=w):
                     item_number = 1
@@ -185,11 +167,11 @@ class ExecutorAsync(ExecutorBase):
                 else:
                     func = self.def_async_func_work_io_without_output_queue(w)
 
-            # there is output_queue
+            # CPU-bounded work with output_queue
             elif w.output_queue is not None:
                 func = self.def_async_func_work_cpu_with_output_queue(w)
 
-            # There is no output_queue
+            # CPU-bounded work without output_queue
             else:
                 func = self.def_async_func_work_cpu_without_output_queue(w)
 
@@ -206,7 +188,7 @@ class ExecutorAsync(ExecutorBase):
                     if self._has_to_stop:
                         return
                     await trio.sleep(self.sleep_time)
-                key, obj = popitem(work.input_queue)
+                key, obj = work.input_queue.pop_first_item()
                 self.nursery.start_soon(self.async_run_work_io, work, key, obj)
                 await trio.sleep(self.sleep_time)
 
@@ -222,7 +204,7 @@ class ExecutorAsync(ExecutorBase):
                     if self._has_to_stop:
                         return
                     await trio.sleep(self.sleep_time)
-                key, obj = popitem(work.input_queue)
+                key, obj = work.input_queue.pop_first_item()
                 self.nursery.start_soon(self.async_run_work_io, work, key, obj)
                 await trio.sleep(self.sleep_time)
 
@@ -239,7 +221,7 @@ class ExecutorAsync(ExecutorBase):
                     if self._has_to_stop:
                         return
                     await trio.sleep(self.sleep_time)
-                key, obj = popitem(work.input_queue)
+                key, obj = work.input_queue.pop_first_item()
                 self.nursery.start_soon(self.async_run_work_cpu, work, key, obj)
                 await trio.sleep(self.sleep_time)
 
@@ -255,22 +237,11 @@ class ExecutorAsync(ExecutorBase):
                     if self._has_to_stop:
                         return
                     await trio.sleep(self.sleep_time)
-                key, obj = popitem(work.input_queue)
+                key, obj = work.input_queue.pop_first_item()
                 self.nursery.start_soon(self.async_run_work_cpu, work, key, obj)
                 await trio.sleep(self.sleep_time)
 
         return func
-
-    def exec_one_shot_job(self):
-        """
-        Execute all "one shot functions".
-
-        """
-        for key, func in reversed(self.funcs.items()):
-            logger.info(
-                'Running "one_shot" job "{}" ({})'.format(key, func._pretty)
-            )
-            func()
 
     async def async_run_work_io(self, work, key, obj):
         """Is destined to be started with a "trio.start_soon".
@@ -294,23 +265,35 @@ class ExecutorAsync(ExecutorBase):
           The value of the dictionnary item to be process
 
         """
+        if work.check_exception(key, obj):
+            return
+
         t_start = time.time()
         log_memory_usage(
-            "{:.2f} s. ".format(time.time() - self.t_start)
-            + "Launch work "
+            f"{time.time() - self.t_start:.2f} s. Launch work "
             + work.name.replace(" ", "_")
-            + " ({}). mem usage".format(key)
+            + f" ({key}). mem usage"
         )
         self.nb_working_workers_io += 1
-        ret = await trio.run_sync_in_worker_thread(work.func_or_cls, obj)
+        try:
+            ret = await trio.run_sync_in_worker_thread(work.func_or_cls, obj)
+        except Exception as error:
+            logger.error(
+                cstring(
+                    "error during work " f"{work.name.replace(' ', '_')} ({key})",
+                    color="FAIL",
+                )
+            )
+            ret = error
+        else:
+            logger.info(
+                f"work {work.name.replace(' ', '_')} ({key}) "
+                f"done in {time.time() - t_start:.3f} s"
+            )
+
+        self.nb_working_workers_io -= 1
         if work.output_queue is not None:
             work.output_queue[key] = ret
-        self.nb_working_workers_io -= 1
-        logger.info(
-            "work {} ({}) done in {:.3f} s".format(
-                work.name.replace(" ", "_"), key, time.time() - t_start
-            )
-        )
 
     async def async_run_work_cpu(self, work, key, obj):
         """Is destined to be started with a "trio.start_soon".
@@ -334,31 +317,35 @@ class ExecutorAsync(ExecutorBase):
           The value of the dictionnary item to be process
 
         """
+        if work.check_exception(key, obj):
+            return
+
         t_start = time.time()
         log_memory_usage(
-            "{:.2f} s. ".format(time.time() - self.t_start)
-            + "Launch work "
+            f"{time.time() - self.t_start:.2f} s. Launch work "
             + work.name.replace(" ", "_")
-            + " ({}). mem usage".format(key)
+            + f" ({key}). mem usage"
         )
         self.nb_working_workers_cpu += 1
-        ret = await trio.run_sync_in_worker_thread(work.func_or_cls, obj)
+        try:
+            ret = await trio.run_sync_in_worker_thread(work.func_or_cls, obj)
+        except Exception as error:
+            logger.error(
+                cstring(
+                    "error during work " f"{work.name.replace(' ', '_')} ({key})",
+                    color="FAIL",
+                )
+            )
+            ret = error
+        else:
+            logger.info(
+                f"work {work.name.replace(' ', '_')} ({key}) "
+                f"done in {time.time() - t_start:.3f} s"
+            )
+
+        self.nb_working_workers_cpu -= 1
         if work.output_queue is not None:
             work.output_queue[key] = ret
-        self.nb_working_workers_cpu -= 1
-        logger.info(
-            "work {} ({}) done in {:.3f} s".format(
-                work.name.replace(" ", "_"), key, time.time() - t_start
-            )
-        )
-
-    def store_async_works(self):
-        """
-        Picks up async works and stores them in `self.works`.
-        """
-        for w in self.topology.works:
-            if w.kind is None or "one shot" not in w.kind:
-                self.works.append(w)
 
     async def update_has_to_stop(self):
         """Work has to stop flag. Check if all works has been done.
