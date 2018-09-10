@@ -295,7 +295,7 @@ postfix : str
         self.work_preproc = WorkPreproc(params)
 
         self.add_work(
-            "couples -> piv",
+            "subsets -> preproc",
             func_or_cls=self.work_preproc.calcul,
             params_cls=params,
             input_queue=queue_array_subsets,
@@ -326,7 +326,7 @@ postfix : str
             for i, subset in enumerate(series):
                 names_serie = subset.get_name_arrays()
                 name_preproc = get_name_preproc(
-                    serie,
+                    subset,
                     names_serie,
                     i,
                     series.nb_series,
