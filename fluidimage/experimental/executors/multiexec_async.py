@@ -171,10 +171,10 @@ class MultiExecutorAsync(ExecutorBase):
 
         nb_keys_per_process = max(1, int(len(keys) / self.nb_processes))
 
-        keys_for_processes = [
-            keys[iproc : iproc + nb_keys_per_process + 1]
-            for iproc in range(self.nb_processes)
-        ]
+        keys_for_processes = []
+        for iproc in range(self.nb_processes):
+            istart = iproc * nb_keys_per_process
+            keys_for_processes.append(keys[istart : istart + nb_keys_per_process])
 
         # change topology
         self.topology.first_queue = self.topology.works[0].output_queue

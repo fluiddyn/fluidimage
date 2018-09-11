@@ -21,7 +21,7 @@ from .exec_async import ExecutorAsync
 class ExecutorAsyncMultiproc(ExecutorAsync):
     """Async executor using multiprocessing to launch CPU-bounded tasks"""
 
-    async def async_run_work_cpu(self, work, key, obj):
+    async def async_run_work_cpu(self, work):
         """Is destined to be started with a "trio.start_soon".
 
         Executes the work on an item (key, obj), and add the result on
@@ -34,16 +34,16 @@ class ExecutorAsyncMultiproc(ExecutorAsync):
 
           A work from the topology
 
-        key : hashable
-
-          The key of the dictionnary item to be process
-
-        obj : object
-
-          The value of the dictionnary item to be process
-
         """
+        self.nb_working_workers_cpu += 1
+
+        try:
+            key, obj = work.input_queue.pop_first_item()
+        except KeyError:
+            self.nb_working_workers_cpu -= 1
+
         if work.check_exception(key, obj):
+            self.nb_working_workers_cpu -= 1
             return
 
         t_start = time.time()
@@ -80,11 +80,7 @@ class ExecutorAsyncMultiproc(ExecutorAsync):
 
             return result
 
-        self.nb_working_workers_cpu += 1
         ret = await trio.run_sync_in_worker_thread(run_process)
-        self.nb_working_workers_cpu -= 1
-        if work.output_queue is not None:
-            work.output_queue[key] = ret
 
         if isinstance(ret, Exception):
             logger.error(
@@ -100,3 +96,7 @@ class ExecutorAsyncMultiproc(ExecutorAsync):
                 f"work {work.name_no_space} ({key}) "
                 f"done in {time.time() - t_start:.3f} s"
             )
+
+        if work.output_queue is not None:
+            work.output_queue[key] = ret
+        self.nb_working_workers_cpu -= 1

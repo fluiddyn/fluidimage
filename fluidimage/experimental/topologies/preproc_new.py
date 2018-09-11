@@ -11,7 +11,6 @@ New topology for preprocessing images.
 import os
 import json
 import copy
-import sys
 from typing import List, Tuple, Dict, Any
 from fluiddyn.util.paramcontainer import ParamContainer
 
@@ -21,7 +20,6 @@ from fluidimage.util import imread
 from fluidimage.works.preproc import WorkPreproc
 
 from fluidimage.topologies import prepare_path_dir_result
-from fluidimage.data_objects.display_pre import DisplayPreProc
 from fluidimage.data_objects.preproc import (
     get_name_preproc,
     ArraySerie as ArraySubset,
@@ -140,7 +138,7 @@ strcouple : str or None
 
     ..todo::
 
-        rename this parameter to strsubset / strslice 
+        rename this parameter to strsubset / strslice
 
 how : str {'ask', 'new_dir', 'complete', 'recompute'}
     How preprocessed images must be saved if it already exists or not.

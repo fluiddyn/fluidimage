@@ -188,8 +188,7 @@ class ExecutorAsync(ExecutorBase):
                     if self._has_to_stop:
                         return
                     await trio.sleep(self.sleep_time)
-                key, obj = work.input_queue.pop_first_item()
-                self.nursery.start_soon(self.async_run_work_io, work, key, obj)
+                self.nursery.start_soon(self.async_run_work_io, work)
                 await trio.sleep(self.sleep_time)
 
         return func
@@ -204,8 +203,7 @@ class ExecutorAsync(ExecutorBase):
                     if self._has_to_stop:
                         return
                     await trio.sleep(self.sleep_time)
-                key, obj = work.input_queue.pop_first_item()
-                self.nursery.start_soon(self.async_run_work_io, work, key, obj)
+                self.nursery.start_soon(self.async_run_work_io, work)
                 await trio.sleep(self.sleep_time)
 
         return func
@@ -221,8 +219,7 @@ class ExecutorAsync(ExecutorBase):
                     if self._has_to_stop:
                         return
                     await trio.sleep(self.sleep_time)
-                key, obj = work.input_queue.pop_first_item()
-                self.nursery.start_soon(self.async_run_work_cpu, work, key, obj)
+                self.nursery.start_soon(self.async_run_work_cpu, work)
                 await trio.sleep(self.sleep_time)
 
         return func
@@ -237,13 +234,12 @@ class ExecutorAsync(ExecutorBase):
                     if self._has_to_stop:
                         return
                     await trio.sleep(self.sleep_time)
-                key, obj = work.input_queue.pop_first_item()
-                self.nursery.start_soon(self.async_run_work_cpu, work, key, obj)
+                self.nursery.start_soon(self.async_run_work_cpu, work)
                 await trio.sleep(self.sleep_time)
 
         return func
 
-    async def async_run_work_io(self, work, key, obj):
+    async def async_run_work_io(self, work):
         """Is destined to be started with a "trio.start_soon".
 
         Executes the work on an item (key, obj), and add the result on
@@ -256,25 +252,25 @@ class ExecutorAsync(ExecutorBase):
 
           A work from the topology
 
-        key : hashable
-
-          The key of the dictionnary item to be process
-
-        obj : object
-
-          The value of the dictionnary item to be process
-
         """
-        if work.check_exception(key, obj):
-            return
-
-        t_start = time.time()
-        log_memory_usage(
-            f"{time.time() - self.t_start:.2f} s. Launch work "
-            + work.name_no_space
-            + f" ({key}). mem usage"
-        )
         self.nb_working_workers_io += 1
+
+        try:
+            key, obj = work.input_queue.pop_first_item()
+        except KeyError:
+            self.nb_working_workers_io -= 1
+            return
+
+        if work.check_exception(key, obj):
+            self.nb_working_workers_io -= 1
+            return
+
+        t_start = time.time()
+        log_memory_usage(
+            f"{time.time() - self.t_start:.2f} s. Launch work "
+            + work.name_no_space
+            + f" ({key}). mem usage"
+        )
         try:
             ret = await trio.run_sync_in_worker_thread(work.func_or_cls, obj)
         except Exception as error:
@@ -293,11 +289,11 @@ class ExecutorAsync(ExecutorBase):
                 f"done in {time.time() - t_start:.3f} s"
             )
 
-        self.nb_working_workers_io -= 1
         if work.output_queue is not None:
             work.output_queue[key] = ret
+        self.nb_working_workers_io -= 1
 
-    async def async_run_work_cpu(self, work, key, obj):
+    async def async_run_work_cpu(self, work):
         """Is destined to be started with a "trio.start_soon".
 
         Executes the work on an item (key, obj), and add the result on
@@ -310,16 +306,17 @@ class ExecutorAsync(ExecutorBase):
 
           A work from the topology
 
-        key : hashable
-
-          The key of the dictionnary item to be process
-
-        obj : object
-
-          The value of the dictionnary item to be process
-
         """
+        self.nb_working_workers_cpu += 1
+
+        try:
+            key, obj = work.input_queue.pop_first_item()
+        except KeyError:
+            self.nb_working_workers_cpu -= 1
+            return
+
         if work.check_exception(key, obj):
+            self.nb_working_workers_cpu -= 1
             return
 
         t_start = time.time()
@@ -328,7 +325,6 @@ class ExecutorAsync(ExecutorBase):
             + work.name_no_space
             + f" ({key}). mem usage"
         )
-        self.nb_working_workers_cpu += 1
         try:
             ret = await trio.run_sync_in_worker_thread(work.func_or_cls, obj)
         except Exception as error:
@@ -347,9 +343,9 @@ class ExecutorAsync(ExecutorBase):
                 f"done in {time.time() - t_start:.3f} s"
             )
 
-        self.nb_working_workers_cpu -= 1
         if work.output_queue is not None:
             work.output_queue[key] = ret
+        self.nb_working_workers_cpu -= 1
 
     async def update_has_to_stop(self):
         """Work has to stop flag. Check if all works has been done.

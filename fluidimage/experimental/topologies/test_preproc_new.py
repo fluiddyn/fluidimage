@@ -5,8 +5,6 @@ import os
 from glob import glob
 from shutil import rmtree
 
-from fluiddyn.io import stdout_redirected
-
 from fluidimage.experimental.topologies.preproc_new import TopologyPreproc
 from fluiddyn.io.image import imread, imsave
 
@@ -54,9 +52,8 @@ class TestPreprocTemporal(unittest.TestCase):
         params.preproc.saving.how = "recompute"
         params.preproc.saving.postfix = "preproc_test"
 
-        with stdout_redirected():
-            topology = TopologyPreproc(params, logging_level="debug")
-            topology.compute()
+        topology = TopologyPreproc(params, logging_level="debug")
+        topology.compute()
 
 
 if __name__ == "__main__":

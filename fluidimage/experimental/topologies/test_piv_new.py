@@ -2,6 +2,7 @@
 import unittest
 from shutil import rmtree
 from pathlib import Path
+from time import sleep
 
 from fluidimage.experimental.topologies.piv_new import TopologyPIV
 
@@ -69,6 +70,11 @@ class TestPivNew(unittest.TestCase):
 
         # remove one file
         path_files = list(Path(topology.path_dir_result).glob("piv*"))
+
+        if not path_files:
+            sleep(0.2)
+            path_files = list(Path(topology.path_dir_result).glob("piv*"))
+
         path_files[0].unlink()
 
         params.saving.how = "complete"

@@ -175,7 +175,7 @@ class ExecutorAsyncServers(ExecutorAsync):
 
             await trio.sleep(self.sleep_time)
 
-    async def async_run_work_cpu(self, work, key, obj, worker):
+    async def async_run_work_cpu(self, work, worker):
         """Is destined to be started with a "trio.start_soon".
 
         Executes the work on an item (key, obj), and add the result on
@@ -188,39 +188,37 @@ class ExecutorAsyncServers(ExecutorAsync):
 
           A work from the topology
 
-        key : hashable
+        worker : .servers.WorkerMultiprocessing
 
-          The key of the dictionnary item to be process
-
-        obj : object
-
-          The value of the dictionnary item to be process
+          A client to communicate with the server worker.
 
         """
+        try:
+            key, obj = work.input_queue.pop_first_item()
+        except KeyError:
+            worker.is_available = True
+            return
+
         if work.check_exception(key, obj):
             worker.is_available = True
             return
 
         def run_process():
-
             # create a communication channel
             parent_conn, child_conn = worker.new_pipe()
             # send (work, key, obj, comm) to the server
             worker.send_job((work.name, key, obj, child_conn))
             worker.is_available = True
-
             # wait for the end of the computation
             work_name_received, key_received, result = parent_conn.recv()
             assert work.name == work_name_received
             assert key == key_received
-
-            worker.well_done_thanks()
-
             return result
 
         ret = await trio.run_sync_in_worker_thread(run_process)
         if work.output_queue is not None:
             work.output_queue[key] = ret
+        worker.well_done_thanks()
 
     def def_async_func_work_cpu_with_output_queue(self, work):
         async def func(work=work):
@@ -241,9 +239,8 @@ class ExecutorAsyncServers(ExecutorAsync):
                     available_worker = self.get_available_worker()
                     await trio.sleep(self.sleep_time)
 
-                key, obj = work.input_queue.pop_first_item()
                 self.nursery.start_soon(
-                    self.async_run_work_cpu, work, key, obj, available_worker
+                    self.async_run_work_cpu, work, available_worker
                 )
                 await trio.sleep(self.sleep_time)
 
@@ -264,9 +261,8 @@ class ExecutorAsyncServers(ExecutorAsync):
                     available_worker = self.get_available_worker()
                     await trio.sleep(self.sleep_time)
 
-                key, obj = work.input_queue.pop_first_item()
                 self.nursery.start_soon(
-                    self.async_run_work_cpu, work, key, obj, available_worker
+                    self.async_run_work_cpu, work, available_worker
                 )
                 await trio.sleep(self.sleep_time)
 
