@@ -253,9 +253,11 @@ postfix : str
             input_queue=queue_piv,
             kind="io",
         )
+        self.results = []
 
     def save_piv_object(self, o):
         ret = o.save(self.path_dir_result)
+        self.results.append(ret)
         return ret
 
     def fill_couples_of_names_and_paths(self, input_queue, output_queues):
@@ -297,6 +299,11 @@ postfix : str
         nb_series = len(series)
         print("Add {} PIV fields to compute.".format(nb_series))
 
+        for iserie, serie in enumerate(series):
+            if iserie > 1:
+                break
+            print("Files of serie {}: {}".format(iserie, serie.get_name_arrays()))
+
         for ind_serie, serie in series.items():
             queue_couples_of_names[ind_serie] = serie.get_name_arrays()
             for name, path in serie.get_name_path_arrays():
@@ -320,6 +327,10 @@ postfix : str
                 array1 = queue_arrays[couple[0]]
                 array2 = queue_arrays[couple[1]]
                 serie = copy.copy(self.series.get_serie_from_index(key))
+
+                # logger.debug(
+                #     f"create couple {key}: {couple}, ({array1}, {array2})"
+                # )
                 array_couple = ArrayCouple(
                     names=(couple[0], couple[1]),
                     arrays=(array1, array2),

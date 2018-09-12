@@ -9,11 +9,11 @@ A executor using async for IO and multiprocessing for CPU bounded tasks.
 """
 
 import time
-from multiprocessing import Process, Pipe
+from multiprocessing import Process, Pipe, Event
 
 import trio
 
-from fluidimage.util import logger, log_memory_usage, cstring
+from fluidimage.util import logger, log_memory_usage, cstring, log_debug
 
 from .exec_async import ExecutorAsync
 
@@ -53,25 +53,59 @@ class ExecutorAsyncMultiproc(ExecutorAsync):
             + f" ({key}). mem usage"
         )
 
-        parent_conn, child_conn = Pipe()
-
-        def exec_work_and_comm(func, obj, child_conn):
+        def exec_work_and_comm(func, obj, child_conn, event):
+            # log_debug(f"process ({key}) started")
+            event.set()
             try:
                 result = func(obj)
             except Exception as error:
                 result = error
 
+            # log_debug(f"in process, send result ({key}): {result}")
             child_conn.send(result)
-            child_conn.close()
+
+        parent_conn, child_conn = Pipe()
+        event = Event()
 
         def run_process():
-            process = Process(
-                target=exec_work_and_comm,
-                args=(work.func_or_cls, obj, child_conn),
-            )
-            process.daemon = True
-            process.start()
+
+            # we do this complicate thing because there may be a strange bug
+
+            def start_process_and_check(index_attempt):
+                process = Process(
+                    target=exec_work_and_comm,
+                    args=(work.func_or_cls, obj, child_conn, event),
+                )
+                process.daemon = True
+                process.start()
+                # check whether the process has really started (possible bug!)
+                if not event.wait(1):
+                    log_debug(
+                        f"problem: process {work.name_no_space} ({key}) "
+                        "has not really started... (attempt {index_attempt})"
+                    )
+                    process.terminate()
+                    return False
+                return process
+
+            really_started = False
+            for index_attempt in range(10):
+                process = start_process_and_check(index_attempt)
+                if process:
+                    really_started = True
+                    break
+
+            if not really_started:
+                raise Exception(
+                    f"A process {work.name_no_space} ({key}) "
+                    "has not started after 10 attempts"
+                )
+
+            # todo: use parent_conn.poll to implement a timeout
+
+            # log_debug(f"waiting for result ({key})")
             result = parent_conn.recv()
+            # log_debug(f"result ({key}) received")
 
             process.join(10 * self.sleep_time)
             if process.exitcode != 0:

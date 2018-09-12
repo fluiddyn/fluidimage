@@ -14,7 +14,7 @@ from threading import Thread
 import trio
 
 from fluiddyn.io.tee import MultiFile
-from fluidimage.util import logger, log_memory_usage, cstring
+from fluidimage.util import logger, log_memory_usage, cstring, log_debug
 
 from fluidimage import config_logging
 
@@ -142,7 +142,10 @@ class WorkerServerMultiprocessing(WorkerServer):
 
             def signal_handler(sig, frame):
                 self._has_to_continue = False
-                self.nursery.cancel_scope.cancel()
+                try:
+                    self.nursery.cancel_scope.cancel()
+                except AttributeError:
+                    pass
 
             signal.signal(signal.SIGINT, signal_handler)
 
@@ -181,7 +184,7 @@ class WorkerServerMultiprocessing(WorkerServer):
     async def receive(self):
         while self._has_to_continue:
             ret = await trio.run_sync_in_worker_thread(self.conn.recv)
-            logger.debug(f"receive: {ret}")
+            log_debug(f"receive: {ret}")
             if isinstance(ret, tuple) and ret[0] == "__t_start__":
                 self.t_start = ret[1]
             else:
@@ -231,7 +234,7 @@ class WorkerServerMultiprocessing(WorkerServer):
                 await trio.sleep(self.sleep_time)
             work_name, key, result, child_conn = self.to_be_resent.pop(0)
 
-            logger.debug(f"send {work_name}, {key}")
+            log_debug(f"send {work_name}, {key}")
             await trio.run_sync_in_worker_thread(
                 child_conn.send, (work_name, key, result)
             )

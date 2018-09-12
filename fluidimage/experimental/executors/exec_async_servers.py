@@ -15,7 +15,7 @@ import numpy as np
 
 from fluiddyn import time_as_str
 
-from fluidimage.util import logger
+from fluidimage.util import logger, log_debug
 
 from .exec_async import ExecutorAsync
 from .servers import launch_server
@@ -153,23 +153,23 @@ class ExecutorAsyncServers(ExecutorAsync):
 
             if result:
                 self._has_to_stop = True
-                logger.debug(f"has_to_stop!")
+                log_debug(f"has_to_stop!")
 
             if self.logging_level == "debug":
-                logger.debug(f"self.topology.queues: {self.topology.queues}")
-                logger.debug(
+                log_debug(f"self.topology.queues: {self.topology.queues}")
+                log_debug(
                     "[worker.is_unoccupied for worker in self.workers]: "
                     f"{[worker.is_unoccupied for worker in self.workers]}"
                 )
-                logger.debug(
+                log_debug(
                     "[worker.is_available for worker in self.workers]: "
                     f"{[worker.is_available for worker in self.workers]}"
                 )
-                logger.debug(
+                log_debug(
                     "[worker.nb_items_to_process for worker in self.workers] "
                     f"{[worker.nb_items_to_process for worker in self.workers]}"
                 )
-                logger.debug(
+                log_debug(
                     f"self.nb_working_workers_io: {self.nb_working_workers_io}"
                 )
 

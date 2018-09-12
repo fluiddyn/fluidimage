@@ -23,7 +23,7 @@ import signal
 
 import trio
 
-from fluidimage.util import logger, log_memory_usage, cstring
+from fluidimage.util import logger, log_memory_usage, cstring, log_debug
 
 from .base import ExecutorBase
 
@@ -89,7 +89,7 @@ class ExecutorAsync(ExecutorBase):
             self._has_to_stop = True
             self.nursery.cancel_scope.cancel()
             # it seems that we don't need to raise the exception
-            # raise KeyboardInterrupt
+            raise KeyboardInterrupt
 
         signal.signal(signal.SIGINT, signal_handler)
 
@@ -365,14 +365,14 @@ class ExecutorAsync(ExecutorBase):
 
             if result:
                 self._has_to_stop = True
-                logger.debug(f"has_to_stop!")
+                log_debug(f"has_to_stop!")
 
             if self.logging_level == "debug":
-                logger.debug(f"self.topology.queues: {self.topology.queues}")
-                logger.debug(
+                log_debug(f"self.topology.queues: {self.topology.queues}")
+                log_debug(
                     f"self.nb_working_workers_cpu: {self.nb_working_workers_cpu}"
                 )
-                logger.debug(
+                log_debug(
                     f"self.nb_working_workers_io: {self.nb_working_workers_io}"
                 )
 
