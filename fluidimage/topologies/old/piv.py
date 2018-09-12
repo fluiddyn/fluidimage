@@ -1,7 +1,5 @@
-"""Topology for PIV computation (:mod:`fluidimage.experimental.topologies.piv`)
-===============================================================================
-
-New topology for PIV computation.
+"""Topology for PIV computation (:mod:`fluidimage.topologies.piv`)
+==================================================================
 
 .. autoclass:: TopologyPIV
    :members:
@@ -10,25 +8,23 @@ New topology for PIV computation.
 """
 import os
 import json
-import copy
-import sys
-from fluidimage import ParamContainer, SeriesOfArrays
 
-from fluidimage.experimental.topologies.base import TopologyBase
+from fluidimage import ParamContainer, SerieOfArraysFromFiles, SeriesOfArrays
 
+from .base import TopologyBase
 
-from fluidimage.topologies import prepare_path_dir_result
+from .waiting_queues.base import (
+    WaitingQueueMultiprocessing,
+    WaitingQueueThreading,
+    WaitingQueueMakeCouple,
+    WaitingQueueLoadImage,
+)
+
 from fluidimage.works.piv import WorkPIV
 from fluidimage.data_objects.piv import get_name_piv, ArrayCouple
-from fluidimage.util import imread, logger, DEBUG
-from . import image2image_new as image2image
-
-
-def still_is_in_dict(image_name, dictio):
-    for key, names in dictio.items():
-        if image_name in names:
-            return True
-    return False
+from fluidimage.util import logger
+from fluidimage.topologies import prepare_path_dir_result
+from . import image2image
 
 
 class TopologyPIV(TopologyBase):
@@ -170,12 +166,18 @@ postfix : str
 
         return params
 
-    def __init__(self, params, logging_level="info", nb_max_workers=None):
+    def __init__(self, params=None, logging_level="info", nb_max_workers=None):
+
+        if params is None:
+            params = self.__class__.create_default_params()
 
         self.params = params
+        self.piv_work = WorkPIV(params)
+
+        serie_arrays = SerieOfArraysFromFiles(params.series.path)
 
         self.series = SeriesOfArrays(
-            params.series.path,
+            serie_arrays,
             params.series.strcouple,
             ind_start=params.series.ind_start,
             ind_stop=params.series.ind_stop,
@@ -187,87 +189,72 @@ postfix : str
             path_dir, params.saving.path, params.saving.postfix, params.saving.how
         )
 
+        self.path_dir_result = path_dir_result
+
+        self.results = {}
+
+        def save_piv_object(o):
+            ret = o.save(path_dir_result)
+            return ret
+
+        self.wq_piv = WaitingQueueThreading(
+            "delta", save_piv_object, self.results, topology=self
+        )
+        self.wq_couples = WaitingQueueMultiprocessing(
+            "couple", self.piv_work.calcul, self.wq_piv, topology=self
+        )
+
+        self.wq_images = WaitingQueueMakeCouple(
+            "array image", self.wq_couples, topology=self
+        )
+
+        if params.preproc.im2im is not None:
+            self.im2im_func = image2image.TopologyImage2Image.init_im2im(
+                self, params.preproc
+            )
+
+            self.wq_images0 = WaitingQueueMultiprocessing(
+                "image ", self.im2im_func, self.wq_images, topology=self
+            )
+            wq_after_load = self.wq_images0
+        else:
+            wq_after_load = self.wq_images
+
+        self.wq0 = WaitingQueueLoadImage(
+            destination=wq_after_load, path_dir=path_dir, topology=self
+        )
+
+        if params.preproc.im2im is not None:
+            waiting_queues = [
+                self.wq0,
+                self.wq_images0,
+                self.wq_images,
+                self.wq_couples,
+                self.wq_piv,
+            ]
+        else:
+            waiting_queues = [
+                self.wq0,
+                self.wq_images,
+                self.wq_couples,
+                self.wq_piv,
+            ]
+
         super().__init__(
-            path_dir_result=path_dir_result,
+            waiting_queues,
+            path_output=path_dir_result,
             logging_level=logging_level,
             nb_max_workers=nb_max_workers,
         )
 
-        queue_couples_of_names = self.add_queue("couples of names")
-        queue_paths = self.add_queue("paths")
-        queue_arrays = queue_arrays1 = self.add_queue("arrays")
-        queue_couples_of_arrays = self.add_queue("couples of arrays")
-        queue_piv = self.add_queue("piv")
+        self.add_series(self.series)
 
-        if params.preproc.im2im is not None:
-            queue_arrays1 = self.add_queue("arrays1")
+    def add_series(self, series):
 
-        self.add_work(
-            "fill (couples of names, paths)",
-            func_or_cls=self.fill_couples_of_names_and_paths,
-            output_queue=(queue_couples_of_names, queue_paths),
-            kind=("global", "one shot"),
-        )
-        self.add_work(
-            "read array",
-            func_or_cls=imread,
-            input_queue=queue_paths,
-            output_queue=queue_arrays,
-            kind="io",
-        )
-
-        if params.preproc.im2im is not None:
-            im2im_func = image2image.TopologyImage2Image.init_im2im(
-                self, params.preproc
-            )
-
-            self.add_work(
-                "image2image",
-                func_or_cls=im2im_func,
-                input_queue=queue_arrays,
-                output_queue=queue_arrays1,
-            )
-
-        self.add_work(
-            "make couples of arrays",
-            func_or_cls=self.make_couples,
-            params_cls=None,
-            input_queue=(queue_couples_of_names, queue_arrays),
-            output_queue=queue_couples_of_arrays,
-            kind="global",
-        )
-
-        self.work_piv = WorkPIV(self.params)
-
-        self.add_work(
-            "compute piv",
-            func_or_cls=self.work_piv.calcul,
-            params_cls=params,
-            input_queue=queue_couples_of_arrays,
-            output_queue=queue_piv,
-        )
-
-        self.add_work(
-            "save piv",
-            func_or_cls=self.save_piv_object,
-            input_queue=queue_piv,
-            kind="io",
-        )
-        self.results = []
-
-    def save_piv_object(self, o):
-        ret = o.save(self.path_dir_result)
-        self.results.append(ret)
-        return ret
-
-    def fill_couples_of_names_and_paths(self, input_queue, output_queues):
-        queue_couples_of_names = output_queues[0]
-        queue_paths = output_queues[1]
-
-        series = self.series
         if len(series) == 0:
             logger.warning("add 0 couple. No PIV to compute.")
             return
+
         if self.how_saving == "complete":
             names = []
             index_series = []
@@ -290,64 +277,41 @@ postfix : str
 
             series.set_index_series(index_series)
 
-            if logger.isEnabledFor(DEBUG):
-                logger.debug(repr(names))
-                logger.debug(repr([serie.get_name_arrays() for serie in series]))
+            logger.debug(repr(names))
+            logger.debug(repr([serie.get_name_arrays() for serie in series]))
         else:
             names = series.get_name_all_arrays()
 
         nb_series = len(series)
-        logger.info("Add {} PIV fields to compute.".format(nb_series))
+        print("Add {} PIV fields to compute.".format(nb_series))
 
-        for iserie, serie in enumerate(series):
-            if iserie > 1:
+        for i, serie in enumerate(series):
+            if i > 1:
                 break
-            logger.info(
-                "Files of serie {}: {}".format(iserie, serie.get_name_arrays())
-            )
 
-        for ind_serie, serie in series.items():
-            queue_couples_of_names[ind_serie] = serie.get_name_arrays()
-            for name, path in serie.get_name_path_arrays():
-                queue_paths[name] = path
+            print("Files of serie {}: {}".format(i, serie.get_name_arrays()))
 
-    def make_couples(self, input_queues, output_queue):
-        queue_couples_of_names = input_queues[0]
-        queue_arrays = input_queues[1]
+        self.wq0.add_name_files(names)
+        self.wq_images.add_series(series)
 
+        k, o = self.wq0.popitem()
+        im = self.wq0.work(o)
+        self.wq0.fill_destination(k, im)
+
+        # a little bit strange, to apply mask...
         try:
             params_mask = self.params.mask
         except AttributeError:
             params_mask = None
-        # for each name couple
-        for key, couple in tuple(queue_couples_of_names.items()):
-            # if correspondant arrays are available, make an array couple
-            if (
-                couple[0] in queue_arrays.keys()
-                and couple[1] in queue_arrays.keys()
-            ):
-                array1 = queue_arrays[couple[0]]
-                array2 = queue_arrays[couple[1]]
-                serie = copy.copy(self.series.get_serie_from_index(key))
 
-                # logger.debug(
-                #     f"create couple {key}: {couple}, ({array1}, {array2})"
-                # )
-                array_couple = ArrayCouple(
-                    names=(couple[0], couple[1]),
-                    arrays=(array1, array2),
-                    params_mask=params_mask,
-                    serie=serie,
-                )
-                output_queue[key] = array_couple
-                del queue_couples_of_names[key]
-                # remove the image_array if it not will be used anymore
-                if not still_is_in_dict(couple[0], queue_couples_of_names):
-                    del queue_arrays[couple[0]]
-                if not still_is_in_dict(couple[1], queue_couples_of_names):
-                    del queue_arrays[couple[1]]
+        couple = ArrayCouple(
+            names=("", ""), arrays=(im, im), params_mask=params_mask
+        )
+        im, _ = couple.get_arrays()
 
-    def _make_text_at_exit(self, time_since_start):
+        self.piv_work._prepare_with_image(im)
+
+    def _print_at_exit(self, time_since_start):
 
         txt = "Stop compute after t = {:.2f} s".format(time_since_start)
         try:
@@ -363,31 +327,9 @@ postfix : str
 
         txt += "\npath results:\n" + str(self.path_dir_result)
 
-        return txt
+        print(txt)
 
 
-if "sphinx" in sys.modules:
+params = TopologyPIV.create_default_params()
 
-    params = TopologyPIV.create_default_params()
-
-    __doc__ += params._get_formatted_docs()
-
-
-if __name__ == "__main__":
-    params = TopologyPIV.create_default_params()
-    params.series.path = "../../../image_samples/Karman/Images"
-    params.series.ind_start = 1
-    params.series.ind_step = 2
-
-    params.piv0.shape_crop_im0 = 32
-    params.multipass.number = 2
-    params.multipass.use_tps = False
-
-    params.mask.strcrop = ":, 50:500"
-
-    # params.saving.how = 'complete'
-    params.saving.postfix = "piv_example"
-
-    topo = TopologyPIV(params, logging_level="info")
-
-    topo.make_code_graphviz("tmp.dot")
+__doc__ += params._get_formatted_docs()

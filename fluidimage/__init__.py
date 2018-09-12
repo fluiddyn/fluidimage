@@ -45,7 +45,6 @@ from ._version import __version__
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles, SeriesOfArrays
 from fluiddyn.util.paramcontainer import ParamContainer
 from fluiddyn.util import create_object_from_file, get_memory_usage
-from fluiddyn.util import config_logging as _cl_fluiddyn
 
 from .util import (
     imread,
@@ -54,6 +53,7 @@ from .util import (
     logger,
     reset_logger,
     log_memory_usage,
+    config_logging,
 )
 
 from fluidimage.topologies.log import LogTopology
@@ -64,10 +64,6 @@ except ImportError:
     pass
 
 
-def config_logging(level="info", name="fluidimage", file=None):
-    _cl_fluiddyn(level=level, name=name, file=file)
-
-
 __all__ = [
     "__version__",
     "create_object_from_file",
@@ -75,6 +71,7 @@ __all__ = [
     "imread",
     "imsave",
     "logger",
+    "config_logging",
     "reset_logger",
     "log_memory_usage",
     "print_memory_usage",

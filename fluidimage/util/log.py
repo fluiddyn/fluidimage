@@ -11,11 +11,17 @@
 
 from logging import getLogger, DEBUG
 
+from fluiddyn.util import config_logging as _cl_fluiddyn
+
 from .util import _get_txt_memory_usage, cstring
 
 __all__ = ["logger", "DEBUG", "reset_logger", "log_memory_usage"]
 
 logger = getLogger("fluidimage")
+
+
+def config_logging(level="info", name="fluidimage", file=None):
+    _cl_fluiddyn(level=level, name=name, file=file)
 
 
 def reset_logger():

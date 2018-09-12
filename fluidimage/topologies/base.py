@@ -1,391 +1,183 @@
 """Topology base (:mod:`fluidimage.topologies.base`)
 ====================================================
 
+.. autoclass:: Work
+   :members:
+   :private-members:
+
+.. autoclass:: Queue
+   :members:
+   :private-members:
+
 .. autoclass:: TopologyBase
    :members:
    :private-members:
 
 """
 
-from time import sleep, time
-from multiprocessing import Process
-import signal
-import sys
-import os
-import gc
+from warnings import warn
+from collections import OrderedDict
 
-import threading
-import queue
+from fluidimage.util import logger, cstring
 
-from fluiddyn import time_as_str
-from fluiddyn.io.tee import MultiFile
-
-from ..util import cstring, logger, reset_logger, log_memory_usage
-from ..config import get_config
-from .waiting_queues.base import WaitingQueueThreading
-from .. import config_logging
-
-from .nb_cpu_cores import nb_cores
+from ..executors import executors, ExecutorBase
 
 
-config = get_config()
+class Work:
+    """Represent a work"""
 
-dt = 0.25  # s
-dt_small = 0.02
-dt_update = 0.1
+    def __init__(self, **kwargs):
+        self._kwargs = kwargs
+        self.__dict__.update(kwargs)
+
+        if hasattr(self, "name"):
+            self.name_no_space = self.name.replace(" ", "_")
+
+    def __repr__(self):
+        return super().__repr__() + "\n" + self._kwargs.__repr__()
+
+    def check_exception(self, key, obj):
+        if isinstance(obj, Exception):
+            if self.output_queue is not None:
+                self.output_queue[key] = obj
+            else:
+                logger.error(
+                    cstring(
+                        f"work {self.name_no_space} ({key}) "
+                        "can not be done because of a previously "
+                        "raised exception.",
+                        color="FAIL",
+                    )
+                )
+            return True
+        return False
 
 
-nb_max_workers = None
-if config is not None:
-    try:
-        nb_max_workers = eval(config["topology"]["nb_max_workers"])
-    except KeyError:
-        pass
+class Queue(OrderedDict):
+    """Represent a queue"""
 
-# default nb_max_workers
-# Difficult: trade off between overloading and limitation due to input output.
-# The user can do much better for a specific case.
-if nb_max_workers is None:
-    if nb_cores < 16:
-        nb_max_workers = nb_cores + 2
-    else:
-        nb_max_workers = nb_cores
+    def __init__(self, name, kind=None):
+        self.name = name
+        self.kind = kind
 
-_nb_max_workers = nb_max_workers
+    def __repr__(self):
+        return f'\nqueue "{self.name}": ' + super().__repr__()
+
+    def __copy__(self):
+        newone = type(self)(self.name, kind=self.kind)
+        newone.__dict__.update(self.__dict__)
+
+        for key, values in self.items():
+            newone[key] = values
+
+        return newone
+
+    def pop_first_item(self):
+        return self.popitem(last=False)
 
 
 class TopologyBase:
     """Base class for topologies of processing.
 
+    This class is meant to be subclassed, not instantiated directly.
+
     Parameters
     ----------
 
-    queues : list
+    path_dir_result : None, str
 
-    path_output : None
+    logging_level : None,  {'warning', 'info', 'debug', ...}
 
-    logging_level : 'info'
-
-    nb_max_workers : None
+    nb_max_workers : None, int
 
     """
 
     def __init__(
-        self, queues, path_output=None, logging_level="info", nb_max_workers=None
+        self, path_dir_result=None, logging_level="info", nb_max_workers=None
     ):
 
-        if path_output is not None:
-            if not os.path.exists(path_output):
-                os.makedirs(path_output)
-            self.path_output = path_output
-            log = os.path.join(
-                path_output,
-                "log_" + time_as_str() + "_" + str(os.getpid()) + ".txt",
-            )
-            self._log_file = open(log, "w")
-
-            stdout = sys.stdout
-            if isinstance(stdout, MultiFile):
-                stdout = sys.__stdout__
-
-            stderr = sys.stderr
-            if isinstance(stderr, MultiFile):
-                stderr = sys.__stderr__
-
-            sys.stdout = MultiFile([stdout, self._log_file])
-            sys.stderr = MultiFile([stderr, self._log_file])
-
-        if logging_level is not None:
-            reset_logger()
-            config_logging(logging_level, file=sys.stdout)
-
-        if nb_max_workers is None:
-            nb_max_workers = _nb_max_workers
-
-        self.nb_max_workers_io = max(int(nb_max_workers * 0.8), 2)
-        self.nb_max_launch = max(int(self.nb_max_workers_io), 1)
-
-        if nb_max_workers < 1:
-            raise ValueError("nb_max_workers < 1")
-
-        logger.info(f"  nb_cpus_allowed = {nb_cores}")
-        logger.info(f"  nb_max_workers = {nb_max_workers}")
-        logger.info(f"  nb_max_workers_io = {self.nb_max_workers_io}")
-
-        self.queues = queues
+        self.path_dir_result = path_dir_result
+        self.logging_level = logging_level
         self.nb_max_workers = nb_max_workers
-        self.nb_cores = nb_cores
-        self.nb_items_lim = max(2 * nb_max_workers, 2)
 
-        self._has_to_stop = False
+        self.queues = []
+        self.works = []
+        self.works_dict = {}
 
-        if sys.platform != "win32":
+    def add_queue(self, name: str, kind: str = None):
+        """Create a new queue."""
+        queue = Queue(name=name, kind=kind)
+        self.queues.append(queue)
+        return queue
 
-            def handler_signals(signal_number, stack):
-                print(
-                    "signal {} received: set _has_to_stop to True".format(
-                        signal_number
-                    )
+    def add_work(
+        self,
+        name: str,
+        func_or_cls,
+        params_cls=None,
+        input_queue=None,
+        output_queue=None,
+        kind: str = None,
+    ):
+        """Create a new work relating queues."""
+        if func_or_cls is None:
+            warn(f'func_or_cls is None for work "{name}"')
+
+        work = Work(
+            name=name,
+            input_queue=input_queue,
+            func_or_cls=func_or_cls,
+            params_cls=params_cls,
+            output_queue=output_queue,
+            kind=kind,
+        )
+        self.works.append(work)
+
+        if name in self.works_dict:
+            raise ValueError(f"The name {name} is already used.")
+        self.works_dict[name] = work
+
+    def compute(
+        self,
+        executor="exec_async",
+        nb_max_workers=None,
+        sleep_time=0.01,
+        sequential=False,
+        stop_if_error=False,
+    ):
+        """Compute (run all works to be done). """
+
+        if sequential:
+            if executor != "exec_sequential":
+                raise ValueError(
+                    "Incompatible arguments sequential=True and "
+                    f"executor={executor}"
                 )
-                self._has_to_stop = True
+            executor = "exec_sequential"
 
-            signal.signal(12, handler_signals)
+        if executor is None:
+            # fastest and safest executor for most cases
+            executor = "multi_exec_async"
 
-    def compute(self, sequential=None, has_to_exit=True):
-        """Compute (run all works to be done).
+        if not isinstance(executor, ExecutorBase):
+            if executor not in executors:
+                raise NotImplementedError
 
-        Parameters
-        ----------
-
-        sequential : None
-
-          If bool(sequential) is True, the computations are run in sequential
-          (useful for debugging).
-
-        has_to_exit : True
-
-          If bool(has_to_exit) is True and if the computation has to stop
-          because of a signal 12 (cluster), a signal 99 is sent at exit.
-
-        """
-        if hasattr(self, "path_output"):
-            logger.info("path results:\n" + str(self.path_output))
-            if hasattr(self, "params"):
-                tmp_path_params = str(
-                    self.path_output
-                    / ("params_" + time_as_str() + f"_{os.getpid()}")
-                )
-
-                if not os.path.exists(tmp_path_params + ".xml"):
-                    path_params = tmp_path_params + ".xml"
-                else:
-                    i = 1
-                    while os.path.exists(tmp_path_params + "_" + str(i) + ".xml"):
-                        i += 1
-                    path_params = tmp_path_params + "_" + str(i) + ".xml"
-                self.params._save_as_xml(path_params)
-
-        self.t_start = time()
-
-        log_memory_usage(time_as_str(2) + ": starting execution. mem usage")
-
-        self.nb_workers_cpu = 0
-        self.nb_workers_io = 0
-        workers = []
-
-        class CheckWorksThread(threading.Thread):
-            cls_to_be_updated = threading.Thread
-
-            def __init__(self):
-                self.has_to_stop = False
-                super().__init__()
-                self.exitcode = None
-                self.daemon = True
-
-            def in_time_loop(self):
-                t_tmp = time()
-                for worker in workers:
-                    if (
-                        isinstance(worker, self.cls_to_be_updated)
-                        and worker.fill_destination()
-                    ):
-                        workers.remove(worker)
-                t_tmp = time() - t_tmp
-                if t_tmp > 0.2:
-                    logger.info(
-                        "update list of workers with fill_destination "
-                        "done in {:.3f} s".format(t_tmp)
-                    )
-                sleep(dt_update)
-
-            def run(self):
-                try:
-                    while not self.has_to_stop:
-                        self.in_time_loop()
-                except Exception as e:
-                    print("Exception in UpdateThread")
-                    self.exitcode = 1
-                    self.exception = e
-
-        class CheckWorksProcess(CheckWorksThread):
-            cls_to_be_updated = Process
-
-            def in_time_loop(self):
-                # weird bug subprocessing py3
-                for worker in workers:
-                    if not worker.really_started:
-                        # print('check if worker has really started.' +
-                        #       worker.key)
-                        try:
-                            worker.really_started = (
-                                worker.comm_started.get_nowait()
-                            )
-                        except queue.Empty:
-                            pass
-                        if (
-                            not worker.really_started
-                            and time() - worker.t_start > 10
-                        ):
-                            # bug! The worker does not work. We kill it! :-)
-                            logger.error(
-                                cstring(
-                                    "Mysterious bug multiprocessing: "
-                                    "a launched worker has not started. "
-                                    "We kill it! ({}, key: {}).".format(
-                                        worker.work_name, worker.key
-                                    ),
-                                    color="FAIL",
-                                )
-                            )
-                            # the case of this worker has been
-                            worker.really_started = True
-                            worker.terminate()
-
-                super().in_time_loop()
-
-        self.thread_check_works_t = CheckWorksThread()
-        self.thread_check_works_t.start()
-
-        self.thread_check_works_p = CheckWorksProcess()
-        self.thread_check_works_p.start()
-
-        while not self._has_to_stop and (
-            any([not q.is_empty() for q in self.queues]) or len(workers) > 0
-        ):
-            # debug
-            # if logger.level == 10 and \
-            #    all([q.is_empty() for q in self.queues]) and len(workers) == 1:
-            #     for worker in workers:
-            #         try:
-            #             is_alive = worker.is_alive()
-            #         except AttributeError:
-            #             is_alive = None
-
-            #         logger.debug(
-            #             str((worker, worker.key, worker.exitcode, is_alive)))
-
-            #         if time() - worker.t_start > 60:
-            #             from fluiddyn import ipydebug
-            #             ipydebug()
-
-            self.nb_workers = len(workers)
-
-            # slow down this loop...
-            sleep(dt_small)
-            if self.nb_workers_cpu >= nb_max_workers:
-                logger.debug(
-                    cstring(
-                        ("The workers are saturated: " "{}, sleep {} s").format(
-                            self.nb_workers_cpu, dt
-                        ),
-                        color="WARNING",
-                    )
-                )
-                sleep(dt)
-
-            for q in self.queues:
-                if not q.is_empty():
-                    logger.debug(q)
-                    logger.debug("check_and_act for work: " + repr(q.work))
-                    try:
-                        new_workers = q.check_and_act(sequential=sequential)
-                    except OSError:
-                        logger.error(
-                            cstring(
-                                "Memory full: to free some memory, no more "
-                                "computing job will be launched while the last "
-                                "(saving) waiting queue is not empty.",
-                                color="FAIL",
-                            )
-                        )
-                        log_memory_usage(color="FAIL", mode="error")
-                        self._clear_save_queue(workers, sequential)
-                        logger.info(
-                            cstring(
-                                "The last waiting queue has been emptied.",
-                                color="FAIL",
-                            )
-                        )
-                        log_memory_usage(color="FAIL", mode="info")
-                        continue
-
-                    if new_workers is not None:
-                        for worker in new_workers:
-                            workers.append(worker)
-                    logger.debug("workers: " + repr(workers))
-
-            if self.thread_check_works_t.exitcode:
-                raise self.thread_check_works_t.exception
-
-            if self.thread_check_works_p.exitcode:
-                raise self.thread_check_works_p.exception
-
-            if len(workers) != self.nb_workers:
-                gc.collect()
-
-        if self._has_to_stop:
-            logger.info(
-                cstring(
-                    "Will exist because of signal 12.",
-                    "Waiting for all workers to finish...",
-                    color="FAIL",
-                )
+            exec_class = executors[executor]
+            self.executor = exec_class(
+                self,
+                path_dir_result=self.path_dir_result,
+                nb_max_workers=nb_max_workers,
+                sleep_time=sleep_time,
+                logging_level=self.logging_level,
+                stop_if_error=stop_if_error,
             )
-            self._clear_save_queue(workers, sequential)
 
-        self.thread_check_works_t.has_to_stop = True
-        self.thread_check_works_p.has_to_stop = True
-        self.thread_check_works_t.join()
-        self.thread_check_works_p.join()
+        self.executor.compute()
 
-        self._print_at_exit(time() - self.t_start)
-        log_memory_usage(time_as_str(2) + ": end of `compute`. mem usage")
-
-        if self._has_to_stop and has_to_exit:
-            logger.info(cstring("Exit with signal 99.", color="FAIL"))
-            exit(99)
-
-        self._reset_std_as_default()
-
-    def _reset_std_as_default(self):
-        sys.stdout = sys.__stdout__
-        sys.stderr = sys.__stderr__
-        reset_logger()
-        self._log_file.close()
-
-    def _clear_save_queue(self, workers, sequential):
-        """Clear the last queue (which is often saving) before stopping."""
-        q = self.queues[-1]
-
-        idebug = 0
-        # if the last queue is a WaitingQueueThreading (saving),
-        # it is also emptied.
-        while len(workers) > 0 or (
-            not q.is_empty() and isinstance(q, WaitingQueueThreading)
-        ):
-
-            sleep(0.5)
-
-            if len(workers) == 1 and q.is_empty():
-                idebug += 1
-                p = workers[0]
-                if idebug == 100:
-                    print("Issue:", p, p.exitcode)
-            # from fluiddyn import ipydebug
-            # ipydebug()
-
-            if not q.is_empty() and isinstance(q, WaitingQueueThreading):
-                new_workers = q.check_and_act(sequential=sequential)
-                if new_workers is not None:
-                    for worker in new_workers:
-                        workers.append(worker)
-
-    # workers[:] = [w for w in workers
-    #               if not w.fill_destination()]
-
-    def _print_at_exit(self, time_since_start):
-        """Print information before exit."""
-        txt = "Stop compute after t = {:.2f} s".format(time_since_start)
+    def _make_text_at_exit(self, time_since_start):
+        """Text information before exit."""
+        txt = f"Stop compute after t = {time_since_start:.2f} s"
         try:
             nb_results = len(self.results)
         except AttributeError:
@@ -398,12 +190,20 @@ class TopologyBase:
             txt += "."
 
         if hasattr(self, "path_dir_result"):
-            txt += "\npath results:\n" + self.path_dir_result
+            txt += "\npath results:\n" + str(self.path_dir_result)
 
-        print(txt)
+        return txt
+
+    def _print_at_exit(self, time_since_start):
+        """Print information before exit."""
+        print(self._make_text_at_exit(time_since_start))
 
     def make_code_graphviz(self, name_file):
         """Generate the graphviz / dot code."""
+        name_file = str(name_file)
+
+        if name_file.endswith(".dot"):
+            name_file = name_file[:-4]
 
         code = "digraph {\nrankdir = LR\ncompound=true\n"
         # waiting queues
@@ -421,29 +221,134 @@ class TopologyBase:
         # works and links
         code += '\nnode [shape="ellipse"]\n'
 
-        txt_work = '{name_quoted:40s} [label="{name}"]\n'
-        for q in self.queues:
-            name_work = q.work_name or str(q.work)
-            name_quoted = '"{}"'.format(name_work)
-            code += txt_work.format(name=name_work, name_quoted=name_quoted)
+        txt_work = '{:40s} [label="{}",color = "{}"]\n'
+
+        for work in self.works:
+            name_work = work.name
+            color = "Black"
+            if work.kind is not None:
+                if "io" in work.kind:
+                    color = "Green"
+            code += txt_work.format(
+                '"{}"'.format(name_work, color), name_work, color
+            )
 
         code += "\n"
 
-        for q in self.queues:
-            name_work = q.work_name or str(q.work)
-            code += '{:40s} -> "{}"\n'.format('"' + q.name + '"', name_work)
-            if hasattr(q.destination, "name"):
-                code += '{:40s} -> "{}"\n'.format(
-                    '"' + name_work + '"', q.destination.name
-                )
+        str_link = (
+            '{:40s} -> "{}" [arrowhead = "{}", style = "{}", color = "{}"]\n'
+        )
+
+        for work in self.works:
+            name_work = work.name
+            arrowhead = "normal"
+            style = "dashed"
+            color = "Black"
+            if work.kind is not None:
+                if "one shot" in work.kind:
+                    style = "filled"
+                if "global" in work.kind:
+                    arrowhead = "odiamond"
+                if "io" in work.kind:
+                    color = "Green"
+            if work.input_queue is not None:
+                queues = work.input_queue
+                if isinstance(queues, Queue):
+                    queues = (queues,)
+                for queue in queues:
+                    code += str_link.format(
+                        '"' + queue.name + '"', name_work, arrowhead, style, color
+                    )
+            if work.output_queue is not None:
+                queues = work.output_queue
+                if isinstance(queues, Queue):
+                    queues = (queues,)
+                for queue in queues:
+                    code += str_link.format(
+                        '"' + name_work + '"', queue.name, arrowhead, style, color
+                    )
+
+        # Legend
+        code += "\n subgraph cluster_01 {"
+        code += '\n node [height="0px", width="0px",shape=none,];'
+        code += "\n edge [ minlen = 1,];"
+        code += '\n label = "Legend";'
+        code += '\n key [label=<<table border="0" cellpadding="2" cellspacing="0" cellborder="0">'
+        code += '\n <tr><td align="right" port="i1">Global</td></tr>'
+        code += '\n <tr><td align="right" port="i2">One Shot</td></tr>'
+        code += '\n <tr><td align="right" port="i3">Multiple Shot</td></tr>'
+        code += '\n <tr><td align="right" port="i4">I/O</td></tr>'
+        code += "\n </table>>]"
+        code += '\n key2 [label=<<table border="0" cellpadding="2" cellspacing="0" cellborder="0">'
+        code += '\n<tr><td port="i1">&nbsp;</td></tr>'
+        code += '\n<tr><td port="i2">&nbsp;</td></tr>'
+        code += '\n<tr><td port="i3">&nbsp;</td></tr>'
+        code += '\n<tr><td port="i4">&nbsp;</td></tr>'
+        code += "\n </table>>]"
+        code += '\n  key:i1:e -> key2:i1:w [arrowhead = "odiamond"]'
+        code += '\n  key:i2:e -> key2:i2:w [arrowhead = "none"]'
+        code += '\n  key:i3:e -> key2:i3:w [style = "dashed", arrowhead = "none"]'
+        code += '\n  key:i4:e -> key2:i4:w [arrowhead = "none", color="Green"]'
+        code += "\n } \n"
 
         code += "}\n"
 
-        with open(name_file, "w") as f:
-            f.write(code)
+        with open(name_file + ".dot", "w") as file:
+            file.write(code)
 
         print(
-            "A graph can be produced with one of these commands:\n"
-            "dot topo.dot -Tpng -o topo.png\n"
-            "dot topo.dot -Tx11"
+            "A graph can be produced with graphviz with one of these commands:\n"
+            f"dot {name_file}.dot -Tpng -o {name_file}.png && eog {name_file}.png\n"
+            f"dot {name_file}.dot -Tx11"
         )
+
+
+if __name__ == "__main__":
+    topo = TopologyBase()
+
+    queue_names_piv = topo.add_queue("names piv")
+    queue_names_couples = topo.add_queue("names couples")
+    queue_paths = topo.add_queue("paths")
+    queue_arrays = topo.add_queue("arrays")
+    queue_couples = topo.add_queue("couples of arrays")
+    queue_piv = topo.add_queue("piv")
+
+    topo.add_work(
+        "fill names piv",
+        output_queue=queue_names_piv,
+        kind=("global", "one shot"),
+    )
+    topo.add_work(
+        "fill (names couples, paths)",
+        input_queue=queue_names_piv,
+        output_queue=(queue_names_couples, queue_paths),
+        kind=("global", "one shot"),
+    )
+    topo.add_work(
+        "path -> arrays",
+        input_queue=queue_paths,
+        output_queue=queue_arrays,
+        kind="io",
+    )
+    topo.add_work(
+        "make couples arrays",
+        input_queue=(queue_arrays, queue_names_couples),
+        output_queue=queue_couples,
+        kind="global",
+    )
+
+    topo.add_work(
+        "couples -> piv", input_queue=queue_couples, output_queue=queue_piv
+    )
+
+    topo.add_work("save piv", input_queue=queue_piv, kind="io")
+
+    topo.make_code_graphviz("tmp.dot")
+
+    def print_queues(self):
+        """
+        Print the length of all queues
+        """
+        for queue in self.topology.queues:
+            print(f"queue {queue.name}, length: {len(queue)}")
+        print("\n")

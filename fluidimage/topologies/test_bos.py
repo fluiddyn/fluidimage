@@ -1,22 +1,18 @@
 
 import unittest
-
 from shutil import rmtree
 from pathlib import Path
 
-from fluiddyn.io import stdout_redirected
-
 from fluidimage.topologies.bos import TopologyBOS
-from fluidimage.topologies.log import LogTopology
 
 from fluidimage import path_image_samples
 
 
-class TestBOS(unittest.TestCase):
+class TestBOSNew(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.path_input_files = path_image_samples / "Karman/Images"
-        cls.postfix = "test_bos"
+        cls.postfix = "test_bos_new"
 
     @classmethod
     def tearDownClass(cls):
@@ -25,12 +21,11 @@ class TestBOS(unittest.TestCase):
         if path_out.exists():
             rmtree(path_out)
 
-    def test_bos(self):
+    def test_bos_new_multiproc(self):
         params = TopologyBOS.create_default_params()
 
-        params.series.path = str(self.path_input_files)
-        params.series.ind_start = 1
-        params.series.ind_step = 2
+        params.images.path = str(self.path_input_files)
+        params.images.str_slice = "1:3"
 
         params.piv0.shape_crop_im0 = 32
         params.multipass.number = 2
@@ -48,14 +43,16 @@ class TestBOS(unittest.TestCase):
         params.saving.how = "recompute"
         params.saving.postfix = self.postfix
 
-        with stdout_redirected():
-            topology = TopologyBOS(params, logging_level="info")
-            topology.compute()
+        topology = TopologyBOS(params, logging_level="info")
+        topology.compute(stop_if_error=True)
 
-            log = LogTopology(topology.path_dir_result)
-        log.plot_durations()
-        log.plot_nb_workers()
-        log.plot_memory()
+        # remove one file
+        path_files = list(Path(topology.path_dir_result).glob("bos*"))
+        path_files[0].unlink()
+
+        params.saving.how = "complete"
+        topology = TopologyBOS(params, logging_level="info")
+        topology.compute()
 
 
 if __name__ == "__main__":

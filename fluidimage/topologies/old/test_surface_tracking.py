@@ -5,7 +5,7 @@ from pathlib import Path
 
 from fluiddyn.io import stdout_redirected
 
-from fluidimage.topologies.surface_tracking import TopologySurfaceTracking
+from .surface_tracking import TopologySurfaceTracking
 
 from fluidimage import path_image_samples
 

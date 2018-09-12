@@ -5,7 +5,7 @@ import os
 from glob import glob
 from shutil import rmtree
 
-from fluidimage.experimental.topologies.preproc_new import TopologyPreproc
+from fluidimage.topologies.preproc_new import TopologyPreproc
 from fluiddyn.io.image import imread, imsave
 
 from fluidimage import path_image_samples

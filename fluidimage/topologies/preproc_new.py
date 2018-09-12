@@ -1,7 +1,5 @@
-"""Topology for preprocessing (:mod:`fluidimage.experimental.topologies.preproc_new`)
-=====================================================================================
-
-New topology for preprocessing images.
+"""Topology for preprocessing images (:mod:`fluidimage.topologies.preproc_new`)
+===============================================================================
 
 .. autoclass:: TopologyPreproc
    :members:
@@ -23,15 +21,13 @@ from fluidimage.data_objects.preproc import (
     ArraySerie as ArraySubset,
 )
 
-from fluidimage.topologies import prepare_path_dir_result
-from fluidimage.experimental.topologies.base import TopologyBase
+from fluidimage.topologies import prepare_path_dir_result, TopologyBase
 
-from .piv_new import still_is_in_dict
+from .piv import still_is_in_dict
 
 
 class TopologyPreproc(TopologyBase):
-    """Preprocess series of images and provides interface for I/O and
-    multiprocessing.
+    """Preprocess a series of images.
 
     Parameters
     ----------

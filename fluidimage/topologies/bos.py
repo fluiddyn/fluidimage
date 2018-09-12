@@ -1,8 +1,6 @@
 """Topology for BOS computation (:mod:`fluidimage.topologies.bos`)
 ==================================================================
 
-NotImplementedError!
-
 .. autoclass:: TopologyBOS
    :members:
    :private-members:
@@ -10,49 +8,42 @@ NotImplementedError!
 """
 import os
 import json
+import sys
+from pathlib import Path
 
-from .. import ParamContainer, SeriesOfArrays
+from fluidimage import ParamContainer, SerieOfArraysFromFiles
+from fluidimage.util import logger, imread
 
-from .base import TopologyBase
+from fluidimage.topologies import prepare_path_dir_result, TopologyBase
 
-from .waiting_queues.base import (
-    WaitingQueueMultiprocessing,
-    WaitingQueueThreading,
-    WaitingQueueMakeCoupleBOS,
-    WaitingQueueLoadImage,
-)
-
-from ..works.piv import WorkPIV
-
-from . import prepare_path_dir_result
-
-from ..data_objects.piv import get_name_bos, ArrayCouple
-from ..util import logger, imread
+from fluidimage.works.piv import WorkPIV
+from fluidimage.data_objects.piv import ArrayCoupleBOS
+from . import image2image as image2image
 
 
 class TopologyBOS(TopologyBase):
-    """Topology for BOS.
+    """Topology for BOS computation.
 
-    See https://en.wikipedia.org/wiki/Background-oriented_schlieren_technique
+      See https://en.wikipedia.org/wiki/Background-oriented_schlieren_technique
 
-    Parameters
-    ----------
+      Parameters
+      ----------
 
-    params : None
+      params : None
 
-      A ParamContainer containing the parameters for the computation.
+        A ParamContainer containing the parameters for the computation.
 
-    logging_level : str, {'warning', 'info', 'debug', ...}
+      logging_level : str, {'warning', 'info', 'debug', ...}
 
-      Logging level.
+        Logging level.
 
-    nb_max_workers : None, int
+      nb_max_workers : None, int
 
-      Maximum numbers of "workers". If None, a number is computed from the
-      number of cores detected. If there are memory errors, you can try to
-      decrease the number of workers.
+        Maximum numbers of "workers". If None, a number is computed from the
+        number of cores detected. If there are memory errors, you can try to
+        decrease the number of workers.
 
-    """
+      """
 
     @classmethod
     def create_default_params(cls):
@@ -63,6 +54,26 @@ class TopologyBOS(TopologyBase):
         """
         params = ParamContainer(tag="params")
 
+        params._set_child("images", attribs={"path": "", "str_slice": None})
+
+        params.images._set_doc(
+            """
+Parameters indicating the input image set.
+
+path : str, {''}
+
+    String indicating the input images (can be a full path towards an image
+    file or a string given to `glob`).
+
+str_slice : None
+
+    String indicating as a Python slicing how to select images from the serie of
+    images on the disk. If None, no selection so all images are going to be
+    processed.
+
+"""
+        )
+
         params._set_attrib("reference", 0)
 
         params._set_doc(
@@ -71,47 +82,13 @@ reference : str or int, {0}
 
     Reference file (from which the displacements will be computed). Can be an
     absolute file path, a file name or the index in the list of files found
-    from the parameters in ``params.series``.
+    from the parameters in ``params.images``.
 
 """
         )
 
         params._set_child(
-            "series",
-            attribs={
-                "path": "",
-                "strslice": None,
-                "ind_start": 0,
-                "ind_stop": None,
-                "ind_step": 1,
-            },
-        )
-
-        params.series._set_doc(
-            """
-Parameters indicating the input series of images.
-
-path : str, {''}
-
-    String indicating the input images (can be a full path towards an image
-    file or a string given to `glob`).
-
-strslice : None
-
-    String indicating as a Python slicing how series of images are formed.
-    See the parameters the PIV topology.
-
-ind_start : int, {0}
-
-ind_step : int, {1}
-
-int_stop : None
-
-"""
-        )
-
-        params._set_child(
-            "saving", attribs={"path": None, "how": "ask", "postfix": "piv"}
+            "saving", attribs={"path": None, "how": "ask", "postfix": "bos"}
         )
 
         params.saving._set_doc(
@@ -145,134 +122,164 @@ postfix : str
             ),
         )
 
+        params._set_child("preproc")
+        image2image.complete_im2im_params_with_default(params.preproc)
+
         return params
 
-    def __init__(self, params=None, logging_level="info", nb_max_workers=None):
-
-        if params is None:
-            params = self.__class__.create_default_params()
+    def __init__(self, params, logging_level="info", nb_max_workers=None):
 
         self.params = params
-        self.piv_work = WorkPIV(params)
 
-        self.series = SeriesOfArrays(
-            params.series.path,
-            params.series.strslice,
-            ind_start=params.series.ind_start,
-            ind_stop=params.series.ind_stop,
-            ind_step=params.series.ind_step,
+        self.serie = SerieOfArraysFromFiles(
+            params.images.path, params.images.str_slice
         )
 
-        path_dir = self.series.serie.path_dir
+        path_dir = Path(self.serie.path_dir)
         path_dir_result, self.how_saving = prepare_path_dir_result(
             path_dir, params.saving.path, params.saving.postfix, params.saving.how
         )
 
         self.path_dir_result = path_dir_result
+        self.path_dir_src = Path(path_dir)
 
         if not isinstance(params.reference, int):
-            reference = os.path.expanduser(params.reference)
+            reference = Path(params.reference).expanduser()
         else:
             reference = params.reference
 
         if isinstance(reference, int):
-            names = self.series.get_name_all_arrays()
-            names.sort()
-            path_reference = os.path.join(path_dir, names[reference])
+            names = self.serie.get_name_arrays()
+            names = sorted(names)
+            path_reference = path_dir / names[reference]
         elif os.path.isfile(reference):
             path_reference = reference
         else:
-            path_reference = os.path.join(path_dir_result, reference)
-            if not os.path.isfile(path_reference):
+            path_reference = path_dir_result / reference
+            if not path_reference.is_file():
                 raise ValueError(
                     "Bad value of params.reference:" + path_reference
                 )
 
+        self.name_reference = path_reference.name
         self.path_reference = path_reference
         self.image_reference = imread(path_reference)
 
-        self.results = {}
-
-        def save_piv_object(o):
-            ret = o.save(path_dir_result, kind="bos")
-            return ret
-
-        self.wq_piv = WaitingQueueThreading(
-            "delta", save_piv_object, self.results, topology=self
-        )
-        self.wq_couples = WaitingQueueMultiprocessing(
-            "couple", self.piv_work.calcul, self.wq_piv, topology=self
-        )
-        self.wq_images = WaitingQueueMakeCoupleBOS(
-            "array image",
-            self.wq_couples,
-            topology=self,
-            image_reference=self.image_reference,
-            path_reference=self.path_reference,
-            serie=self.series.serie,
-        )
-        self.wq0 = WaitingQueueLoadImage(
-            destination=self.wq_images, path_dir=path_dir, topology=self
-        )
-
         super().__init__(
-            [self.wq0, self.wq_images, self.wq_couples, self.wq_piv],
-            path_output=path_dir_result,
+            path_dir_result=path_dir_result,
             logging_level=logging_level,
             nb_max_workers=nb_max_workers,
         )
 
-        self.add_series(self.series)
+        queue_paths = self.add_queue("paths")
+        queue_arrays = queue_arrays1 = self.add_queue("arrays")
+        queue_bos = self.add_queue("bos")
 
-    def add_series(self, series):
+        if params.preproc.im2im is not None:
+            queue_arrays1 = self.add_queue("arrays1")
 
-        if len(series) == 0:
-            logger.warning("add 0 image. No BOS to compute.")
+        self.add_work(
+            "fill paths",
+            func_or_cls=self.fill_queue_paths,
+            output_queue=queue_paths,
+            kind=("global", "one shot"),
+        )
+
+        def _imread(path):
+            image = imread(path)
+            return image, Path(path).name
+
+        self.add_work(
+            "read array",
+            func_or_cls=_imread,
+            input_queue=queue_paths,
+            output_queue=queue_arrays,
+            kind="io",
+        )
+
+        if params.preproc.im2im is not None:
+            im2im_func = image2image.TopologyImage2Image.init_im2im(
+                self, params.preproc
+            )
+
+            self.add_work(
+                "image2image",
+                func_or_cls=im2im_func,
+                input_queue=queue_arrays,
+                output_queue=queue_arrays1,
+            )
+
+        self.add_work(
+            "compute bos",
+            func_or_cls=self.calcul,
+            params_cls=params,
+            input_queue=queue_arrays,
+            output_queue=queue_bos,
+        )
+
+        self.add_work(
+            "save bos",
+            func_or_cls=self.save_bos_object,
+            input_queue=queue_bos,
+            kind="io",
+        )
+
+    def save_bos_object(self, o):
+        ret = o.save(self.path_dir_result, kind="bos")
+        return ret
+
+    def calcul(self, tuple_image_path):
+        image, name = tuple_image_path
+        array_couple = ArrayCoupleBOS(
+            names=(self.name_reference, name),
+            arrays=(self.image_reference, image),
+            params_mask=self.params.mask,
+            serie=self.serie,
+            paths=[self.path_reference, self.path_dir_src / name],
+        )
+        return WorkPIV(self.params).calcul(array_couple)
+
+    def fill_queue_paths(self, input_queue, output_queue):
+
+        assert input_queue is None
+
+        serie = self.serie
+        if len(serie) == 0:
+            logger.warning("add 0 image. No image to process.")
             return
 
-        names = series.get_name_all_arrays()
+        names = serie.get_name_arrays()
 
-        if self.how_saving == "complete":
-            names_to_compute = []
-            for name in names:
-                name_bos = get_name_bos(name, series.serie)
-                if not os.path.exists(
-                    os.path.join(self.path_dir_result, name_bos)
-                ):
-                    names_to_compute.append(name)
+        for name in names:
+            path_im_output = self.path_dir_result / name
+            path_im_input = str(self.path_dir_src / name)
+            if self.how_saving == "complete":
+                if not path_im_output.exists():
+                    output_queue[name] = path_im_input
+            else:
+                output_queue[name] = path_im_input
 
-            names = names_to_compute
-            if len(names) == 0:
+        if len(names) == 0:
+            if self.how_saving == "complete":
                 logger.warning(
                     'topology in mode "complete" and work already done.'
                 )
-                return
+            else:
+                logger.warning("Nothing to do")
+            return
+
+        try:
+            del output_queue[self.path_reference]
+        except:
+            pass
 
         nb_names = len(names)
-        print("Add {} BOS fields to compute.".format(nb_names))
+        logger.info(f"Add {nb_names} images to compute.")
+        logger.info("First files to process: " + str(names[:4]))
 
-        logger.debug(repr(names))
+        logger.debug("All files: " + str(names))
 
-        print("First files to process:", names[:4])
-
-        self.wq0.add_name_files(names)
-
-        # a little bit strange, to apply mask...
-        try:
-            params_mask = self.params.mask
-        except AttributeError:
-            params_mask = None
-
-        im = self.image_reference
-
-        couple = ArrayCouple(
-            names=("", ""), arrays=(im, im), params_mask=params_mask
-        )
-        im, _ = couple.get_arrays()
-
-        self.piv_work._prepare_with_image(im)
-
-    def _print_at_exit(self, time_since_start):
+    def _make_text_at_exit(self, time_since_start):
 
         txt = "Stop compute after t = {:.2f} s".format(time_since_start)
         try:
@@ -288,9 +295,29 @@ postfix : str
 
         txt += "\npath results:\n" + str(self.path_dir_result)
 
-        print(txt)
+        return txt
 
 
-params = TopologyBOS.create_default_params()
+if "sphinx" in sys.modules:
+    params = TopologyBOS.create_default_params()
 
-__doc__ += params._get_formatted_docs()
+    __doc__ += params._get_formatted_docs()
+
+if __name__ == "__main__":
+    params = TopologyBOS.create_default_params()
+    params.series.path = "../../../image_samples/Karman/Images"
+    params.series.ind_start = 1
+    params.series.ind_step = 2
+
+    params.piv0.shape_crop_im0 = 32
+    params.multipass.number = 2
+    params.multipass.use_tps = False
+
+    params.mask.strcrop = ":, 50:500"
+
+    # params.saving.how = 'complete'
+    params.saving.postfix = "bos_example2"
+
+    topo = TopologyBOS(params, logging_level="info")
+
+    topo.make_code_graphviz("tmp.dot")

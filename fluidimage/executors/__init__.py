@@ -10,20 +10,21 @@ hardware, it can be more efficient to chose an executor compared to another.
    :toctree:
 
    base
+   exec_sequential
    exec_async
-   multiexec_async
+   exec_async_sequential
+   multi_exec_async
    exec_async_multiproc
    exec_async_servers
+   servers
 
 """
 
 from .base import ExecutorBase
 
 from .exec_sequential import ExecutorSequential
-
 from .exec_async import ExecutorAsync
 from .exec_async_sequential import ExecutorAsyncSequential
-
 from .multi_exec_async import MultiExecutorAsync
 from .exec_async_multiproc import ExecutorAsyncMultiproc
 from .exec_async_servers import (

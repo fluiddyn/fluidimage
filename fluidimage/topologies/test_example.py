@@ -3,7 +3,7 @@ from shutil import rmtree
 from functools import partialmethod
 from time import sleep
 
-from fluidimage.experimental.topologies.example import TopologyExample
+from fluidimage.topologies.example import TopologyExample
 
 from fluidimage.topologies import LogTopology
 
@@ -13,8 +13,8 @@ path_input = path_image_samples / "Karman/Images"
 
 executors = [
     "exec_sequential",
-    None,
     "exec_async_sequential",
+    "exec_async",
     "multi_exec_async",
     "exec_async_multi",
     "exec_async_servers",

@@ -55,6 +55,7 @@ functions.
    :toctree: generated/
 
    fluidimage.topologies
+   fluidimage.executors
    fluidimage.data_objects
    fluidimage.works
    fluidimage.calcul
@@ -64,7 +65,7 @@ functions.
    fluidimage.postproc
    fluidimage.util
    fluidimage.gui
-   fluidimage.experimental
+
 
 More
 ----

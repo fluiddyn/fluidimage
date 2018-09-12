@@ -25,13 +25,13 @@ from ..data_objects.preproc import get_name_preproc
 
 from ..util import logger
 
-from .base import TopologyBase
+from .old.base import TopologyBase
 
-from .waiting_queues.base import (
+from .old.waiting_queues.base import (
     WaitingQueueMultiprocessing,
     WaitingQueueThreading,
 )
-from .waiting_queues.series import (
+from .old.waiting_queues.series import (
     WaitingQueueMakeSerie,
     WaitingQueueLoadImageSeries,
 )

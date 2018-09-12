@@ -15,14 +15,14 @@ Waiting queues for series (:mod:`fluidimage.topologies.waiting_queues.series`)
 import os
 from copy import deepcopy, copy
 
-from ...util import logger
+from ....util import logger
 from .base import (
     WaitingQueueLoadImage,
     WaitingQueueBase,
     WaitingQueueMultiprocessing,
 )
 
-from ...data_objects.preproc import ArraySerie
+from ....data_objects.preproc import ArraySerie
 
 
 class WaitingQueueLoadImageSeries(WaitingQueueLoadImage):

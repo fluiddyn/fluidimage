@@ -6,27 +6,22 @@
    :private-members:
 
 """
-import os
+
 import json
+from pathlib import Path
 
-from .. import ParamContainer, SeriesOfArrays
-
-from . import prepare_path_dir_result
-
+from fluidimage.topologies import prepare_path_dir_result
 from .base import TopologyBase
 
-from .waiting_queues.base import (
-    WaitingQueueMultiprocessing,
-    WaitingQueueThreading,
-    WaitingQueueLoadImagePath,
-)
+from fluidimage import ParamContainer, SerieOfArraysFromFiles
+from fluidimage.util import logger, imread
 
-from ..util import logger, imsave
-
-from ..preproc.image2image import (
+from fluidimage.preproc.image2image import (
     complete_im2im_params_with_default,
     init_im2im_function,
 )
+
+from fluiddyn.io.image import imsave
 
 
 class TopologyImage2Image(TopologyBase):
@@ -61,36 +56,22 @@ class TopologyImage2Image(TopologyBase):
         params = ParamContainer(tag="params")
         complete_im2im_params_with_default(params)
 
-        params._set_child(
-            "series",
-            attribs={
-                "path": "",
-                "strslice": None,
-                "ind_start": 0,
-                "ind_stop": None,
-                "ind_step": 1,
-            },
-        )
+        params._set_child("images", attribs={"path": "", "str_slice": None})
 
-        params.series._set_doc(
+        params.images._set_doc(
             """
-Parameters indicating the input series of images.
+Parameters indicating the input image set.
 
 path : str, {''}
 
     String indicating the input images (can be a full path towards an image
     file or a string given to `glob`).
 
-strslice : None
+str_slice : None
 
-    String indicating as a Python slicing how series of images are formed.
-    See the parameters the PIV topology.
-
-ind_start : int, {0}
-
-ind_step : int, {1}
-
-int_stop : None
+    String indicating as a Python slicing how to select images from the serie of
+    images on the disk. If None, no selection so all images are going to be
+    processed.
 
 """
         )
@@ -130,61 +111,62 @@ postfix : str
 
         return params
 
-    def __init__(self, params=None, logging_level="info", nb_max_workers=None):
-
-        if params is None:
-            params = self.__class__.create_default_params()
+    def __init__(self, params, logging_level="info", nb_max_workers=None):
 
         self.params = params
 
         if params.im2im is None:
             raise ValueError("params.im2im has to be set.")
 
-        self.series = SeriesOfArrays(
-            params.series.path,
-            params.series.strslice,
-            ind_start=params.series.ind_start,
-            ind_stop=params.series.ind_stop,
-            ind_step=params.series.ind_step,
+        self.serie = SerieOfArraysFromFiles(
+            params.images.path, params.images.str_slice
         )
 
-        path_dir = self.series.serie.path_dir
+        path_dir = self.serie.path_dir
         path_dir_result, self.how_saving = prepare_path_dir_result(
             path_dir, params.saving.path, params.saving.postfix, params.saving.how
         )
 
         self.path_dir_result = path_dir_result
-
-        def save_image(tuple_image_path):
-            image, path = tuple_image_path
-            nfile = os.path.split(path)[-1]
-            path_out = os.path.join(path_dir_result, nfile)
-            imsave(path_out, image)
-
-        self.results = {}
-
-        self.wq_images_out = WaitingQueueThreading(
-            "image output", save_image, self.results, topology=self
-        )
-
-        self.im2im_func = self.init_im2im(params)
-
-        self.wq_images_in = WaitingQueueMultiprocessing(
-            "image input", self.im2im_func, self.wq_images_out, topology=self
-        )
-
-        self.wq0 = WaitingQueueLoadImagePath(
-            destination=self.wq_images_in, path_dir=path_dir, topology=self
-        )
+        self.path_dir_src = Path(path_dir)
 
         super().__init__(
-            [self.wq0, self.wq_images_in, self.wq_images_out],
-            path_output=path_dir_result,
+            path_dir_result=path_dir_result,
             logging_level=logging_level,
             nb_max_workers=nb_max_workers,
         )
 
-        self.add_series(self.series)
+        self.queue_paths = self.add_queue("paths")
+        self.queue_arrays = self.add_queue("arrays")
+        self.queue_results = self.add_queue("results")
+
+        self.add_work(
+            "fill_path",
+            self.fill_queue_paths,
+            output_queue=self.queue_paths,
+            kind="one shot",
+        )
+
+        self.add_work(
+            "read_array",
+            self.imread,
+            input_queue=self.queue_paths,
+            output_queue=self.queue_arrays,
+            kind="io",
+        )
+
+        im2im_func = self.init_im2im(params)
+
+        self.add_work(
+            "im2im",
+            im2im_func,
+            input_queue=self.queue_arrays,
+            output_queue=self.queue_results,
+        )
+
+        self.add_work(
+            "save", self.save_image, input_queue=self.queue_results, kind="io"
+        )
 
     def init_im2im(self, params_im2im):
         self.im2im_obj, self.im2im_func = init_im2im_function(
@@ -192,55 +174,47 @@ postfix : str
         )
         return self.im2im_func
 
-    def add_series(self, series):
+    def imread(self, path):
+        array = imread(path)
+        return (array, path)
 
-        if len(series) == 0:
+    def save_image(self, tuple_image_path):
+        image, path = tuple_image_path
+        name_file = Path(path).name
+        path_out = self.path_dir_result / name_file
+        imsave(path_out, image)
+
+    def fill_queue_paths(self, input_queue, output_queue):
+
+        assert input_queue is None
+
+        serie = self.serie
+        if len(serie) == 0:
             logger.warning("add 0 image. No image to process.")
             return
 
-        names = series.get_name_all_arrays()
+        names = serie.get_name_arrays()
 
-        if self.how_saving == "complete":
-            names_to_compute = []
-            for name in names:
-                if not os.path.exists(os.path.join(self.path_dir_result, name)):
-                    names_to_compute.append(name)
+        for name in names:
+            path_im_output = self.path_dir_result / name
+            path_im_input = str(self.path_dir_src / name)
+            if self.how_saving == "complete":
+                if not path_im_output.exists():
+                    output_queue[name] = path_im_input
+            else:
+                output_queue[name] = path_im_input
 
-            names = names_to_compute
-            if len(names) == 0:
+        if len(names) == 0:
+            if self.how_saving == "complete":
                 logger.warning(
                     'topology in mode "complete" and work already done.'
                 )
-                return
+            else:
+                logger.warning("Nothing to do")
+            return
 
         nb_names = len(names)
-        print("Add {} images to compute.".format(nb_names))
+        logger.info(f"Add {nb_names} images to compute.")
+        logger.info("First files to process: " + str(names[:4]))
 
-        logger.debug(repr(names))
-
-        print("First files to process:", names[:4])
-
-        self.wq0.add_name_files(names)
-
-    def _print_at_exit(self, time_since_start):
-
-        txt = "Stop compute after t = {:.2f} s".format(time_since_start)
-        try:
-            nb_results = len(self.results)
-        except AttributeError:
-            nb_results = None
-        if nb_results is not None and nb_results > 0:
-            txt += " ({} images, {:.2f} s/field).".format(
-                nb_results, time_since_start / nb_results
-            )
-        else:
-            txt += "."
-
-        txt += "\npath results:\n" + str(self.path_dir_result)
-
-        print(txt)
-
-
-params_doc = TopologyImage2Image.create_default_params()
-
-__doc__ += params_doc._get_formatted_docs()
+        logger.debug("All files: " + str(names))

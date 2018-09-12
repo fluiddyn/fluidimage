@@ -120,7 +120,7 @@ if use_pythran:
             "fluidimage.calcul.correl_pythran",
             "fluidimage.calcul.interpolate.tps_pythran",
             "fluidimage.calcul.subpix_pythran",
-            "fluidimage.experimental.cpu_bounded_task_examples_pythran",
+            "fluidimage.topologies.example_pythran",
         ]
     )
 else:

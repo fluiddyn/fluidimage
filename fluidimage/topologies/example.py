@@ -1,5 +1,5 @@
-"""Topology example (:mod:`fluidimage.experimental.topologies.example`)
-=======================================================================
+"""Topology example (:mod:`fluidimage.topologies.example`)
+==========================================================
 
 This topology has two pythran cpu bounded tasks. It helps see executors behavior
 with C functions.
@@ -14,11 +14,11 @@ import os
 
 import scipy.io
 
-from fluidimage.experimental.cpu_bounded_task_examples_pythran import cpu1, cpu2
+from .example_pythran import cpu1, cpu2
 
-from .base import TopologyBase
+from . import TopologyBase
 
-from ...util import imread
+from ..util import imread
 
 
 class TopologyExample(TopologyBase):
@@ -68,9 +68,6 @@ class TopologyExample(TopologyBase):
             return key, result
 
         self.path_input = path_input
-
-        if path_dir_result is None:
-            path_dir_result = path_input.parent / "Images.example_new"
 
         super().__init__(
             path_dir_result=path_dir_result,

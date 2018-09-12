@@ -1,6 +1,6 @@
 """
-Multi executors async (:mod:`fluidimage.experimental.executors.multiexec_async`)
-================================================================================
+Multi executors async (:mod:`fluidimage.executors.multi_exec_async`)
+====================================================================
 
 .. autoclass:: MultiExecutorAsync
    :members:
