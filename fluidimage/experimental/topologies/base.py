@@ -141,11 +141,15 @@ class TopologyBase:
 
         if sequential:
             if executor != "exec_sequential":
-                raise ValueError
+                raise ValueError(
+                    "Incompatible arguments sequential=True and "
+                    f"executor={executor}"
+                )
             executor = "exec_sequential"
 
         if executor is None:
-            executor = "exec_async"
+            # fastest and safest executor for most cases
+            executor = "multi_exec_async"
 
         if not isinstance(executor, ExecutorBase):
             if executor not in executors:

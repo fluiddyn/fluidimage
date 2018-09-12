@@ -14,7 +14,7 @@ path_dir_images = path_image_samples / "Milestone/Images"
 path_images = list(path_dir_images.glob("im*"))
 path_images.sort()
 
-nb_couples = 5
+nb_couples = 12
 
 names = []
 for ind in range(nb_couples):
@@ -74,29 +74,34 @@ not thread safe (maybe the FFT used for the correlation).
     """
 
     executors = [
-        # "exec_async",
-        # "multi_exec_async",
+        "exec_sequential",
+        "multi_exec_async",
         "exec_async_multi",
-        # "exec_async_servers",
+        "exec_async_servers",
     ]
 
     durations = []
 
     for executor in executors:
         t_start = time()
-        topology = TopologyPIV(params, logging_level="debug")
-        topology.compute(executor, sleep_time=0.2, stop_if_error=False)
+        topology = TopologyPIV(params, logging_level="info")
+        topology.compute(executor, sleep_time=0.01, stop_if_error=False)
         durations.append(time() - t_start)
 
-    # t_start = time()
-    # topology = OldTopologyPIV(params, logging_level="info")
-    # topology.compute()
-    # duration_old = time() - t_start
+    t_start = time()
+    topology = OldTopologyPIV(params, logging_level="info")
+    topology.compute()
+    duration_old = time() - t_start
+    durations.append(duration_old)
+    executors.append("old")
+
+    duration_norm = durations[0]
 
     for executor, duration in zip(executors, durations):
-        print(f"{executor + ':':30s}{duration}")
-
-    # print(f"{'old:':30s}{duration_old}")
+        print(
+            f"{executor + ':':30s}{duration:10.2f} s, "
+            f"speedup = {duration_norm/duration}"
+        )
 
     path_out = Path(str(path_src.parent) + "." + postfix)
     if path_out.exists():

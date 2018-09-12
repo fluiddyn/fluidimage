@@ -297,12 +297,14 @@ postfix : str
             names = series.get_name_all_arrays()
 
         nb_series = len(series)
-        print("Add {} PIV fields to compute.".format(nb_series))
+        logger.info("Add {} PIV fields to compute.".format(nb_series))
 
         for iserie, serie in enumerate(series):
             if iserie > 1:
                 break
-            print("Files of serie {}: {}".format(iserie, serie.get_name_arrays()))
+            logger.info(
+                "Files of serie {}: {}".format(iserie, serie.get_name_arrays())
+            )
 
         for ind_serie, serie in series.items():
             queue_couples_of_names[ind_serie] = serie.get_name_arrays()

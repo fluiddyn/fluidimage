@@ -32,7 +32,7 @@ def bench():
     for executor in executors:
         t_start = time()
         topology = TopologyExample(params, logging_level="info")
-        topology.compute(executor, sleep_time=0.01, nb_max_workers=3)
+        topology.compute(executor, sleep_time=0.01, nb_max_workers=None)
         durations.append(time() - t_start)
 
     duration_seq = durations[0]

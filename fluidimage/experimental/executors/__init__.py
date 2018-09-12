@@ -24,7 +24,7 @@ from .exec_sequential import ExecutorSequential
 from .exec_async import ExecutorAsync
 from .exec_async_sequential import ExecutorAsyncSequential
 
-from .multiexec_async import MultiExecutorAsync
+from .multi_exec_async import MultiExecutorAsync
 from .exec_async_multiproc import ExecutorAsyncMultiproc
 from .exec_async_servers import (
     ExecutorAsyncServers,

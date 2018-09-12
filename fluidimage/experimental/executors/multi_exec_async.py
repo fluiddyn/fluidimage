@@ -12,7 +12,7 @@ Multi executors async (:mod:`fluidimage.experimental.executors.multiexec_async`)
 
 """
 
-from multiprocessing import Process
+from multiprocessing import Process, Pipe
 import copy
 import math
 from time import time
@@ -258,7 +258,7 @@ class MultiExecutorAsync(ExecutorBase):
     def launch_process(self, topology, ind_process):
         """Launch one process"""
 
-        def init_and_compute(topology_this_process, log_path):
+        def init_and_compute(topology_this_process, log_path, child_conn):
             """Create an executor and start it in a process"""
             executor = ExecutorAsyncForMulti(
                 topology_this_process,
@@ -270,13 +270,26 @@ class MultiExecutorAsync(ExecutorBase):
             executor.t_start = self.t_start
             executor.compute()
 
+            # send the results
+            if hasattr(topology_this_process, "results"):
+                results = topology_this_process.results
+            else:
+                results = None
+
+            child_conn.send(results)
+
         log_path = Path(
             str(self._log_path).split(".txt")[0] + f"_multi{ind_process:03}.txt"
         )
 
         self.log_paths.append(log_path)
 
-        process = Process(target=init_and_compute, args=(topology, log_path))
+        parent_conn, child_conn = Pipe()
+
+        process = Process(
+            target=init_and_compute, args=(topology, log_path, child_conn)
+        )
+        process.connexion = parent_conn
         process.daemon = True
         process.start()
         self.processes.append(process)
@@ -288,5 +301,13 @@ class MultiExecutorAsync(ExecutorBase):
         )
 
         # wait until end of all processes
+
+        self.topology.results = results_all = []
+        for process in self.processes:
+            results = process.connexion.recv()
+
+            if results is not None:
+                results_all.extend(results)
+
         for process in self.processes:
             process.join()
