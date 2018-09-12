@@ -13,6 +13,10 @@ from fluidimage.data_objects.piv import MultipassPIVResults, LightPIVResults
 from fluidimage import path_image_samples
 
 
+class MyObj:
+    pass
+
+
 class TestPIV(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -84,6 +88,29 @@ class TestPIV(unittest.TestCase):
 
         d.switch()
         d.select_arrow([0], artist=d.q)
+        d.select_arrow([0], artist=None)
+
+        event = MyObj()
+
+        event.key = "alt+h"
+        event.inaxes = None
+        d.onclick(event)
+
+        event.inaxes = d.ax1
+
+        event.key = "alt+s"
+        d.onclick(event)
+        event.key = "alt+left"
+        d.onclick(event)
+        event.key = "alt+right"
+        d.onclick(event)
+
+        event.artist = None
+        d.onpick(event)
+
+        event.artist = d.q
+        event.ind = [0]
+        d.onpick(event)
 
 
 if __name__ == "__main__":

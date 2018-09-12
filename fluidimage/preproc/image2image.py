@@ -86,9 +86,10 @@ args_init : object {None}
 
 def init_im2im_function(im2im=None, args_init=()):
     """Initialize the filter function."""
-    str_package, str_obj = im2im.rsplit(".", 1)
 
-    im2im = import_class(str_package, str_obj)
+    if isinstance(im2im, str):
+        str_package, str_obj = im2im.rsplit(".", 1)
+        im2im = import_class(str_package, str_obj)
 
     if isinstance(im2im, types.FunctionType):
         obj = im2im
@@ -119,11 +120,10 @@ def apply_im2im_filter(serie, im2im=None, args_init=()):
 
     obj, im2im_func = init_im2im_function(im2im, args_init)
 
-    if isinstance(serie, SerieOfArraysFromFiles):
-        couple = ArrayCouple(serie=serie)
-    else:
+    if not isinstance(serie, SerieOfArraysFromFiles):
         raise NotImplementedError
 
-    couple.arrays = tuple(im2im_func(arr) for arr in couple.arrays)
+    arrays = serie.get_arrays()
+    paths = serie.get_path_arrays()
 
-    return couple
+    return tuple(im2im_func(t) for t in zip(arrays, paths))
