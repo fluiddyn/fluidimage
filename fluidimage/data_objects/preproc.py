@@ -12,8 +12,9 @@
 """
 
 import os
-import h5py
 import math
+
+import h5py
 
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
 from fluidimage.util import imsave, imsave_h5

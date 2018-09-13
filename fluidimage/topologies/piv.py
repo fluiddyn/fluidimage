@@ -258,7 +258,6 @@ postfix : str
     def save_piv_object(self, obj):
         ret = obj.save(self.path_dir_result)
         self.results.append(ret)
-        return ret
 
     def fill_couples_of_names_and_paths(self, input_queue, output_queues):
         queue_couples_of_names = output_queues[0]
@@ -357,9 +356,7 @@ postfix : str
 
 
 if "sphinx" in sys.modules:
-
     params = TopologyPIV.create_default_params()
-
     __doc__ += params._get_formatted_docs()
 
 

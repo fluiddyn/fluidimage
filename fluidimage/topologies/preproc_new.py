@@ -9,7 +9,7 @@
 import os
 import json
 import copy
-from typing import List, Tuple, Dict, Any
+from typing import List, Tuple, Dict
 from fluiddyn.util.paramcontainer import ParamContainer
 
 from fluidimage import SeriesOfArrays
@@ -126,13 +126,14 @@ Parameters describing image saving after preprocessing.
 path : str or None
     Path to which preprocessed images are saved.
 
-strcouple : str or None
-    Determines the sub-subset of images must be saved from subset of images that were
-    loaded and preprocessed. When set as None, saves the middle image from every subset.
+str_subset : str or None
+    NotImplemented! Determines the sub-subset of images must be saved from subset
+    of images that were loaded and preprocessed. When set as None, saves the
+    middle image from every subset.
 
     ..todo::
 
-        rename this parameter to strsubset / strslice
+        Implement the option params.saving.str_subset...
 
 how : str {'ask', 'new_dir', 'complete', 'recompute'}
     How preprocessed images must be saved if it already exists or not.
@@ -165,7 +166,7 @@ postfix : str
         self.params = params.preproc
 
         self.preproc_work = WorkPreproc(params)
-        self.results = self.preproc_work.results
+        self.results = []
         self.display = self.preproc_work.display
 
         serie_arrays = self.preproc_work.serie_arrays
@@ -247,63 +248,54 @@ postfix : str
             kind="io",
         )
 
-    def save_preproc_object(self, o: ArraySubset):
-        return o.save(path=self.path_dir_result)
+    def save_preproc_object(self, obj: ArraySubset):
+        ret = obj.save(path=self.path_dir_result)
+        self.results.append(ret)        
 
-    # def init_series(self) -> List[str]:
-    #     """Initializes the SeriesOfArrays object `self.series` based on input
-    #     parameters."""
-    #     series = self.series
-    #     if len(series) == 0:
-    #         logger.warning("encountered empty series. No images to preprocess.")
-    #         return
+    def init_series(self) -> List[str]:
+        """Initializes the SeriesOfArrays object `self.series` based on input
+        parameters."""
+        series = self.series
+        if len(series) == 0:
+            logger.warning("encountered empty series. No images to preprocess.")
+            return
 
-    #     if self.how_saving == "complete":
-    #         names = []
-    #         index_series = []
-    #         for i, subset in enumerate(series):
-    #             names_serie = subset.get_name_arrays()
-    #             name_preproc = get_name_preproc(
-    #                 subset,
-    #                 names_serie,
-    #                 i,
-    #                 series.nb_series,
-    #                 self.params.saving.format,
-    #             )
-    #             if os.path.exists(
-    #                 os.path.join(self.path_dir_result, name_preproc)
-    #             ):
-    #                 continue
+        if self.how_saving == "complete":
+            index_subsets = []
+            for ind_subset, subset in self.series.items():
+                names_serie = subset.get_name_arrays()
+                name_preproc = get_name_preproc(
+                    subset,
+                    names_serie,
+                    ind_subset,
+                    series.nb_series,
+                    self.params.saving.format,
+                )
+                if (self.path_dir_result / name_preproc).exists():
+                    continue
 
-    #             for name in names_serie:
-    #                 if name not in names:
-    #                     names.append(name)
+                index_subsets.append(ind_subset)
+            series.set_index_series(index_subsets)
+            logger.debug(repr([subset.get_name_arrays() for subset in series]))
 
-    #             index_series.append(i + series.ind_start)
+        nb_subsets = len(series)
+        if nb_subsets == 0:
+            logger.warning('topology in mode "complete" and work already done.')
+            return
+        elif nb_subsets == 1:
+            plurial = ""
+        else:
+            plurial = "s"
 
-    #         if len(index_series) == 0:
-    #             logger.warning(
-    #                 'topology in mode "complete" and work already done.'
-    #             )
-    #             return
-
-    #         series.set_index_series(index_series)
-
-    #         logger.debug(repr(names))
-    #         logger.debug(repr([subset.get_name_arrays() for serie in series]))
-    #     else:
-    #         names = series.get_name_all_arrays()
-
-    #     logger.info("Add {} image serie(s) to compute.".format(len(series)))
-    #     return names
+        logger.info(f"Add {nb_subsets} image serie{plurial} to compute.")
 
     def fill_subsets_of_names_and_paths(
         self, input_queue: None, output_queues: Tuple[Dict]
     ) -> None:
+        assert input_queue is None
         queue_subsets_of_names, queue_paths = output_queues
 
-        # names = self.init_series()
-        # TODO: See if names have to be used or not
+        self.init_series()
 
         for ind_subset, subset in self.series.items():
             queue_subsets_of_names[ind_subset] = subset.get_name_arrays()

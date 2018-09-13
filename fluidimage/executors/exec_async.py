@@ -85,6 +85,7 @@ class ExecutorAsync(ExecutorBase):
         self.define_functions()
 
         def signal_handler(sig, frame):
+            del sig, frame  # unused
             logger.info("Ctrl+C signal received...")
             self._has_to_stop = True
             self.nursery.cancel_scope.cancel()
@@ -92,6 +93,9 @@ class ExecutorAsync(ExecutorBase):
             raise KeyboardInterrupt
 
         signal.signal(signal.SIGINT, signal_handler)
+
+        # to avoid a pylint warning
+        self.nursery = None
 
     def compute(self):
         """Compute the whole topology.
@@ -128,12 +132,12 @@ class ExecutorAsync(ExecutorBase):
         and process the items as soon as they are available.
 
         """
-        for w in self.works:
+        for work in self.works:
 
             # global functions
-            if w.kind is not None and "global" in w.kind:
+            if work.kind is not None and "global" in work.kind:
 
-                async def func(work=w):
+                async def func(work=work):
                     while True:
                         while (
                             isinstance(work.input_queue, tuple)
@@ -161,16 +165,20 @@ class ExecutorAsync(ExecutorBase):
                         await trio.sleep(self.sleep_time)
 
             # I/O
-            elif w.kind is not None and ("io" in w.kind or "io" == w.kind):
-                func = self.def_async_func_work_io(w)
+            elif work.kind is not None and (
+                "io" in work.kind or work.kind == "io"
+            ):
+                func = self.def_async_func_work_io(work)
 
             # CPU-bounded work
             else:
-                func = self.def_async_func_work_cpu(w)
+                func = self.def_async_func_work_cpu(work)
 
-            self.async_funcs[w.name] = func
+            self.async_funcs[work.name] = func
 
     def def_async_func_work_io(self, work):
+        """Define an asynchroneous function launching a io work."""
+
         async def func(work=work):
             while True:
                 while (
@@ -190,6 +198,8 @@ class ExecutorAsync(ExecutorBase):
         return func
 
     def def_async_func_work_cpu(self, work):
+        """Define an asynchroneous function launching a cpu work."""
+
         async def func(work=work):
             while True:
                 while (
@@ -240,6 +250,7 @@ class ExecutorAsync(ExecutorBase):
             + work.name_no_space
             + f" ({key}). mem usage"
         )
+        # pylint: disable=W0703
         try:
             ret = await trio.run_sync_in_worker_thread(work.func_or_cls, obj)
         except Exception as error:
@@ -294,6 +305,7 @@ class ExecutorAsync(ExecutorBase):
             + work.name_no_space
             + f" ({key}). mem usage"
         )
+        # pylint: disable=W0703
         try:
             ret = await trio.run_sync_in_worker_thread(work.func_or_cls, obj)
         except Exception as error:

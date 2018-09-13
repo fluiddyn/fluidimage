@@ -50,15 +50,20 @@ def imread(path):
     """
     if isinstance(path, Path):
         path = str(path)
+    # pylint: disable=W0703
     try:
         array = _imread(path)
-    except IOError as e:
-        raise_exception(e, path)
+    except Exception as error:
+        raise_exception(error, path)
     return array
 
 
 def imsave(path, array, **kwargs):
+    "tmp docstring"
     _imsave(path, array, **kwargs)
+
+
+imsave.__doc__ = _imsave.__doc__
 
 
 def _get_txt_memory_usage(string="Memory usage", color="OKGREEN"):
