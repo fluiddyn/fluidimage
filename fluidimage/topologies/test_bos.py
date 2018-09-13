@@ -44,7 +44,7 @@ class TestBOSNew(unittest.TestCase):
         params.saving.postfix = self.postfix
 
         topology = TopologyBOS(params, logging_level="info")
-        topology.compute(stop_if_error=True)
+        topology.compute("exec_async", stop_if_error=True)
 
         # remove one file
         path_files = list(Path(topology.path_dir_result).glob("bos*"))

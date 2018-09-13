@@ -32,8 +32,12 @@ class TestPivNew(unittest.TestCase):
         params.saving.postfix = self.postfix
 
         topology = TopologyImage2Image(params, logging_level="info")
+        topology.compute("exec_async", stop_if_error=True)
+
+        topology = TopologyImage2Image(params, logging_level="info")
+        topology.compute()
+
         topology.make_code_graphviz(topology.path_dir_result / "topo.dot")
-        topology.compute(stop_if_error=True)
 
 
 if __name__ == "__main__":

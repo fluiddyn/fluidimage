@@ -142,12 +142,10 @@ class MultiExecutorAsync(ExecutorBase):
         self._init_compute()
         self.log_paths = []
 
-        # topology doesn't have series
-        if not hasattr(self.topology, "series"):
-            self.start_mutiprocess_first_queue()
-        # topology has series
-        else:
+        if hasattr(self.topology, "series"):
             self.start_multiprocess_series()
+        else:
+            self.start_mutiprocess_first_queue()
 
         self._finalize_compute()
 

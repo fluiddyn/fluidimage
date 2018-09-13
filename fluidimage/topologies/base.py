@@ -139,7 +139,7 @@ class TopologyBase:
 
     def compute(
         self,
-        executor="exec_async",
+        executor="multi_exec_async",
         nb_max_workers=None,
         sleep_time=0.01,
         sequential=False,

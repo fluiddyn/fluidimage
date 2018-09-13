@@ -250,7 +250,7 @@ postfix : str
 
     def save_preproc_object(self, obj: ArraySubset):
         ret = obj.save(path=self.path_dir_result)
-        self.results.append(ret)        
+        self.results.append(ret)
 
     def init_series(self) -> List[str]:
         """Initializes the SeriesOfArrays object `self.series` based on input

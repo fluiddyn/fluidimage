@@ -224,12 +224,9 @@ class ExecutorAsyncServers(ExecutorAsync):
         async def func(work=work):
 
             while True:
-                while (
-                    not work.input_queue
-                    or (
-                        work.output_queue is not None
-                        and len(work.output_queue) >= self.nb_items_queue_max
-                    )
+                while not work.input_queue or (
+                    work.output_queue is not None
+                    and len(work.output_queue) >= self.nb_items_queue_max
                 ):
                     if self._has_to_stop:
                         return
