@@ -21,11 +21,11 @@ from fluidimage.topologies import prepare_path_dir_result, TopologyBase
 from fluidimage.works.piv import WorkPIV
 from fluidimage.data_objects.piv import get_name_piv, ArrayCouple
 
-from . import image2image as image2image
+from . import image2image
 
 
 def still_is_in_dict(image_name, dictio):
-    for key, names in dictio.items():
+    for names in dictio.values():
         if image_name in names:
             return True
     return False
@@ -255,8 +255,8 @@ postfix : str
         )
         self.results = []
 
-    def save_piv_object(self, o):
-        ret = o.save(self.path_dir_result)
+    def save_piv_object(self, obj):
+        ret = obj.save(self.path_dir_result)
         self.results.append(ret)
         return ret
 
@@ -269,16 +269,11 @@ postfix : str
             logger.warning("add 0 couple. No PIV to compute.")
             return
         if self.how_saving == "complete":
-            names = []
             index_series = []
             for i, serie in enumerate(series):
                 name_piv = get_name_piv(serie, prefix="piv")
                 if os.path.exists(os.path.join(self.path_dir_result, name_piv)):
                     continue
-
-                for name in serie.get_name_arrays():
-                    if name not in names:
-                        names.append(name)
 
                 index_series.append(i * series.ind_step + series.ind_start)
 
@@ -291,13 +286,10 @@ postfix : str
             series.set_index_series(index_series)
 
             if logger.isEnabledFor(DEBUG):
-                logger.debug(repr(names))
                 logger.debug(repr([serie.get_name_arrays() for serie in series]))
-        else:
-            names = series.get_name_all_arrays()
 
         nb_series = len(series)
-        logger.info("Add {} PIV fields to compute.".format(nb_series))
+        logger.info(f"Add {nb_series} PIV fields to compute.")
 
         for iserie, serie in enumerate(series):
             if iserie > 1:

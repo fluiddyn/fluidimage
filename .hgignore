@@ -9,6 +9,8 @@ syntax: glob
 fluidimage/_path_image_samples.py
 fluidimage/_hg_rev.py
 
+**/.vscode/*
+
 *.swp
 *.swo
 
