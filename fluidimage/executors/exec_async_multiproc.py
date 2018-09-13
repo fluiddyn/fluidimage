@@ -82,7 +82,7 @@ class ExecutorAsyncMultiproc(ExecutorAsync):
                 if not event.wait(1):
                     log_debug(
                         f"problem: process {work.name_no_space} ({key}) "
-                        "has not really started... (attempt {index_attempt})"
+                        f"has not really started... (attempt {index_attempt})"
                     )
                     process.terminate()
                     return False

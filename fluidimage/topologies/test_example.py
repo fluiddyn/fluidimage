@@ -1,7 +1,6 @@
 import unittest
 from shutil import rmtree
 from functools import partialmethod
-from time import sleep
 
 from fluidimage.topologies.example import TopologyExample
 
@@ -40,12 +39,8 @@ def _test(self, executor=None):
 
     path_files = tuple(path_dir_result.glob("Karman*"))
 
-    if len(path_files) != 3:
-        sleep(0.2)
-        path_files = tuple(path_dir_result.glob("Karman*"))
-
     assert len(path_files) > 0, "No files saved"
-    assert len(path_files) == 3, "Bad number of saved files"
+    assert len(path_files) == 2, "Bad number of saved files"
 
 
 class TestTopoExample(unittest.TestCase):

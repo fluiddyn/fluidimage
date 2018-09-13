@@ -220,36 +220,17 @@ class ExecutorAsyncServers(ExecutorAsync):
             work.output_queue[key] = ret
         worker.well_done_thanks()
 
-    def def_async_func_work_cpu_with_output_queue(self, work):
+    def def_async_func_work_cpu(self, work):
         async def func(work=work):
 
             while True:
                 while (
                     not work.input_queue
-                    or len(work.output_queue) >= self.nb_items_queue_max
+                    or (
+                        work.output_queue is not None
+                        and len(work.output_queue) >= self.nb_items_queue_max
+                    )
                 ):
-                    if self._has_to_stop:
-                        return
-                    await trio.sleep(self.sleep_time)
-
-                available_worker = False
-                while not available_worker:
-                    if self._has_to_stop:
-                        return
-                    available_worker = self.get_available_worker()
-                    await trio.sleep(self.sleep_time)
-
-                self.nursery.start_soon(
-                    self.async_run_work_cpu, work, available_worker
-                )
-                await trio.sleep(self.sleep_time)
-
-        return func
-
-    def def_async_func_work_cpu_without_output_queue(self, work):
-        async def func(work=work):
-            while True:
-                while not work.input_queue:
                     if self._has_to_stop:
                         return
                     await trio.sleep(self.sleep_time)

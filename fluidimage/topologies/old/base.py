@@ -20,7 +20,13 @@ import queue
 from fluiddyn import time_as_str
 from fluiddyn.io.tee import MultiFile
 
-from fluidimage.util import cstring, logger, reset_logger, log_memory_usage, config_logging
+from fluidimage.util import (
+    cstring,
+    logger,
+    reset_logger,
+    log_memory_usage,
+    config_logging,
+)
 from fluidimage.config import get_config
 from .waiting_queues.base import WaitingQueueThreading
 

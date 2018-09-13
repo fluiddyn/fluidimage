@@ -18,7 +18,7 @@ from fluidimage.topologies import prepare_path_dir_result, TopologyBase
 
 from fluidimage.works.piv import WorkPIV
 from fluidimage.data_objects.piv import ArrayCoupleBOS
-from . import image2image as image2image
+from . import image2image
 
 
 class TopologyBOS(TopologyBase):

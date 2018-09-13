@@ -12,3 +12,5 @@ variable-rgx=[a-z_][a-z0-9_]{1,30}$
 
 # Naming hint for variable names
 variable-name-hint=[a-z_][a-z0-9_]{1,30}$
+
+disable=W0621,W0212,C0330,W1202,W1203

@@ -341,15 +341,13 @@ postfix : str
 
     def _make_text_at_exit(self, time_since_start):
 
-        txt = "Stop compute after t = {:.2f} s".format(time_since_start)
+        txt = f"Stop compute after t = {time_since_start:.2f} s"
         try:
             nb_results = len(self.results)
         except AttributeError:
             nb_results = None
         if nb_results is not None and nb_results > 0:
-            txt += " ({} piv fields, {:.2f} s/field).".format(
-                nb_results, time_since_start / nb_results
-            )
+            txt += f" ({nb_results} piv fields, {time_since_start / nb_results:.2f} s/field)."
         else:
             txt += "."
 

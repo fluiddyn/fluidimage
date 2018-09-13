@@ -59,6 +59,8 @@ class TopologyExample(TopologyBase):
 
         def func1(arrays):
             key = arrays[0]
+            if key == "Karman_02_00":
+                raise ValueError("For testing")
             arr0, arr1 = cpu1(arrays[1], arrays[2], nloops)
             return key, arr0, arr1
 
@@ -125,17 +127,12 @@ class TopologyExample(TopologyBase):
         self.add_work(
             "cpu2",
             func_or_cls=func2,
-            params_cls=None,
             input_queue=queue_cpu1,
             output_queue=queue_cpu2,
             kind="cpu",
         )
         self.add_work(
-            "save",
-            func_or_cls=self.save,
-            params_cls=None,
-            input_queue=queue_cpu2,
-            kind="io",
+            "save", func_or_cls=self.save, input_queue=queue_cpu2, kind="io"
         )
 
     def fill_names(self, input_queue, output_queue):

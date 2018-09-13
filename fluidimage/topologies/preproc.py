@@ -210,8 +210,8 @@ postfix : str
         self.results = self.preproc_work.results
         self.display = self.preproc_work.display
 
-        def save_preproc_results_object(o):
-            return o.save(path=self.path_dir_result)
+        def save_preproc_results_object(obj):
+            return obj.save(path=self.path_dir_result)
 
         self.wq_preproc = WaitingQueueThreading(
             "save results",
@@ -296,11 +296,11 @@ postfix : str
         self.wq0.add_name_files(names)
         self.wq_images.add_series(series)
 
-        k, o = self.wq0.popitem()
-        im = self.wq0.work(o)
+        k, obj = self.wq0.popitem()
+        im = self.wq0.work(obj)
         self.wq0.fill_destination(k, im)
 
-    def compare(self, indices=[0, 1], suffix=None, hist=False):
+    def compare(self, indices=(0, 1), suffix=None, hist=False):
         if not suffix:
             suffix = "." + self.params.saving.postfix
         pathbase = self.params.series.path + "/"

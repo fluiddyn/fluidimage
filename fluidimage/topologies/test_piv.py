@@ -57,8 +57,6 @@ class TestPivNew(unittest.TestCase):
         params.multipass.number = 2
         params.multipass.use_tps = True
 
-        # params.saving.how has to be equal to 'complete' for idempotent jobs
-        # (on clusters)
         params.saving.how = "recompute"
         params.saving.postfix = self.postfix
 
@@ -68,7 +66,7 @@ class TestPivNew(unittest.TestCase):
         topology = TopologyPIV(params, logging_level="info")
         topology.compute(nb_max_workers=2)
 
-        # remove one file
+        # remove one file to test params.saving.how = "complete"
         path_files = list(Path(topology.path_dir_result).glob("piv*"))
 
         if not path_files:
@@ -80,6 +78,8 @@ class TestPivNew(unittest.TestCase):
         params.saving.how = "complete"
         topology = TopologyPIV(params, logging_level="debug")
         topology.compute()
+
+        assert len(topology.results) == 1
 
 
 if __name__ == "__main__":

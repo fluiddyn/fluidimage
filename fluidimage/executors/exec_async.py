@@ -162,28 +162,24 @@ class ExecutorAsync(ExecutorBase):
 
             # I/O
             elif w.kind is not None and ("io" in w.kind or "io" == w.kind):
-                if w.output_queue is not None:
-                    func = self.def_async_func_work_io_with_output_queue(w)
-                else:
-                    func = self.def_async_func_work_io_without_output_queue(w)
+                func = self.def_async_func_work_io(w)
 
-            # CPU-bounded work with output_queue
-            elif w.output_queue is not None:
-                func = self.def_async_func_work_cpu_with_output_queue(w)
-
-            # CPU-bounded work without output_queue
+            # CPU-bounded work
             else:
-                func = self.def_async_func_work_cpu_without_output_queue(w)
+                func = self.def_async_func_work_cpu(w)
 
             self.async_funcs[w.name] = func
 
-    def def_async_func_work_io_with_output_queue(self, work):
+    def def_async_func_work_io(self, work):
         async def func(work=work):
             while True:
                 while (
                     not work.input_queue
                     or self.nb_working_workers_io >= self.nb_max_workers
-                    or len(work.output_queue) >= self.nb_items_queue_max
+                    or (
+                        work.output_queue is not None
+                        and len(work.output_queue) >= self.nb_items_queue_max
+                    )
                 ):
                     if self._has_to_stop:
                         return
@@ -193,43 +189,16 @@ class ExecutorAsync(ExecutorBase):
 
         return func
 
-    def def_async_func_work_io_without_output_queue(self, work):
-        async def func(work=work):
-            while True:
-                while (
-                    not work.input_queue
-                    or self.nb_working_workers_io >= self.nb_max_workers
-                ):
-                    if self._has_to_stop:
-                        return
-                    await trio.sleep(self.sleep_time)
-                self.nursery.start_soon(self.async_run_work_io, work)
-                await trio.sleep(self.sleep_time)
-
-        return func
-
-    def def_async_func_work_cpu_with_output_queue(self, work):
+    def def_async_func_work_cpu(self, work):
         async def func(work=work):
             while True:
                 while (
                     not work.input_queue
                     or self.nb_working_workers_cpu >= self.nb_max_workers
-                    or len(work.output_queue) >= self.nb_items_queue_max
-                ):
-                    if self._has_to_stop:
-                        return
-                    await trio.sleep(self.sleep_time)
-                self.nursery.start_soon(self.async_run_work_cpu, work)
-                await trio.sleep(self.sleep_time)
-
-        return func
-
-    def def_async_func_work_cpu_without_output_queue(self, work):
-        async def func(work=work):
-            while True:
-                while (
-                    not work.input_queue
-                    or self.nb_working_workers_cpu >= self.nb_max_workers
+                    or (
+                        work.output_queue is not None
+                        and len(work.output_queue) >= self.nb_items_queue_max
+                    )
                 ):
                     if self._has_to_stop:
                         return
