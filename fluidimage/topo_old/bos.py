@@ -20,12 +20,12 @@ from .waiting_queues.base import (
     WaitingQueueLoadImage,
 )
 
-from ...works.piv import WorkPIV
+from ..works.piv import WorkPIV
 
-from .. import prepare_path_dir_result
+from ..topologies import prepare_path_dir_result
 
-from ...data_objects.piv import get_name_bos, ArrayCouple
-from ...util import logger, imread
+from ..data_objects.piv import get_name_bos, ArrayCouple
+from ..util import logger, imread
 
 
 class TopologyBOS(TopologyBase):

@@ -3,9 +3,9 @@
 
 .. autofunction:: log_memory_usage
 
-
 .. autofunction:: reset_logger
 
+.. autofunction:: log_debug
 
 """
 
@@ -44,4 +44,5 @@ def log_memory_usage(string="Memory usage", color="OKGREEN", mode="info"):
 
 
 def log_debug(string):
+    """Log in debug mode with WARNING color"""
     logger.debug(cstring(string, color="WARNING"))

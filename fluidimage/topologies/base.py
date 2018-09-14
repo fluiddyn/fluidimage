@@ -37,6 +37,7 @@ class Work:
         return super().__repr__() + "\n" + self._kwargs.__repr__()
 
     def check_exception(self, key, obj):
+        """Check if `obj` is an exception"""
         if isinstance(obj, Exception):
             if self.output_queue is not None:
                 self.output_queue[key] = obj
@@ -59,6 +60,7 @@ class Queue(OrderedDict):
     def __init__(self, name, kind=None):
         self.name = name
         self.kind = kind
+        super().__init__()
 
     def __repr__(self):
         return f'\nqueue "{self.name}": ' + super().__repr__()
@@ -103,6 +105,7 @@ class TopologyBase:
         self.queues = []
         self.works = []
         self.works_dict = {}
+        self.executor = None
 
     def add_queue(self, name: str, kind: str = None):
         """Create a new queue."""
@@ -161,7 +164,7 @@ class TopologyBase:
 
         if not isinstance(executor, ExecutorBase):
             if executor not in executors:
-                raise NotImplementedError
+                raise NotImplementedError(f"executor {executor} does not exist")
 
             exec_class = executors[executor]
             self.executor = exec_class(
@@ -214,9 +217,9 @@ class TopologyBase:
             + '"]\n'
         )
 
-        for q in self.queues:
-            name_quoted = '"{}"'.format(q.name)
-            code += txt_queue.format(name=q.name, name_quoted=name_quoted)
+        for queue in self.queues:
+            name_quoted = '"{}"'.format(queue.name)
+            code += txt_queue.format(name=queue.name, name_quoted=name_quoted)
 
         # works and links
         code += '\nnode [shape="ellipse"]\n'
@@ -229,9 +232,7 @@ class TopologyBase:
             if work.kind is not None:
                 if "io" in work.kind:
                     color = "Green"
-            code += txt_work.format(
-                '"{}"'.format(name_work, color), name_work, color
-            )
+            code += txt_work.format('"{}"'.format(name_work), name_work, color)
 
         code += "\n"
 
@@ -301,54 +302,3 @@ class TopologyBase:
             f"dot {name_file}.dot -Tpng -o {name_file}.png && eog {name_file}.png\n"
             f"dot {name_file}.dot -Tx11"
         )
-
-
-if __name__ == "__main__":
-    topo = TopologyBase()
-
-    queue_names_piv = topo.add_queue("names piv")
-    queue_names_couples = topo.add_queue("names couples")
-    queue_paths = topo.add_queue("paths")
-    queue_arrays = topo.add_queue("arrays")
-    queue_couples = topo.add_queue("couples of arrays")
-    queue_piv = topo.add_queue("piv")
-
-    topo.add_work(
-        "fill names piv",
-        output_queue=queue_names_piv,
-        kind=("global", "one shot"),
-    )
-    topo.add_work(
-        "fill (names couples, paths)",
-        input_queue=queue_names_piv,
-        output_queue=(queue_names_couples, queue_paths),
-        kind=("global", "one shot"),
-    )
-    topo.add_work(
-        "path -> arrays",
-        input_queue=queue_paths,
-        output_queue=queue_arrays,
-        kind="io",
-    )
-    topo.add_work(
-        "make couples arrays",
-        input_queue=(queue_arrays, queue_names_couples),
-        output_queue=queue_couples,
-        kind="global",
-    )
-
-    topo.add_work(
-        "couples -> piv", input_queue=queue_couples, output_queue=queue_piv
-    )
-
-    topo.add_work("save piv", input_queue=queue_piv, kind="io")
-
-    topo.make_code_graphviz("tmp.dot")
-
-    def print_queues(self):
-        """
-        Print the length of all queues
-        """
-        for queue in self.topology.queues:
-            print(f"queue {queue.name}, length: {len(queue)}")
-        print("\n")

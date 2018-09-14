@@ -8,7 +8,6 @@ Topology for PIV computation.
    :private-members:
 
 """
-import os
 import json
 import copy
 import sys
@@ -24,8 +23,9 @@ from fluidimage.data_objects.piv import get_name_piv, ArrayCouple
 from . import image2image
 
 
-def still_is_in_dict(image_name, dictio):
-    for names in dictio.values():
+def is_name_in_queue(image_name, queue):
+    """Check if a name is in a queue of series"""
+    for names in queue.values():
         if image_name in names:
             return True
     return False
@@ -256,27 +256,28 @@ postfix : str
         self.results = []
 
     def save_piv_object(self, obj):
+        """Save a PIV object"""
         ret = obj.save(self.path_dir_result)
         self.results.append(ret)
 
     def fill_couples_of_names_and_paths(self, input_queue, output_queues):
+        """Fill the two first queues"""
+        assert input_queue is None
         queue_couples_of_names = output_queues[0]
         queue_paths = output_queues[1]
 
         series = self.series
-        if len(series) == 0:
+        if not series:
             logger.warning("add 0 couple. No PIV to compute.")
             return
         if self.how_saving == "complete":
             index_series = []
-            for i, serie in enumerate(series):
+            for ind_serie, serie in self.series.items():
                 name_piv = get_name_piv(serie, prefix="piv")
-                if os.path.exists(os.path.join(self.path_dir_result, name_piv)):
-                    continue
+                if not (self.path_dir_result / name_piv).exists():
+                    index_series.append(ind_serie)
 
-                index_series.append(i * series.ind_step + series.ind_start)
-
-            if len(index_series) == 0:
+            if not index_series:
                 logger.warning(
                     'topology in mode "complete" and work already done.'
                 )
@@ -303,6 +304,7 @@ postfix : str
                 queue_paths[name] = path
 
     def make_couples(self, input_queues, output_queue):
+        """Make the couples of arrays"""
         queue_couples_of_names = input_queues[0]
         queue_arrays = input_queues[1]
 
@@ -333,9 +335,9 @@ postfix : str
                 output_queue[key] = array_couple
                 del queue_couples_of_names[key]
                 # remove the image_array if it not will be used anymore
-                if not still_is_in_dict(couple[0], queue_couples_of_names):
+                if not is_name_in_queue(couple[0], queue_couples_of_names):
                     del queue_arrays[couple[0]]
-                if not still_is_in_dict(couple[1], queue_couples_of_names):
+                if not is_name_in_queue(couple[1], queue_couples_of_names):
                     del queue_arrays[couple[1]]
 
     def _make_text_at_exit(self, time_since_start):

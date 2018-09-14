@@ -5,10 +5,11 @@ from pathlib import Path
 
 from fluiddyn.io import stdout_redirected
 
-from .piv import TopologyPIV
 from fluidimage.topologies.log import LogTopology
 
 from fluidimage import path_image_samples
+
+from .piv import TopologyPIV
 
 
 class TestPIV(unittest.TestCase):

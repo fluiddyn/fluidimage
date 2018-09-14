@@ -1,11 +1,8 @@
 
 import unittest
 
-import os
-from glob import glob
+from pathlib import Path
 from shutil import rmtree
-
-from fluiddyn.io import stdout_redirected
 
 from fluidimage.topologies.preproc import TopologyPreproc
 from fluiddyn.io.image import imread, imsave
@@ -18,25 +15,22 @@ class TestPreprocTemporal(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        path_in = str(path_image_samples / cls.name / "Images")
+        path_in = path_image_samples / cls.name / "Images"
 
-        cls._work_dir = os.path.join(
-            "test_fluidimage_topo_preproc_" + cls.name, "Images"
-        )
-        if not os.path.exists(cls._work_dir):
-            os.makedirs(cls._work_dir)
+        cls._work_dir = Path("test_topo_preproc_" + cls.name) / "Images"
+        cls._work_dir.mkdir(parents=True, exist_ok=True)
 
-        paths = glob(path_in + "/*")
+        paths = path_in.glob("*")
 
         for path in paths:
-            name = os.path.split(path)[-1]
+            name = path.name
             im = imread(path)
             im = im[::6, ::6]
-            imsave(os.path.join(cls._work_dir, name), im, as_int=True)
+            imsave(str(cls._work_dir / name), im, as_int=True)
 
     @classmethod
     def tearDownClass(cls):
-        rmtree(os.path.split(cls._work_dir)[0], ignore_errors=True)
+        rmtree(cls._work_dir.parent, ignore_errors=True)
 
     def test_preproc(self):
         """Test preproc subpackage on image sample Jet with two indices."""
@@ -54,9 +48,14 @@ class TestPreprocTemporal(unittest.TestCase):
         params.preproc.saving.how = "recompute"
         params.preproc.saving.postfix = "preproc_test"
 
-        with stdout_redirected():
-            topology = TopologyPreproc(params, logging_level="debug")
-            topology.compute()
+        topology = TopologyPreproc(params, logging_level="debug")
+        topology.compute("exec_async_sequential")
+        assert len(topology.results) == 1
+
+        params.preproc.saving.how = "complete"
+        topology = TopologyPreproc(params, logging_level="debug")
+        topology.compute("exec_async_sequential")
+        assert len(topology.results) == 0
 
 
 if __name__ == "__main__":

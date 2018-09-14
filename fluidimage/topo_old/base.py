@@ -30,7 +30,7 @@ from fluidimage.util import (
 from fluidimage.config import get_config
 from .waiting_queues.base import WaitingQueueThreading
 
-from ..nb_cpu_cores import nb_cores
+from ..topologies.nb_cpu_cores import nb_cores
 
 
 config = get_config()

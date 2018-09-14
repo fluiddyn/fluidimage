@@ -9,9 +9,9 @@
 import os
 import json
 
-from ... import ParamContainer, SeriesOfArrays
+from .. import ParamContainer, SeriesOfArrays
 
-from .. import prepare_path_dir_result
+from ..topologies import prepare_path_dir_result
 
 from .base import TopologyBase
 
@@ -21,9 +21,9 @@ from .waiting_queues.base import (
     WaitingQueueLoadImagePath,
 )
 
-from ...util import logger, imsave
+from ..util import logger, imsave
 
-from ...preproc.image2image import (
+from ..preproc.image2image import (
     complete_im2im_params_with_default,
     init_im2im_function,
 )

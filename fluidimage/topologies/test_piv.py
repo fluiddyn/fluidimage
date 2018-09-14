@@ -77,7 +77,7 @@ class TestPivNew(unittest.TestCase):
 
         params.saving.how = "complete"
         topology = TopologyPIV(params, logging_level="debug")
-        topology.compute()
+        topology.compute("exec_sequential")
 
         assert len(topology.results) == 1
 

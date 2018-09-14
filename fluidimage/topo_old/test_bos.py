@@ -6,10 +6,10 @@ from pathlib import Path
 
 from fluiddyn.io import stdout_redirected
 
-from .bos import TopologyBOS
 from fluidimage.topologies.log import LogTopology
-
 from fluidimage import path_image_samples
+
+from .bos import TopologyBOS
 
 
 class TestBOS(unittest.TestCase):

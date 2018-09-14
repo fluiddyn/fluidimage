@@ -1,11 +1,14 @@
 
 import unittest
 
-from pathlib import Path
+import os
+from glob import glob
 from shutil import rmtree
 
-from fluidimage.topologies.preproc_new import TopologyPreproc
+from fluiddyn.io import stdout_redirected
 from fluiddyn.io.image import imread, imsave
+
+from .preproc import TopologyPreproc
 
 from fluidimage import path_image_samples
 
@@ -15,22 +18,25 @@ class TestPreprocTemporal(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        path_in = path_image_samples / cls.name / "Images"
+        path_in = str(path_image_samples / cls.name / "Images")
 
-        cls._work_dir = Path("test_topo_preproc_" + cls.name) / "Images"
-        cls._work_dir.mkdir(parents=True, exist_ok=True)
+        cls._work_dir = os.path.join(
+            "test_fluidimage_topo_preproc_" + cls.name, "Images"
+        )
+        if not os.path.exists(cls._work_dir):
+            os.makedirs(cls._work_dir)
 
-        paths = path_in.glob("*")
+        paths = glob(path_in + "/*")
 
         for path in paths:
-            name = path.name
+            name = os.path.split(path)[-1]
             im = imread(path)
             im = im[::6, ::6]
-            imsave(str(cls._work_dir / name), im, as_int=True)
+            imsave(os.path.join(cls._work_dir, name), im, as_int=True)
 
     @classmethod
     def tearDownClass(cls):
-        rmtree(cls._work_dir.parent, ignore_errors=True)
+        rmtree(os.path.split(cls._work_dir)[0], ignore_errors=True)
 
     def test_preproc(self):
         """Test preproc subpackage on image sample Jet with two indices."""
@@ -48,14 +54,9 @@ class TestPreprocTemporal(unittest.TestCase):
         params.preproc.saving.how = "recompute"
         params.preproc.saving.postfix = "preproc_test"
 
-        topology = TopologyPreproc(params, logging_level="debug")
-        topology.compute()
-        assert len(topology.results) == 1
-
-        params.preproc.saving.how = "complete"
-        topology = TopologyPreproc(params, logging_level="debug")
-        topology.compute()
-        assert len(topology.results) == 0
+        with stdout_redirected():
+            topology = TopologyPreproc(params, logging_level="debug")
+            topology.compute()
 
 
 if __name__ == "__main__":
