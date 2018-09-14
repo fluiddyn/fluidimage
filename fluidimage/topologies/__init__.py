@@ -21,7 +21,6 @@ Users are particularly concerned with the PIV and preprocessing topologies:
    piv
    bos
    preproc
-   preproc_new
    image2image
 
 These others modules defined classes and functions useful for developers.
