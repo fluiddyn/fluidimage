@@ -6,7 +6,7 @@ Dependencies and useful packages
 
 - Python >= 3.6
 
-- fftw
+- FFTW
 
 - numpy, scipy, matplotlib, h5py
 
@@ -51,26 +51,22 @@ Dependencies and useful packages
 
 - PyQt5 (only for GUI)
 
-- ipython (important to play interactively with parameters, images and results)
+- IPython (important to play interactively with parameters, images and results)
 
-- jupyter (to try the tutorials yourself)
+- Jupyter (to try the tutorials yourself)
 
 The simplest way to get a good environment for fluidimage is by using conda
-(with anaconda or miniconda). If you use conda, install the main packages with::
+(with anaconda or miniconda). If you use conda, install the main packages
+with::
 
   conda config --add channels conda-forge
 
-  conda install numpy scipy matplotlib h5py imageio scikit-image pyqt
-
-  conda install ipython jupyterlab
-
-  # to use clang to compile C++ files produced by Pythran
-  conda install clangdev
+  conda install numpy scipy matplotlib h5py imageio scikit-image pyqt \
+                ipython jupyterlab clangdev fftw
 
 and the other packages with pip::
 
   pip install pyfftw pythran h5netcdf colorlog fluiddyn
-
 
 Install in development mode (recommended)
 -----------------------------------------
@@ -117,9 +113,7 @@ Installation with pip
 
 FluidImage can also be installed from the Python Package Index::
 
-  pip install fluidimage --pre
-
-The ``--pre`` option of pip allows the installation of a pre-release version.
+  pip install fluidimage
 
 However, the project is in an active phase of development so it can be better
 to use the last version (from the mercurial repository hosted on Bitbucket).

@@ -37,6 +37,11 @@ Compute PIV fields
 
   The free Matlab toolbox UVMAT provides a set of functions and graphic user interfaces for scanning images and data files (vectors and scalars in 2D and 3D), geometric calibrations, image processing and analysis of time series. It is designed to favor data management, relying on the standard NetCDF file format and XML documentation files. 
 
+  .. toctree::
+     :maxdepth: 1
+
+     uvmat
+
 - civx (Fortran, http://sourceforge.net/p/civx, ENS Lyon, L. Gostiaux) + pyciv
   (J.  Salort)
   

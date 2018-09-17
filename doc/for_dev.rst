@@ -4,5 +4,5 @@ Information for developers
 .. toctree::
    :maxdepth: 1
 
-   uvmat
-   pivlab
+   related_codes
+   overview_orga_package
