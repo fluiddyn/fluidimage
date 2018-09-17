@@ -24,32 +24,43 @@ from . import image2image
 class TopologyBOS(TopologyBase):
     """Topology for BOS computation.
 
-      See https://en.wikipedia.org/wiki/Background-oriented_schlieren_technique
+    See https://en.wikipedia.org/wiki/Background-oriented_schlieren_technique
 
-      Parameters
-      ----------
+    The most useful methods for the user (in particular :func:`compute`) are
+    defined in the base class :class:`fluidimage.topologies.base.TopologyBase`.
 
-      params : None
+    Parameters
+    ----------
 
-        A ParamContainer containing the parameters for the computation.
+    params : None
 
-      logging_level : str, {'warning', 'info', 'debug', ...}
+      A ParamContainer (created with the class method
+      :func:`create_default_params`) containing the parameters for the
+      computation.
 
-        Logging level.
+    logging_level : str, {'warning', 'info', 'debug', ...}
 
-      nb_max_workers : None, int
+      Logging level.
 
-        Maximum numbers of "workers". If None, a number is computed from the
-        number of cores detected. If there are memory errors, you can try to
-        decrease the number of workers.
+    nb_max_workers : None, int
 
-      """
+      Maximum numbers of "workers". If None, a number is computed from the number of
+      cores detected. If there are memory errors, you can try to decrease the number
+      of workers.
+
+    """
 
     @classmethod
     def create_default_params(cls):
         """Class method returning the default parameters.
 
-        For developers: cf. fluidsim.base.params
+        Typical usage::
+
+          params = TopologyPIV.create_default_params()
+          # modify parameters here
+          ...
+
+          topo = TopologyPIV(params)
 
         """
         params = ParamContainer(tag="params")
@@ -152,14 +163,17 @@ postfix : str
             names = self.serie.get_name_arrays()
             names = sorted(names)
             path_reference = path_dir / names[reference]
-        elif os.path.isfile(reference):
-            path_reference = reference
+
         else:
-            path_reference = path_dir_result / reference
-            if not path_reference.is_file():
-                raise ValueError(
-                    "Bad value of params.reference:" + path_reference
-                )
+            reference = Path(reference)
+            if reference.is_file():
+                path_reference = reference
+            else:
+                path_reference = path_dir_result / reference
+                if not path_reference.is_file():
+                    raise ValueError(
+                        "Bad value of params.reference:" + path_reference
+                    )
 
         self.name_reference = path_reference.name
         self.path_reference = path_reference
@@ -224,11 +238,13 @@ postfix : str
             kind="io",
         )
 
-    def save_bos_object(self, o):
-        ret = o.save(self.path_dir_result, kind="bos")
+    def save_bos_object(self, obj):
+        """Save a BOS object"""
+        ret = obj.save(self.path_dir_result, kind="bos")
         return ret
 
     def calcul(self, tuple_image_path):
+        """Compute a BOS field"""
         image, name = tuple_image_path
         array_couple = ArrayCoupleBOS(
             names=(self.name_reference, name),
@@ -240,11 +256,11 @@ postfix : str
         return WorkPIV(self.params).calcul(array_couple)
 
     def fill_queue_paths(self, input_queue, output_queue):
-
+        """Fill the first queue (paths)"""
         assert input_queue is None
 
         serie = self.serie
-        if len(serie) == 0:
+        if not serie:
             logger.warning("add 0 image. No image to process.")
             return
 
@@ -259,7 +275,7 @@ postfix : str
             else:
                 output_queue[name] = path_im_input
 
-        if len(names) == 0:
+        if not names:
             if self.how_saving == "complete":
                 logger.warning(
                     'topology in mode "complete" and work already done.'
@@ -270,30 +286,28 @@ postfix : str
 
         try:
             del output_queue[self.path_reference]
-        except:
+        except KeyError:
             pass
 
         nb_names = len(names)
         logger.info(f"Add {nb_names} images to compute.")
-        logger.info("First files to process: " + str(names[:4]))
+        logger.info(f"First files to process: {names[:4]}")
 
-        logger.debug("All files: " + str(names))
+        logger.debug(f"All files: {names}")
 
-    def _make_text_at_exit(self, time_since_start):
-
-        txt = "Stop compute after t = {:.2f} s".format(time_since_start)
+    def make_text_at_exit(self, time_since_start):
+        """Make a text printed at exit"""
+        txt = "Stop compute after t = {time_since_start:.2f} s"
         try:
             nb_results = len(self.results)
         except AttributeError:
             nb_results = None
         if nb_results is not None and nb_results > 0:
-            txt += " ({} bos fields, {:.2f} s/field).".format(
-                nb_results, time_since_start / nb_results
-            )
+            txt += f" ({nb_results} bos fields, {time_since_start / nb_results:.2f} s/field)."
         else:
             txt += "."
 
-        txt += "\npath results:\n" + str(self.path_dir_result)
+        txt += f"\npath results:\n{self.path_dir_result}"
 
         return txt
 

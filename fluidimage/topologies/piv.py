@@ -1,8 +1,6 @@
 """Topology for PIV computation (:mod:`fluidimage.topologies.piv`)
 ==================================================================
 
-Topology for PIV computation.
-
 .. autoclass:: TopologyPIV
    :members:
    :private-members:
@@ -32,14 +30,19 @@ def is_name_in_queue(image_name, queue):
 
 
 class TopologyPIV(TopologyBase):
-    """Topology for PIV.
+    """Topology for PIV computation.
+
+    The most useful methods for the user (in particular :func:`compute`) are
+    defined in the base class :class:`fluidimage.topologies.base.TopologyBase`.
 
     Parameters
     ----------
 
     params : None
 
-      A ParamContainer containing the parameters for the computation.
+      A ParamContainer (created with the class method
+      :func:`create_default_params`) containing the parameters for the
+      computation.
 
     logging_level : str, {'warning', 'info', 'debug', ...}
 
@@ -47,7 +50,7 @@ class TopologyPIV(TopologyBase):
 
     nb_max_workers : None, int
 
-      Maximum numbers of "workers". If None, a number is computed from the
+      Maximum numbers of "workers". If None, a number is estimated from the
       number of cores detected. If there are memory errors, you can try to
       decrease the number of workers.
 
@@ -57,7 +60,13 @@ class TopologyPIV(TopologyBase):
     def create_default_params(cls):
         """Class method returning the default parameters.
 
-        For developers: cf. fluidsim.base.params
+        Typical usage::
+
+          params = TopologyPIV.create_default_params()
+          # modify parameters here
+          ...
+
+          topo = TopologyPIV(params)
 
         """
         params = ParamContainer(tag="params")
@@ -99,7 +108,7 @@ strcouple : 'i:i+2'
     For single-frame images (im0, im1, im2, im3, ...), we keep the default
     value 'i:i+2' to form the couples (im0, im1), (im1, im2), ...
 
-    To see what it gives, one can use ipython and range:
+    To see what it gives, one can use IPython and range:
 
     >>> i = 0
     >>> list(range(10))[i:i+2]
@@ -340,7 +349,8 @@ postfix : str
                 if not is_name_in_queue(couple[1], queue_couples_of_names):
                     del queue_arrays[couple[1]]
 
-    def _make_text_at_exit(self, time_since_start):
+    def make_text_at_exit(self, time_since_start):
+        """Make a text printed at exit"""
 
         txt = f"Stop compute after t = {time_since_start:.2f} s"
         try:

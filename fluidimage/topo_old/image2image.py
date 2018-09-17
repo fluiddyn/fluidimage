@@ -222,7 +222,7 @@ postfix : str
 
         self.wq0.add_name_files(names)
 
-    def _print_at_exit(self, time_since_start):
+    def print_at_exit(self, time_since_start):
 
         txt = "Stop compute after t = {:.2f} s".format(time_since_start)
         try:

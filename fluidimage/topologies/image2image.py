@@ -1,5 +1,5 @@
-"""Topology for image processing (:mod:`fluidimage.topologies.image2image`)
-===========================================================================
+"""Topology for image2image preprocessing (:mod:`fluidimage.topologies.image2image`)
+====================================================================================
 
 .. autoclass:: TopologyImage2Image
    :members:
@@ -8,10 +8,10 @@
 """
 
 import json
+import sys
 from pathlib import Path
 
 from fluidimage.topologies import prepare_path_dir_result
-from .base import TopologyBase
 
 from fluidimage import ParamContainer, SerieOfArraysFromFiles
 from fluidimage.util import logger, imread
@@ -23,16 +23,23 @@ from fluidimage.preproc.image2image import (
 
 from fluiddyn.io.image import imsave
 
+from .base import TopologyBase
+
 
 class TopologyImage2Image(TopologyBase):
     """Topology for images processing with a user-defined function
+
+    The most useful methods for the user (in particular :func:`compute`) are
+    defined in the base class :class:`fluidimage.topologies.base.TopologyBase`.
 
     Parameters
     ----------
 
     params : None
 
-      A ParamContainer containing the parameters for the computation.
+      A ParamContainer (created with the class method
+      :func:`create_default_params`) containing the parameters for the
+      computation.
 
     logging_level : str, {'warning', 'info', 'debug', ...}
 
@@ -50,7 +57,13 @@ class TopologyImage2Image(TopologyBase):
     def create_default_params(cls):
         """Class method returning the default parameters.
 
-        For developers: cf. fluidsim.base.params
+       Typical usage::
+
+          params = TopologyImage2Image.create_default_params()
+          # modify parameters here
+          ...
+
+          topo = TopologyImage2Image(params)
 
         """
         params = ParamContainer(tag="params")
@@ -169,27 +182,30 @@ postfix : str
         )
 
     def init_im2im(self, params_im2im):
+        """Initialize the im2im function"""
         self.im2im_obj, self.im2im_func = init_im2im_function(
             im2im=params_im2im.im2im, args_init=params_im2im.args_init
         )
         return self.im2im_func
 
     def imread(self, path):
+        """Read an image"""
         array = imread(path)
         return (array, path)
 
     def save_image(self, tuple_image_path):
+        """Save an image"""
         image, path = tuple_image_path
         name_file = Path(path).name
         path_out = self.path_dir_result / name_file
         imsave(path_out, image)
 
     def fill_queue_paths(self, input_queue, output_queue):
-
+        """Fill the first queue (paths)"""
         assert input_queue is None
 
         serie = self.serie
-        if len(serie) == 0:
+        if not serie:
             logger.warning("add 0 image. No image to process.")
             return
 
@@ -204,7 +220,7 @@ postfix : str
             else:
                 output_queue[name] = path_im_input
 
-        if len(names) == 0:
+        if not names:
             if self.how_saving == "complete":
                 logger.warning(
                     'topology in mode "complete" and work already done.'
@@ -214,7 +230,14 @@ postfix : str
             return
 
         nb_names = len(names)
-        logger.info(f"Add {nb_names} images to compute.")
-        logger.info("First files to process: " + str(names[:4]))
 
-        logger.debug("All files: " + str(names))
+        logger.info(f"Add {nb_names} images to compute.")
+        logger.info(f"First files to process: {names[:4]}")
+
+        logger.debug(f"All files: {names}")
+
+
+if "sphinx" in sys.modules:
+    params = TopologyImage2Image.create_default_params()
+
+    __doc__ += params._get_formatted_docs()

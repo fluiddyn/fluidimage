@@ -312,7 +312,7 @@ postfix : str
         im1p = imread(pathbase[:-1] + suffix + "/" + names[indices[1]])
         return DisplayPreProc(im0, im1, im0p, im1p, hist=hist)
 
-    def _print_at_exit(self, time_since_start):
+    def print_at_exit(self, time_since_start):
         """Print information before exit."""
         txt = "Stop compute after t = {:.2f} s".format(time_since_start)
         try:

@@ -142,7 +142,7 @@ class TopologyBase:
 
     def compute(
         self,
-        executor="multi_exec_async",
+        executor=None,
         nb_max_workers=None,
         sleep_time=0.01,
         sequential=False,
@@ -151,7 +151,7 @@ class TopologyBase:
         """Compute (run all works to be done). """
 
         if sequential:
-            if executor != "exec_sequential":
+            if executor is not None and executor != "exec_sequential":
                 raise ValueError(
                     "Incompatible arguments sequential=True and "
                     f"executor={executor}"
@@ -178,8 +178,8 @@ class TopologyBase:
 
         self.executor.compute()
 
-    def _make_text_at_exit(self, time_since_start):
-        """Text information before exit."""
+    def make_text_at_exit(self, time_since_start):
+        """Make a text printed before exit."""
         txt = f"Stop compute after t = {time_since_start:.2f} s"
         try:
             nb_results = len(self.results)
@@ -197,12 +197,19 @@ class TopologyBase:
 
         return txt
 
-    def _print_at_exit(self, time_since_start):
+    def print_at_exit(self, time_since_start):
         """Print information before exit."""
-        print(self._make_text_at_exit(time_since_start))
+        print(self.make_text_at_exit(time_since_start))
 
     def make_code_graphviz(self, name_file):
-        """Generate the graphviz / dot code."""
+        """Generate the graphviz / dot code.
+
+        This method only generates a graphviz code. The graph can be visualized
+        with for example::
+
+          dot {name_file}.dot -Tpng -o {name_file}.png && eog {name_file}.png
+
+        """
         name_file = str(name_file)
 
         if name_file.endswith(".dot"):

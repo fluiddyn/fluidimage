@@ -61,7 +61,7 @@ class ExecutorAsyncForMulti(ExecutorAsyncSequential):
     def _finalize_compute(self):
         self._reset_std_as_default()
 
-        txt = self.topology._make_text_at_exit(time() - self.t_start)
+        txt = self.topology.make_text_at_exit(time() - self.t_start)
         with open(self._log_file.name, "a") as file:
             file.write(txt)
 

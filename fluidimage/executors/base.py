@@ -139,7 +139,7 @@ class ExecutorBase:
 
     def _finalize_compute(self):
         log_memory_usage(time_as_str(2) + ": end of `compute`. mem usage")
-        self.topology._print_at_exit(time() - self.t_start)
+        self.topology.print_at_exit(time() - self.t_start)
         self._reset_std_as_default()
 
     def exec_one_shot_works(self):

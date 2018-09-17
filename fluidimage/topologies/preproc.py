@@ -1,5 +1,5 @@
-"""Topology for preprocessing images (:mod:`fluidimage.topologies.preproc_new`)
-===============================================================================
+"""Topology for image preprocessing (:mod:`fluidimage.topologies.preproc`)
+==========================================================================
 
 .. autoclass:: TopologyPreproc
    :members:
@@ -9,6 +9,7 @@
 import os
 import json
 import copy
+import sys
 from typing import List, Tuple, Dict
 from fluiddyn.util.paramcontainer import ParamContainer
 
@@ -29,12 +30,17 @@ from .piv import is_name_in_queue
 class TopologyPreproc(TopologyBase):
     """Preprocess series of images.
 
+    The most useful methods for the user (in particular :func:`compute`) are
+    defined in the base class :class:`fluidimage.topologies.base.TopologyBase`.
+
     Parameters
     ----------
 
     params: None
 
-      A ParamContainer containing the parameters for the computation.
+      A ParamContainer (created with the class method
+      :func:`create_default_params`) containing the parameters for the
+      computation.
 
     logging_level: str, {'warning', 'info', 'debug', ...}
 
@@ -51,6 +57,14 @@ class TopologyPreproc(TopologyBase):
     @classmethod
     def create_default_params(cls, backend="python"):
         """Class method returning the default parameters.
+
+        Typical usage::
+
+          params = TopologyPreproc.create_default_params()
+          # modify parameters here
+          ...
+
+          topo = TopologyPreproc(params)
 
         Parameters
         ----------
@@ -89,9 +103,9 @@ strcouple : str
         >>> strcouple = 'i:i+1,0'   # load one image at a time, with second index fixed
         >>> strcouple = 'i-2:i+3,0'  # loads 5 images at a time, with second index fixed
 
-    ..todo::
+    .. todo::
 
-        rename this parameter to strsubset / strslice
+        Rename this parameter to strsubset / strslice
 
 ind_start : int
     Start index for the whole series of images being loaded.
@@ -131,7 +145,7 @@ str_subset : str or None
     of images that were loaded and preprocessed. When set as None, saves the
     middle image from every subset.
 
-    ..todo::
+    .. todo::
 
         Implement the option params.saving.str_subset...
 
@@ -327,3 +341,19 @@ postfix : str
                 for key_array in key_arrays:
                     if not is_name_in_queue(key_array, queue_subsets_of_names):
                         del queue_arrays[key_array]
+
+
+if "sphinx" in sys.modules:
+    params = TopologyPreproc.create_default_params()
+
+    doc = params._get_formatted_docs()
+
+    lines = doc.split("\n")
+
+    strings = ("Parameters", "References", "----------")
+    doc = "\n".join(
+        line
+        for line in doc.split("\n")
+        if not any(line.endswith(string) for string in strings)
+    )
+    __doc__ += doc

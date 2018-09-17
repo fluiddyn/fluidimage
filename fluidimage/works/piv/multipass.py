@@ -1,5 +1,5 @@
-"""Multipass PIV
-================
+"""Multipass PIV (:mod:`fluidimage.works.piv.multipass`)
+========================================================
 
 .. autoclass:: WorkPIV
    :members:

@@ -273,7 +273,7 @@ postfix : str
         )
         im, _ = couple.get_arrays()
 
-    def _print_at_exit(self, time_since_start):
+    def print_at_exit(self, time_since_start):
         pass
 
 

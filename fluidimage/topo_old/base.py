@@ -343,7 +343,7 @@ class TopologyBase:
         self.thread_check_works_t.join()
         self.thread_check_works_p.join()
 
-        self._print_at_exit(time() - self.t_start)
+        self.print_at_exit(time() - self.t_start)
         log_memory_usage(time_as_str(2) + ": end of `compute`. mem usage")
 
         if self._has_to_stop and has_to_exit:
@@ -388,7 +388,7 @@ class TopologyBase:
     # workers[:] = [w for w in workers
     #               if not w.fill_destination()]
 
-    def _print_at_exit(self, time_since_start):
+    def print_at_exit(self, time_since_start):
         """Print information before exit."""
         txt = "Stop compute after t = {:.2f} s".format(time_since_start)
         try:
