@@ -7,16 +7,23 @@ from datetime import datetime
 from runpy import run_path
 
 from distutils.sysconfig import get_config_var
+
 from setuptools import setup, find_packages
+from setuptools.command.build_ext import build_ext
 
 import numpy as np
 
 try:
     from pythran.dist import PythranExtension
-
+    try:
+        # pythran > 0.8.6
+        from pythran.dist import PythranBuildExt as fluid_build_ext
+    except ImportError:
+        fluid_build_ext = build_ext
     use_pythran = True
 except ImportError:
     use_pythran = False
+
 
 here = os.path.abspath(os.path.dirname(__file__))
 
@@ -162,4 +169,5 @@ setup(
         'console_scripts':
         ['fluidimviewer-pg = fluidimage.gui.pg_main:main']},
     ext_modules=ext_modules,
+    cmdclass={'build_ext': fluid_build_ext},
 )
