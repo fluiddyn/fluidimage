@@ -1,5 +1,5 @@
-"""Execute a topology sequentially
-==================================
+"""Execute a topology sequentially (:mod:`fluidimage.executors.exec_async_sequential`)
+======================================================================================
 
 .. autoclass:: ExecutorBase
    :members:
@@ -15,16 +15,7 @@ from .base import ExecutorBase
 
 
 class ExecutorSequential(ExecutorBase):
-    """Execute a topology sequentially
-
-    Parameters
-    ----------
-
-    topology : fluidimage.topology
-
-      A Topology from fluidimage.topology.
-
-    """
+    """Execute a topology sequentially"""
 
     def compute(self):
         """Compute the whole topology.

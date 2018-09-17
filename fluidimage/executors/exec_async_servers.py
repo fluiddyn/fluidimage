@@ -1,8 +1,11 @@
-"""
+"""Executor async/await using servers (:mod:`fluidimage.executors.exec_async_servers`)
+======================================================================================
 
 A executor using async for IO and servers for CPU-bounded tasks.
 
-Not implemented!
+.. autoclass:: ExecutorAsyncServers
+   :members:
+   :private-members:
 
 """
 
@@ -94,6 +97,7 @@ class ExecutorAsyncServers(ExecutorAsync):
             )
 
         def signal_handler(sig, frame):
+            del sig, frame
             logger.info("Ctrl+C signal received...")
 
             for worker in self.workers:
@@ -146,7 +150,7 @@ class ExecutorAsyncServers(ExecutorAsync):
         while not self._has_to_stop:
 
             result = (
-                (not any([len(queue) != 0 for queue in self.topology.queues]))
+                (not any([bool(queue) for queue in self.topology.queues]))
                 and all(worker.is_unoccupied for worker in self.workers)
                 and self.nb_working_workers_io == 0
             )
@@ -247,6 +251,7 @@ class ExecutorAsyncServers(ExecutorAsync):
         return func
 
     def get_available_worker(self):
+        """Get a worker available to receive a new job"""
         available_workers = [
             worker
             for worker in self.workers

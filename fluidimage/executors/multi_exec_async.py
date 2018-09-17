@@ -116,6 +116,9 @@ class MultiExecutorAsync(ExecutorBase):
         self.nb_processes = self.nb_max_workers
         self.processes = []
 
+        # to avoid a pylint warning
+        self.log_paths = None
+
     def _init_log_path(self):
         name = "_".join(("log", time_as_str(), str(os.getpid())))
         path_dir_log = self.path_dir_result / name
@@ -150,7 +153,7 @@ class MultiExecutorAsync(ExecutorBase):
         self._finalize_compute()
 
     def start_mutiprocess_first_queue(self):
-
+        """Start the processes spitting the work with the first queue"""
         first_work = self.topology.works[0]
         if first_work.input_queue is not None:
             raise NotImplementedError
@@ -218,6 +221,7 @@ class MultiExecutorAsync(ExecutorBase):
         self.wait_for_all_processes()
 
     def start_multiprocess_series(self):
+        """Start the processes spitting the work with the series object"""
         ind_stop_limit = self.topology.series.ind_stop
         # Defining split values
         ind_start = self.topology.series.ind_start
@@ -287,7 +291,7 @@ class MultiExecutorAsync(ExecutorBase):
         process = Process(
             target=init_and_compute, args=(topology, log_path, child_conn)
         )
-        process.connexion = parent_conn
+        process.connection = parent_conn
         process.daemon = True
         process.start()
         self.processes.append(process)
@@ -302,7 +306,7 @@ class MultiExecutorAsync(ExecutorBase):
 
         self.topology.results = results_all = []
         for process in self.processes:
-            results = process.connexion.recv()
+            results = process.connection.recv()
 
             if results is not None:
                 results_all.extend(results)

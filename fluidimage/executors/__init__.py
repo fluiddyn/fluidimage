@@ -1,10 +1,15 @@
-"""Executors
-============
+"""Executors of computational topologies
+========================================
 
-The executors are used to execute a topology computation.
+The executors are used to execute a topology.
 
-Each executor has a different way to compute it. Depending on the topology and the
-hardware, it can be more efficient to chose an executor compared to another.
+From the user point of view, the executor is chosen from the method
+:func:`fluidimage.topologies.base.TopologyBase.compute`. The default executor
+is :class:`fluidimage.executors.multi_exec_async.MultiExecutorAsync`.
+
+There are many executors with different computational strategies. Depending on
+the computational topology and the hardware, it can be more efficient to chose
+an executor compared to another.
 
 .. autosummary::
    :toctree:

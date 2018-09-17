@@ -1,5 +1,5 @@
-"""PIV objects
-==============
+"""PIV objects (:mod:`fluidimage.data_objects.piv`)
+===================================================
 
 .. autoclass:: ArrayCouple
    :members:

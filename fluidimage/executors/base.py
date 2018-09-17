@@ -1,5 +1,5 @@
-"""Base class for executors
-===========================
+"""Base class for executors (:mod:`fluidimage.executors.base`)
+==============================================================
 
 .. autoclass:: ExecutorBase
    :members:
@@ -31,9 +31,23 @@ class ExecutorBase:
     Parameters
     ----------
 
-    topology : fluidimage.topology
+    topology : fluidimage.topology.base.TopologyBase
 
-      A Topology from fluidimage.topology.
+      A computational topology.
+
+    path_dir_result : str or pathlib.Path
+
+      The path of the directory where the results have to be saved.
+
+    nb_max_workers : int, optional (None)
+
+    nb_items_queue_max : int, optional (4),
+
+    logging_level : str, optional {"info"},
+
+    sleep_time : number, optional {None},
+
+    stop_if_error : bool, optional {False}
 
     """
 
@@ -46,12 +60,13 @@ class ExecutorBase:
         self,
         topology,
         path_dir_result,
-        nb_max_workers,
+        nb_max_workers=None,
         nb_items_queue_max=4,
         logging_level="info",
         sleep_time=None,
         stop_if_error=False,
     ):
+        del sleep_time
         self.topology = topology
         self.logging_level = logging_level
         self.stop_if_error = stop_if_error
@@ -106,6 +121,7 @@ class ExecutorBase:
         if sys.platform != "win32":
 
             def handler_signals(signal_number, stack):
+                del stack
                 print(
                     f"signal {signal_number} received: set _has_to_stop to True."
                 )
@@ -119,6 +135,9 @@ class ExecutorBase:
             for work in self.topology.works
             if work.kind is None or "one shot" not in work.kind
         ]
+
+        # to avoid a pylint warning
+        self.t_start = None
 
     def _init_compute(self):
         self.t_start = time()

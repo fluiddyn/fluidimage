@@ -1,11 +1,11 @@
-"""Executor async/await
-=======================
+"""Executor async/await (:mod:`fluidimage.executors.exec_async`)
+================================================================
 
 This executer uses await/async with trio library to put topology tasks in
 concurrency.
 
-A single executor (in one process) is created.  If CPU bounded tasks are limited
-by the Python GIL, the threads won't use at the same time the CPU.
+A single executor (in one process) is used. If CPU bounded tasks are limited by
+the Python GIL, the threads won't use at the same time the CPU.
 
 This means that the work will run on one CPU at a time, except if the topology
 uses compiled code releasing the GIL. In this case, the GIL can be bypassed and
@@ -32,23 +32,6 @@ class ExecutorAsync(ExecutorBase):
     """Executor async/await.
 
     The work in performed in a single process.
-
-    Parameters
-    ----------
-
-    nb_max_workers : None, int
-
-      Limits the numbers of workers working in the same time.
-
-    nb_items_queue_max : None, int
-
-      Limits the numbers of items that can be in a output_queue.
-
-    sleep_time : None, float
-
-      Defines the waiting time (from trio.sleep) of a function. Functions await
-      "trio.sleep" when they have done a work on an item, and when there is
-      nothing in there input_queue.
 
     """
 
@@ -77,7 +60,7 @@ class ExecutorAsync(ExecutorBase):
         # Executor parameters
         self.sleep_time = sleep_time
 
-        # fonction containers
+        # function containers
         self.async_funcs = OrderedDict()
         self.funcs = OrderedDict()
 
@@ -141,8 +124,8 @@ class ExecutorAsync(ExecutorBase):
                     while True:
                         while (
                             isinstance(work.input_queue, tuple)
-                            and all(len(q) == 0 for q in work.input_queue)
-                        ) or len(work.input_queue) == 0:
+                            and all(not q for q in work.input_queue)
+                        ) or not work.input_queue:
                             await trio.sleep(self.sleep_time)
                             if self._has_to_stop:
                                 return
@@ -177,7 +160,7 @@ class ExecutorAsync(ExecutorBase):
             self.async_funcs[work.name] = func
 
     def def_async_func_work_io(self, work):
-        """Define an asynchroneous function launching a io work."""
+        """Define an asynchronous function launching a io work."""
 
         async def func(work=work):
             while True:
@@ -198,7 +181,7 @@ class ExecutorAsync(ExecutorBase):
         return func
 
     def def_async_func_work_cpu(self, work):
-        """Define an asynchroneous function launching a cpu work."""
+        """Define an asynchronous function launching a cpu work."""
 
         async def func(work=work):
             while True:
@@ -339,7 +322,7 @@ class ExecutorAsync(ExecutorBase):
         while not self._has_to_stop:
 
             result = (
-                (not any([len(queue) != 0 for queue in self.topology.queues]))
+                (not any([bool(queue) for queue in self.topology.queues]))
                 and self.nb_working_workers_cpu == 0
                 and self.nb_working_workers_io == 0
             )

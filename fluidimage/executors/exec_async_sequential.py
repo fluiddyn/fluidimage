@@ -1,6 +1,7 @@
-"""
+"""Executor async/await sequential (:mod:`fluidimage.executors.exec_async_sequential`)
+======================================================================================
 
-A executor using async for IO and multiprocessing for CPU bounded tasks.
+A executor using async for IO but launching CPU-bounded tasks sequentially.
 
 .. autoclass:: ExecutorAsyncSequential
    :members:
@@ -16,12 +17,10 @@ from .exec_async import ExecutorAsync
 
 
 class ExecutorAsyncSequential(ExecutorAsync):
-    """Async executor using multiprocessing to launch CPU-bounded tasks"""
+    """Async executor launching CPU-bounded tasks sequentially"""
 
     async def async_run_work_cpu(self, work):
-        """Is destined to be started with a "trio.start_soon".
-
-        Executes the work on an item (key, obj), and add the result on
+        """Executes the work on an item (key, obj), and add the result on
         work.output_queue.
 
         Parameters
@@ -58,6 +57,7 @@ class ExecutorAsyncSequential(ExecutorAsync):
             + work.name_no_space
             + f" ({key}). mem usage"
         )
+        # pylint: disable=W0703
         try:
             # here we do something very bad from the async point of view:
             # we launch a potentially long blocking function:

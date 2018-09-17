@@ -1,4 +1,5 @@
-"""
+"""Executor async/await + multiprocessing (:mod:`fluidimage.executors.exec_async_multiproc`)
+============================================================================================
 
 A executor using async for IO and multiprocessing for CPU bounded tasks.
 
@@ -56,6 +57,7 @@ class ExecutorAsyncMultiproc(ExecutorAsync):
         def exec_work_and_comm(func, obj, child_conn, event):
             # log_debug(f"process ({key}) started")
             event.set()
+            # pylint: disable=W0703
             try:
                 result = func(obj)
             except Exception as error:
@@ -124,7 +126,7 @@ class ExecutorAsyncMultiproc(ExecutorAsync):
                 )
             )
             if self.stop_if_error:
-                raise (ret)
+                raise ret
         else:
             logger.info(
                 f"work {work.name_no_space} ({key}) "

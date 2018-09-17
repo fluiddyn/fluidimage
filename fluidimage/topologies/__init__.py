@@ -1,5 +1,5 @@
-"""Topologies representing asynchronous computations (:mod:`fluidimage.topologies`)
-===================================================================================
+"""Topologies representing asynchronous computations
+====================================================
 
 A topology represents an asynchronous computation as a graph of **waiting
 queues** and **works**. Works take (an) item(s) in (an) input queue(s), process

@@ -1,6 +1,23 @@
-"""Servers
-==========
+"""Servers for exec_async_servers (:mod:`fluidimage.executors.servers`)
+=======================================================================
 
+.. autofunction:: launch_server
+
+.. autoclass:: Worker
+   :members:
+   :private-members:
+
+.. autoclass:: WorkerMultiprocessing
+   :members:
+   :private-members:
+
+.. autoclass:: WorkerServer
+   :members:
+   :private-members:
+
+.. autoclass:: WorkerServerMultiprocessing
+   :members:
+   :private-members:
 
 """
 
@@ -26,6 +43,7 @@ def launch_server(
     sleep_time=0.1,
     logging_level="info",
 ):
+    """Launch a server and return its client object"""
 
     parent_conn, child_conn = Pipe()
 
@@ -108,12 +126,19 @@ class WorkerServer:
 
         trio.run(self._start_async)
 
+        # to avoid a pylint warning
+        self.nursery = None
+        self.t_start = None
+
     async def _start_async(self):
         async with trio.open_nursery() as self.nursery:
             self.nursery.start_soon(self.check_event_has_to_stop)
             self.nursery.start_soon(self.receive)
             self.nursery.start_soon(self.launch_works)
             self.nursery.start_soon(self.send)
+
+    async def check_event_has_to_stop(self):
+        raise NotImplementedError
 
     async def receive(self):
         raise NotImplementedError
@@ -141,6 +166,7 @@ class WorkerServerMultiprocessing(WorkerServer):
         if in_process:
 
             def signal_handler(sig, frame):
+                del sig, frame
                 self._has_to_continue = False
                 try:
                     self.nursery.cancel_scope.cancel()
@@ -208,6 +234,7 @@ class WorkerServerMultiprocessing(WorkerServer):
                 + work.name_no_space
                 + f" ({key}). mem usage"
             )
+            # pylint: disable=W0703
             try:
                 result = await trio.run_sync_in_worker_thread(
                     do_the_job, work, obj

@@ -1,3 +1,21 @@
+"""Tomography data objects (:mod:`fluidimage.data_objects.tomo`)
+================================================================
+
+.. autoclass:: ArrayTomoBase
+   :members:
+   :private-members:
+
+.. autoclass:: ArrayTomo
+   :members:
+   :private-members:
+
+.. autoclass:: ArrayTomoCV
+   :members:
+   :private-members:
+
+"""
+
+
 import os
 import shutil
 import numpy as np
@@ -15,7 +33,7 @@ except ImportError:
 
 class ArrayTomoBase:
     """Data structure to hold the tomographic data for a single instant.
-   
+
     """
 
     _keys_to_save = ["xs", "ys", "zs", "I"]
@@ -33,7 +51,7 @@ class ArrayTomoBase:
         dtype=np.float64,
     ):
         """Initialize
-        
+
         Parameters
         ----------
         xlims, ylims, zlims : tuple of int

@@ -9,6 +9,8 @@ loaded from a file, saved into a file, displayed to the screen, etc.
 
    piv
    display_piv
+   preproc
    display_pre
+   tomo
 
 """

@@ -1,7 +1,7 @@
-"""Preprocessing data objects
-=============================
+"""Preprocessing data objects (:mod:`fluidimage.data_objects.preproc`)
+======================================================================
 
-.. autoclass:: ArraySeries
+.. autoclass:: ArraySerie
    :members:
    :private-members:
 

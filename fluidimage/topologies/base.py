@@ -26,15 +26,31 @@ from ..executors import executors, ExecutorBase
 class Work:
     """Represent a work"""
 
-    def __init__(self, **kwargs):
-        self._kwargs = kwargs
-        self.__dict__.update(kwargs)
+    def __init__(
+        self,
+        name: str,
+        func_or_cls,
+        params_cls=None,
+        input_queue=None,
+        output_queue=None,
+        kind: str = None,
+    ):
+        self._kwargs = dict(
+            name=name,
+            func_or_cls=func_or_cls,
+            params_cls=params_cls,
+            input_queue=input_queue,
+            output_queue=output_queue,
+            kind=kind,
+        )
+        # to avoid a pylint warning
+        self.name = None
 
-        if hasattr(self, "name"):
-            self.name_no_space = self.name.replace(" ", "_")
+        self.__dict__.update(self._kwargs)
+        self.name_no_space = self.name.replace(" ", "_")
 
     def __repr__(self):
-        return super().__repr__() + "\n" + self._kwargs.__repr__()
+        return super().__repr__() + f"\n{self._kwargs}"
 
     def check_exception(self, key, obj):
         """Check if `obj` is an exception"""
@@ -148,7 +164,24 @@ class TopologyBase:
         sequential=False,
         stop_if_error=False,
     ):
-        """Compute (run all works to be done). """
+        """Compute (run the works until all queues are empty).
+
+        Parameters
+        ----------
+
+        executor : str or fluidimage.executors.base.ExecutorBase, optional
+
+          If None, ``executor="multi_exec_async"``
+
+        nb_max_workers : int, optional
+
+        sleep_time : number, optional {0.01}
+
+        sequential : bool, optional {False}
+
+        stop_if_error : bool, optional {False}
+
+        """
 
         if sequential:
             if executor is not None and executor != "exec_sequential":
