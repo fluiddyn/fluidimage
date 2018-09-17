@@ -13,13 +13,15 @@ from setuptools.command.build_ext import build_ext
 
 import numpy as np
 
+
+fluid_build_ext = build_ext
 try:
     from pythran.dist import PythranExtension
     try:
         # pythran > 0.8.6
         from pythran.dist import PythranBuildExt as fluid_build_ext
     except ImportError:
-        fluid_build_ext = build_ext
+        pass
     use_pythran = True
 except ImportError:
     use_pythran = False
