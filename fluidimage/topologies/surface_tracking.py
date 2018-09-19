@@ -221,7 +221,8 @@ postfix : str
         print("in correctphase_function")
         fix_y = int(np.fix(self.surface_tracking_work.l_y / 2 / self.surface_tracking_work.red_factor))
         fix_x = int(np.fix(self.surface_tracking_work.l_x / 2 / self.surface_tracking_work.red_factor))
-        for key in input_queue:
+        
+        for key in tuple(input_queue):
             (angle, path_angle,) = input_queue.pop(key)
             correct_angle = angle
             if self.tmp is None:
