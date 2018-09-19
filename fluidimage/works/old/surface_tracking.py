@@ -32,11 +32,16 @@
 ###############################################################################
 
 
+import math
 import numpy as np
 import scipy.interpolate
 import scipy.io
+import pims
 
-from . import BaseWork
+
+from .. import BaseWork
+from fluidimage.data_objects.old.surface_tracking import SurfaceTrackingObject
+
 
 class WorkSurfaceTracking(BaseWork):
     """Base class for surface tracking
@@ -189,6 +194,104 @@ class WorkSurfaceTracking(BaseWork):
         )
         self.a1_tmp = None
 
+    def compute(self, frameCouple):
+        """
+        Compute a frame
+        :param frameCouple: A couple of frame
+        :type data_objects.piv.ArrayCouple
+        :return:
+        """
+        surface_tracking = SurfaceTrackingObject(params=self.params)
+        H, H_filt = self.processAFrame(
+            self.path,
+            self.l_x,
+            self.l_y,
+            self.xmin,
+            self.xmax,
+            self.ymin,
+            self.ymax,
+            self.gain,
+            self.filt,
+            self.red_factor,
+            self.pix_size,
+            self.distance_object,
+            self.distance_lens,
+            self.wave_proj,
+            self.n_frames_stock,
+            self.plot_reduction_factor,
+            self.kx,
+            self.ky,
+            frameCouple,
+            verify_process=False,
+        )
+        surface_tracking.H = H
+        surface_tracking.H_filt = H_filt
+        surface_tracking.pix_size = self.pix_size
+        surface_tracking.nameFrame = frameCouple.arrays[0][1].split("/")[-1]
+        return surface_tracking
+        # of the reference plate (in order to find the origin)
+
+    def processAFrame(
+        self,
+        path,
+        l_x,
+        l_y,
+        xmin,
+        xmax,
+        ymin,
+        ymax,
+        gain,
+        filt,
+        red_factor,
+        pix_size,
+        distance_object,
+        distance_lens,
+        wave_proj,
+        n_frames_stock,
+        plot_reduction_factor,
+        kx,
+        ky,
+        frame,
+        save_png=True,
+        verify_process=False,
+        filmName=None,
+    ):
+        arrays1 = frame.arrays[0][0]
+        arrays2 = frame.arrays[1][0]
+
+        fix_y = int(np.fix(l_y / 2 / red_factor))
+        fix_x = int(np.fix(l_x / 2 / red_factor))
+        if self.a1_tmp is None:
+            a1 = self.process_frame(
+                arrays1, ymin, ymax, xmin, xmax, gain, filt, red_factor
+            )
+        else:
+            a1 = self.a1_tmp
+        a2 = self.process_frame(
+            arrays2, ymin, ymax, xmin, xmax, gain, filt, red_factor
+        )
+        self.a1_tmp = a2
+
+        jump = a2[fix_y, fix_x] - a1[fix_y, fix_x]
+
+        while abs(jump) > math.pi:
+            a2 = a2 - np.sign(jump) * 2 * math.pi
+            jump = a2[fix_y, fix_x] - a1[fix_y, fix_x]
+
+        H = self.convphase(
+            a2,
+            pix_size,
+            distance_object,
+            distance_lens,
+            self.wave_proj,
+            "True",
+            red_factor,
+        )
+        # this line removes flickering from the projector
+        Hfilt = H - np.mean(H)
+
+        return H, Hfilt
+
     def set_gain_filter(self, k_x, l_y, l_x, slicer):
         kx = np.arange(-l_x / 2, l_x / 2) / l_x
         ky = np.arange(-l_y / 2, l_y / 2) / l_y
@@ -286,8 +389,8 @@ class WorkSurfaceTracking(BaseWork):
             y = (range(ld) - ld / 2) * pix_size * red_factor
             [X, Y] = np.meshgrid(x, y)
             # perform correction
-            dX = -X / l * height
-            dY = -Y / l * height
+            dX = -X / l * self.H
+            dY = -Y / l * self.H
             dX[1, :] = 0
             dX[-1, :] = 0
             dX[:, 1] = 0
@@ -319,3 +422,30 @@ class WorkSurfaceTracking(BaseWork):
         # kyma = np.arange(-l_y*sur/2, l_y*sur/2)/sur
         indc = np.max(np.fft.fftshift(abs(Fref)), axis=0).argmax()
         return ref, abs(kxma[indc])
+
+    def sum_frame_from(self, path="./", fn=None):
+        """read the frames from file in 
+        path or from a specified file if fn-arg is given
+        and make the mean of the frame"""
+        film = self.get_file(self.path)
+        path = self.path
+        if fn is None:
+            # print(path + '/*')
+            film = self.get_file(path, "film.cine")
+            # film = pims.open(path + '/*')
+        else:
+            print("####" + path + "/" + fn)
+            film = pims.open(str(path) + "/" + fn)
+        return frame
+
+    def get_file(self, path="./", fn=None):
+        """read the files in path or a specified file if fn-arg is given"""
+        path = self.path
+        if fn is None:
+            # print(path + '/*')
+            film = self.get_file(path, "film.cine")
+            # film = pims.open(path + '/*')
+        else:
+            print("####" + path + "/" + fn)
+            film = pims.open(str(path) + "/" + fn)
+        return film

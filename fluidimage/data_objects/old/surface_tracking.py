@@ -27,8 +27,8 @@ from matplotlib import cm
 mycmap = cm.get_cmap("viridis")
 mycmap.set_under("w")
 
-from .. import __version__ as fluidimage_version
-from .._hg_rev import hg_rev
+from fluidimage import __version__ as fluidimage_version
+from fluidimage._hg_rev import hg_rev
 
 
 class DataObject:
