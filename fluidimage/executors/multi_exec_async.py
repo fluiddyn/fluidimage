@@ -53,7 +53,7 @@ class ExecutorAsyncForMulti(ExecutorAsyncSequential):
         )
 
     def _init_log_path(self):
-        pass
+        self.path_dir_exceptions = self._log_path.parent
 
     def _init_compute(self):
         self._init_compute_log()
@@ -121,7 +121,7 @@ class MultiExecutorAsync(ExecutorBase):
 
     def _init_log_path(self):
         name = "_".join(("log", time_as_str(), str(os.getpid())))
-        path_dir_log = self.path_dir_result / name
+        path_dir_log = self.path_dir_exceptions = self.path_dir_result / name
         path_dir_log.mkdir(exist_ok=True)
         self._log_path = path_dir_log / (name + ".txt")
 

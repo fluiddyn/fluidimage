@@ -54,7 +54,8 @@ def imread(path):
     try:
         array = _imread(path)
     except Exception as error:
-        raise_exception(error, path)
+        raise type(error)(path).with_traceback(error.__traceback__)
+
     return array
 
 
@@ -117,15 +118,6 @@ def is_memory_full():
 
     else:
         return False
-
-
-def raise_exception(exc, msg=""):
-    """Raise an exception with a custom message
-    cf. http://python-future.org/compatible_idioms.html
-
-    """
-    traceback = sys.exc_info()[2]
-    six.reraise(type(exc), msg, traceback)
 
 
 def str_short(obj):

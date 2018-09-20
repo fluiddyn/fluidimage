@@ -52,7 +52,7 @@ class ExecutorAsyncServers(ExecutorAsync):
 
     def _init_log_path(self):
         name = "_".join(("log", time_as_str(), str(os.getpid())))
-        path_dir_log = self.path_dir_result / name
+        path_dir_log = self.path_dir_exceptions = self.path_dir_result / name
         path_dir_log.mkdir(exist_ok=True)
         self._log_path = path_dir_log / (name + ".txt")
 

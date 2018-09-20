@@ -12,6 +12,7 @@ import sys
 from time import time
 import signal
 from pathlib import Path
+import traceback
 
 from fluiddyn import time_as_str
 from fluiddyn.io.tee import MultiFile
@@ -52,9 +53,9 @@ class ExecutorBase:
     """
 
     def _init_log_path(self):
-        self._log_path = self.path_dir_result / (
-            "_".join(("log", time_as_str(), str(os.getpid()) + ".txt"))
-        )
+        name = "_".join(("log", time_as_str(), str(os.getpid())))
+        self.path_dir_exceptions = self.path_dir_result / name
+        self._log_path = self.path_dir_result / (name + ".txt")
 
     def __init__(
         self,
@@ -71,23 +72,22 @@ class ExecutorBase:
         self.logging_level = logging_level
         self.stop_if_error = stop_if_error
 
-        if path_dir_result is not None:
-            path_dir_result = Path(path_dir_result)
-            path_dir_result.mkdir(exist_ok=True)
-            self.path_dir_result = path_dir_result
-            self._init_log_path()
-            self._log_file = open(self._log_path, "w")
+        path_dir_result = Path(path_dir_result)
+        path_dir_result.mkdir(exist_ok=True)
+        self.path_dir_result = path_dir_result
+        self._init_log_path()
+        self._log_file = open(self._log_path, "w")
 
-            stdout = sys.stdout
-            if isinstance(stdout, MultiFile):
-                stdout = sys.__stdout__
+        stdout = sys.stdout
+        if isinstance(stdout, MultiFile):
+            stdout = sys.__stdout__
 
-            stderr = sys.stderr
-            if isinstance(stderr, MultiFile):
-                stderr = sys.__stderr__
+        stderr = sys.stderr
+        if isinstance(stderr, MultiFile):
+            stderr = sys.__stderr__
 
-            sys.stdout = MultiFile([stdout, self._log_file])
-            sys.stderr = MultiFile([stderr, self._log_file])
+        sys.stdout = MultiFile([stdout, self._log_file])
+        sys.stderr = MultiFile([stderr, self._log_file])
 
         if logging_level:
             for handler in logger.handlers:
@@ -171,3 +171,15 @@ class ExecutorBase:
                 pretty = str_short(work.func_or_cls.__func__)
                 logger.info(f'Running "one_shot" job "{work.name}" ({pretty})')
                 work.func_or_cls(work.input_queue, work.output_queue)
+
+    def log_exception(self, exception, work_name, key):
+        self.path_dir_exceptions.mkdir(exist_ok=True)
+        formated_exception = "".join(
+            traceback.format_exception(
+                etype=type(exception), value=exception, tb=exception.__traceback__
+            )
+        )
+        with open(self.path_dir_exceptions / f"exception_{work_name}_{key}.txt", "w") as file:
+            file.write(
+                f"Exception for work {work_name}, key {key}" + formated_exception
+            )
