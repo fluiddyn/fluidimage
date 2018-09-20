@@ -26,6 +26,7 @@ from fluidimage.topologies import prepare_path_dir_result, TopologyBase
 
 from .piv import is_name_in_queue
 
+from . import image2image
 
 class TopologyPreproc(TopologyBase):
     """Preprocess series of images.
@@ -172,6 +173,9 @@ postfix : str
             ),
         )
 
+        params._set_child("im2im")
+        image2image.complete_im2im_params_with_default(params.im2im)
+
         return params
 
     def __init__(
@@ -219,10 +223,13 @@ postfix : str
         # Define waiting queues
         queue_subsets_of_names = self.add_queue("subsets of filenames")
         queue_paths = self.add_queue("image paths")
-        queue_arrays = self.add_queue("arrays")
+        queue_arrays = queue_arrays1 = self.add_queue("arrays")
         queue_subsets_of_arrays = self.add_queue("subsets of arrays")
         queue_preproc_objects = self.add_queue("preproc results")
 
+        if params.im2im.im2im is not None:
+            queue_arrays1 = self.add_queue("arrays1")
+        
         # Define works
         self.add_work(
             "fill (subsets_of_names, paths)",
@@ -239,6 +246,19 @@ postfix : str
             kind="io",
         )
 
+        if params.im2im.im2im is not None:
+            im2im_func = image2image.TopologyImage2Image.init_im2im(
+                self, params.im2im
+            )
+
+            self.add_work(
+                "image2image",
+                func_or_cls=im2im_func,
+                input_queue=queue_arrays,
+                output_queue=queue_arrays1,
+            )
+
+        
         self.add_work(
             "make subsets of arrays",
             func_or_cls=self.make_subsets,
