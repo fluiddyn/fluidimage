@@ -6,11 +6,10 @@ const-rgx=[a-z_][a-z0-9_]{1,30}$
 # Naming hint for constant names
 const-name-hint=(([A-Z_][A-Z0-9_]*)|(__.*__))$
 
-
 # Regular expression matching correct variable names
 variable-rgx=[a-z_][a-z0-9_]{1,30}$
 
 # Naming hint for variable names
 variable-name-hint=[a-z_][a-z0-9_]{1,30}$
 
-disable=W0621,W0212,C0330,W1202,W1203
+disable=C0103,W0621,W0212,C0330,W1202,W1203
