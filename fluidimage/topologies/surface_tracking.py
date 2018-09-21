@@ -15,12 +15,10 @@
 
 """
 import json
-import math
-import numpy as np
 from pathlib import Path
 
 from fluidimage.topologies import prepare_path_dir_result
-from fluidimage import ParamContainer, SerieOfArraysFromFiles
+from fluidimage import ParamContainer, SerieOfArraysFromFiles, SeriesOfArrays
 from fluidimage.util import logger, imread
 from fluiddyn.io.image import imsave
 from fluidimage.works.surface_tracking import WorkSurfaceTracking
@@ -58,7 +56,7 @@ class TopologySurfaceTracking(TopologyBase):
 
         """
         params = ParamContainer(tag="params")
- #       complete_surftrack_params_with_default(params)
+        #       complete_surftrack_params_with_default(params)
 
         params._set_child(
             "film",
@@ -74,7 +72,17 @@ class TopologySurfaceTracking(TopologyBase):
 
         WorkSurfaceTracking._complete_params_with_default(params)
 
-        params._set_child("images", attribs={"path": "", "str_slice": None})
+        params._set_child(
+            "images",
+            attribs={
+                "path": "",
+                "str_slice": None,
+                "strcouple": "i:i+2",
+                "ind_start": 0,
+                "ind_stop": None,
+                "ind_step": 1,
+            },
+        )
 
         params.images._set_doc(
             """
@@ -140,6 +148,14 @@ postfix : str
             params.images.path, params.images.str_slice
         )
 
+        self.series = SeriesOfArrays(
+            params.images.path,
+            params.images.strcouple,
+            ind_start=params.images.ind_start,
+            ind_stop=params.images.ind_stop,
+            ind_step=params.images.ind_step,
+        )
+        print(self.series)
         path_dir = self.serie.path_dir
         path_dir_result, self.how_saving = prepare_path_dir_result(
             path_dir, params.saving.path, params.saving.postfix, params.saving.how
@@ -156,84 +172,102 @@ postfix : str
             nb_max_workers=nb_max_workers,
         )
 
-        self.queue_paths = self.add_queue("paths")
-        self.queue_arrays = self.add_queue("arrays")
-        self.queue_angles = self.add_queue("angles")
-        self.queuemod_angles = self.add_queue("angles mod")
-        self.queue_heights = self.add_queue("heights")
+        queue_paths = self.add_queue("paths")
+        queue_couples_of_names = self.add_queue("couples of names")
+        queue_arrays = self.add_queue("arrays")
+        queue_angles = self.add_queue("angles")
+        queue_couples_of_arrays = self.add_queue(
+            "couples of corrected angles and angles"
+        )
+        queuemod0_angles = self.add_queue("corrected angles copy")
+        queuemod_angles = self.add_queue("corrected angles")
+        queue_heights = self.add_queue("heights")
 
-        self.init_correctphase_function()
+        # self.init_correctphase_function()
 
         self.add_work(
             "fill_path",
             self.fill_queue_paths,
-            output_queue=self.queue_paths,
+            output_queue=(queue_paths, queue_couples_of_names),
             kind="one shot",
         )
 
         self.add_work(
             "read_array",
             self.imread,
-            input_queue=self.queue_paths,
-            output_queue=self.queue_arrays,
+            input_queue=queue_paths,
+            output_queue=queue_arrays,
             kind="io",
         )
 
         self.add_work(
             "process_frame",
-            self.processframe_func,
-            input_queue=self.queue_arrays,
-            output_queue=self.queue_angles,
+            self.surface_tracking_work.process_frame_func,
+            input_queue=queue_arrays,
+            output_queue=queue_angles,
         )
 
         self.add_work(
-            "correct_phase",
-            self.correctphase_func,
-            input_queue=self.queue_angles,
-            output_queue=self.queuemod_angles,
-            kind="global"
+            "create_couple",
+            self.make_couples,
+            input_queue=(queuemod0_angles, queue_angles, queue_couples_of_names),
+            output_queue=(queuemod_angles, queue_couples_of_arrays),
+            kind="global",
+        )
+
+        self.add_work(
+            "correct_couple_of_phases",
+            self.surface_tracking_work.correctcouple,
+            input_queue=queue_couples_of_arrays,
+            output_queue=queuemod0_angles,
         )
 
         self.add_work(
             "calcul_height",
-            self.calculheight_func,
-            input_queue=self.queuemod_angles,
-            output_queue=self.queue_heights,
+            self.surface_tracking_work.calculheight_func,
+            input_queue=queuemod_angles,
+            output_queue=queue_heights,
         )
 
         self.add_work(
-            "save", self.save_image, input_queue=self.queue_heights, kind="io"
+            "save", self.save_image, input_queue=queue_heights, kind="io"
         )
 
-    def processframe_func(self, input_queue):
-        return (self.surface_tracking_work.process_frame1(input_queue[0]),
-                input_queue[1])
+    def make_couples(self, input_queues, output_queues):
+        """correctphase"""
+        queue_couples_of_names = input_queues[2]
+        queue_angles = input_queues[1]
+        queuemod0_angles = input_queues[0]
+        queue_couple = output_queues[1]
+        if not (queue_couples_of_names):
+            for key in tuple(queuemod0_angles):
+                output_queues[0][key] = queuemod0_angles[key]
+                del queuemod0_angles[key]
+        if not (queue_angles):
+            print("no queue")
+            return
+        for key, couple in tuple(queue_couples_of_names.items()):
+            # if correspondant arrays are available, make an array couple
+            if couple[0] is couple[1]:
+                if couple[0] in queue_angles.keys():
+                    array1 = queue_angles[couple[0]]
+                    array2 = queue_angles[couple[0]]
 
-    def calculheight_func(self, input_queue):
-        return (self.surface_tracking_work.calculheight(input_queue[0]),
-                input_queue[1])
+                    queue_couple[couple[0]] = (array1, array2)
+                    del queue_angles[couple[0]]
+                    del queue_couples_of_names[key]
+            elif (
+                couple[0] in queuemod0_angles.keys()
+                and couple[1] in queue_angles.keys()
+            ):
+                array1 = queuemod0_angles[couple[0]]
+                array2 = queue_angles[couple[1]]
 
-    def init_correctphase_function(self):
-        self.angleid = 0
-        self.tmp = None
-
-    def correctphase_func(self, input_queue, output_queue):
-        print("in correctphase_function")
-        fix_y = int(np.fix(self.surface_tracking_work.l_y / 2 / self.surface_tracking_work.red_factor))
-        fix_x = int(np.fix(self.surface_tracking_work.l_x / 2 / self.surface_tracking_work.red_factor))
-        
-        for key in tuple(input_queue):
-            (angle, path_angle,) = input_queue.pop(key)
-            correct_angle = angle
-            if self.tmp is None:
-                self.tmp = angle
-            jump = angle[fix_y, fix_x] - self.tmp[fix_y, fix_x]
-            while abs(jump) > math.pi:
-                correct_angle = angle - np.sign(jump) * 2 * math.pi
-                jump = correct_angle[fix_y, fix_x] - self.tmp[fix_y, fix_x]
-            self.tmp = angle
-            output_queue[key] = (correct_angle, path_angle,)
-            self.angleid = self.angleid + 1
+                queue_couple[couple[1]] = (array1, array2)
+                del queue_angles[couple[1]]
+                del queue_couples_of_names[key]
+                output_queues[0][couple[0]] = queuemod0_angles[couple[0]]
+                del queuemod0_angles[couple[0]]
 
     def imread(self, path):
         array = imread(path)
@@ -245,9 +279,11 @@ postfix : str
         path_out = self.path_dir_result / name_file
         imsave(path_out, image)
 
-    def fill_queue_paths(self, input_queue, output_queue):
+    def fill_queue_paths(self, input_queue, output_queues):
 
         assert input_queue is None
+        queue_paths = output_queues[0]
+        queue_couples_of_names = output_queues[1]
 
         serie = self.serie
         if len(serie) == 0:
@@ -261,9 +297,9 @@ postfix : str
             path_im_input = str(self.path_dir_src / name)
             if self.how_saving == "complete":
                 if not path_im_output.exists():
-                    output_queue[name] = path_im_input
+                    queue_paths[name] = path_im_input
             else:
-                output_queue[name] = path_im_input
+                queue_paths[name] = path_im_input
 
         if len(names) == 0:
             if self.how_saving == "complete":
@@ -279,3 +315,24 @@ postfix : str
         logger.info("First files to process: " + str(names[:4]))
 
         logger.debug("All files: " + str(names))
+
+        series = self.series
+        if not series:
+            logger.warning("add 0 couple. No phase to correct.")
+            return
+
+        nb_series = len(series)
+        logger.info(f"Add {nb_series} phase to correct.")
+
+        for iserie, serie in enumerate(series):
+            if iserie > 1:
+                break
+            logger.info(
+                "Files of serie {}: {}".format(iserie, serie.get_name_arrays())
+            )
+        # for the first corrected angle : corrected_angle = angle
+        ind_serie, serie = next(series.items())
+        name = serie.get_name_arrays()[0]
+        queue_couples_of_names[ind_serie - 1] = (name, name)
+        for ind_serie, serie in series.items():
+            queue_couples_of_names[ind_serie] = serie.get_name_arrays()

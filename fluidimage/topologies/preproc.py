@@ -28,6 +28,7 @@ from .piv import is_name_in_queue
 
 from . import image2image
 
+
 class TopologyPreproc(TopologyBase):
     """Preprocess series of images.
 
@@ -229,7 +230,7 @@ postfix : str
 
         if params.im2im.im2im is not None:
             queue_arrays1 = self.add_queue("arrays1")
-        
+
         # Define works
         self.add_work(
             "fill (subsets_of_names, paths)",
@@ -258,7 +259,6 @@ postfix : str
                 output_queue=queue_arrays1,
             )
 
-        
         self.add_work(
             "make subsets of arrays",
             func_or_cls=self.make_subsets,

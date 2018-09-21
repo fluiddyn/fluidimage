@@ -179,7 +179,9 @@ class ExecutorBase:
                 etype=type(exception), value=exception, tb=exception.__traceback__
             )
         )
-        with open(self.path_dir_exceptions / f"exception_{work_name}_{key}.txt", "w") as file:
+        with open(
+            self.path_dir_exceptions / f"exception_{work_name}_{key}.txt", "w"
+        ) as file:
             file.write(
                 f"Exception for work {work_name}, key {key}" + formated_exception
             )
