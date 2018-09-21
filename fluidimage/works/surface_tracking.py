@@ -33,10 +33,12 @@
 
 
 import numpy as np
+import math
 import scipy.interpolate
 import scipy.io
 
 from . import BaseWork
+
 
 class WorkSurfaceTracking(BaseWork):
     """Base class for surface tracking
@@ -245,28 +247,37 @@ class WorkSurfaceTracking(BaseWork):
         a = np.unwrap(a, axis=0)  # by colums
         return a
 
-    def process_frame1(self, im):
-        return self.process_frame(
-            im,
-            self.ymin,
-            self.ymax,
-            self.xmin,
-            self.xmax,
-            self.gain,
-            self.filt,
-            self.red_factor,
-         )
-    
-    def calculheight(self, ph):
-        return self.convphase(
-            ph,
-            self.pix_size,
-            self.distance_object,
-            self.distance_lens,
-            self.wave_proj,
-            "True",
-            self.red_factor,
+    def process_frame_func(self, array_and_path):
+        array, path = array_and_path
+        return (
+            self.process_frame(
+                array,
+                self.ymin,
+                self.ymax,
+                self.xmin,
+                self.xmax,
+                self.gain,
+                self.filt,
+                self.red_factor,
+            ),
+            path,
         )
+
+    def calculheight_func(self, array_and_path):
+        array, path = array_and_path
+        return (
+            self.convphase(
+                array,
+                self.pix_size,
+                self.distance_object,
+                self.distance_lens,
+                self.wave_proj,
+                True,
+                self.red_factor,
+            ),
+            path,
+        )
+
     def convphase(self, ph, pix_size, l, d, p, correct_pos, red_factor):
         """converts phase into height [m]
         make sure that the grid is parallel to y
@@ -281,9 +292,9 @@ class WorkSurfaceTracking(BaseWork):
         height = ph * l / (ph - 2 * np.pi / p * d)
         if correct_pos is True:
             height = height.astype(float)
-            [ld, Ld] = ph.shape()
-            x = (range(Ld) - Ld / 2) * pix_size * red_factor
-            y = (range(ld) - ld / 2) * pix_size * red_factor
+            [ld, Ld] = ph.shape
+            x = (np.arange(Ld) - Ld / 2) * pix_size * red_factor
+            y = (np.arange(ld) - ld / 2) * pix_size * red_factor
             [X, Y] = np.meshgrid(x, y)
             # perform correction
             dX = -X / l * height
@@ -291,18 +302,33 @@ class WorkSurfaceTracking(BaseWork):
             dX[1, :] = 0
             dX[-1, :] = 0
             dX[:, 1] = 0
-            dX[-1, :] = 0
+            dX[:-1] = 0
             dY[1, :] = 0
             dY[-1, :] = 0
             dY[:, 1] = 0
-            dY[-1, :] = 0
+            dY[:-1] = 0
             # interploate the values on the new grid
             height = scipy.interpolate.griddata(
-                X + dX, Y + dY, height, X, Y, "cubic"
+                ((X + dX).reshape(ld * Ld), (Y + dY).reshape(ld * Ld)),
+                height.reshape(Ld * ld),
+                (X, Y),
+                method="cubic",
             )
         return height
 
-    def wave_vector(
+    def correctcouple(self, queue_couple):
+        """correctphase"""
+        ((anglemod, path_anglemod), (angle, path_angle)) = queue_couple
+        fix_y = int(np.fix(self.l_y / 2 / self.red_factor))
+        fix_x = int(np.fix(self.l_x / 2 / self.red_factor))
+        correct_angle = angle
+        jump = angle[fix_y, fix_x] - anglemod[fix_y, fix_x]
+        while abs(jump) > math.pi:
+            correct_angle = angle - np.sign(jump) * 2 * math.pi
+            jump = correct_angle[fix_y, fix_x] - anglemod[fix_y, fix_x]
+        return (correct_angle, path_angle)
+
+    '''def wave_vector(
         self, ref_film, ymin, ymax, xmin, xmax, sur, startref_frame, lastref_frame
     ):
         ref = np.zeros((ymax - ymin, xmax - xmin))
@@ -318,4 +344,4 @@ class WorkSurfaceTracking(BaseWork):
         kxma = np.arange(-(xmax - xmin) * sur / 2, (xmax - xmin) * sur / 2) / sur
         # kyma = np.arange(-l_y*sur/2, l_y*sur/2)/sur
         indc = np.max(np.fft.fftshift(abs(Fref)), axis=0).argmax()
-        return ref, abs(kxma[indc])
+        return ref, abs(kxma[indc])'''

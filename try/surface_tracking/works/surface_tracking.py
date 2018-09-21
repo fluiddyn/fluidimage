@@ -358,8 +358,8 @@ class WorkSurfaceTracking(BaseWork):
             self.gain,
             self.filt,
             self.red_factor,
-         )
-    
+        )
+
     def calculheight(self, ph):
         return self.convphase(
             ph,
@@ -370,6 +370,7 @@ class WorkSurfaceTracking(BaseWork):
             "True",
             self.red_factor,
         )
+
     def convphase(self, ph, pix_size, l, d, p, correct_pos, red_factor):
         """converts phase into height [m]
         make sure that the grid is parallel to y

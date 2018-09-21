@@ -24,6 +24,7 @@ class TestPivNew(unittest.TestCase):
         params = TopologySurfaceTracking.create_default_params()
 
         params.images.path = str(self.path_src)
+        params.images.ind_start = 1
 
         params.surface_tracking.xmin = 125
         params.surface_tracking.xmax = 290
@@ -34,9 +35,10 @@ class TestPivNew(unittest.TestCase):
 
         topology = TopologySurfaceTracking(params, logging_level="info")
         topology.make_code_graphviz(topology.path_dir_result / "topo.dot")
-        #topology.compute(executor="exec_sequential", stop_if_error=True)
+        topology.compute(executor="exec_sequential", stop_if_error=True)
         #topology.compute(nb_max_workers=1)
-        topology.compute(sequential=True, stop_if_error=True)
+        # topology.compute(sequential=True, stop_if_error=True)
+
 
 if __name__ == "__main__":
     unittest.main()
