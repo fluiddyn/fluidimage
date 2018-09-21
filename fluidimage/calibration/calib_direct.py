@@ -304,12 +304,12 @@ class CalibDirect:
         A, B = get_base_from_normal_vector(dx, dy, dz)
         return A, B
 
-    def check_interp_levels(self):
+    def check_interp_levels(self, number=100):
         """Plot to check interp_levels
         """
         interp = self.interp_levels
-        indx = range(0, self.nb_pixels_x, self.nb_pixels_x // 100)
-        indy = range(0, self.nb_pixels_y, self.nb_pixels_y // 100)
+        indx = range(0, self.nb_pixels_x, self.nb_pixels_x // number)
+        indy = range(0, self.nb_pixels_y, self.nb_pixels_y // number)
         indx, indy = np.meshgrid(indx, indy)
         Z = interp.Z
         for i in range(len(Z)):
@@ -331,7 +331,7 @@ class CalibDirect:
 
         plt.show()
 
-    def check_interp_lines(self):
+    def check_interp_lines(self, number=10):
         """Plot to check interp_lines
         """
         fig = pylab.figure()
@@ -340,8 +340,8 @@ class CalibDirect:
             X, Y, Z, x, y = get_points(path)
             ax.scatter(X, Y, Z, marker=".", color="blue")
 
-        x = range(0, self.nb_pixels_x, self.nb_pixels_x // 10)
-        y = range(0, self.nb_pixels_y, self.nb_pixels_y // 10)
+        x = range(0, self.nb_pixels_x, self.nb_pixels_x // number)
+        y = range(0, self.nb_pixels_y, self.nb_pixels_y // number)
         x, y = np.meshgrid(x, y)
         x = x.flatten()
         y = y.flatten()
@@ -361,12 +361,13 @@ class CalibDirect:
         ax.set_zlabel("z (m)")
         plt.show()
 
-    def check_interp_lines_coeffs(self):
+    def check_interp_lines_coeffs(self, number=100):
         """Plot to check interp_lines coefficients
         """
-        x = range(0, self.nb_pixels_x, self.nb_pixels_x // 100)
-        y = range(0, self.nb_pixels_y, self.nb_pixels_y // 100)
+        x = range(0, self.nb_pixels_x, self.nb_pixels_x // number)
+        y = range(0, self.nb_pixels_y, self.nb_pixels_y // number)
         x, y = np.meshgrid(x, y)
+
         X0 = np.zeros(x.shape)
         Y0 = np.zeros(x.shape)
         Z0 = np.zeros(x.shape)

@@ -35,25 +35,27 @@ from fluidimage.gui.pg_wrapper import PGWrapper
 from fluidimage import config_logging
 
 
-def dock(args):
+def dock(args, for_testing):
     pg = PGWrapper()
     for arg in args:
         title = os.path.basename(arg)
         pg._add_dock(title, size=(500, 500), position="right")
         pg.view(arg, title)
 
-    pg.show()
+    if not for_testing:
+        pg.show()
     return pg
 
 
-def slideshow(args):
+def slideshow(args, for_testing):
     title = "FluidImage {} to {}".format(
         os.path.basename(args[0]), os.path.basename(args[-1])
     )
     pg = PGWrapper(title=title)
 
     pg.view(args, title)
-    pg.show()
+    if not for_testing:
+        pg.show()
     return pg
 
 
@@ -76,7 +78,7 @@ def parse_args(args=sys.argv[1:]):
     return parser.parse_args(args)
 
 
-def main(args=None):
+def main(args=None, for_testing=False):
     """Parse arguments and execute `fluidimviewer-pg`."""
     if args is None:
         args = parse_args()
@@ -87,9 +89,9 @@ def main(args=None):
         config_logging()
 
     if args.slideshow:
-        return slideshow(args.images)
+        return slideshow(args.images, for_testing)
     else:
-        return dock(args.images)
+        return dock(args.images, for_testing)
 
 
 if __name__ == "__main__":

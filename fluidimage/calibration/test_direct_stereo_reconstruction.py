@@ -8,13 +8,11 @@ import matplotlib.pyplot as plt
 from fluidimage.calibration.util import get_plane_equation
 from fluidimage.calibration import DirectStereoReconstruction, CalibDirect
 
-plt.show = lambda: 0
-
 from fluidimage import path_image_samples
 
-pathbase = path_image_samples / "4th_PIV-Challenge_Case_E"
+plt.show = lambda: 0
 
-long_test = False
+pathbase = path_image_samples / "4th_PIV-Challenge_Case_E"
 
 
 def get_piv_field(path):
@@ -40,25 +38,23 @@ class TestCalib(unittest.TestCase):
 
     def test(self):
 
-        nb_pixelx, nb_pixely = 1024, 1024
-
-        nbline_x, nbline_y = 32, 32
-
         path_cam1 = pathbase / "E_Calibration_Images" / "Camera_01"
         path_cam3 = pathbase / "E_Calibration_Images" / "Camera_03"
 
         path_calib1 = path_cam1 / "calib1.npy"
         path_calib3 = path_cam3 / "calib3.npy"
 
+        nb_pixelx, nb_pixely = 1024, 1024
+        nbline_x, nbline_y = 32, 32
+
         calib = CalibDirect(path_cam1 / "img*", (nb_pixelx, nb_pixely))
         calib.compute_interpolents()
         calib.compute_interpolents_pixel2line(nbline_x, nbline_y, test=False)
-        calib.save(path_calib1)
 
-        if long_test:
-            calib.check_interp_lines_coeffs()
-            calib.check_interp_lines()
-            calib.check_interp_levels()
+        calib.check_interp_lines(4)
+        calib.check_interp_lines_coeffs(2)
+
+        calib.check_interp_levels(2)
 
         calib3 = CalibDirect(
             os.path.join(path_cam3, "img*"), (nb_pixelx, nb_pixely)
@@ -92,7 +88,6 @@ class TestCalib(unittest.TestCase):
         dx, dy, dz, erx, ery, erz = stereo.reconstruction(
             X0, X1, d0cam, d1cam, a, b, c, d, X, Y, check=False
         )
-
 
 # dt = 0.001
 # dx, dy, dz = dx/dt, dy/dt, dz/dt
