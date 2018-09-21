@@ -328,7 +328,7 @@ class WorkSurfaceTracking(BaseWork):
             jump = correct_angle[fix_y, fix_x] - anglemod[fix_y, fix_x]
         return (correct_angle, path_angle)
 
-    '''def wave_vector(
+    """def wave_vector(
         self, ref_film, ymin, ymax, xmin, xmax, sur, startref_frame, lastref_frame
     ):
         ref = np.zeros((ymax - ymin, xmax - xmin))
@@ -344,4 +344,4 @@ class WorkSurfaceTracking(BaseWork):
         kxma = np.arange(-(xmax - xmin) * sur / 2, (xmax - xmin) * sur / 2) / sur
         # kyma = np.arange(-l_y*sur/2, l_y*sur/2)/sur
         indc = np.max(np.fft.fftshift(abs(Fref)), axis=0).argmax()
-        return ref, abs(kxma[indc])'''
+        return ref, abs(kxma[indc])"""

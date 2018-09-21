@@ -36,7 +36,7 @@ class TestPivNew(unittest.TestCase):
         topology = TopologySurfaceTracking(params, logging_level="info")
         topology.make_code_graphviz(topology.path_dir_result / "topo.dot")
         topology.compute(executor="exec_sequential", stop_if_error=True)
-        #topology.compute(nb_max_workers=1)
+        # topology.compute(nb_max_workers=1)
         # topology.compute(sequential=True, stop_if_error=True)
 
 

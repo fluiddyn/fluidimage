@@ -159,14 +159,12 @@ class SubPix:
                 return self.compute_subpix(
                     correl, ix, iy, method="centroid", nsubpix=nsubpix
                 )
-            # print(
-            #     (
-            #         "Wrong subpix for one vector:"
-            #         " deplx**2 + deply**2 > (0.5+nsubpix)**2\n"
-            #         "method: " + method + "\ndeplx, deply = ({}, {})\n"
-            #         "correl_subpix =\n{}"
-            #     ).format(deplx, deply, correl_crop)
-            # )
+            print(
+                "Wrong subpix for one vector:"
+                " deplx**2 + deply**2 > (0.5+nsubpix)**2\n"
+                "method: " + method + f"\ndeplx, deply = ({deplx}, {deply})\n"
+                f"correl_subpix =\n{correl_crop}"
+            )
             raise PIVError(
                 explanation="wrong subpix", result_compute_subpix=(iy, ix)
             )
