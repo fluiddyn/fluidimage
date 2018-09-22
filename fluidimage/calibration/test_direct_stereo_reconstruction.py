@@ -10,8 +10,6 @@ from fluidimage.calibration import DirectStereoReconstruction, CalibDirect
 
 from fluidimage import path_image_samples
 
-plt.show = lambda: 0
-
 pathbase = path_image_samples / "4th_PIV-Challenge_Case_E"
 
 
@@ -52,9 +50,11 @@ class TestCalib(unittest.TestCase):
         calib.compute_interpolents_pixel2line(nbline_x, nbline_y, test=False)
 
         calib.check_interp_lines(4)
+        plt.close("all")
         calib.check_interp_lines_coeffs(2)
-
+        plt.close("all")
         calib.check_interp_levels(2)
+        plt.close("all")
 
         calib3 = CalibDirect(
             os.path.join(path_cam3, "img*"), (nb_pixelx, nb_pixely)
