@@ -62,6 +62,8 @@ class TestCalib(unittest.TestCase):
 
         calib3.compute_interpolents()
         calib3.compute_interpolents_pixel2line(nbline_x, nbline_y, test=False)
+
+        calib.save(path_calib1)
         calib3.save(path_calib3)
 
         postfix = ".piv"

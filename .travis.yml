@@ -41,7 +41,7 @@ before_script:
       echo -e "[pythran]\ncomplex_hook=True\n\n[compiler]\nCXX = clang++\nCC = clang\n" > $HOME/.pythranrc
 
 script:
-    - tox -vv
+    - xvfb-run tox -vv
 
 after_failure:
     - cat $TRAVIS_BUILD_DIR/.tox/log/*.log
