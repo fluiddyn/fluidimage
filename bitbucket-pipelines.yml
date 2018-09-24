@@ -14,4 +14,4 @@ pipelines:
             - pip
           script:
             - pip install -U tox --user
-            - xvfb-run tox -e py36,codecov -vv
+            - tox -e py36,codecov -vv
