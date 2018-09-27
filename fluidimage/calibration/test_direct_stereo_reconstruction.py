@@ -91,6 +91,7 @@ class TestCalib(unittest.TestCase):
             X0, X1, d0cam, d1cam, a, b, c, d, X, Y, check=False
         )
 
+
 # dt = 0.001
 # dx, dy, dz = dx/dt, dy/dt, dz/dt
 # erx, ery, erz = erx/dt, ery/dt, erz/dt

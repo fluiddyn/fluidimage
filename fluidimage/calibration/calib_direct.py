@@ -278,7 +278,9 @@ class CalibDirect:
         dx = self.interp_lines[3]((indx, indy))
         dy = self.interp_lines[4]((indx, indy))
         dz = self.interp_lines[5]((indx, indy))
-        t = -(a * x0 + b * y0 + c * z0 + d) / (a * dx + b * dy + c * dz)
+        # fmt: off
+        t = -(a*x0 + b*y0 + c*z0 + d) / (a*dx + b*dy + c*dz)
+        # fmt: on
         physical_coords = np.array([x0 + t * dx, y0 + t * dy, z0 + t * dz])
         return physical_coords.transpose()
 

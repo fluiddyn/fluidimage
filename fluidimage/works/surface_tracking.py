@@ -1,8 +1,6 @@
 """Surface tracking (:mod:`fluidimage.works.surface_tracking`)
 ==============================================================
 
-.. autofunction:: process_frame
-
 .. autoclass:: WorkSurfaceTracking
    :members:
    :private-members:

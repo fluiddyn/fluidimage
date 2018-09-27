@@ -36,8 +36,10 @@ if any(
         " loads the Agg Matplotlib backend."
     )
     import matplotlib
+
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
+
     plt.show = lambda: None
 
 

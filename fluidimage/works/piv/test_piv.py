@@ -42,7 +42,13 @@ class TestPIV(unittest.TestCase):
         params.piv0.shape_crop_im0 = 32
         params.piv0.grid.overlap = -3
 
+        # still buggy
+        # params.piv0.nb_peaks_to_search = 2
+
         params.multipass.number = 2
+
+        params.fix.displacement_max = 2
+        params.fix.threshold_diff_neighbour = 2
 
         piv = WorkPIV(params=params)
 

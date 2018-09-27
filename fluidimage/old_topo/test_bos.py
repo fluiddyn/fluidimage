@@ -60,5 +60,6 @@ class TestBOS(unittest.TestCase):
         log.plot_memory()
         plt.close("all")
 
+
 if __name__ == "__main__":
     unittest.main()

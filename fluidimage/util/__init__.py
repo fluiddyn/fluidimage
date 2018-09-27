@@ -6,8 +6,6 @@
 
    util
    log
-   paramlist
-   stats
 
 """
 

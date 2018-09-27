@@ -14,8 +14,6 @@ Provides:
 
 .. autofunction:: is_memory_full
 
-.. autofunction:: raise_exception
-
 .. autofunction:: str_short
 
 """

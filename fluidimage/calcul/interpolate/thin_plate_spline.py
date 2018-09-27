@@ -32,133 +32,6 @@ import numpy as np
 from . import tps_pythran
 
 
-def compute_tps_coeff_subdom(
-    centers,
-    U,
-    smoothing_coef,
-    subdom_size,
-    new_positions,
-    threshold=None,
-    percent_buffer_area=0.25,
-):
-
-    max_coord = np.max(centers, 1)
-    min_coord = np.min(centers, 1)
-    range_coord = max_coord - min_coord
-    aspect_ratio = range_coord[0] / range_coord[1]
-
-    nb_subdom = centers[1, :].size / subdom_size
-    nb_subdomx = int(np.max(np.floor(np.sqrt(nb_subdom / aspect_ratio)), 0))
-    nb_subdomy = int(np.max(np.floor(np.sqrt(nb_subdom * aspect_ratio)), 0))
-    nb_subdom = nb_subdomx * nb_subdomy
-
-    x_dom = np.arange(min_coord[1], max_coord[1], range_coord[1] / nb_subdomx)
-    x_dom = np.unique(np.append(x_dom, max_coord[1]))
-    y_dom = np.arange(min_coord[0], max_coord[0], range_coord[0] / nb_subdomy)
-    y_dom = np.unique(np.append(y_dom, max_coord[0]))
-
-    buffer_area_x = (
-        x_dom * 0 + range_coord[1] / (nb_subdomx) * percent_buffer_area
-    )
-    # buffer_area_x[0], buffer_area_x[-1] = 0, 0
-    buffer_area_y = (
-        y_dom * 0 + range_coord[0] / (nb_subdomy) * percent_buffer_area
-    )
-    # buffer_area_y[0], buffer_area_y[-1] = 0, 0
-
-    ind_subdom = np.zeros([nb_subdom, 2])
-    ind_v_subdom = []
-    ind_new_positions_subdom = []
-
-    count = 0
-    for i in range(nb_subdomy):
-        for j in range(nb_subdomx):
-            ind_subdom[count, :] = [i, j]
-
-            ind_v_subdom.append(
-                np.argwhere(
-                    (centers[1, :] >= x_dom[j] - buffer_area_x[j])
-                    & (centers[1, :] < x_dom[j + 1] + buffer_area_x[j + 1])
-                    & (centers[0, :] >= y_dom[i] - buffer_area_y[i])
-                    & (centers[0, :] < y_dom[i + 1] + buffer_area_y[i + 1])
-                ).flatten()
-            )
-
-            ind_new_positions_subdom.append(
-                np.argwhere(
-                    (new_positions[1, :] >= x_dom[j] - buffer_area_x[j])
-                    & (new_positions[1, :] < x_dom[j + 1] + buffer_area_x[j + 1])
-                    & (new_positions[0, :] >= y_dom[i] - buffer_area_y[i])
-                    & (new_positions[0, :] < y_dom[i + 1] + buffer_area_y[i + 1])
-                ).flatten()
-            )
-
-            count += 1
-
-    U_eval = np.zeros(new_positions[1].shape)
-    nb_tps = np.zeros(new_positions[1].shape)
-
-    U_tps = [None] * nb_subdom
-    U_smooth = [None] * nb_subdom
-
-    for i in range(nb_subdom):
-        centerstemp = np.vstack(
-            [centers[1][ind_v_subdom[i]], centers[0][ind_v_subdom[i]]]
-        )
-        Utemp = U[ind_v_subdom[i]]
-        U_smooth[i], U_tps[i] = compute_tps_coeff_iter(
-            centerstemp, Utemp, smoothing_coef, threshold
-        )
-
-        centers_newposition_temp = np.vstack(
-            [
-                new_positions[1][ind_new_positions_subdom[i]],
-                new_positions[0][ind_new_positions_subdom[i]],
-            ]
-        )
-
-        EM = compute_tps_matrix(centers_newposition_temp, centerstemp)
-
-        U_eval[ind_new_positions_subdom[i]] = np.dot(U_tps[i], EM)
-        nb_tps[ind_new_positions_subdom[i]] += 1.0
-
-    U_eval /= nb_tps
-
-    return U_smooth, U_tps, x_dom, y_dom, buffer_area_x, buffer_area_y
-
-
-def compute_tps_coeff_iter(centers, U, smoothing_coef, threshold=None):
-    """ Compute the thin plate spline (tps) coefficients removing erratic
-    vectors
-    It computes iteratively "compute_tps_coeff", compares the tps result
-    to the initial data and remove it if difference is larger than the given
-    threshold
-
-    """
-    U_smooth, U_tps = compute_tps_coeff(centers, U, smoothing_coef)
-
-    if threshold is not None:
-        Udiff = np.sqrt((U_smooth - U) ** 2)
-        ind_erratic_vector = np.argwhere(Udiff > threshold)
-
-        count = 1
-        while ind_erratic_vector.size != 0:
-            U[ind_erratic_vector] = U_smooth[ind_erratic_vector]
-            U_smooth, U_tps = compute_tps_coeff(centers, U, smoothing_coef)
-
-            Udiff = np.sqrt((U_smooth - U) ** 2)
-            ind_erratic_vector = np.argwhere(Udiff > threshold)
-            count += 1
-
-            if count > 10:
-                print("tps stopped after 10 iterations")
-                break
-
-    if count > 1:
-        print("tps done after ", count, " attempt(s)")
-    return U_smooth, U_tps
-
-
 def compute_tps_coeff(centers, U, smoothing_coef):
     """Calculate the thin plate spline (tps) coefficients
 
@@ -318,8 +191,10 @@ def compute_tps_matrices_dxy(dsites, centers):
 class ThinPlateSpline:
     """Helper class for thin plate interpolation."""
 
+    _compute_tps_matrix = compute_tps_matrix
+
     def __init__(self, new_positions, centers):
-        self.EM = compute_tps_matrix(new_positions, centers)
+        self.EM = type(self)._compute_tps_matrix(new_positions, centers)
         self.DMX, self.DMY = compute_tps_matrices_dxy(new_positions, centers)
 
     def compute_field(self, U_tps):
@@ -329,3 +204,7 @@ class ThinPlateSpline:
     def compute_gradient(self, U_tps):
         """Compute the gradient (dx_U, dy_U)"""
         return np.dot(U_tps, self.DMX), np.dot(U_tps, self.DMY)
+
+
+class ThinPlateSplineNumpy(ThinPlateSpline):
+    _compute_tps_matrix = compute_tps_matrix_numpy
