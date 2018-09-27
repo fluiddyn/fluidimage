@@ -4,6 +4,8 @@ import unittest
 from shutil import rmtree
 from pathlib import Path
 
+import matplotlib.pyplot as plt
+
 from fluiddyn.io import stdout_redirected
 
 from fluidimage.topologies.log import LogTopology
@@ -56,7 +58,7 @@ class TestBOS(unittest.TestCase):
         log.plot_durations()
         log.plot_nb_workers()
         log.plot_memory()
-
+        plt.close("all")
 
 if __name__ == "__main__":
     unittest.main()
