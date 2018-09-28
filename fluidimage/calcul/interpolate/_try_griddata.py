@@ -1,4 +1,3 @@
-
 from time import clock
 
 import numpy as np
@@ -18,7 +17,7 @@ from fluidimage.calcul.interpolate.thin_plate_spline import (
 )
 
 from fluidimage.calcul.interpolate.thin_plate_spline_subdom import (
-    ThinPlateSplineSubdom
+    ThinPlateSplineSubdom,
 )
 
 from fluidimage.calcul.interpolate.griddata import griddata

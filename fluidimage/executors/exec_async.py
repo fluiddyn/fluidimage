@@ -237,12 +237,6 @@ class ExecutorAsync(ExecutorBase):
         try:
             ret = await trio.run_sync_in_worker_thread(work.func_or_cls, obj)
         except Exception as error:
-            logger.error(
-                cstring(
-                    "error during work " f"{work.name_no_space} ({key})",
-                    color="FAIL",
-                )
-            )
             self.log_exception(error, work.name_no_space, key)
             if self.stop_if_error:
                 raise
@@ -293,12 +287,6 @@ class ExecutorAsync(ExecutorBase):
         try:
             ret = await trio.run_sync_in_worker_thread(work.func_or_cls, obj)
         except Exception as error:
-            logger.error(
-                cstring(
-                    "error during work " f"{work.name_no_space} ({key})",
-                    color="FAIL",
-                )
-            )
             self.log_exception(error, work.name_no_space, key)
             if self.stop_if_error:
                 raise

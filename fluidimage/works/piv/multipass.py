@@ -69,7 +69,7 @@ class WorkPIV(BaseWork):
                 "use_tps": "last",
                 "subdom_size": 200,
                 "smoothing_coef": 0.5,
-                "threshold_tps": 1.,
+                "threshold_tps": 1.0,
             },
         )
 

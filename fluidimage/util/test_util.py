@@ -1,4 +1,3 @@
-
 import unittest
 
 from .util import imread, cprint, is_memory_full, str_short

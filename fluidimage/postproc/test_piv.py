@@ -1,4 +1,3 @@
-
 import unittest
 
 from fluidimage import path_image_samples, np

@@ -1,4 +1,3 @@
-
 import numpy as np
 
 # pythran export long_func(int)

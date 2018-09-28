@@ -33,7 +33,7 @@ def correl_pythran(im0, im1, disp_max):
     ny0, nx0 = im0.shape
     ny1, nx1 = im1.shape
 
-    zero = np.float32(0.)
+    zero = np.float32(0.0)
     correl = np.empty((ny, nx), dtype=np.float32)
 
     for xiy in range(disp_max + 1):

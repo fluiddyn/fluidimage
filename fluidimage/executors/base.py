@@ -19,7 +19,13 @@ from fluiddyn.io.tee import MultiFile
 
 from fluidimage.config import get_config
 from fluidimage.topologies.nb_cpu_cores import nb_cores
-from fluidimage.util import logger, reset_logger, str_short, log_memory_usage
+from fluidimage.util import (
+    logger,
+    reset_logger,
+    str_short,
+    log_memory_usage,
+    log_error,
+)
 
 from fluidimage import config_logging
 
@@ -149,6 +155,7 @@ class ExecutorBase:
         logger.info(f"  executor: {str_short(type(self))}")
         logger.info(f"  nb_cpus_allowed = {nb_cores}")
         logger.info(f"  nb_max_workers = {self.nb_max_workers}")
+        logger.info(f"  path_dir_result = {self.path_dir_result}")
 
     def _reset_std_as_default(self):
         sys.stdout = sys.__stdout__
@@ -173,15 +180,22 @@ class ExecutorBase:
                 work.func_or_cls(work.input_queue, work.output_queue)
 
     def log_exception(self, exception, work_name, key):
+
+        path_log = self.path_dir_exceptions / f"exception_{work_name}_{key}.txt"
+
+        log_error(
+            "error during work " f"{work_name} ({key}) (logged in {path_log})"
+        )
+
         self.path_dir_exceptions.mkdir(exist_ok=True)
         formated_exception = "".join(
             traceback.format_exception(
                 etype=type(exception), value=exception, tb=exception.__traceback__
             )
         )
-        with open(
-            self.path_dir_exceptions / f"exception_{work_name}_{key}.txt", "w"
-        ) as file:
+
+        with open(path_log, "w") as file:
             file.write(
-                f"Exception for work {work_name}, key {key}" + formated_exception
+                f"Exception for work {work_name}, key {key}:\n"
+                + formated_exception
             )

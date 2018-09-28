@@ -61,7 +61,7 @@ class SimpleCircleGrid:
         params_cv = cv2.SimpleBlobDetector_Params()
         # Slightly nicer defaults
         params_cv.filterByColor = False
-        params_cv.minArea = 0.
+        params_cv.minArea = 0.0
         return ParamContainerCV(params_cv, "SimpleBlobDetector")
 
     def __init__(self, params: ParamContainerCV) -> None:

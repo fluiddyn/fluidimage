@@ -31,7 +31,7 @@ __all__ = [
 
 
 @iterate_multiple_imgs
-def sliding_median(img=None, weight=1., window_size=3):
+def sliding_median(img=None, weight=1.0, window_size=3):
     """
     Subtracts the median calculated within a sliding window from the centre of
     the window.
@@ -64,7 +64,7 @@ def sliding_median(img=None, weight=1., window_size=3):
 
 @iterate_multiple_imgs
 def sliding_minima(
-    img=None, weight=1., window_size=3, boundary_condition="reflect"
+    img=None, weight=1.0, window_size=3, boundary_condition="reflect"
 ):
     """
     Subtracts the minimum calculated within a sliding window from the centre of
@@ -95,7 +95,7 @@ def sliding_minima(
 
 
 @iterate_multiple_imgs
-def global_threshold(img=None, minima=0., maxima=65535.):
+def global_threshold(img=None, minima=0.0, maxima=65535.0):
     """
     Trims pixel intensities which are outside the interval (minima, maxima).
 

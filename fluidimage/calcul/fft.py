@@ -93,7 +93,7 @@ class CUFFT2DReal2Complex:
 
     def fft(self, ff):
         arr_dev = self.thr.to_device(ff.astype(self.type_complex))
-        self.fftplan(arr_dev, arr_dev, 1. / self.coef_norm)
+        self.fftplan(arr_dev, arr_dev, 1.0 / self.coef_norm)
         return arr_dev.get()
 
     def ifft(self, ff_fft):

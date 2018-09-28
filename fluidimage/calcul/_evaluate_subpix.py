@@ -1,4 +1,3 @@
-
 import numpy as np
 
 from fluidimage.synthetic import make_synthetic_images
@@ -40,7 +39,7 @@ def setUpImages(nx, ny, dx, dy, part_size):
         displacements,
         nb_particles,
         shape_im0=(ny, nx),
-        epsilon=0.,
+        epsilon=0.0,
         part_size=part_size,
     )
 

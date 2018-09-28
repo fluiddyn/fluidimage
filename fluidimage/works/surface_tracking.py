@@ -194,7 +194,7 @@ class WorkSurfaceTracking(BaseWork):
         ky = np.arange(-l_y / 2, l_y / 2) / l_y
         kxgrid, kygrid = np.meshgrid(kx, ky)
         X, Y = np.meshgrid(kx * l_x, ky * l_y)
-        gain = np.exp(-1.j * 2 * np.pi * (k_x / l_x * X))
+        gain = np.exp(-1.0j * 2 * np.pi * (k_x / l_x * X))
         filt1 = np.fft.fftshift(
             np.exp(-((kxgrid ** 2 + kygrid ** 2) / 2 / (k_x / slicer / l_x) ** 2))
             * np.exp(1 - 1 / (1 + ((kxgrid + k_x) ** 2 + kygrid ** 2) / k_x ** 2))

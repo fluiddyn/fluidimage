@@ -853,8 +853,8 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
                 ixs1[ind] = self.ixvecs_grid[ind] + deltaxs_approx[ind]
                 iys1[ind] = self.iyvecs_grid[ind] + deltays_approx[ind]
 
-        xs = (ixs0 + ixs1) / 2.
-        ys = (iys0 + iys1) / 2.
+        xs = (ixs0 + ixs1) / 2.0
+        ys = (iys0 + iys1) / 2.0
 
         ixs0_pad = ixs0 + self.npad
         iys0_pad = iys0 + self.npad

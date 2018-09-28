@@ -1,4 +1,3 @@
-
 import numpy as np
 
 from numpy import pi
@@ -6,7 +5,7 @@ from numpy import pi
 import matplotlib.pyplot as plt
 
 from fluidimage.calcul.interpolate.thin_plate_spline_subdom import (
-    ThinPlateSplineSubdom
+    ThinPlateSplineSubdom,
 )
 
 

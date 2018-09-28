@@ -272,10 +272,10 @@ class PIV2d:
         def onclick(event):
             key = event.key
             if key == "ctrl++":
-                q.scale *= 2.
+                q.scale *= 2.0
                 print(key + ": multiply q.scale by 2.", end="")
             elif key == "ctrl+-":
-                q.scale /= 2.
+                q.scale /= 2.0
                 print(key + ": divide q.scale by 2.", end="")
             if event.key in ["ctrl++", "ctrl+-"]:
                 print(" q.scale = {}".format(q.scale))

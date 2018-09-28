@@ -1,4 +1,3 @@
-
 import unittest
 import numpy as np
 from time import time
@@ -71,10 +70,10 @@ class TestFFTW2DReal2Complex(unittest.TestCase):
         self.assertTrue(np.allclose(func_fft, back_fft, rtol=rtol, atol=atol))
         self.assertTrue(np.allclose(func, back, rtol=rtol, atol=atol))
 
-        self.assertAlmostEqual(energyX / energyK, 1., places=3)
+        self.assertAlmostEqual(energyX / energyK, 1.0, places=3)
 
         energyKback = op.compute_energy_from_Fourier(back_fft)
-        self.assertAlmostEqual(energyK / energyKback, 1., places=3)
+        self.assertAlmostEqual(energyK / energyKback, 1.0, places=3)
 
     def compute_and_check2(self, func, op):
 
@@ -95,15 +94,15 @@ class TestFFTW2DReal2Complex(unittest.TestCase):
 
         self.assertTrue(np.allclose(func, back, rtol=rtol, atol=atol))
 
-        self.assertAlmostEqual(energyX / energyK, 1., places=3)
-        self.assertAlmostEqual(energyK / energyKback, 1., places=3)
+        self.assertAlmostEqual(energyX / energyK, 1.0, places=3)
+        self.assertAlmostEqual(energyK / energyKback, 1.0, places=3)
 
     def bench_fft_random(self):
         """random"""
         nx = 128 * 16
         ny = 64 * 4 * 8
 
-        rtime, ntime = 0., 0.
+        rtime, ntime = 0.0, 0.0
         Nloops = 2
         for nloop in xrange(Nloops):
 

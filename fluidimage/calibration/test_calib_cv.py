@@ -53,7 +53,7 @@ class TestCalib(unittest.TestCase):
 
         origin = (250, 250)  # Hardcoded origin
         imgpoints = [construct_image_points(path_input, origin)]
-        objpoints = [construct_object_points(7, 7, 0., 3.)]
+        objpoints = [construct_object_points(7, 7, 0.0, 3.0)]
         zs = [0]
         im_shape = imread(str(path_input)).shape[::-1]
         ret, mtx, dist, rvecs, tvecs = calib.calibrate(

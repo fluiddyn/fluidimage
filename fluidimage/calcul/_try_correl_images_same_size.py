@@ -1,4 +1,3 @@
-
 import numpy as np
 
 import matplotlib.pyplot as plt
@@ -16,8 +15,8 @@ from fluidimage.synthetic import make_synthetic_images
 
 nx = 32
 ny = 32
-displacement_x = 2.
-displacement_y = 2.
+displacement_x = 2.0
+displacement_y = 2.0
 
 displacements = np.array([displacement_x, displacement_y])
 
@@ -27,7 +26,7 @@ nb_particles = (nx // 3) ** 2
 print("nx: {} ; ny: {}".format(nx, ny))
 
 im0, im1 = make_synthetic_images(
-    displacements, nb_particles, shape_im0=(ny, nx), epsilon=0.
+    displacements, nb_particles, shape_im0=(ny, nx), epsilon=0.0
 )
 
 # plt.figure()

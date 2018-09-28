@@ -62,7 +62,7 @@ def get_points(points_file):
 
     # particularity for X, Y, Z
     for i in range(3):
-        results[i] /= 100.
+        results[i] /= 100.0
 
     return results
 
@@ -289,8 +289,10 @@ class CalibDirect:
         camera plane and then projected on the laser plane
         """
         displacements = self.intersect_with_plane(
-            indx + dx / 2., indy + dy / 2., a, b, c, d
-        ) - self.intersect_with_plane(indx - dx / 2., indy - dy / 2., a, b, c, d)
+            indx + dx / 2.0, indy + dy / 2.0, a, b, c, d
+        ) - self.intersect_with_plane(
+            indx - dx / 2.0, indy - dy / 2.0, a, b, c, d
+        )
         return displacements
 
     def get_base_camera_plane(self, indx=None, indy=None):
@@ -354,9 +356,9 @@ class CalibDirect:
             dx = self.interp_lines[3]((x[i], y[i]))
             dy = self.interp_lines[4]((x[i], y[i]))
             dz = self.interp_lines[5]((x[i], y[i]))
-            X = (np.arange(10) - 5) / 20. * dx + X0
-            Y = (np.arange(10) - 5) / 20. * dy + Y0
-            Z = (np.arange(10) - 5) / 20. * dz + Z0
+            X = (np.arange(10) - 5) / 20.0 * dx + X0
+            Y = (np.arange(10) - 5) / 20.0 * dy + Y0
+            Z = (np.arange(10) - 5) / 20.0 * dz + Z0
             ax.plot(X, Y, Z, "r")
         ax.set_xlabel("x (m)")
         ax.set_ylabel("y (m)")
@@ -622,7 +624,7 @@ class DirectStereoReconstruction:
         n3 = np.abs(np.inner(self.A0[1], self.A1[0]))
         n4 = np.abs(np.inner(self.A0[0], self.A1[1]))
         # I suppose that 5deg between vectors is sufficient
-        threshold = np.cos(5 * 2 * np.pi / 180.)
+        threshold = np.cos(5 * 2 * np.pi / 180.0)
 
         tmp = []
         dcam = np.zeros((3, d0xcam.shape[0], d0xcam.shape[1]))

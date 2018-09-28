@@ -1,4 +1,3 @@
-
 import numpy as np
 
 import matplotlib.pyplot as plt
@@ -15,8 +14,8 @@ ny = 64
 nx1 = 32
 ny1 = 32
 
-displacement_x = 2.
-displacement_y = 2.
+displacement_x = 2.0
+displacement_y = 2.0
 
 displacements = np.array([displacement_y, displacement_x])
 
@@ -30,7 +29,7 @@ im0, im1 = make_synthetic_images(
     nb_particles,
     shape_im0=(ny, nx),
     shape_im1=(ny1, nx1),
-    epsilon=0.,
+    epsilon=0.0,
 )
 
 # plt.figure()

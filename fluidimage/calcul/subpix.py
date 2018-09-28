@@ -116,7 +116,7 @@ class SubPix:
             assert nx == ny == 2 * nsubpix + 1
 
             correl_map = correl_crop.ravel()
-            correl_map[correl_map <= 0.] = 1e-6
+            correl_map[correl_map <= 0.0] = 1e-6
 
             coef = np.dot(self.Minv_subpix, np.log(correl_map))
             if coef[0] > 0 or coef[1] > 0:
@@ -152,7 +152,7 @@ class SubPix:
             deply = np.sum(self.Y_centroid * correl_crop) / sum_correl
 
         elif method == "no_subpix":
-            deplx = deply = 0.
+            deplx = deply = 0.0
 
         if deplx ** 2 + deply ** 2 > 2 * (0.5 + nsubpix) ** 2:
             if method == "2d_gaussian2":

@@ -1,4 +1,3 @@
-
 from multiprocessing import Process, Queue
 
 import numpy as np

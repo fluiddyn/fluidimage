@@ -83,7 +83,7 @@ class TomoMLOSBase:
             x_pix = da.from_array(pix["x"], chunks=chunks)
             y_pix = da.from_array(pix["y"], chunks=chunks)
             i_vox = da.map_blocks(interp, x_pix, y_pix)
-            i_vox = i_vox ** (1. / len(self.cams))
+            i_vox = i_vox ** (1.0 / len(self.cams))
             if save:
                 if os.path.exists(self.array.h5file_path):
                     # Create a temporary copy to read from
@@ -135,7 +135,7 @@ class TomoMLOSRbf(TomoMLOSBase):
         im = imread(image)
 
         if threshold is not None:
-            im[im < threshold] = 0.
+            im[im < threshold] = 0.0
         im_sparse = sparse.coo_matrix(im)
 
         # Interpolation function
@@ -153,7 +153,7 @@ class TomoMLOSNeighbour(TomoMLOSBase):
         im = imread(image)
 
         if threshold is not None:
-            im[im < threshold] = 0.
+            im[im < threshold] = 0.0
         im_sparse = sparse.coo_matrix(im)
 
         # Interpolation function

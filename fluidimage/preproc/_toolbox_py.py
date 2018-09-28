@@ -62,7 +62,7 @@ def imstats(img, hist_bins=256):
 
 @iterate_multiple_imgs
 def sliding_median(
-    img=None, weight=1., window_size=30, boundary_condition="reflect"
+    img=None, weight=1.0, window_size=30, boundary_condition="reflect"
 ):
     """
     Subtracts the median calculated within a sliding window from the centre of
@@ -92,8 +92,8 @@ def sliding_median(
 @iterate_multiple_imgs
 def sliding_percentile(
     img=None,
-    percentile=10.,
-    weight=1.,
+    percentile=10.0,
+    weight=1.0,
     window_size=30,
     boundary_condition="reflect",
 ):
@@ -126,7 +126,7 @@ def sliding_percentile(
 
 @iterate_multiple_imgs
 def sliding_minima(
-    img=None, weight=1., window_size=30, boundary_condition="reflect"
+    img=None, weight=1.0, window_size=30, boundary_condition="reflect"
 ):
     """
     Subtracts the minimum calculated within a sliding window from the centre of
@@ -184,7 +184,7 @@ def _calcul_windowshape(arr_shape, window_shape):
 
 
 @multiple_imgs_as_ndarray
-def temporal_median(img=None, weight=1., window_shape=None):
+def temporal_median(img=None, weight=1.0, window_shape=None):
     """
     Subtracts the median calculated in time and space, for each pixel.
     Median filter works well for sparse images.
@@ -207,7 +207,7 @@ def temporal_median(img=None, weight=1., window_shape=None):
 
 
 @multiple_imgs_as_ndarray
-def temporal_percentile(img=None, percentile=10., weight=1., window_shape=None):
+def temporal_percentile(img=None, percentile=10.0, weight=1.0, window_shape=None):
     """
     Flexible version of median filter. Low percentile values work well
     for dense images.
@@ -235,7 +235,7 @@ def temporal_percentile(img=None, percentile=10., weight=1., window_shape=None):
 
 
 @multiple_imgs_as_ndarray
-def temporal_minima(img=None, weight=1., window_shape=None):
+def temporal_minima(img=None, weight=1.0, window_shape=None):
     """Subtracts the minima calculated in time and space, for each pixel.
 
     Parameters
@@ -260,7 +260,7 @@ def temporal_minima(img=None, weight=1., window_shape=None):
 
 
 @iterate_multiple_imgs
-def global_threshold(img=None, minima=0., maxima=65535.):
+def global_threshold(img=None, minima=0.0, maxima=65535.0):
     """
     Trims pixel intensities which are outside the interval (minima, maxima).
 
@@ -300,7 +300,7 @@ def adaptive_threshold(img=None, window_size=5, offset=0):
 
 
 @iterate_multiple_imgs
-def rescale_intensity(img=None, minima=0., maxima=4096):
+def rescale_intensity(img=None, minima=0.0, maxima=4096):
     """
     Rescale image intensities, between the specified minima and maxima,
     by using a multiplicative factor.
@@ -427,7 +427,7 @@ def equalize_hist_local(img=None, radius=10):
 
 
 @iterate_multiple_imgs
-def gamma_correction(img=None, gamma=1., gain=1.):
+def gamma_correction(img=None, gamma=1.0, gain=1.0):
     r"""
     Gamma correction or power law transform. It can be expressed as:
 
@@ -458,7 +458,7 @@ def gamma_correction(img=None, gamma=1., gain=1.):
 
 
 @iterate_multiple_imgs
-def sharpen(img=None, sigma1=3., sigma2=1., alpha=30.):
+def sharpen(img=None, sigma1=3.0, sigma2=1.0, alpha=30.0):
     """
     Sharpen image edges.
 

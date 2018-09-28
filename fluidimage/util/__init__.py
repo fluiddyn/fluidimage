@@ -17,6 +17,7 @@ from .log import (
     log_memory_usage,
     DEBUG,
     log_debug,
+    log_error,
     config_logging,
 )
 from .util import imread, imsave, print_memory_usage, cstring, str_short
@@ -33,5 +34,6 @@ __all__ = [
     "str_short",
     "DEBUG",
     "log_debug",
+    "log_error",
     "config_logging",
 ]

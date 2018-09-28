@@ -1,4 +1,3 @@
-
 # import h5py
 
 from fluidimage import SeriesOfArrays

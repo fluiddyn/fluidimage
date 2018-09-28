@@ -56,11 +56,11 @@ class Calibration2DSimple:
         point0,
         point1,
         distance,
-        aspect_ratio_pixel=1.,
+        aspect_ratio_pixel=1.0,
         shape_image=None,
         path_image=None,
         point_origin=(0, 0),
-        orig_phys=(0., 0.),
+        orig_phys=(0.0, 0.0),
     ):
 
         self.point0 = np.array(point0)

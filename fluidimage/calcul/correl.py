@@ -86,7 +86,7 @@ def _compute_indices_max(correl, norm):
 
     if norm == 0:
         # I hope it is ok (Pierre)
-        correl_max = 0.
+        correl_max = 0.0
     else:
         correl_max = correl[iy, ix] / norm
 
@@ -155,7 +155,7 @@ class CorrelBase:
     def get_indices_no_displacement(self):
         return self.iy0, self.ix0
 
-    def compute_displacements_from_correl(self, correl, norm=1.):
+    def compute_displacements_from_correl(self, correl, norm=1.0):
         """Compute the displacement from a correlation."""
 
         try:
@@ -556,7 +556,7 @@ class CorrelFFTBase(CorrelBase):
                 "have to have the same shape."
             )
 
-    def compute_displacements_from_correl(self, correl, norm=1.):
+    def compute_displacements_from_correl(self, correl, norm=1.0):
 
         """Compute the displacement (with subpix) from a correlation."""
 

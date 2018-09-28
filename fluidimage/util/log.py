@@ -7,6 +7,8 @@
 
 .. autofunction:: log_debug
 
+.. autofunction:: log_error
+
 """
 
 from logging import getLogger, DEBUG
@@ -46,3 +48,8 @@ def log_memory_usage(string="Memory usage", color="OKGREEN", mode="info"):
 def log_debug(string):
     """Log in debug mode with WARNING color"""
     logger.debug(cstring(string, color="WARNING"))
+
+
+def log_error(string):
+    """Log in error mode with FAIL color"""
+    logger.error(cstring(string, color="FAIL"))

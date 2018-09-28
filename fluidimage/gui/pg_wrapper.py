@@ -123,7 +123,7 @@ class PGWrapper:
             p1.addItem(vLine, ignoreBounds=True)
             p1.addItem(hLine, ignoreBounds=True)
 
-        label = pg.TextItem("(x,y)=intensity", anchor=(0., 0.))
+        label = pg.TextItem("(x,y)=intensity", anchor=(0.0, 0.0))
         p1.addItem(label)
         label.hide()
 

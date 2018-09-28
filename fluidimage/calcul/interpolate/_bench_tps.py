@@ -1,4 +1,3 @@
-
 from time import clock
 
 import resource
@@ -14,7 +13,7 @@ from fluidimage.calcul.interpolate.thin_plate_spline import (
 
 
 def get_memory_usage():
-    return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1000.
+    return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1000.0
 
 
 def bench(n0, n1):

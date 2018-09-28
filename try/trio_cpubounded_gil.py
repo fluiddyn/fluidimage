@@ -17,7 +17,7 @@ from cpubounded_pythran import long_func1
 long_func = long_func1
 
 
-n = 1000000000
+n = 1_000_000_000
 nb_proc = 4
 
 t_start = time()

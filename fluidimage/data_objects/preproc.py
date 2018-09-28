@@ -51,8 +51,8 @@ def get_Ni_Nj(serie):
 
 def get_ind_middle(serie):
     Ni, Nj = get_Ni_Nj(serie)
-    ind_middle_start = int(math.floor(Ni / 2.)) * Nj
-    ind_middle_end = int(math.ceil(Ni / 2.)) * Nj
+    ind_middle_start = int(math.floor(Ni / 2.0)) * Nj
+    ind_middle_end = int(math.ceil(Ni / 2.0)) * Nj
     if Ni % 2 == 0:
         ind_middle_start -= 1
 

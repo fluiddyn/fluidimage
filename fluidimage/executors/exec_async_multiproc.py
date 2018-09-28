@@ -119,12 +119,6 @@ class ExecutorAsyncMultiproc(ExecutorAsync):
         ret = await trio.run_sync_in_worker_thread(run_process)
 
         if isinstance(ret, Exception):
-            logger.error(
-                cstring(
-                    "error during work " f"{work.name_no_space} ({key})",
-                    color="FAIL",
-                )
-            )
             self.log_exception(ret, work.name_no_space, key)
             if self.stop_if_error:
                 raise ret

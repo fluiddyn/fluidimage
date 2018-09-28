@@ -1,4 +1,3 @@
-
 import numpy as np
 
 
@@ -7,7 +6,7 @@ def make_synthetic_images(
     nb_particles,
     shape_im0,
     shape_im1=None,
-    epsilon=0.,
+    epsilon=0.0,
     part_size=np.sqrt(1 / 0.5),
 ):
     ny, nx = tuple(shape_im0)

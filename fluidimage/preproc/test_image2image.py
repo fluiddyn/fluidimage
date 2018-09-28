@@ -1,4 +1,3 @@
-
 import unittest
 
 from fluidimage import SerieOfArraysFromFiles, path_image_samples

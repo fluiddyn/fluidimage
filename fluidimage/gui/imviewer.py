@@ -152,7 +152,7 @@ class ImageViewer:
         function_buttons[2] = self._increase_ifile
         function_buttons[3] = self._increase_ifile_n
 
-        y = size_button / 3.
+        y = size_button / 3.0
         for i, x in enumerate(x_buttons):
             name = name_buttons[i]
             func = function_buttons[i]

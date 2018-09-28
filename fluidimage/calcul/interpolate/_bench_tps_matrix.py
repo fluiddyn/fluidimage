@@ -1,4 +1,3 @@
-
 import numpy as np
 
 from thin_plate_spline import compute_tps_matrix_numpy, compute_tps_matrix

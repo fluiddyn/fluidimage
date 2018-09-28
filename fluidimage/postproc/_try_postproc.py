@@ -1,4 +1,3 @@
-
 import h5py
 from fluiddyn.util.serieofarrays import SeriesOfArrays
 from fluidimage.works.piv import WorkPIV
@@ -10,7 +9,7 @@ params = WorkPIV.create_default_params()
 
 # for a very short computation
 params.piv0.shape_crop_im0 = 24
-params.piv0.grid.overlap = 0.
+params.piv0.grid.overlap = 0.0
 
 params.piv0.method_subpix = "2d_gaussian"
 params.piv0.method_correl = "fftw"
