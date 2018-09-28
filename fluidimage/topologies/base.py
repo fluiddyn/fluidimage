@@ -234,7 +234,7 @@ class TopologyBase:
         """Print information before exit."""
         print(self.make_text_at_exit(time_since_start))
 
-    def make_code_graphviz(self, name_file):
+    def make_code_graphviz(self, name_file="tmp.dot"):
         """Generate the graphviz / dot code.
 
         This method only generates a graphviz code. The graph can be visualized

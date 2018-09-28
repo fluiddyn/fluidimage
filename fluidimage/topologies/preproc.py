@@ -262,7 +262,7 @@ postfix : str
         self.add_work(
             "make subsets of arrays",
             func_or_cls=self.make_subsets,
-            input_queue=(queue_subsets_of_names, queue_arrays),
+            input_queue=(queue_subsets_of_names, queue_arrays1),
             output_queue=queue_subsets_of_arrays,
             kind="global",
         )

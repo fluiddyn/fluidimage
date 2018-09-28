@@ -1,9 +1,10 @@
 
 from fluidimage.topologies.piv import TopologyPIV
+from fluidimage import path_image_samples
 
 params = TopologyPIV.create_default_params()
 
-params.series.path = '../../image_samples/Karman/Images'
+params.series.path = path_image_samples / 'Karman/Images'
 params.series.ind_start = 1
 params.series.ind_step = 2
 

@@ -1,4 +1,3 @@
-
 import unittest
 import logging
 
@@ -12,7 +11,6 @@ from fluidimage.calcul.correl import (
     CorrelPythran,
     CorrelPyCuda,
     CorrelFFTBase,
-    # CorrelBase,
 )
 
 # config_logging('debug')
@@ -69,7 +67,7 @@ class TestCorrel(unittest.TestCase):
         nb_particles = (nx // 4) ** 2
 
         cls.im0, cls.im1 = make_synthetic_images(
-            cls.displacements, nb_particles, shape_im0=(ny, nx), epsilon=0.
+            cls.displacements, nb_particles, shape_im0=(ny, nx), epsilon=0.0
         )
 
 
@@ -143,7 +141,7 @@ class TestCorrel1(unittest.TestCase):
         nb_particles = (max(nx, ny) // 4) ** 2
 
         cls.im0, cls.im1 = make_synthetic_images(
-            cls.displacements, nb_particles, shape_im0=(ny, nx), epsilon=0.
+            cls.displacements, nb_particles, shape_im0=(ny, nx), epsilon=0.0
         )
 
 
@@ -215,7 +213,7 @@ class TestCorrel2(unittest.TestCase):
             nb_particles,
             shape_im0=(ny0, nx0),
             shape_im1=(ny1, nx1),
-            epsilon=0.,
+            epsilon=0.0,
         )
 
         cls.im1 = cls.im1.astype("float32")
