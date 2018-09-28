@@ -343,7 +343,7 @@ postfix : str
         """Create the subsets of images"""
         queue_subsets_of_names, queue_arrays = input_queues
         # for each name subset
-        for key, names in queue_subsets_of_names.items():
+        for key, names in list(queue_subsets_of_names.items()):
             # if correspondant arrays have been loaded from images,
             # make an array subset
             if all([name in queue_arrays for name in names]):

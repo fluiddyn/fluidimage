@@ -180,7 +180,7 @@ class ExecutorBase:
                 work.func_or_cls(work.input_queue, work.output_queue)
 
     def log_exception(self, exception, work_name, key):
-
+        """Log an exception in a file."""
         path_log = self.path_dir_exceptions / f"exception_{work_name}_{key}.txt"
 
         log_error(
