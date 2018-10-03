@@ -29,12 +29,13 @@
 #            oscillating profile experiment at LEGI 2017                      #
 ###############################################################################
 
+import sys
+from pathlib import Path
 
 import numpy as np
 import math
 import scipy.interpolate
 import scipy.io
-from pathlib import Path
 
 from fluidimage import SerieOfArraysFromFiles
 from fluidimage.util import logger, imread
@@ -153,7 +154,7 @@ n_frames_stock: int (default 1)
         self.ref_film = None
         self.filmName = None
         self.save_png = True
-#        self.treshold = 0.16
+        #        self.treshold = 0.16
 
         self.xmin = self.params.surface_tracking.xmin
         self.xmax = self.params.surface_tracking.xmax
@@ -190,7 +191,7 @@ n_frames_stock: int (default 1)
         )
         k_x = self.compute_kx(refserie)
         logger.warning("Value of kx computed = " + str(k_x))
-        
+
         self.kxx = self.kx / self.pix_size
         self.gain, self.filt = self.set_gain_filter(
             k_x, self.l_y, self.l_x, self.slicer
@@ -208,12 +209,16 @@ n_frames_stock: int (default 1)
 
         for name in names:
             array = imread(str(Path(self.path_ref) / name))
-            frame = array[self.ymin:self.ymax, self.xmin:self.xmax].astype(float)
+            frame = array[self.ymin : self.ymax, self.xmin : self.xmax].astype(
+                float
+            )
             frame = self.frame_normalize(frame)
             ref = ref + frame
             ii += 1
         ref = ref / ii
-        return self.wave_vector(ref, self.ymin, self.ymax, self.xmin, self.xmax, self.sur)
+        return self.wave_vector(
+            ref, self.ymin, self.ymax, self.xmin, self.xmax, self.sur
+        )
 
     def set_gain_filter(self, k_x, l_y, l_x, slicer):
         """compute gain and filter"""
@@ -276,7 +281,7 @@ n_frames_stock: int (default 1)
 
     def process_frame_func(self, array_and_path):
         """call process_frame function with surface_tracking parameters
-        
+
         Parameters
         ----------
 
@@ -305,7 +310,7 @@ n_frames_stock: int (default 1)
 
     def calculheight_func(self, array_and_path):
         """call convphase function with surface_tracking parameters
-        
+
         Parameters
         ----------
 
@@ -333,28 +338,28 @@ n_frames_stock: int (default 1)
 
     def convphase(self, ph, pix_size, l, d, p, correct_pos, red_factor):
         """converts phase into height [m]
-        
+
         Parameters
         ----------
 
         ph : float
             the image phase [radians]
-        
+
         pix_size  : float
             size of the pixel [m/pixel]
-        
+
         l : float
             distance between object and camera [m]
-        
+
         d : float
             distance between projector and camera [m]
-        
+
         p : float
             wave length of the object [m]
-        
+
         correct_pos : bool
             if True the position will be corrected
-        
+
         red_factor is the reduction factor
 
         Notes
@@ -412,5 +417,6 @@ n_frames_stock: int (default 1)
         return abs(kxma[indc])
 
 
-params = WorkSurfaceTracking.create_default_params()
-__doc__ += params._get_formatted_docs()
+if "sphinx" in sys.modules:
+    params = WorkSurfaceTracking.create_default_params()
+    __doc__ += params._get_formatted_docs()

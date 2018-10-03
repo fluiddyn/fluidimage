@@ -1,4 +1,11 @@
 
+0.1.0 (2018-10-03)
+------------------
+
+- New topologies and executors with Trio!
+- Much better coverage & many bugfixes!
+- Better surface tracking
+
 0.0.3 (2018-08-29)
 ------------------
 
@@ -25,6 +32,3 @@
 
 - Topology and waiting queues classes to run work in parallel.
 - PIV work and topology (multipass, different correlation methods).
-
-
-
