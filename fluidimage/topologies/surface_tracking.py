@@ -16,6 +16,7 @@
 """
 import json
 from pathlib import Path
+import sys
 
 from fluidimage.topologies import prepare_path_dir_result
 from fluidimage import ParamContainer, SerieOfArraysFromFiles, SeriesOfArrays
@@ -330,3 +331,8 @@ postfix : str
         queue_couples_of_names[ind_serie - 1] = (name, name)
         for ind_serie, serie in series.items():
             queue_couples_of_names[ind_serie] = serie.get_name_arrays()
+
+if "sphinx" in sys.modules:
+    params = TopologySurfaceTracking.create_default_params()
+
+    __doc__ += params._get_formatted_docs()
