@@ -35,13 +35,30 @@ import math
 import scipy.interpolate
 import scipy.io
 
+from fluiddyn.util.paramcontainer import ParamContainer
+
 from . import BaseWork
 
 
 class WorkSurfaceTracking(BaseWork):
-    """Base class for surface tracking
+    """Main work for surface tracking
+
+    Parameters
+    ----------
+
+    params : :class:`fluiddyn.util.paramcontainer.ParamContainer`
+
+      The default parameters are obtained from the class method
+      :func:`WorkSurfaceTracking.create_default_params`.
 
     """
+
+    @classmethod
+    def create_default_params(cls):
+        "Create an object containing the default parameters (class method)."
+        params = ParamContainer(tag="params")
+        cls._complete_params_with_default(params)
+        return params
 
     @classmethod
     def _complete_params_with_default(cls, params):
@@ -65,59 +82,54 @@ class WorkSurfaceTracking(BaseWork):
                 "n_frames_stock": 1,
             },
         )
+
         params.surface_tracking._set_doc(
-            """
-- xmin: 475,
+            """Surface Tracking parameters:
 
-  x axis pixel range to crop the image imx[min:max]
+xmin: int (default 475)
+    xmin to crop the image im[xmin:xmax, ymin:ymax].
 
-- xmax: 640,
+xmax: int (default 640)
+    xmax to crop the image im[xmin:xmax, ymin:ymax]
 
-  x axis pixel range to crop the image imx[min:max]
+ymin: int (default 50)
+    ymin to crop the image im[xmin:xmax, ymin:ymax]
 
-- ymin: 50,
+ymax: int (default 700)
+    ymax to crop the image im[xmin:xmax, ymin:ymax]
 
-  y axis pixel range to crop the image imy[min:max]
+distance_lens: float (default 0.36)
+    distance in [m] lenses of camera/projetor
 
-- ymax: 700,
+distance_object: float (default 1.07)
+    distance in [m] camera/projector and surface
 
-  y axis pixel range to crop the image imy[min:max]
+pix_size: float (default 2.4 * 10 ** -4)
+    pixel size
 
-- distance_lens: 0.36,
+startref_frame: int (default 0)
+    indice of first reference image
 
-  distance in [m] lenses of camera/projetor
+lastref_frame: int (default 49)
+    indice of last reference image
 
-- distance_object: 1.07,
+sur: int (default 16)
 
-  distance in [m] camera/projector and surface
+k_x: float (default 70.75)
+    wave vector oj. grid (approx. value, will set accurate later)
 
-- pix_size: 2.4 * 10 ** -4,
+k_y: float (default 0)
+    wave vector of the grid y-axis
 
-- startref_frame: 0,
+slicer: int (default 4)
+    cut the borders
 
-- lastref_frame: 49,
+red_factor: int (default 1)
+    reduction factor to for the pixels to take tp speed up
 
-- sur: 16,
+n_frames_stock: int (default 1)
+    number of frames to stock in one file
 
-- k_x: 70.75,
-
-  wave vector oj. grid (approx. value, will set accurate later)
-
-- k_y: 0,
-
-  wave vector of the grid y-axis
-
-- slicer: 4,
-
-  cut the borders
-
-- red_factor: 1,
-
-  reduction factor to for the pixels to take tp speed up
-
-- n_frames_stock: 1,
-
-  number of frames to stock in one file
 """
         )
 
@@ -130,14 +142,14 @@ class WorkSurfaceTracking(BaseWork):
         self.works_surface_tracking = []
         self.nameFrame = None
 
-        self.path = params.film.path
-        self.path_ref = params.film.path_ref
+        self.path = params.images.path
+        self.path_ref = params.images.path_ref
 
         self.verify_process = False
         self.ref_film = None
         self.filmName = None
         self.save_png = True
-        self.treshold = 0.16
+#        self.treshold = 0.16
 
         self.xmin = self.params.surface_tracking.xmin
         self.xmax = self.params.surface_tracking.xmax
@@ -190,6 +202,7 @@ class WorkSurfaceTracking(BaseWork):
         self.a1_tmp = None
 
     def set_gain_filter(self, k_x, l_y, l_x, slicer):
+        """compute gain and filter"""
         kx = np.arange(-l_x / 2, l_x / 2) / l_x
         ky = np.arange(-l_y / 2, l_y / 2) / l_y
         kxgrid, kygrid = np.meshgrid(kx, ky)
@@ -223,6 +236,7 @@ class WorkSurfaceTracking(BaseWork):
         return gain, filt1 * filt2 * filt3
 
     def rectify_frame(self, frame, gain, filt):
+        """rectify a frame with gain and filt"""
         return np.fft.fft2(frame * gain) * filt
 
     def frame_normalize(self, frame):
@@ -236,6 +250,7 @@ class WorkSurfaceTracking(BaseWork):
     def process_frame(
         self, frame, ymin, ymax, xmin, xmax, gain, filt, red_factor
     ):
+        """process a frame and return phase"""
         frame1 = frame[ymin:ymax, xmin:xmax]
         frame1 = self.frame_normalize(frame1).astype(float)
         frame_filtered = self.rectify_frame(frame1, gain, filt)
@@ -246,6 +261,19 @@ class WorkSurfaceTracking(BaseWork):
         return a
 
     def process_frame_func(self, array_and_path):
+        """call process_frame function with surface_tracking parameters
+        
+        Parameters
+        ----------
+
+        array_and_path : tuple containing array and path
+
+        Returns
+        -------
+
+        array_and_path : tuple containing array/phase [radians] and path
+
+        """
         array, path = array_and_path
         return (
             self.process_frame(
@@ -262,6 +290,19 @@ class WorkSurfaceTracking(BaseWork):
         )
 
     def calculheight_func(self, array_and_path):
+        """call convphase function with surface_tracking parameters
+        
+        Parameters
+        ----------
+
+        array_and_path : tuple containing array/phase [radians] and path
+
+        Returns
+        -------
+
+        height_and_path : tuple containing array/height [m] and path
+
+        """
         array, path = array_and_path
         return (
             self.convphase(
@@ -278,14 +319,36 @@ class WorkSurfaceTracking(BaseWork):
 
     def convphase(self, ph, pix_size, l, d, p, correct_pos, red_factor):
         """converts phase into height [m]
-        make sure that the grid is parallel to y
-        ph is the image phase [radians]
-        pix_size  [m/pixel]
-        l distance between object and camera [m]
-        d distance between projector and camera [m]
-        p wave length of the object [m]
-        correct_pos if set 1 the position will be corrected
-        red is the reduction factor"""
+        
+        Parameters
+        ----------
+
+        ph : float
+            the image phase [radians]
+        
+        pix_size  : float
+            size of the pixel [m/pixel]
+        
+        l : float
+            distance between object and camera [m]
+        
+        d : float
+            distance between projector and camera [m]
+        
+        p : float
+            wave length of the object [m]
+        
+        correct_pos : bool
+            if True the position will be corrected
+        
+        red_factor is the reduction factor
+
+        Notes
+        -----
+
+        Make sure that the grid is parallel to y
+
+        """
 
         height = ph * l / (ph - 2 * np.pi / p * d)
         if correct_pos is True:
@@ -315,7 +378,7 @@ class WorkSurfaceTracking(BaseWork):
         return height
 
     def correctcouple(self, queue_couple):
-        """correctphase"""
+        """correct phase in order to avoid jump phase"""
         ((anglemod, path_anglemod), (angle, path_angle)) = queue_couple
         fix_y = int(np.fix(self.l_y / 2 / self.red_factor))
         fix_x = int(np.fix(self.l_x / 2 / self.red_factor))
@@ -343,3 +406,7 @@ class WorkSurfaceTracking(BaseWork):
         # kyma = np.arange(-l_y*sur/2, l_y*sur/2)/sur
         indc = np.max(np.fft.fftshift(abs(Fref)), axis=0).argmax()
         return ref, abs(kxma[indc])"""
+
+
+params = WorkSurfaceTracking.create_default_params()
+__doc__ += params._get_formatted_docs()

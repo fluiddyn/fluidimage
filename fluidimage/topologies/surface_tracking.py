@@ -56,19 +56,6 @@ class TopologySurfaceTracking(TopologyBase):
 
         """
         params = ParamContainer(tag="params")
-        #       complete_surftrack_params_with_default(params)
-
-        params._set_child(
-            "film",
-            attribs={
-                "fileName": "",
-                "path": "",
-                "path_ref": "",
-                "ind_start": 0,
-                "ind_stop": None,
-                "ind_step": 1,
-            },
-        )
 
         WorkSurfaceTracking._complete_params_with_default(params)
 
@@ -76,11 +63,8 @@ class TopologySurfaceTracking(TopologyBase):
             "images",
             attribs={
                 "path": "",
+                "path_ref": "",
                 "str_slice": None,
-                "strcouple": "i:i+2",
-                "ind_start": 0,
-                "ind_stop": None,
-                "ind_step": 1,
             },
         )
 
@@ -92,6 +76,11 @@ path : str, {''}
 
     String indicating the input images (can be a full path towards an image
     file or a string given to `glob`).
+
+path_ref : str, {''}
+
+    String indicating the reference input images (can be a full path towards an
+    image file or a string given to `glob`).
 
 str_slice : None
 
@@ -147,15 +136,16 @@ postfix : str
         self.serie = SerieOfArraysFromFiles(
             params.images.path, params.images.str_slice
         )
-
         self.series = SeriesOfArrays(
             params.images.path,
-            params.images.strcouple,
-            ind_start=params.images.ind_start,
-            ind_stop=params.images.ind_stop,
-            ind_step=params.images.ind_step,
+            "i:i+"
+            + str(self.serie.get_index_slices()[0][2] + 1)
+            + ":"
+            + str(self.serie.get_index_slices()[0][2]),
+            ind_start=self.serie.get_index_slices()[0][0],
+            ind_stop=self.serie.get_index_slices()[0][1] - 1,
+            ind_step=self.serie.get_index_slices()[0][2],
         )
-        print(self.series)
         path_dir = self.serie.path_dir
         path_dir_result, self.how_saving = prepare_path_dir_result(
             path_dir, params.saving.path, params.saving.postfix, params.saving.how
@@ -182,8 +172,6 @@ postfix : str
         queuemod0_angles = self.add_queue("corrected angles copy")
         queuemod_angles = self.add_queue("corrected angles")
         queue_heights = self.add_queue("heights")
-
-        # self.init_correctphase_function()
 
         self.add_work(
             "fill_path",
@@ -291,7 +279,6 @@ postfix : str
             return
 
         names = serie.get_name_arrays()
-
         for name in names:
             path_im_output = self.path_dir_result / name
             path_im_input = str(self.path_dir_src / name)

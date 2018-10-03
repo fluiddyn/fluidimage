@@ -19,16 +19,14 @@ class TestPivNew(unittest.TestCase):
         if path_out.exists():
             rmtree(path_out)
 
-    def disabled_test_surftrack(self):
+    def test_surftrack(self):
         params = TopologySurfaceTracking.create_default_params()
 
         params.images.path = str(self.path_src)
-        # bug with these parameters...
-        params.images.str_slice = ":2"
-        params.images.ind_start = 1
+        params.images.str_slice = ":4:2"
 
-        params.surface_tracking.xmin = 125
-        params.surface_tracking.xmax = 290
+        params.surface_tracking.xmin = 200
+        params.surface_tracking.xmax = 250
 
         params.saving.how = "recompute"
         params.saving.path = "/tmp/fluidimage"
