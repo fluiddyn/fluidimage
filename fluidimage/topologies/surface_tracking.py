@@ -64,6 +64,7 @@ class TopologySurfaceTracking(TopologyBase):
             attribs={
                 "path": "",
                 "path_ref": "",
+                "str_slice_ref": None,
                 "str_slice": None,
             },
         )
@@ -81,6 +82,12 @@ path_ref : str, {''}
 
     String indicating the reference input images (can be a full path towards an
     image file or a string given to `glob`).
+
+str_slice_ref : None
+
+    String indicating as a Python slicing how to select reference images from the serie of
+    reference images on the disk (in order to compute k_x value necessary for gain and filter).
+    If None, no selection so all images are going to be processed.
 
 str_slice : None
 

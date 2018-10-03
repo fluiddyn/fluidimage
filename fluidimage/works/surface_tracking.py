@@ -34,8 +34,12 @@ import numpy as np
 import math
 import scipy.interpolate
 import scipy.io
+from pathlib import Path
 
+from fluidimage import SerieOfArraysFromFiles
+from fluidimage.util import logger, imread
 from fluiddyn.util.paramcontainer import ParamContainer
+
 
 from . import BaseWork
 
@@ -181,25 +185,35 @@ n_frames_stock: int (default 1)
         self.kx = np.arange(-self.l_x / 2, self.l_x / 2) / self.l_x
         self.ky = np.arange(-self.l_y / 2, self.l_y / 2) / self.l_y
 
-        # self.refraw = self.get_file(self.path_ref)
-        # self.refraw = self.sum_frame_from(self.path_ref)
-        # refc, k_x = self.wave_vector(
-        #    self.refraw,
-        #    self.ymin,
-        #    self.ymax,
-        #    self.xmin,
-        #    self.xmax,
-        #    self.sur,
-        #    self.startref_frame,
-        #    self.lastref_frame,
-        # )
-        k_x = 70.75
-
+        refserie = SerieOfArraysFromFiles(
+            params.images.path_ref, params.images.str_slice_ref
+        )
+        k_x = self.compute_kx(refserie)
+        logger.warning("Value of kx computed = " + str(k_x))
+        
         self.kxx = self.kx / self.pix_size
         self.gain, self.filt = self.set_gain_filter(
             k_x, self.l_y, self.l_x, self.slicer
         )
         self.a1_tmp = None
+
+    def compute_kx(self, serie):
+        if len(serie) == 0:
+            logger.warning("0 ref image. Use of default k_x = 70.75.")
+            return 70.75
+
+        names = serie.get_name_arrays()
+        ref = np.zeros((self.ymax - self.ymin, self.xmax - self.xmin))
+        ii = 0
+
+        for name in names:
+            array = imread(str(Path(self.path_ref) / name))
+            frame = array[self.ymin:self.ymax, self.xmin:self.xmax].astype(float)
+            frame = self.frame_normalize(frame)
+            ref = ref + frame
+            ii += 1
+        ref = ref / ii
+        return self.wave_vector(ref, self.ymin, self.ymax, self.xmin, self.xmax, self.sur)
 
     def set_gain_filter(self, k_x, l_y, l_x, slicer):
         """compute gain and filter"""
@@ -389,23 +403,13 @@ n_frames_stock: int (default 1)
             jump = correct_angle[fix_y, fix_x] - anglemod[fix_y, fix_x]
         return (correct_angle, path_angle)
 
-    """def wave_vector(
-        self, ref_film, ymin, ymax, xmin, xmax, sur, startref_frame, lastref_frame
-    ):
-        ref = np.zeros((ymax - ymin, xmax - xmin))
-        ii = 0
-        for frame in ref_film:
-            if ii < lastref_frame - startref_frame:
-                frame1 = frame[ymin:ymax, xmin:xmax].astype(float)
-                frame1 = self.frame_normalize(frame1)
-                ref = ref + frame1
-            ii += 1
-        ref = ref / (lastref_frame + 1 - startref_frame)
+    def wave_vector(self, ref, ymin, ymax, xmin, xmax, sur):
+        """compute k_x value with mean reference frame"""
         Fref = np.fft.fft2(ref, ((ymax - ymin) * sur, (xmax - xmin) * sur))
         kxma = np.arange(-(xmax - xmin) * sur / 2, (xmax - xmin) * sur / 2) / sur
         # kyma = np.arange(-l_y*sur/2, l_y*sur/2)/sur
         indc = np.max(np.fft.fftshift(abs(Fref)), axis=0).argmax()
-        return ref, abs(kxma[indc])"""
+        return abs(kxma[indc])
 
 
 params = WorkSurfaceTracking.create_default_params()

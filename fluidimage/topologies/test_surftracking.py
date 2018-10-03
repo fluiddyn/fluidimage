@@ -23,7 +23,9 @@ class TestPivNew(unittest.TestCase):
         params = TopologySurfaceTracking.create_default_params()
 
         params.images.path = str(self.path_src)
+        params.images.path_ref = str(self.path_src)
         params.images.str_slice = ":4:2"
+        params.images.str_slice_ref = ":3"
 
         params.surface_tracking.xmin = 200
         params.surface_tracking.xmax = 250
