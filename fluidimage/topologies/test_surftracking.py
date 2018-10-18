@@ -16,7 +16,7 @@ class TestSurfaceTracking(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        #path_out = Path(str(cls.path_src) + "." + cls.postfix)
+        # path_out = Path(str(cls.path_src) + "." + cls.postfix)
         if cls.path_out.exists():
             rmtree(cls.path_out)
 

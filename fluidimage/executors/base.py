@@ -129,7 +129,8 @@ class ExecutorBase:
             def handler_signals(signal_number, stack):
                 del stack
                 print(
-                    f"signal {signal_number} received: set _has_to_stop to True."
+                    f"signal {signal_number} received: set _has_to_stop to True "
+                    f"({type(self).__name__})."
                 )
                 self._has_to_stop = True
 

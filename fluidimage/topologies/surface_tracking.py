@@ -332,6 +332,7 @@ postfix : str
         for ind_serie, serie in series.items():
             queue_couples_of_names[ind_serie] = serie.get_name_arrays()
 
+
 if "sphinx" in sys.modules:
     params = TopologySurfaceTracking.create_default_params()
 

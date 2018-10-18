@@ -18,6 +18,8 @@ import math
 from time import time
 from pathlib import Path
 import os
+import sys
+import signal
 
 from fluiddyn import time_as_str
 
@@ -144,6 +146,20 @@ class MultiExecutorAsync(ExecutorBase):
         """
         self._init_compute()
         self.log_paths = []
+
+        if sys.platform != "win32":
+
+            def handler_signals(signal_number, stack):
+                del stack
+                print(
+                    f"signal {signal_number} received: set _has_to_stop to True "
+                    f"({type(self).__name__})."
+                )
+                self._has_to_stop = True
+                for process in self.processes:
+                    os.kill(process.pid, signal_number)
+
+            signal.signal(12, handler_signals)
 
         if hasattr(self.topology, "series"):
             self.start_multiprocess_series()
