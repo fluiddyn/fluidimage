@@ -111,7 +111,10 @@ displacement_max : None
             xs = piv_results.xs
             ys = piv_results.ys
 
-            # import pdb; pdb.set_trace()
+            # import ipdb; ipdb.set_trace()
+            ixvecs, iyvecs = self.piv_work._xyoriginalimage_from_xymasked(
+                ixvecs, iyvecs
+            )
 
             dxs_smooth, dys_smooth = smooth_clean(
                 xs, ys, deltaxs, deltays, iyvecs, ixvecs, threshold
