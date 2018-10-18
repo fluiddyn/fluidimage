@@ -43,11 +43,19 @@ from .base import TopologyBase
 
 __all__ = ["LogTopology", "TopologyBase"]
 
+how_values = ("ask", "new_dir", "complete", "recompute")
+
 
 def prepare_path_dir_result(
     path_dir_input, path_saving, postfix_saving, how_saving
 ):
     """Makes new directory for results, if required, and returns its path."""
+
+    if how_saving not in how_values:
+        raise ValueError(
+            f"how_saving (here equal to '{how_saving}') "
+            f"should be in {how_values}"
+        )
 
     path_dir_input = str(path_dir_input)
 
