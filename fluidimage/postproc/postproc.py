@@ -133,12 +133,16 @@ class PIV_PostProc_serie(LightPIVResults):
         super().__init__(str_path=path0)
         for ti, pathi in enumerate(path[1:]):
             temp = PIV_Postproc(path=pathi)
-            self.deltaxs = np.vstack([self.deltaxs, temp.deltaxs])
-            self.deltays = np.vstack([self.deltays, temp.deltays])
+            self.deltaxs_final = np.vstack(
+                [self.deltaxs_final, temp.deltaxs_final]
+            )
+            self.deltays_final = np.vstack(
+                [self.deltays_final, temp.deltays_final]
+            )
         self.X, self.Y, self.dx, self.dy, self.U, self.V = self.compute_grid()
 
-    def set_time(self, t):
-        self.t = np.linspace(0, np.size(self.path), np.size(self.path))
+    def set_time(self, dt):
+        self.t = dt * np.linspace(0, np.size(self.path), np.size(self.path))
 
     def displayf(
         self, U=None, V=None, bg=None, X=None, Y=None, timesleep=0.5, *args
@@ -173,7 +177,10 @@ class PIV_PostProc_serie(LightPIVResults):
         V = [None] * len(self.path)
         for ti, pathi in enumerate(self.path):
             X, Y, dx, dy, U[ti], V[ti] = compute_grid(
-                self.xs, self.ys, self.deltaxs[ti], self.deltays[ti]
+                self.ixvecs_final,
+                self.iyvecs_final,
+                self.deltaxs_final[ti],
+                self.deltays_final[ti],
             )
         return X, Y, dx, dy, U, V
 
