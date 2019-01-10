@@ -21,7 +21,7 @@ import sys
 from fluidimage.topologies import prepare_path_dir_result
 from fluidimage import ParamContainer, SerieOfArraysFromFiles, SeriesOfArrays
 from fluidimage.util import logger, imread
-from fluiddyn.io.image import imsave
+from fluiddyn.io.image import imsave_h5
 from fluidimage.works.surface_tracking import WorkSurfaceTracking
 
 from .base import TopologyBase
@@ -273,7 +273,7 @@ postfix : str
         image, path = tuple_image_path
         name_file = Path(path).name
         path_out = self.path_dir_result / name_file
-        imsave(path_out, image)
+        imsave_h5(path_out, image, splitext=False)
 
     def fill_queue_paths(self, input_queue, output_queues):
 
