@@ -154,7 +154,8 @@ n_frames_stock: int (default 1)
         self.ref_film = None
         self.filmName = None
         self.save_png = True
-        #        self.treshold = 0.16
+        self.treshold = 300
+        self.cropedge = True
 
         self.xmin = self.params.surface_tracking.xmin
         self.xmax = self.params.surface_tracking.xmax
@@ -186,10 +187,10 @@ n_frames_stock: int (default 1)
         self.kx = np.arange(-self.l_x / 2, self.l_x / 2) / self.l_x
         self.ky = np.arange(-self.l_y / 2, self.l_y / 2) / self.l_y
 
-        refserie = SerieOfArraysFromFiles(
+        self.refserie = SerieOfArraysFromFiles(
             params.images.path_ref, params.images.str_slice_ref
         )
-        k_x = self.compute_kx(refserie)
+        k_x = self.compute_kx(self.refserie)
         logger.warning("Value of kx computed = " + str(k_x))
 
         self.kxx = self.kx / self.pix_size
@@ -215,9 +216,9 @@ n_frames_stock: int (default 1)
             frame = self.frame_normalize(frame)
             ref = ref + frame
             ii += 1
-        ref = ref / ii
+        self.ref = ref / ii
         return self.wave_vector(
-            ref, self.ymin, self.ymax, self.xmin, self.xmax, self.sur
+            self.ref, self.ymin, self.ymax, self.xmin, self.xmax, self.sur
         )
 
     def set_gain_filter(self, k_x, l_y, l_x, slicer):
@@ -253,6 +254,30 @@ n_frames_stock: int (default 1)
             + 1
         )
         return gain, filt1 * filt2 * filt3
+
+    def get_borders(self, frame):
+        '''find the borders of the surface in a given frame'''
+        frame_thres = 1.0*(frame > self.thres)
+        a = np.argmax(frame_thres, axis=1)
+        a_med = np.median(a)
+        b = np.argmax(frame_thres[:, ::-1], axis=1)
+        b_med = np.median(b)
+        return int(a_med), int(b_med)
+
+    def merge_cropped_frame(self, frame, x_min, x_max):
+        '''puts the actual frame in the reference plate frame to avoid jerks
+        and to keep the dimensions'''
+        if x_max == self.xmax:
+            x_max = x_max+1
+            print('x_max adjusted')
+        if x_min == self.xmin:
+            x_min = x_min+1
+            print('x_min adjusted')
+        calc_frame = self.ref
+        calc_frame[:, x_min-self.xmin:self.xmax-x_max] = frame[
+                                                         self.ymin:self.ymax,
+                                                         x_min:-x_max]
+        return calc_frame
 
     def rectify_frame(self, frame, gain, filt):
         """rectify a frame with gain and filt"""
@@ -294,6 +319,10 @@ n_frames_stock: int (default 1)
 
         """
         array, path = array_and_path
+
+        if self.cropedge:
+            x_min, x_max = self.get_borders(array)
+            array = self.merge_cropped_frame(array, x_min, x_max)
         return (
             self.process_frame(
                 array,
@@ -410,8 +439,8 @@ n_frames_stock: int (default 1)
 
     def wave_vector(self, ref, ymin, ymax, xmin, xmax, sur):
         """compute k_x value with mean reference frame"""
-        Fref = np.fft.fft2(ref, ((ymax - ymin) * sur, (xmax - xmin) * sur))
-        kxma = np.arange(-(xmax - xmin) * sur / 2, (xmax - xmin) * sur / 2) / sur
+        Fref = np.fft.fft2(ref, ((ymax-ymin) * sur, (xmax - xmin) * sur))
+        kxma = np.arange(-(xmax - xmin) * sur / 2, (xmax-xmin) * sur / 2) / sur
         # kyma = np.arange(-l_y*sur/2, l_y*sur/2)/sur
         indc = np.max(np.fft.fftshift(abs(Fref)), axis=0).argmax()
         return abs(kxma[indc])
