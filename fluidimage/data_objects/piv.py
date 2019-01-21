@@ -757,12 +757,12 @@ class LightPIVResults(DataObject):
             self._load(str_path)
             return
 
-        self.deltaxs = deltaxs_approx
-        self.deltays = deltays_approx
+        self.deltaxs_final = deltaxs_approx
+        self.deltays_final = deltays_approx
         self.couple = couple
         self.params = params
-        self.xs = ixvecs_grid
-        self.ys = iyvecs_grid
+        self.ixvecs_final = ixvecs_grid
+        self.iyvecs_final = iyvecs_grid
 
     def _get_name(self, kind):
         if hasattr(self, "file_name"):
