@@ -85,12 +85,18 @@ def make_params_calibration(path_file):
     T = np.array(get_number_from_string(calib_uvmat.tx__ty__tz))
 
     R = []
+
     for i in range(3):
         R = np.hstack(
             [R, get_number_from_string(calib_uvmat["r_{}".format(i + 1)])]
         )
 
-    omc = np.array(get_number_from_string(calib_uvmat["omc"]))
+    if "omc" in calib_uvmat.__dict__:
+        omc = np.array(get_number_from_string(calib_uvmat["omc"]))
+    else:
+        omc = []
+        for i in range(3):
+            omc = np.hstack([omc, calib_uvmat["omc_{}".format(i + 1)]])
 
     params._set_attribs({"f": f, "C": C, "kc": kc, "T": T, "R": R, "omc": omc})
 

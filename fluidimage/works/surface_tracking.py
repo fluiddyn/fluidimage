@@ -154,7 +154,7 @@ n_frames_stock: int (default 1)
         self.ref_film = None
         self.filmName = None
         self.save_png = True
-        self.treshold = 300
+        self.thres = 300
         self.cropedge = True
 
         self.xmin = self.params.surface_tracking.xmin
@@ -262,21 +262,22 @@ n_frames_stock: int (default 1)
         a_med = np.median(a)
         b = np.argmax(frame_thres[:, ::-1], axis=1)
         b_med = np.median(b)
+        b_med = frame.shape[1]-b_med
         return int(a_med), int(b_med)
 
     def merge_cropped_frame(self, frame, x_min, x_max):
         '''puts the actual frame in the reference plate frame to avoid jerks
         and to keep the dimensions'''
-        if x_max == self.xmax:
-            x_max = x_max+1
-            print('x_max adjusted')
-        if x_min == self.xmin:
-            x_min = x_min+1
-            print('x_min adjusted')
+        if x_max >= self.xmax:
+            x_max = self.xmax-1
+            print('INFO:x_max adjusted')
+        if x_min <= self.xmin:
+            x_min = self.xmin+1
+            print('INFO:x_min adjusted')
         calc_frame = self.ref
-        calc_frame[:, x_min-self.xmin:self.xmax-x_max] = frame[
+        calc_frame[:, x_min-self.xmin:-(self.xmax-x_max)] = frame[
                                                          self.ymin:self.ymax,
-                                                         x_min:-x_max]
+                                                         x_min:x_max]
         return calc_frame
 
     def rectify_frame(self, frame, gain, filt):
@@ -292,10 +293,10 @@ n_frames_stock: int (default 1)
         return normalized_frame
 
     def process_frame(
-        self, frame, ymin, ymax, xmin, xmax, gain, filt, red_factor
+        self, frame1, ymin, ymax, xmin, xmax, gain, filt, red_factor
     ):
         """process a frame and return phase"""
-        frame1 = frame[ymin:ymax, xmin:xmax]
+        #frame1 = frame[ymin:ymax, xmin:xmax]
         frame1 = self.frame_normalize(frame1).astype(float)
         frame_filtered = self.rectify_frame(frame1, gain, filt)
         inversed_filt = np.fft.ifft2(frame_filtered)
