@@ -85,6 +85,7 @@ class WorkSurfaceTracking(BaseWork):
                 "slicer": 4,
                 "red_factor": 1,
                 "n_frames_stock": 1,
+                "crop_edge": False,
             },
         )
 
@@ -155,7 +156,7 @@ n_frames_stock: int (default 1)
         self.filmName = None
         self.save_png = True
         self.thres = 300
-        self.cropedge = True
+        self.crop_edge = self.params.surface_tracking.crop_edge
 
         self.xmin = self.params.surface_tracking.xmin
         self.xmax = self.params.surface_tracking.xmax
@@ -323,7 +324,7 @@ n_frames_stock: int (default 1)
 
         x_min = self.xmin
         x_max = self.xmax
-        if self.cropedge:
+        if self.crop_edge:
             x_min, x_max = self.get_borders(array)
             array = self.merge_cropped_frame(array, x_min, x_max)
         shape = (x_min, x_max)
@@ -377,7 +378,8 @@ n_frames_stock: int (default 1)
         Parameters
         ----------
 
-        array_and_path : tuple containing array/phase [radians] and path
+        array_and_path : tuple containing array/phase [radians], shape of 
+        the frame  and path
 
         Returns
         -------
@@ -394,8 +396,8 @@ n_frames_stock: int (default 1)
             x_min = self.xmin + 1
             print("INFO:x_min adjusted")
         newarray = np.zeros(array.shape)
-        newarray[:, x_min - self.xmin : -(self.xmax - x_max)] = array[
-            :, x_min - self.xmin : -(self.xmax - x_max)
+        newarray[:, x_min + 7 - self.xmin : -(self.xmax - x_max + 7)] = array[
+            :, x_min + 7 - self.xmin : -(self.xmax - x_max + 7)
         ]
         return (newarray, path)
 
