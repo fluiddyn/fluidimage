@@ -256,28 +256,28 @@ n_frames_stock: int (default 1)
         return gain, filt1 * filt2 * filt3
 
     def get_borders(self, frame):
-        '''find the borders of the surface in a given frame'''
-        frame_thres = 1.0*(frame > self.thres)
+        """find the borders of the surface in a given frame"""
+        frame_thres = 1.0 * (frame > self.thres)
         a = np.argmax(frame_thres, axis=1)
         a_med = np.median(a)
         b = np.argmax(frame_thres[:, ::-1], axis=1)
         b_med = np.median(b)
-        b_med = frame.shape[1]-b_med
+        b_med = frame.shape[1] - b_med
         return int(a_med), int(b_med)
 
     def merge_cropped_frame(self, frame, x_min, x_max):
-        '''puts the actual frame in the reference plate frame to avoid jerks
-        and to keep the dimensions'''
+        """puts the actual frame in the reference plate frame to avoid jerks
+        and to keep the dimensions"""
         if x_max >= self.xmax:
-            x_max = self.xmax-1
-            print('INFO:x_max adjusted')
+            x_max = self.xmax - 1
+            print("INFO:x_max adjusted")
         if x_min <= self.xmin:
-            x_min = self.xmin+1
-            print('INFO:x_min adjusted')
+            x_min = self.xmin + 1
+            print("INFO:x_min adjusted")
         calc_frame = self.ref
-        calc_frame[:, x_min-self.xmin:-(self.xmax-x_max)] = frame[
-                                                         self.ymin:self.ymax,
-                                                         x_min:x_max]
+        calc_frame[:, x_min - self.xmin : -(self.xmax - x_max)] = frame[
+            self.ymin : self.ymax, x_min:x_max
+        ]
         return calc_frame
 
     def rectify_frame(self, frame, gain, filt):
@@ -296,7 +296,7 @@ n_frames_stock: int (default 1)
         self, frame1, ymin, ymax, xmin, xmax, gain, filt, red_factor
     ):
         """process a frame and return phase"""
-        #frame1 = frame[ymin:ymax, xmin:xmax]
+        # frame1 = frame[ymin:ymax, xmin:xmax]
         frame1 = self.frame_normalize(frame1).astype(float)
         frame_filtered = self.rectify_frame(frame1, gain, filt)
         inversed_filt = np.fft.ifft2(frame_filtered)
@@ -388,17 +388,16 @@ n_frames_stock: int (default 1)
         array, shape, path = array_and_path
         (x_min, x_max) = shape
         if x_max >= self.xmax:
-            x_max = self.xmax-1
-            print('INFO:x_max adjusted')
+            x_max = self.xmax - 1
+            print("INFO:x_max adjusted")
         if x_min <= self.xmin:
-            x_min = self.xmin+1
-            print('INFO:x_min adjusted')
+            x_min = self.xmin + 1
+            print("INFO:x_min adjusted")
         newarray = np.zeros(array.shape)
-        newarray[:, x_min-self.xmin:-(self.xmax-x_max)] = array[:, x_min-self.xmin:-(self.xmax-x_max)]
-        return (
-            newarray,
-            path,
-        )
+        newarray[:, x_min - self.xmin : -(self.xmax - x_max)] = array[
+            :, x_min - self.xmin : -(self.xmax - x_max)
+        ]
+        return (newarray, path)
 
     def convphase(self, ph, pix_size, l, d, p, correct_pos, red_factor):
         """converts phase into height [m]
@@ -462,7 +461,10 @@ n_frames_stock: int (default 1)
 
     def correctcouple(self, queue_couple):
         """correct phase in order to avoid jump phase"""
-        ((anglemod, shapemod, path_anglemod), (angle, shape, path_angle)) = queue_couple
+        (
+            (anglemod, shapemod, path_anglemod),
+            (angle, shape, path_angle),
+        ) = queue_couple
         fix_y = int(np.fix(self.l_y / 2 / self.red_factor))
         fix_x = int(np.fix(self.l_x / 2 / self.red_factor))
         correct_angle = angle
@@ -474,8 +476,8 @@ n_frames_stock: int (default 1)
 
     def wave_vector(self, ref, ymin, ymax, xmin, xmax, sur):
         """compute k_x value with mean reference frame"""
-        Fref = np.fft.fft2(ref, ((ymax-ymin) * sur, (xmax - xmin) * sur))
-        kxma = np.arange(-(xmax - xmin) * sur / 2, (xmax-xmin) * sur / 2) / sur
+        Fref = np.fft.fft2(ref, ((ymax - ymin) * sur, (xmax - xmin) * sur))
+        kxma = np.arange(-(xmax - xmin) * sur / 2, (xmax - xmin) * sur / 2) / sur
         # kyma = np.arange(-l_y*sur/2, l_y*sur/2)/sur
         indc = np.max(np.fft.fftshift(abs(Fref)), axis=0).argmax()
         return abs(kxma[indc])
