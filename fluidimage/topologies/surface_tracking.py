@@ -179,6 +179,7 @@ postfix : str
         )
         queuemod0_angles = self.add_queue("corrected angles copy")
         queuemod_angles = self.add_queue("corrected angles")
+        queue_heights_and_shapes = self.add_queue("heights and shapes")
         queue_heights = self.add_queue("heights")
 
         self.add_work(
@@ -222,6 +223,13 @@ postfix : str
             "calcul_height",
             self.surface_tracking_work.calculheight_func,
             input_queue=queuemod_angles,
+            output_queue=queue_heights_and_shapes,
+        )
+
+        self.add_work(
+            "set_borders_zero",
+            self.surface_tracking_work.set_borders_zero_func,
+            input_queue=queue_heights_and_shapes,
             output_queue=queue_heights,
         )
 
