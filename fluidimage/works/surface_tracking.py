@@ -321,9 +321,12 @@ n_frames_stock: int (default 1)
         """
         array, path = array_and_path
 
+        x_min = self.xmin
+        x_max = self.xmax
         if self.cropedge:
             x_min, x_max = self.get_borders(array)
             array = self.merge_cropped_frame(array, x_min, x_max)
+        shape = (x_min, x_max)
         return (
             self.process_frame(
                 array,
@@ -335,6 +338,7 @@ n_frames_stock: int (default 1)
                 self.filt,
                 self.red_factor,
             ),
+            shape,
             path,
         )
 
@@ -352,7 +356,7 @@ n_frames_stock: int (default 1)
         height_and_path : tuple containing array/height [m] and path
 
         """
-        array, path = array_and_path
+        array, shape, path = array_and_path
         return (
             self.convphase(
                 array,
@@ -363,6 +367,36 @@ n_frames_stock: int (default 1)
                 True,
                 self.red_factor,
             ),
+            shape,
+            path,
+        )
+
+    def set_borders_zero_func(self, array_and_path):
+        """call convphase function with surface_tracking parameters
+
+        Parameters
+        ----------
+
+        array_and_path : tuple containing array/phase [radians] and path
+
+        Returns
+        -------
+
+        height_and_path : tuple containing array/height [m] and path
+
+        """
+        array, shape, path = array_and_path
+        (x_min, x_max) = shape
+        if x_max >= self.xmax:
+            x_max = self.xmax-1
+            print('INFO:x_max adjusted')
+        if x_min <= self.xmin:
+            x_min = self.xmin+1
+            print('INFO:x_min adjusted')
+        newarray = np.zeros(array.shape)
+        newarray[:, x_min-self.xmin:-(self.xmax-x_max)] = array[:, x_min-self.xmin:-(self.xmax-x_max)]
+        return (
+            newarray,
             path,
         )
 
@@ -428,7 +462,7 @@ n_frames_stock: int (default 1)
 
     def correctcouple(self, queue_couple):
         """correct phase in order to avoid jump phase"""
-        ((anglemod, path_anglemod), (angle, path_angle)) = queue_couple
+        ((anglemod, shapemod, path_anglemod), (angle, shape, path_angle)) = queue_couple
         fix_y = int(np.fix(self.l_y / 2 / self.red_factor))
         fix_x = int(np.fix(self.l_x / 2 / self.red_factor))
         correct_angle = angle
@@ -436,7 +470,7 @@ n_frames_stock: int (default 1)
         while abs(jump) > math.pi:
             correct_angle = angle - np.sign(jump) * 2 * math.pi
             jump = correct_angle[fix_y, fix_x] - anglemod[fix_y, fix_x]
-        return (correct_angle, path_angle)
+        return (correct_angle, shape, path_angle)
 
     def wave_vector(self, ref, ymin, ymax, xmin, xmax, sur):
         """compute k_x value with mean reference frame"""
