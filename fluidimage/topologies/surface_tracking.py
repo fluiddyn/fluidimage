@@ -1,5 +1,5 @@
-"""Topology for surface tracking (:mod:`fluidimage.topologies.surface_tracking`)
-================================================================================
+"""Topology for surface tracking(:mod:`fluidimage.topologies.surface_tracking`)
+===============================================================================
 
 .. autoclass:: TopologySurfaceTracking
    :members:
@@ -81,20 +81,21 @@ path : str, {''}
 
 path_ref : str, {''}
 
-    String indicating the reference input images (can be a full path towards an
-    image file or a string given to `glob`).
+    String indicating the reference input images (can be a full path towards
+    an image file or a string given to `glob`).
 
 str_slice_ref : None
 
-    String indicating as a Python slicing how to select reference images from the serie of
-    reference images on the disk (in order to compute k_x value necessary for gain and filter).
+    String indicating as a Python slicing how to select reference images
+    from the serie of reference images on the disk (in order to compute
+    k_x value necessary for gain and filter).
     If None, no selection so all images are going to be processed.
 
 str_slice : None
 
-    String indicating as a Python slicing how to select images from the serie of
-    images on the disk. If None, no selection so all images are going to be
-    processed.
+    String indicating as a Python slicing how to select images from the
+    serie of images on the disk. If None, no selection so all images
+    are going to be processed.
 
 """
         )
@@ -156,7 +157,8 @@ postfix : str
         )
         path_dir = self.serie.path_dir
         path_dir_result, self.how_saving = prepare_path_dir_result(
-            path_dir, params.saving.path, params.saving.postfix, params.saving.how
+            path_dir, params.saving.path, params.saving.postfix,
+            params.saving.how
         )
 
         self.path_dir_result = path_dir_result
@@ -207,7 +209,8 @@ postfix : str
         self.add_work(
             "create_couple",
             self.make_couples,
-            input_queue=(queuemod0_angles, queue_angles, queue_couples_of_names),
+            input_queue=(queuemod0_angles, queue_angles,
+                         queue_couples_of_names),
             output_queue=(queuemod_angles, queue_couples_of_arrays),
             kind="global",
         )
