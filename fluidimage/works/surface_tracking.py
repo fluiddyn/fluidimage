@@ -88,6 +88,7 @@ class WorkSurfaceTracking(BaseWork):
                 "borders": 7,
                 "correct_pos": False,
                 "correct_height": False,
+                "offset": 0.0,
             },
         )
 
@@ -148,6 +149,12 @@ borders: int (default 7)
 
 correct_pos: boolean (default=False)
     correct position of the height (necessary for large heights)
+
+correct_height: boolean (default=False)
+    correct height by a reference (provided from path_ref)
+
+offset: float (default 0.0)
+    height of the reference surface in [m] to zero level
 """
         )
 
@@ -172,7 +179,7 @@ correct_pos: boolean (default=False)
         self.borders = self.params.surface_tracking.borders
         self.correct_pos = self.params.surface_tracking.correct_pos
         self.correct_height = self.params.surface_tracking.correct_height
-
+        self.offset = self.params.surface_tracking.offset
         self.xmin = self.params.surface_tracking.xmin
         self.xmax = self.params.surface_tracking.xmax
         self.ymin = self.params.surface_tracking.ymin
@@ -643,7 +650,7 @@ correct_pos: boolean (default=False)
                                 ref_angle.shape,
                                 self.path_ref
                                 )
-                    )[0]-0.0025
+                    )[0]-self.offset
             )
 
 
