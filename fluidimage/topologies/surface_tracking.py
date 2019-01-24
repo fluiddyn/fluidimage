@@ -157,8 +157,7 @@ postfix : str
         )
         path_dir = self.serie.path_dir
         path_dir_result, self.how_saving = prepare_path_dir_result(
-            path_dir, params.saving.path, params.saving.postfix,
-            params.saving.how
+            path_dir, params.saving.path, params.saving.postfix, params.saving.how
         )
 
         self.path_dir_result = path_dir_result
@@ -209,8 +208,7 @@ postfix : str
         self.add_work(
             "create_couple",
             self.make_couples,
-            input_queue=(queuemod0_angles, queue_angles,
-                         queue_couples_of_names),
+            input_queue=(queuemod0_angles, queue_angles, queue_couples_of_names),
             output_queue=(queuemod_angles, queue_couples_of_arrays),
             kind="global",
         )

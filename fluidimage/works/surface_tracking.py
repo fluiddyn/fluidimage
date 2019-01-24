@@ -6,7 +6,6 @@
    :private-members:
 
 """
-
 ###############################################################################
 # !/usr/bin/env python                                                        #
 #  -*- coding: utf-8 -*-                                                      #
@@ -215,24 +214,31 @@ correct_pos: boolean (default=False)
         self.a1_tmp = None
 
     def compute_kx(self, serie):
+        """calculates the average wave vector from a set of reference images
+
+        Parameters
+        ----------
+        series: int
+        set of reference frames (arrays)
+
+        Returns
+        -------
+
+        wave_vector: float
+            average wave vector from the reference frame
+        """
         if len(serie) == 0:
             logger.warning("0 ref image. Use of default k_x = 70.75.")
             return 70.75
-
         names = serie.get_name_arrays()
         ref = np.zeros((self.ymax - self.ymin, self.xmax - self.xmin))
         ii = 0
 
         for name in names:
             array = imread(str(Path(self.path_ref) / name))
-            frame = array[
-                              self.ymin:
-                              self.ymax,
-                              self.xmin:
-                              self.xmax
-                         ].astype(
-                                      float
-                                 )
+            frame = array[self.ymin : self.ymax, self.xmin : self.xmax].astype(
+                float
+            )
             frame = self.frame_normalize(frame)
             ref = ref + frame
             ii += 1
@@ -249,25 +255,9 @@ correct_pos: boolean (default=False)
         X, Y = np.meshgrid(kx * l_x, ky * l_y)
         gain = np.exp(-1.0j * 2 * np.pi * (k_x / l_x * X))
         filt1 = np.fft.fftshift(
-            np.exp(
-                    -(
-                            (
-                                    kxgrid ** 2
-                                    + kygrid ** 2
-                            ) / 2 / (k_x / slicer / l_x) ** 2
-                     )
-                  )
-            * np.exp(
-                        1 - 1 /
-                        (1 + (
-                                  (
-                                        kxgrid
-                                        + k_x
-                                  ) ** 2 + kygrid ** 2
-                             ) / k_x ** 2
-                         )
-                    )
-                )
+            np.exp(-((kxgrid ** 2 + kygrid ** 2) / 2 / (k_x / slicer / l_x) ** 2))
+            * np.exp(1 - 1 / (1 + ((kxgrid + k_x) ** 2 + kygrid ** 2) / k_x ** 2))
+        )
 
         filt2 = np.fft.fftshift(
             -np.exp(
@@ -292,47 +282,90 @@ correct_pos: boolean (default=False)
         return gain, filt1 * filt2 * filt3
 
     def get_borders(self, frame):
-        """find the borders of the surface in a given frame"""
+        """find the left and right border of the surface in a given frame
+
+        Parameter
+        ---------
+
+        frame: int
+            frame of the high speed video (np.array)
+
+        Returns
+        -------
+        xmin: int
+            left border of the structure
+        xmax: int
+            right border of the structure
+        """
         frame_thres = 1.0 * (frame > self.thres)
         a = np.argmax(frame_thres, axis=1)
-        a_med = np.median(a)
+        xmin = np.median(a)
         b = np.argmax(frame_thres[:, ::-1], axis=1)
         b_med = np.median(b)
-        b_med = frame.shape[1] - b_med
-        return int(a_med), int(b_med)
+        xmax = frame.shape[1] - b_med
+        return int(xmin), int(xmax)
 
     def merge_cropped_frame(self, frame, x_min, x_max):
         """puts the actual frame in the reference plate frame to avoid jerks
-        and to keep the dimensions"""
+        and to keep the dimensions
+
+        Parameter
+        ---------
+
+        frame: int
+            frame of the high speed video (np.array)
+
+        Results
+        -------
+
+        calc_frame: int
+            frame of the reference size with embedded smaller structure
+        """
         if x_max >= self.xmax:
             x_max = self.xmax - 1
             print("INFO:x_max adjusted")
-        if x_min <= self.xmin:
-            x_min = self.xmin + 1
-            print("INFO:x_min adjusted")
         calc_frame = self.ref
-        calc_frame[
-                      :,
-                      x_min
-                      - self.xmin:
-                      -(
-                              self.xmax
-                              - x_max
-                       )
-                  ] = frame[
-                                self.ymin:
-                                self.ymax,
-                                x_min:
-                                x_max
-                           ]
+        calc_frame[:, x_min - self.xmin : -(self.xmax - x_max)] = frame[
+            self.ymin : self.ymax, x_min:x_max
+        ]
         return calc_frame
 
     def rectify_frame(self, frame, gain, filt):
-        """rectify a frame with gain and filt"""
+        """rectify a frame with gain and filt
+
+        Parameter
+        ---------
+
+        frame: int
+            frame of the high speed video (np.array)
+        gain: complex array
+            gain for the pattern of the frame
+
+        filt: complex array
+            filter for the pattern of the frame        gain:
+
+        Returns
+        -------
+
+        rectified frame: int
+            array of the rectified frame
+        """
         return np.fft.fft2(frame * gain) * filt
 
     def frame_normalize(self, frame):
-        """normalize the frame values by its mean value"""
+        """normalize the frame values by its mean value
+
+        Parameter
+        ---------
+
+        frame: int
+            frame of the high speed video (np.array)
+
+        Returns
+        -------
+        normalized_frame: int
+            normalized frame of the high speed video (np.array)
+        """
         meanx_frame = np.mean(frame, axis=1)
         for y in range(np.shape(frame)[1]):
             frame[:, y] = frame[:, y] / meanx_frame
@@ -340,11 +373,44 @@ correct_pos: boolean (default=False)
         return normalized_frame
 
     def process_frame(
-        self, frame1, ymin, ymax, xmin, xmax, gain, filt, red_factor
+        self, frame, ymin, ymax, xmin, xmax, gain, filt, red_factor
     ):
-        """process a frame and return phase"""
-        # frame1 = frame[ymin:ymax, xmin:xmax]
-        frame1 = self.frame_normalize(frame1).astype(float)
+        """process a frame and return phase
+        Parameters
+        ----------
+
+        frame: int array
+            single frame of the high speed video
+
+        xmin: int (default 475)
+            xmin to crop the image im[xmin:xmax, ymin:ymax]
+
+        xmax: int (default 640)
+            xmax to crop the image im[xmin:xmax, ymin:ymax]
+
+        ymin: int (default 50)
+            ymin to crop the image im[xmin:xmax, ymin:ymax]
+
+        ymax: int (default 700)
+            ymax to crop the image im[xmin:xmax, ymin:ymax]
+
+        gain: complex array
+            gain for the pattern of the frame
+
+        filt: complex array
+            filter for the pattern of the frame
+
+        red_factor: int(default 1)
+            reduction factor for the frame array to speed up the calc
+
+        Returns
+        --------
+            a: array containing phase [radians]
+
+        """
+        if self.crop_edge is False:
+            frame = frame[ymin:ymax, xmin:xmax]
+        frame1 = self.frame_normalize(frame).astype(float)
         frame_filtered = self.rectify_frame(frame1, gain, filt)
         inversed_filt = np.fft.ifft2(frame_filtered)
         inversed_filt = inversed_filt[::red_factor, ::red_factor]
@@ -443,47 +509,44 @@ correct_pos: boolean (default=False)
             :,
             x_min
             + self.borders
-            - self.xmin:
-            -(
-                  self.xmax
-                  - x_max
-                  + self.borders
-             ),
-                ] = array[
-                              :,
-                              x_min
-                              + self.borders
-                              - self.xmin:
-                              -(
-                                      self.xmax
-                                      - x_max
-                                      + self.borders
-                               ),
-                         ]
+            - self.xmin : -(self.xmax - x_max + self.borders),
+        ] = array[
+            :,
+            x_min
+            + self.borders
+            - self.xmin : -(self.xmax - x_max + self.borders),
+        ]
         return (newarray, path)
 
-    def convphase(self, ph, pix_size, l, d, p, red_factor):
-        """converts phase into height [m]
+    def convphase(self, phase, pix_size, dist, dist_p_c, wave_len, red_factor):
+        """converts phase array into array of the height [m]
 
         Parameters
         ----------
 
-        ph : float
+        phase : float
             the image phase [radians]
 
         pix_size  : float
             size of the pixel [m/pixel]
 
-        l : float
+        dist : float
             distance between object and camera [m]
 
-        d : float
+        dist_p_c : float
             distance between projector and camera [m]
 
-        p : float
+        waven_len : float
             wave length of the object [m]
 
-        red_factor is the reduction factor
+        red_factor: int
+            is the reduction factor
+
+        Returns
+        -------
+
+        height: float
+            array with the height calculated from the phase
 
         Notes
         -----
@@ -492,16 +555,16 @@ correct_pos: boolean (default=False)
 
         """
 
-        height = ph * l / (ph - 2 * np.pi / p * d)
+        height = phase * dist / (phase - 2 * np.pi / wave_len * dist_p_c)
         if self.correct_pos is True:
             height = height.astype(float)
-            [ld, Ld] = ph.shape
+            [ld, Ld] = phase.shape
             x = (np.arange(Ld) - Ld / 2) * pix_size * red_factor
             y = (np.arange(ld) - ld / 2) * pix_size * red_factor
             [X, Y] = np.meshgrid(x, y)
             # perform correction
-            dX = -X / l * height
-            dY = -Y / l * height
+            dX = -X / dist * height
+            dY = -Y / dist * height
             dX[1, :] = 0
             dX[-1, :] = 0
             dX[:, 1] = 0
@@ -535,17 +598,21 @@ correct_pos: boolean (default=False)
         return (correct_angle, shape, path_angle)
 
     def wave_vector(self, ref, ymin, ymax, xmin, xmax, sur):
-        """compute k_x value with mean reference frame"""
+        """compute k_x value with mean reference frame
+
+        Parameters
+        ----------
+
+        ref: int
+            frame with averaged
+
+        Returns
+        -------
+        wave_vector: float
+            average wave vector from the given frame
+        """
         Fref = np.fft.fft2(ref, ((ymax - ymin) * sur, (xmax - xmin) * sur))
-        kxma = np.arange(
-                              -(
-                                    xmax
-                                    - xmin
-                               ) * sur / 2, (
-                                                 xmax
-                                                 - xmin
-                                            ) * sur / 2
-                        ) / sur
+        kxma = np.arange(-(xmax - xmin) * sur / 2, (xmax - xmin) * sur / 2) / sur
         indc = np.max(np.fft.fftshift(abs(Fref)), axis=0).argmax()
         return abs(kxma[indc])
 
