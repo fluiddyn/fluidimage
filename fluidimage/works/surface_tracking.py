@@ -40,7 +40,7 @@ from fluidimage import SerieOfArraysFromFiles
 from fluidimage.util import logger, imread
 from fluiddyn.util.paramcontainer import ParamContainer
 
-
+import matplotlib.pyplot as plt
 from . import BaseWork
 
 
@@ -87,6 +87,7 @@ class WorkSurfaceTracking(BaseWork):
                 "crop_edge": False,
                 "borders": 7,
                 "correct_pos": False,
+                "correct_height": False,
             },
         )
 
@@ -170,6 +171,7 @@ correct_pos: boolean (default=False)
         self.crop_edge = self.params.surface_tracking.crop_edge
         self.borders = self.params.surface_tracking.borders
         self.correct_pos = self.params.surface_tracking.correct_pos
+        self.correct_height = self.params.surface_tracking.correct_height
 
         self.xmin = self.params.surface_tracking.xmin
         self.xmax = self.params.surface_tracking.xmax
@@ -212,6 +214,7 @@ correct_pos: boolean (default=False)
             k_x, self.l_y, self.l_x, self.slicer
         )
         self.a1_tmp = None
+        self.ref_height = self.process_ref()
 
     def compute_kx(self, serie):
         """calculates the average wave vector from a set of reference images
@@ -255,8 +258,10 @@ correct_pos: boolean (default=False)
         X, Y = np.meshgrid(kx * l_x, ky * l_y)
         gain = np.exp(-1.0j * 2 * np.pi * (k_x / l_x * X))
         filt1 = np.fft.fftshift(
-            np.exp(-((kxgrid ** 2 + kygrid ** 2) / 2 / (k_x / slicer / l_x) ** 2))
-            * np.exp(1 - 1 / (1 + ((kxgrid + k_x) ** 2 + kygrid ** 2) / k_x ** 2))
+            np.exp(-((kxgrid ** 2 + kygrid ** 2) / 2 / (
+                    k_x / slicer / l_x) ** 2))
+            * np.exp(1 - 1 / (1 + ((kxgrid + k_x) ** 2 +
+                                   kygrid ** 2) / k_x ** 2))
         )
 
         filt2 = np.fft.fftshift(
@@ -429,7 +434,8 @@ correct_pos: boolean (default=False)
         Returns
         -------
 
-        array_and_path : tuple containing array/phase [radians] and path
+        array_and_path : tuple containing array/phase [radians], frame shape
+        and path
 
         """
         array, path = array_and_path
@@ -467,7 +473,8 @@ correct_pos: boolean (default=False)
         Returns
         -------
 
-        height_and_path : tuple containing array/height [m] and path
+        height_and_path : tuple containing array/height [m], frame shape
+        and path
 
         """
         array, shape, path = array_and_path
@@ -580,6 +587,8 @@ correct_pos: boolean (default=False)
                 (X, Y),
                 method="cubic",
             )
+        if self.correct_height is True:
+            height = height - self.ref_height
         return height
 
     def correctcouple(self, queue_couple):
@@ -612,9 +621,30 @@ correct_pos: boolean (default=False)
             average wave vector from the given frame
         """
         Fref = np.fft.fft2(ref, ((ymax - ymin) * sur, (xmax - xmin) * sur))
-        kxma = np.arange(-(xmax - xmin) * sur / 2, (xmax - xmin) * sur / 2) / sur
+        kxma = np.arange(-(xmax - xmin) * sur / 2,
+                         (xmax - xmin) * sur / 2) / sur
         indc = np.max(np.fft.fftshift(abs(Fref)), axis=0).argmax()
         return abs(kxma[indc])
+
+    def process_ref(self):
+        """calculate the reference height from a set of frames of a flat
+        plate with zero height
+        """
+        frame_filtered = self.rectify_frame(self.ref, self.gain, self.filt)
+        inversed_filt = np.fft.ifft2(frame_filtered)
+        inversed_filt = inversed_filt[::self.red_factor, ::self.red_factor]
+        ref_angle = np.unwrap(np.angle(inversed_filt), axis=1)  # by lines
+        ref_angle = np.unwrap(ref_angle, axis=0)  # by columsref
+        self.ref_height = np.zeros(ref_angle.shape)
+        return(
+                self.calculheight_func(
+                        (
+                                ref_angle,
+                                ref_angle.shape,
+                                self.path_ref
+                                )
+                    )[0]-0.0025
+            )
 
 
 if "sphinx" in sys.modules:
