@@ -30,6 +30,7 @@ class TestSurfaceTracking(unittest.TestCase):
 
         params.surface_tracking.xmin = 200
         params.surface_tracking.xmax = 250
+        params.surface_tracking.correct_pos = True
 
         params.saving.how = "recompute"
         params.saving.path = str(self.path_out)

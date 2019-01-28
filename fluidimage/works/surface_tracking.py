@@ -621,7 +621,7 @@ offset: float (default 0.0)
         correct_angle = angle
         jump = angle[fix_y, fix_x] - anglemod[fix_y, fix_x]
         while abs(jump) > math.pi:
-            correct_angle = angle - np.sign(jump) * 2 * math.pi
+            correct_angle = correct_angle - np.sign(jump) * 2 * math.pi
             jump = correct_angle[fix_y, fix_x] - anglemod[fix_y, fix_x]
         return (correct_angle, shape, path_angle)
 
