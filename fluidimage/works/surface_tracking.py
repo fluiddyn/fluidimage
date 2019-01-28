@@ -35,6 +35,7 @@ import numpy as np
 import math
 import scipy.interpolate
 import scipy.io
+from skimage.transform import resize
 
 from fluidimage import SerieOfArraysFromFiles
 from fluidimage.util import logger, imread
@@ -222,6 +223,7 @@ offset: float (default 0.0)
         )
         self.a1_tmp = None
         self.ref_height = self.process_ref()
+        logger.warning("reference computed")
 
     def compute_kx(self, serie):
         """calculates the average wave vector from a set of reference images
@@ -518,18 +520,28 @@ offset: float (default 0.0)
         if x_max >= self.xmax:
             x_max = self.xmax - 1
             print("INFO:x_max adjusted")
-        newarray = np.zeros(array.shape)
+        newarray = np.zeros(self.ref.shape)
         newarray[
-            :,
-            x_min
-            + self.borders
-            - self.xmin : -(self.xmax - x_max + self.borders),
-        ] = array[
-            :,
-            x_min
-            + self.borders
-            - self.xmin : -(self.xmax - x_max + self.borders),
-        ]
+                    :, self.borders:-self.borders] = resize(
+                                array[
+                                        :,
+                                  x_min
+                                  + self.borders
+                                  - self.xmin
+                                  : 
+                                  -(
+                                        self.xmax
+                                        - x_max
+                                        + self.borders
+                                   )
+                                ],
+                            (
+                             self.ref.shape[0],
+                              self.xmax - 2*self.borders
+                             -self.xmin
+                             )
+                    )
+
         return (newarray, path)
 
     def convphase(self, phase, pix_size, dist, dist_p_c, wave_len, red_factor):
