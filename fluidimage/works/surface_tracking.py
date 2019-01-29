@@ -519,7 +519,7 @@ offset: float (default 0.0)
         (x_min, x_max) = shape
         if x_max >= self.xmax:
             x_max = self.xmax - 1
-            print("INFO:x_max adjusted")
+            logger.warning("x_max adjusted")
         newarray = np.zeros(self.ref.shape)
         newarray[
                     :, self.borders:-self.borders] = resize(
@@ -616,13 +616,14 @@ offset: float (default 0.0)
             (anglemod, shapemod, path_anglemod),
             (angle, shape, path_angle),
         ) = queue_couple
-        fix_y = int(np.fix(self.l_y / 2 / self.red_factor))
+        fix_y = int(np.fix(self.l_y / 20 / self.red_factor))
         fix_x = int(np.fix(self.l_x / 2 / self.red_factor))
         correct_angle = angle
         jump = angle[fix_y, fix_x] - anglemod[fix_y, fix_x]
-        while abs(jump) > math.pi:
+        while abs(jump) > np.pi:
             correct_angle = correct_angle - np.sign(jump) * 2 * math.pi
             jump = correct_angle[fix_y, fix_x] - anglemod[fix_y, fix_x]
+            print("angle corrected")
         return (correct_angle, shape, path_angle)
 
     def wave_vector(self, ref, ymin, ymax, xmin, xmax, sur):
