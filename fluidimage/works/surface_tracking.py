@@ -242,7 +242,7 @@ offset: float (default 0.0)
         if len(serie) == 0:
             logger.warning("0 ref image. Use of default k_x = 70.75.")
             return 70.75
-        names = serie.get_name_arrays()
+        names = serie.get_path_arrays()
         ref = np.zeros((self.ymax - self.ymin, self.xmax - self.xmin))
         ii = 0
 
