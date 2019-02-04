@@ -86,7 +86,7 @@ class WorkSurfaceTracking(BaseWork):
                 "red_factor": 1,
                 "n_frames_stock": 1,
                 "crop_edge": False,
-                "borders": 7,
+                "borders": 1,
                 "correct_pos": False,
                 "correct_height": False,
                 "offset": 0.0,
@@ -248,7 +248,7 @@ offset: float (default 0.0)
 
         for name in names:
             array = imread(str(Path(self.path_ref) / name))
-            frame = array[self.ymin : self.ymax, self.xmin : self.xmax].astype(
+            frame = array[self.ymin: self.ymax, self.xmin: self.xmax].astype(
                 float
             )
             frame = self.frame_normalize(frame)
@@ -339,8 +339,8 @@ offset: float (default 0.0)
             x_max = self.xmax - 1
             print("INFO:x_max adjusted")
         calc_frame = self.ref
-        calc_frame[:, x_min - self.xmin : -(self.xmax - x_max)] = frame[
-            self.ymin : self.ymax, x_min:x_max
+        calc_frame[:, x_min - self.xmin: -(self.xmax - x_max)] = frame[
+            self.ymin: self.ymax, x_min: x_max
         ]
         return calc_frame
 
@@ -487,9 +487,59 @@ offset: float (default 0.0)
 
         """
         array, shape, path = array_and_path
+        array_ = []
+        for a in array:
+            jumps = [np.sign(int(a[i+1]-angle)) for i, angle
+                     in enumerate(a[:-1])
+                     if a[i+1]-angle > 0.95*np.pi
+                     or a[i+1]-angle < 0.95*np.pi]
+
+            mapper = np.zeros(len(jumps))
+            smoother = []
+            switch = 0
+
+            for i, val in enumerate(mapper):
+                if jumps[i] > 0:
+                    switch = switch + 1
+                if jumps[i] < 0:
+                    switch = switch - 1
+                if switch >= 1:
+                    val = -2*np.pi
+                if switch <= -1:
+                    val = 2*np.pi
+                smoother.append(val)
+            smoother.insert(0, 0)
+            array_smoothed = a + smoother
+            array_.append(np.array(array_smoothed))
+        array_s = np.array(array_)
+        array_s = array_s.T
+        for a in array_s:
+            jumps = [np.sign(int(a[i+1]-angle)) for i, angle
+                     in enumerate(a[:-1])
+                     if a[i+1]-angle > 0.95*np.pi
+                     or a[i+1]-angle < 0.95*np.pi]
+
+            mapper = np.zeros(len(jumps))
+            smoother = []
+            switch = 0
+
+            for i, val in enumerate(mapper):
+                if jumps[i] > 0:
+                    switch = switch + 1
+                if jumps[i] < 0:
+                    switch = switch - 1
+                if switch >= 1:
+                    val = -2*np.pi
+                if switch <= -1:
+                    val = 2*np.pi
+                smoother.append(val)
+            smoother.insert(0, 0)
+            array_smoothed = a + smoother
+            array_.append(np.array(array_smoothed))
+        array_s = array
         return (
             self.convphase(
-                array,
+                array_s,
                 self.pix_size,
                 self.distance_object,
                 self.distance_lens,
@@ -521,27 +571,19 @@ offset: float (default 0.0)
             x_max = self.xmax - 1
             logger.warning("x_max adjusted")
         newarray = np.zeros(self.ref.shape)
-        newarray[
-                    :, self.borders:-self.borders] = resize(
-                                array[
-                                        :,
-                                  x_min
-                                  + self.borders
-                                  - self.xmin
-                                  : 
-                                  -(
-                                        self.xmax
-                                        - x_max
-                                        + self.borders
-                                   )
-                                ],
-                            (
-                             self.ref.shape[0],
-                              self.xmax - 2*self.borders
-                             -self.xmin
-                             )
-                    )
-
+        newarray[:, self.borders:-self.borders] = resize
+        (
+                 array[:, x_min + self.borders - self.xmin: -
+                       (
+                               self.xmax - x_max + self.borders
+                       )
+                       ],
+                 (
+                      self.ref.shape[0],
+                      self.xmax - 2 * self.borders
+                      - self.xmin
+                 )
+        )
         return (newarray, path)
 
     def convphase(self, phase, pix_size, dist, dist_p_c, wave_len, red_factor):
@@ -608,6 +650,7 @@ offset: float (default 0.0)
             )
         if self.correct_height is True:
             height = height - self.ref_height
+        # height = height-np.mean(np.mean(height))
         return height
 
     def correctcouple(self, queue_couple):
