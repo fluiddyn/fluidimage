@@ -504,9 +504,9 @@ offset: float (default 0.0)
                 if jumps[i] < 0:
                     switch = switch - 1
                 if switch >= 1:
-                    val = -2*np.pi
+                    val = -2*np.pi*switch
                 if switch <= -1:
-                    val = 2*np.pi
+                    val = 2*np.pi*switch
                 smoother.append(val)
             smoother.insert(0, 0)
             array_smoothed = a + smoother
@@ -571,19 +571,25 @@ offset: float (default 0.0)
             x_max = self.xmax - 1
             logger.warning("x_max adjusted")
         newarray = np.zeros(self.ref.shape)
-        newarray[:, self.borders:-self.borders] = resize
-        (
-                 array[:, x_min + self.borders - self.xmin: -
-                       (
-                               self.xmax - x_max + self.borders
-                       )
-                       ],
-                 (
-                      self.ref.shape[0],
-                      self.xmax - 2 * self.borders
-                      - self.xmin
-                 )
-        )
+        newarray[:, self.borders:-self.borders] = resize(
+                                array[
+                                        :,
+                                  x_min
+                                  + self.borders
+                                  - self.xmin
+                                  : 
+                                  -(
+                                        self.xmax
+                                        - x_max
+                                        + self.borders
+                                   )
+                                ],
+                            (
+                             self.ref.shape[0],
+                              self.xmax - 2*self.borders
+                             -self.xmin
+                             )
+                    )
         return (newarray, path)
 
     def convphase(self, phase, pix_size, dist, dist_p_c, wave_len, red_factor):
