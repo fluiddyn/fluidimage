@@ -32,13 +32,11 @@ class ParamContainerCV(ParamContainer):
         super().__init__(tag)
         self._set_internal_attr("_params_cv", params_cv)
 
-        attrs = dict(
-            [
-                (a, getattr(params_cv, a))
-                for a in dir(params_cv)
-                if not callable(a) and not a.startswith("__")
-            ]
-        )
+        attrs = {
+            a: getattr(params_cv, a)
+            for a in dir(params_cv)
+            if not callable(a) and not a.startswith("__")
+        }
         for key, value in attrs.items():
             self._set_attrib(key, value)
 

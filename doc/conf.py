@@ -68,8 +68,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'FluidImage'
-copyright = u'2016, Pierre Augier'
+project = 'FluidImage'
+copyright = '2016, Pierre Augier'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -217,8 +217,8 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'fluidfft.tex', u'fluidfft Documentation',
-   u'Pierre Augier', 'manual'),
+  ('index', 'fluidfft.tex', 'fluidfft Documentation',
+   'Pierre Augier', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -247,8 +247,8 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'FluidImage', u'FluidImage Documentation',
-     [u'Pierre Augier'], 1)
+    ('index', 'FluidImage', 'FluidImage Documentation',
+     ['Pierre Augier'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -261,8 +261,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'FluidImage', u'FluidImage Documentation',
-   u'Pierre Augier', 'FluidImage', 'One line description of project.',
+  ('index', 'FluidImage', 'FluidImage Documentation',
+   'Pierre Augier', 'FluidImage', 'One line description of project.',
    'Miscellaneous'),
 ]
 

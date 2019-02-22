@@ -179,7 +179,7 @@ class ActionPIV(ActionBase):
         t = time()
         self.topology.compute(sequential=False)
         t = time() - t
-        print("ellapsed time: {}s".format(t))
+        print(f"ellapsed time: {t}s")
 
 
 actions_classes = {"aver_stat": ActionAverage, "civ_series": ActionPIV}

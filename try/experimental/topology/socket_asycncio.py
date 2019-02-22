@@ -146,7 +146,7 @@ async def run_server():
     server.listen(80)
     while True:
         conn, adr = await server.accept()
-        print("connection etablished from {}".format(adr))
+        print(f"connection etablished from {adr}")
         data = []
         while True:
             packet = await conn.recv(4096)

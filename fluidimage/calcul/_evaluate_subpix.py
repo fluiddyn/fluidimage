@@ -93,11 +93,7 @@ def error_vs_nsubpix(nx, ny, dx, dy, method_subpix, n_subpix, part_size):
     pylab.legend(leg)
     pylab.xlabel("nsubpix")
     pylab.ylabel("error in pix")
-    title = (
-        method_subpix
-        + " _part_size={}".format(part_size)
-        + " _nx_ny = {}_{}".format(nx, ny)
-    )
+    title = method_subpix + f" _part_size={part_size}" + f" _nx_ny = {nx}_{ny}"
     pylab.title(title)
     pylab.xlim([0, np.max(n_subpix) + 1])
     pylab.show()

@@ -37,7 +37,7 @@ def main(args):
         args.exp, savinghow=args.saving_how, postfix_out=args.postfix_out)
 
     for i, params in enumerate(list_params):
-        print('\nTopology for params {}'.format(i))
+        print(f'\nTopology for params {i}')
         topology = TopologyPreproc(params, nb_max_workers=int(args.nb_cores))
         topology.compute(sequential=args.seq)
 

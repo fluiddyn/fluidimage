@@ -278,7 +278,7 @@ class PIV2d:
                 q.scale /= 2.0
                 print(key + ": divide q.scale by 2.", end="")
             if event.key in ["ctrl++", "ctrl+-"]:
-                print(" q.scale = {}".format(q.scale))
+                print(f" q.scale = {q.scale}")
                 fig.canvas.draw()
 
         fig.canvas.mpl_connect("key_press_event", onclick)

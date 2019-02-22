@@ -491,7 +491,7 @@ class BaseWorkPIV(BaseWork):
             or self.params.multipass.use_tps == "last"
             and last
         ):
-            print("TPS interpolation ({}).".format(piv_results.couple.name))
+            print(f"TPS interpolation ({piv_results.couple.name}).")
             # compute TPS coef
             smoothing_coef = self.params.multipass.smoothing_coef
             subdom_size = self.params.multipass.subdom_size

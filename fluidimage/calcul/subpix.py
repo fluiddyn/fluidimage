@@ -92,7 +92,7 @@ class SubPix:
             self.prepare_subpix(method, nsubpix)
 
         if method not in self.methods:
-            raise ValueError("method has to be in {}".format(self.methods))
+            raise ValueError(f"method has to be in {self.methods}")
 
         ny, nx = correl.shape
 

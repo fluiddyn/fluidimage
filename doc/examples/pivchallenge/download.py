@@ -23,7 +23,7 @@ for key in keys:
     year = int(key[:4])
     l = key[4]
 
-    path = os.path.join(path_base, 'PIV{}'.format(year) + l)
+    path = os.path.join(path_base, f'PIV{year}' + l)
     path_zip = os.path.join(path, 'data.zip')
     path_images = os.path.join(path, 'Images')
 

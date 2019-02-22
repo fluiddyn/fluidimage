@@ -59,7 +59,7 @@ __version__ = d["__version__"]
 
 def write_rev(rev):
     with open("fluidimage/_hg_rev.py", "w") as f:
-        f.write('hg_rev = "{}"\n'.format(rev))
+        f.write(f'hg_rev = "{rev}"\n')
 
 
 try:
