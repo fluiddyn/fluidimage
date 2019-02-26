@@ -2,7 +2,7 @@
 .PHONY: clean clean_all develop build_ext_inplace
 
 develop: clean
-	python setup.py develop
+	pip install -e .[dev]
 
 build_ext_inplace:
 	python setup.py build_ext --inplace

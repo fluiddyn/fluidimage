@@ -76,3 +76,5 @@ image_samples/Karman/Images.piv_example*
 
 .pytest_cache/*
 **/.mypy_cache
+
+.eggs/*

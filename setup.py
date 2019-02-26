@@ -10,8 +10,19 @@ from distutils.sysconfig import get_config_var
 
 from setuptools import setup, find_packages
 from setuptools.command.build_ext import build_ext
+from setuptools.dist import Distribution
 
-import numpy as np
+
+def install_setup_requires():
+    dist = Distribution()
+    # Honor setup.cfg's options.
+    dist.parse_config_files(ignore_option_errors=True)
+    if dist.setup_requires:
+        dist.fetch_build_eggs(dist.setup_requires)
+
+
+install_setup_requires()
+
 
 
 fluid_build_ext = build_ext
@@ -23,6 +34,7 @@ try:
     except ImportError:
         pass
     use_pythran = True
+    import numpy as np
 except ImportError:
     use_pythran = False
 
@@ -76,25 +88,6 @@ except (OSError, subprocess.CalledProcessError):
         write_rev(hg_rev)
     except (OSError, subprocess.CalledProcessError):
         pass
-
-install_requires = ["fluiddyn >= 0.2.0"]
-
-
-install_requires.extend(
-    [
-        "scipy >= 0.14.1",
-        "numpy >= 1.8",
-        "matplotlib >= 1.4.2",
-        "pyfftw >= 0.10.4",
-        # 'scikit-image >= 0.12.3',
-        "h5py",
-        "h5netcdf",
-        "imageio",
-        "pims",
-        "trio",
-        "dask[array]",
-    ]
-)
 
 
 def modification_date(filename):
@@ -151,7 +144,7 @@ setup(
         # 3 - Alpha
         # 4 - Beta
         # 5 - Production/Stable
-        "Development Status :: 4 - Beta",
+        "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Science/Research",
         "Intended Audience :: Education",
         "Topic :: Scientific/Engineering",
@@ -160,9 +153,9 @@ setup(
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
     ],
     packages=find_packages(exclude=["doc", "include", "scripts"]),
-    install_requires=install_requires,
     scripts=[
         "bin/fluidimviewer",
         "bin/fluidimlauncher",

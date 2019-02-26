@@ -46,8 +46,6 @@ different methods.
 
 """
 
-from future.utils import string_types
-
 import numpy as np
 from scipy.signal import correlate2d
 from scipy.ndimage import correlate
@@ -73,7 +71,7 @@ def compute_indices_from_displacement(dx, dy, indices_no_displ):
 
 
 def parse_displacement_max(displ_max, im0_shape):
-    if isinstance(displ_max, string_types) and displ_max.endswith("%"):
+    if isinstance(displ_max, str) and displ_max.endswith("%"):
         return float(displ_max[:-1]) / 100 * max(im0_shape)
 
     else:
