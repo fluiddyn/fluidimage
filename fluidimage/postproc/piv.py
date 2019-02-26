@@ -58,7 +58,7 @@ def get_grid_pixel_from_piv_file(path, index_pass=-1):
     """
     with h5py.File(path) as f:
         params = ParamContainer(hdf5_object=f["params"])
-        shape_images = f["couple/shape_images"].value
+        shape_images = f["couple/shape_images"][...]
 
     return get_grid_pixel(params, shape_images, index_pass)
 

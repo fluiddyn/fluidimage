@@ -200,7 +200,7 @@ class ArrayCouple(DataObject):
         self.paths = eval(paths)
 
         try:
-            self.shape_images = hdf5_object["shape_images"].value
+            self.shape_images = hdf5_object["shape_images"][...]
         except KeyError:
             pass
 
@@ -448,11 +448,11 @@ class HeavyPIVResults(DataObject):
             g = g_piv["deltaxs_tps"]
             self.deltaxs_tps = []
             for arr in g.keys():
-                self.deltaxs_tps.append(g[arr].value)
+                self.deltaxs_tps.append(g[arr][...])
             g = g_piv["deltays_tps"]
             self.deltays_tps = []
             for arr in g.keys():
-                self.deltays_tps.append(g[arr].value)
+                self.deltays_tps.append(g[arr][...])
 
     def get_grid_pixel(self, index_pass):
         """Recompute 1d arrays containing the approximate positions of the vectors
