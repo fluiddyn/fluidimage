@@ -26,6 +26,8 @@ from fluidimage.works.surface_tracking import WorkSurfaceTracking
 
 from .base import TopologyBase
 
+from . import image2image
+
 
 class TopologySurfaceTracking(TopologyBase):
     """Topology for SurfaceTracking.
@@ -133,6 +135,9 @@ postfix : str
             ),
         )
 
+        params._set_child("preproc")
+        image2image.complete_im2im_params_with_default(params.preproc)
+
         return params
 
     def __init__(self, params, logging_level="info", nb_max_workers=None):
@@ -173,7 +178,7 @@ postfix : str
 
         queue_paths = self.add_queue("paths")
         queue_couples_of_names = self.add_queue("couples of names")
-        queue_arrays = self.add_queue("arrays")
+        queue_arrays = queue_arrays1 = self.add_queue("arrays")
         queue_angles = self.add_queue("angles")
         queue_couples_of_arrays = self.add_queue(
             "couples of corrected angles and angles"
@@ -182,6 +187,9 @@ postfix : str
         queuemod_angles = self.add_queue("corrected angles")
         queue_heights_and_shapes = self.add_queue("heights and shapes")
         queue_heights = self.add_queue("heights")
+
+        if params.preproc.im2im is not None:
+            queue_arrays1 = self.add_queue("arrays1")
 
         self.add_work(
             "fill_path",
@@ -198,10 +206,22 @@ postfix : str
             kind="io",
         )
 
+        if params.preproc.im2im is not None:
+            im2im_func = image2image.TopologyImage2Image.init_im2im(
+                self, params.preproc
+            )
+
+            self.add_work(
+                "image2image",
+                func_or_cls=im2im_func,
+                input_queue=queue_arrays,
+                output_queue=queue_arrays1,
+            )
+
         self.add_work(
             "process_frame",
             self.surface_tracking_work.process_frame_func,
-            input_queue=queue_arrays,
+            input_queue=queue_arrays1,
             output_queue=queue_angles,
         )
 
