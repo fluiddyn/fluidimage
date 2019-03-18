@@ -5,6 +5,26 @@ from pathlib import Path
 from fluidimage.topologies.surface_tracking import TopologySurfaceTracking
 
 from fluidimage import path_image_samples
+import skimage
+
+def rescale_intensity(tuple_image_path):
+    """
+    Rescale image intensities, between the specified minima and maxima,
+    by using a multiplicative factor.
+
+    ----------
+    minima, maxima : float
+        Sets the range to which current intensities have to be rescaled.
+
+    """
+    img, path = tuple_image_path
+    # the processing can be adjusted depending on the value of the path.
+    print("process file:\n" + path)
+    minima = 0
+    maxima = 4095
+    out_range = (minima, maxima)
+    img_out = skimage.exposure.rescale_intensity(img, out_range=out_range)
+    return img_out, path
 
 
 class TestSurfaceTracking(unittest.TestCase):
@@ -31,6 +51,8 @@ class TestSurfaceTracking(unittest.TestCase):
         params.surface_tracking.xmin = 200
         params.surface_tracking.xmax = 250
         params.surface_tracking.correct_pos = True
+
+        params.preproc.im2im = rescale_intensity
 
         params.saving.how = "recompute"
         params.saving.path = str(self.path_out)
