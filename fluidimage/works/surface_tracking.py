@@ -80,7 +80,7 @@ class WorkSurfaceTracking(BaseWork):
                 "startref_frame": 0,
                 "lastref_frame": 49,
                 "sur": 16,
-                "k_x": 70.75,
+                #"k_x": 70.75,
                 "k_y": 0,
                 "slicer": 4,
                 "red_factor": 1,
@@ -193,7 +193,7 @@ offset: float (default 0.0)
         self.startref_frame = self.params.surface_tracking.startref_frame
         self.lastref_frame = self.params.surface_tracking.lastref_frame
         self.sur = self.params.surface_tracking.sur
-        self.k_x = self.params.surface_tracking.k_x
+
         self.k_y = self.params.surface_tracking.k_y
         self.slicer = self.params.surface_tracking.slicer
 
@@ -204,9 +204,9 @@ offset: float (default 0.0)
         self.l_x = self.xmax - self.xmin
         self.l_y = self.ymax - self.ymin
 
-        self.wave_proj = 1 / (self.k_x / self.l_x / self.pix_size)
+
         # wave_proj_pix = self.wave_proj / self.pix_size
-        self.kslicer = 2 * self.k_x
+
 
         self.kx = np.arange(-self.l_x / 2, self.l_x / 2) / self.l_x
         self.ky = np.arange(-self.l_y / 2, self.l_y / 2) / self.l_y
@@ -216,7 +216,8 @@ offset: float (default 0.0)
         )
         k_x = self.compute_kx(self.refserie)
         logger.warning("Value of kx computed = " + str(k_x))
-
+        self.kslicer = 2 * k_x
+        self.wave_proj = 1 / (k_x / self.l_x / self.pix_size)
         self.kxx = self.kx / self.pix_size
         self.gain, self.filt = self.set_gain_filter(
             k_x, self.l_y, self.l_x, self.slicer
@@ -338,6 +339,9 @@ offset: float (default 0.0)
         if x_max >= self.xmax:
             x_max = self.xmax - 1
             print("INFO:x_max adjusted")
+        if x_min <= self.xmin:
+            x_min = self.xmin
+            print("INFO:x_min adjusted")
         calc_frame = self.ref
         calc_frame[:, x_min - self.xmin: -(self.xmax - x_max)] = frame[
             self.ymin: self.ymax, x_min: x_max
