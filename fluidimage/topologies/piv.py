@@ -241,7 +241,7 @@ postfix : str
             "make couples of arrays",
             func_or_cls=self.make_couples,
             params_cls=None,
-            input_queue=(queue_couples_of_names, queue_arrays),
+            input_queue=(queue_couples_of_names, queue_arrays1),
             output_queue=queue_couples_of_arrays,
             kind="global",
         )
@@ -374,7 +374,7 @@ if "sphinx" in sys.modules:
 
 if __name__ == "__main__":
     params = TopologyPIV.create_default_params()
-    params.series.path = "../../../image_samples/Karman/Images"
+    params.series.path = "../../image_samples/Karman/Images"
     params.series.ind_start = 1
     params.series.ind_step = 2
 
@@ -383,6 +383,8 @@ if __name__ == "__main__":
     params.multipass.use_tps = False
 
     params.mask.strcrop = ":, 50:500"
+
+    params.preproc.im2im = "numpy.ones_like"
 
     # params.saving.how = 'complete'
     params.saving.postfix = "piv_example"
