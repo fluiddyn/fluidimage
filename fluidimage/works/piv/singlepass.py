@@ -318,6 +318,13 @@ class BaseWorkPIV(BaseWork):
                 errors[ivec] = "Bad im_crop shape."
                 continue
 
+            if (np.isnan(im0crop).any() or np.isnan(im1crop).any()):
+                deltaxs[ivec] = np.nan
+                deltays[ivec] = np.nan
+                correls_max[ivec] = np.nan
+                errors[ivec] = "Nan(s) in cropped images."
+                continue
+
             # compute and store correlation map
             correl, norm = self.correl(im0crop, im1crop)
             if (
