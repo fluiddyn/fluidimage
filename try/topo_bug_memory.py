@@ -57,9 +57,7 @@ class TopologyDebug(TopologyBase):
         #     destination=self.wq_cpu,
         #     path_dir=path_dir, topology=self)
 
-        super(TopologyDebug, self).__init__(
-            [self.wq_load, self.wq_cpu, self.wq_save]
-        )
+        super().__init__([self.wq_load, self.wq_cpu, self.wq_save])
 
         self.wq_load.update({i: i for i in range(100)})
 

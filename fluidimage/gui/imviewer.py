@@ -116,7 +116,7 @@ class ImageViewer:
 
         path_dir = os.path.split(self.path_files[0])[0]
         self.nb_images = len(self.path_files)
-        print("Will use {} images in the dir {}".format(self.nb_images, path_dir))
+        print(f"Will use {self.nb_images} images in the dir {path_dir}")
 
         self._buttons = {}
         self._textboxes = {}

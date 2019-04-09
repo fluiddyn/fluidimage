@@ -56,7 +56,7 @@ def particle_density(img, center_indices=[], window_size=11, di_range=(10, 100))
             slice1 = slice(i1 - di2, i1 + di2)
             ni[i] = particle_count(img[slice0, slice1])
 
-        ax.plot(di_range, ni, label="centre: {},{}".format(i0, i1))
+        ax.plot(di_range, ni, label=f"centre: {i0},{i1}")
         ax.legend()
 
     plt.show()
@@ -106,7 +106,7 @@ def particle_motion_factor(
             ni2[i] = particle_count(img2[slice0, slice1])
 
         fio = ni2.astype(float) / ni1
-        ax.plot(di_range, fio, label="centre: {},{}".format(i0, i1))
+        ax.plot(di_range, fio, label=f"centre: {i0},{i1}")
         ax.legend()
 
     plt.show()

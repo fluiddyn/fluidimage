@@ -42,6 +42,7 @@ class ExecutorAsyncMultiproc(ExecutorAsync):
             key, obj = work.input_queue.pop_first_item()
         except KeyError:
             self.nb_working_workers_cpu -= 1
+            return
 
         if work.check_exception(key, obj):
             self.nb_working_workers_cpu -= 1

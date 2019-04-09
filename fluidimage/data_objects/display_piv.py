@@ -196,8 +196,8 @@ class DisplayPIV:
             )
             deltaxs2 = deltaxs[~ind]
             deltays2 = deltays[~ind]
-            ax3.hist(deltaxs2, "fd", color="b", label="$\Delta x_s$")
-            ax3.hist(deltays2, "fd", color="r", label="$\Delta y_s$")
+            ax3.hist(deltaxs2, "fd", color="b", label=r"$\Delta x_s$")
+            ax3.hist(deltays2, "fd", color="r", label=r"$\Delta y_s$")
             ax3.set_xlabel("displacement x (blue) and y (red) (pixels)")
             ax3.set_ylabel("histogram")
             ax3.legend()

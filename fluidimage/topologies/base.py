@@ -253,12 +253,12 @@ class TopologyBase:
         code += '\nnode [shape="record"]\n'
         txt_queue = (
             '{name_quoted:40s} [label="<f0> {name}|'
-            + "|".join(["<f{}>".format(i) for i in range(1, 5)])
+            + "|".join([f"<f{i}>" for i in range(1, 5)])
             + '"]\n'
         )
 
         for queue in self.queues:
-            name_quoted = '"{}"'.format(queue.name)
+            name_quoted = f'"{queue.name}"'
             code += txt_queue.format(name=queue.name, name_quoted=name_quoted)
 
         # works and links
@@ -272,7 +272,7 @@ class TopologyBase:
             if work.kind is not None:
                 if "io" in work.kind:
                     color = "Green"
-            code += txt_work.format('"{}"'.format(name_work), name_work, color)
+            code += txt_work.format(f'"{name_work}"', name_work, color)
 
         code += "\n"
 

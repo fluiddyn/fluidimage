@@ -314,7 +314,7 @@ postfix : str
 
     def print_at_exit(self, time_since_start):
         """Print information before exit."""
-        txt = "Stop compute after t = {:.2f} s".format(time_since_start)
+        txt = f"Stop compute after t = {time_since_start:.2f} s"
         try:
             nb_results = len(self.results)
         except AttributeError:

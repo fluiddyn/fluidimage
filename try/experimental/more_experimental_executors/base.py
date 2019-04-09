@@ -48,7 +48,7 @@ class Work(MyObj):
     """Represent a work"""
 
     def have_to_work(self):
-        print("{} have to work ?".format(self.name))
+        print(f"{self.name} have to work ?")
         if isinstance(self.input_queue, tuple):
             for q in self.input_queue:
                 if not q.queue:  # if a queue is empty
@@ -118,7 +118,7 @@ class TopologyBase:
         if nb_max_workers < 1:
             raise ValueError("nb_max_workers < 1")
 
-        print("nb_cpus_allowed = {}".format(nb_cores))
+        print(f"nb_cpus_allowed = {nb_cores}")
         print("nb_max_workers = ", nb_max_workers)
         print("nb_max_workers_io = ", self.nb_max_workers_io)
 
@@ -201,7 +201,7 @@ class TopologyBase:
 
     def _print_at_exit(self, time_since_start):
         """Print information before exit."""
-        txt = "Stop compute after t = {:.2f} s".format(time_since_start)
+        txt = f"Stop compute after t = {time_since_start:.2f} s"
         try:
             nb_results = len(self.results)
         except AttributeError:
@@ -229,12 +229,12 @@ class TopologyBase:
         code += '\nnode [shape="record"]\n'
         txt_queue = (
             '{name_quoted:40s} [label="<f0> {name}|'
-            + "|".join(["<f{}>".format(i) for i in range(1, 5)])
+            + "|".join([f"<f{i}>" for i in range(1, 5)])
             + '"]\n'
         )
 
         for q in self.queues:
-            name_quoted = '"{}"'.format(q.name)
+            name_quoted = f'"{q.name}"'
             code += txt_queue.format(name=q.name, name_quoted=name_quoted)
 
         # works and links
@@ -248,9 +248,7 @@ class TopologyBase:
             if work.kind is not None:
                 if "io" in work.kind:
                     color = "Green"
-            code += txt_work.format(
-                '"{}"'.format(name_work, color), name_work, color
-            )
+            code += txt_work.format(f'"{name_work}"', name_work, color)
 
         code += "\n"
 
