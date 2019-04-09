@@ -39,7 +39,7 @@ class ExecuterAwaitMultiprocs(ExecutorBase):
             if w.kind is not None and "one shot" in w.kind:
 
                 def func(work=w):
-                    print("funtion {} is called".format(work.name))
+                    print(f"funtion {work.name} is called")
                     work.func_or_cls(work.input_queue, work.output_queue)
 
                 self.funcs[w.name] = func
@@ -48,7 +48,7 @@ class ExecuterAwaitMultiprocs(ExecutorBase):
             elif w.kind is not None and "global" in w.kind:
 
                 async def func(work=w):
-                    print("{} is called".format(work.name))
+                    print(f"{work.name} is called")
                     while True:
                         while not work.func_or_cls(
                             work.input_queue, work.output_queue
@@ -67,7 +67,7 @@ class ExecuterAwaitMultiprocs(ExecutorBase):
             ):
 
                 async def func(work=w):
-                    print("{} is called".format(work.name))
+                    print(f"{work.name} is called")
                     while True:
                         await trio.sleep(self.sleep_time)
                         while not work.input_queue.queue:
@@ -96,7 +96,7 @@ class ExecuterAwaitMultiprocs(ExecutorBase):
             ):
 
                 async def func(work=w):
-                    print("{} is called".format(work.name))
+                    print(f"{work.name} is called")
                     while True:
                         await trio.sleep(self.sleep_time)
                         while not work.input_queue.queue:
@@ -138,7 +138,7 @@ class ExecuterAwaitMultiprocs(ExecutorBase):
             else:
 
                 async def func(work=w):
-                    print("{} is called".format(work.name))
+                    print(f"{work.name} is called")
                     while True:
                         while not work.input_queue.queue:
                             if self.has_to_stop():

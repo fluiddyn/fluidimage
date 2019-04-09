@@ -13,7 +13,7 @@ def print_memory_usage():
     """Return the memory usage in Mo."""
     gc.collect()
     mem = process.memory_info()[0] / float(2 ** 20)
-    print("Memory usage: {} Mo".format(mem))
+    print(f"Memory usage: {mem} Mo")
     return mem
 
 
@@ -50,4 +50,4 @@ def main(nb_proc, size):
 if __name__ == "__main__":
 
     for i in range(10):
-        main(2, 100000)
+        main(2, 100_000)

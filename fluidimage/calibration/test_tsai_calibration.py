@@ -20,10 +20,10 @@ def get_piv_field(path):
             keyspiv = [key for key in f.keys() if key.startswith("piv")]
             keyspiv.sort()
             key = keyspiv[-1]
-            X = f[key]["xs"].value
-            Y = f[key]["ys"].value
-            dx = f[key]["deltaxs_final"].value
-            dy = f[key]["deltays_final"].value
+            X = f[key]["xs"][...]
+            Y = f[key]["ys"][...]
+            dx = f[key]["deltaxs_final"][...]
+            dy = f[key]["deltays_final"][...]
     except Exception:
         print(path)
         raise

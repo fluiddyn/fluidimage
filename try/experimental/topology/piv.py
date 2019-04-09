@@ -188,7 +188,7 @@ postfix : str
         )
         self.path_dir_result = path_dir_result
 
-        super(TopologyPIV, self).__init__(
+        super().__init__(
             path_output=path_dir_result,
             logging_level=logging_level,
             nb_max_workers=nb_max_workers,
@@ -316,7 +316,7 @@ postfix : str
             names = series.get_name_all_arrays()
 
         nb_series = len(series)
-        print("Add {} PIV fields to compute.".format(nb_series))
+        print(f"Add {nb_series} PIV fields to compute.")
 
         for i, serie in enumerate(series):
             if i > 1:
@@ -405,7 +405,7 @@ postfix : str
 
     def _print_at_exit(self, time_since_start):
 
-        txt = "Stop compute after t = {:.2f} s".format(time_since_start)
+        txt = f"Stop compute after t = {time_since_start:.2f} s"
         try:
             nb_results = len(self.results)
         except AttributeError:

@@ -318,6 +318,13 @@ class BaseWorkPIV(BaseWork):
                 errors[ivec] = "Bad im_crop shape."
                 continue
 
+            if (np.isnan(im0crop).any() or np.isnan(im1crop).any()):
+                deltaxs[ivec] = np.nan
+                deltays[ivec] = np.nan
+                correls_max[ivec] = np.nan
+                errors[ivec] = "Nan(s) in cropped images."
+                continue
+
             # compute and store correlation map
             correl, norm = self.correl(im0crop, im1crop)
             if (
@@ -491,7 +498,7 @@ class BaseWorkPIV(BaseWork):
             or self.params.multipass.use_tps == "last"
             and last
         ):
-            print("TPS interpolation ({}).".format(piv_results.couple.name))
+            print(f"TPS interpolation ({piv_results.couple.name}).")
             # compute TPS coef
             smoothing_coef = self.params.multipass.smoothing_coef
             subdom_size = self.params.multipass.subdom_size

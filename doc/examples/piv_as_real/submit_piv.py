@@ -17,10 +17,10 @@ cluster = Calcul()
 nb_cores = cluster.nb_cores_per_node//2
 
 for iexp in range(4):
-    command = 'job_piv.py {} {}'.format(iexp, nb_cores)
+    command = f'job_piv.py {iexp} {nb_cores}'
 
     cluster.submit_script(
-        command, name_run='fluidimage_exp{}'.format(iexp),
+        command, name_run=f'fluidimage_exp{iexp}',
         nb_cores_per_node=nb_cores,
         walltime='4:00:00',
         omp_num_threads=1, idempotent=True, delay_signal_walltime=600,

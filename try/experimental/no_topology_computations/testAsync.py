@@ -162,7 +162,7 @@ def main():
     sys.stdout = MultiFile([sys.stdout, log_file])
     config_logging("info", file=sys.stdout)
     # Managing dir paths
-    path = "../../image_samples/Karman/{}/".format(sub_path_image)
+    path = f"../../image_samples/Karman/{sub_path_image}/"
     assert os.listdir(path)
     if not os.path.exists(path_save):
         os.makedirs(path_save)
@@ -195,7 +195,7 @@ def main():
 
     if len(listdir) <= nb_process:  # if there is less piv to compute than cpu
         nb_process = len(listdir) - 1  # adapt process number
-    print("nb process :{}".format(nb_process))
+    print(f"nb process :{nb_process}")
     listdir.sort()
     listdir = partition(listdir, nb_process)
     # making and starting processes

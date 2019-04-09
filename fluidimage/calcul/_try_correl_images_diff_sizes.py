@@ -22,7 +22,7 @@ displacements = np.array([displacement_y, displacement_x])
 nb_particles = (nx // 3) ** 2
 
 
-print("nx: {} ; ny: {} ; nx1: {} ; ny1: {}".format(nx, ny, nx1, ny1))
+print(f"nx: {nx} ; ny: {ny} ; nx1: {nx1} ; ny1: {ny1}")
 
 im0, im1 = make_synthetic_images(
     displacements,

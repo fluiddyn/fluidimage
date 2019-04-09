@@ -68,7 +68,7 @@ def prepare_path_dir_result(
     if os.path.exists(path_dir_result):
         if how == "ask":
             answer = query(
-                "The directory {} ".format(path_dir_result)
+                f"The directory {path_dir_result} "
                 + "already exists. What do you want to do?\n"
                 "New dir, Complete, Recompute or Stop?\n"
             )

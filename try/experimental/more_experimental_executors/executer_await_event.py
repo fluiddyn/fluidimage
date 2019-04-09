@@ -30,9 +30,9 @@ class ExecuterAwaitMultiprocs(ExecutorBase):
         self.define_function()
         print("\nWhat's in function dicts ?\n ")
         for key, af in self.async_funcs.items():
-            print("async func : {} ".format(key))
+            print(f"async func : {key} ")
         for key, f in self.funcs.items():
-            print("func : {} ".format(key))
+            print(f"func : {key} ")
         print("\n")
 
     async def process(self, cond):
@@ -47,7 +47,7 @@ class ExecuterAwaitMultiprocs(ExecutorBase):
             if w.kind is not None and "one shot" in w.kind:
 
                 def func(work=w):
-                    print("funtion {} is called".format(work.name))
+                    print(f"funtion {work.name} is called")
                     work.func_or_cls(work.input_queue, work.output_queue)
 
                 self.funcs[w.name] = func
@@ -56,7 +56,7 @@ class ExecuterAwaitMultiprocs(ExecutorBase):
             elif w.kind is not None and "global" in w.kind:
 
                 async def func(cond, work=w):
-                    print("global funtion {} is called".format(work.name))
+                    print(f"global funtion {work.name} is called")
                     async with cond:
                         while not self.has_to_stop():
                             while not work.func_or_cls(
@@ -76,17 +76,11 @@ class ExecuterAwaitMultiprocs(ExecutorBase):
                                         work.name
                                     )
                                 )
-                            print(
-                                "global funtion {} is working".format(work.name)
-                            )
+                            print(f"global funtion {work.name} is working")
                             cond.notify_all()
-                            print(
-                                "global funtion {} is waiting".format(work.name)
-                            )
+                            print(f"global funtion {work.name} is waiting")
                             await cond.wait()
-                            print(
-                                "global funtion {} is waking up".format(work.name)
-                            )
+                            print(f"global funtion {work.name} is waking up")
                         print(
                             "global funtion {} is have finished working".format(
                                 work.name
@@ -101,7 +95,7 @@ class ExecuterAwaitMultiprocs(ExecutorBase):
             ):
 
                 async def func(cond, work=w):
-                    print("funtion {} is called".format(work.name))
+                    print(f"funtion {work.name} is called")
                     async with cond:
                         while not self.has_to_stop():
                             while not work.input_queue.queue:
@@ -119,9 +113,7 @@ class ExecuterAwaitMultiprocs(ExecutorBase):
                                         work.name
                                     )
                                 )
-                            print(
-                                "global funtion {} is working".format(work.name)
-                            )
+                            print(f"global funtion {work.name} is working")
                             key, obj = work.input_queue.queue.popitem()
                             # ret = await trio.open_file(obj)
                             ret = await trio.run_sync_in_worker_thread(
@@ -129,13 +121,9 @@ class ExecuterAwaitMultiprocs(ExecutorBase):
                             )
                             work.output_queue.queue[key] = ret
                             cond.notify_all()
-                            print(
-                                "global funtion {} is waiting".format(work.name)
-                            )
+                            print(f"global funtion {work.name} is waiting")
                             await cond.wait()
-                            print(
-                                "global funtion {} is waking up".format(work.name)
-                            )
+                            print(f"global funtion {work.name} is waking up")
                         print(
                             "funtion {} is have finished working".format(
                                 work.name
@@ -147,7 +135,7 @@ class ExecuterAwaitMultiprocs(ExecutorBase):
 
                 async def func(cond, work=w):
                     async with cond:
-                        print("funtion {} is called".format(work.name))
+                        print(f"funtion {work.name} is called")
                         while not self.has_to_stop():
                             while not work.input_queue.queue:
                                 cond.notify_all()
@@ -164,9 +152,7 @@ class ExecuterAwaitMultiprocs(ExecutorBase):
                                         work.name
                                     )
                                 )
-                            print(
-                                "global funtion {} is working".format(work.name)
-                            )
+                            print(f"global funtion {work.name} is working")
                             key, obj = work.input_queue.queue.popitem()
                             conn = await trio.open_tcp_stream(
                                 "localhost", port=18813
@@ -177,13 +163,9 @@ class ExecuterAwaitMultiprocs(ExecutorBase):
                             if work.output_queue is not None:
                                 work.output_queue.queue[key] = res
                             cond.notify_all()
-                            print(
-                                "global funtion {} is waiting".format(work.name)
-                            )
+                            print(f"global funtion {work.name} is waiting")
                             await cond.wait()
-                            print(
-                                "global funtion {} is waking up".format(work.name)
-                            )
+                            print(f"global funtion {work.name} is waking up")
                         print(
                             "funtion {} is have finished working".format(
                                 work.name

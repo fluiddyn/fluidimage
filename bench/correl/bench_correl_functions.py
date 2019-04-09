@@ -28,7 +28,7 @@ def corr_fft_numpy(in0, in1):
 
 n0 = 64
 n1 = 32
-print('n0: {} ; n1: {}'.format(n0, n1))
+print(f'n0: {n0} ; n1: {n1}')
 
 in0 = np.random.randn(n0, n0).astype('float32')
 in1 = np.random.randn(n1, n1).astype('float32')

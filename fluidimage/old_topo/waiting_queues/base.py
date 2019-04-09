@@ -118,7 +118,7 @@ class WaitingQueueBase(dict):
             "{:.2f} s. ".format(time() - self.topology.t_start)
             + "Launch work "
             + self.work_name
-            + " ({}). mem usage".format(k)
+            + f" ({k}). mem usage"
         )
 
         t_start = time()
@@ -217,7 +217,7 @@ class WaitingQueueMultiprocessing(WaitingQueueBase):
             "{:.2f} s. ".format(time() - self.topology.t_start)
             + "Launch work "
             + self.work_name
-            + " ({}). mem usage".format(k)
+            + f" ({k}). mem usage"
         )
 
         comm = self._Queue()
@@ -328,7 +328,7 @@ class WaitingQueueMultiprocessingSpe(WaitingQueueMultiprocessing):
             "{:.2f} s. ".format(time() - self.topology.t_start)
             + "Launch work "
             + self.work_name
-            + " ({}). mem usage".format(k)
+            + f" ({k}). mem usage"
         )
 
         comm = self._Queue()

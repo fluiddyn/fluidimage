@@ -390,7 +390,7 @@ class TopologyBase:
 
     def print_at_exit(self, time_since_start):
         """Print information before exit."""
-        txt = "Stop compute after t = {:.2f} s".format(time_since_start)
+        txt = f"Stop compute after t = {time_since_start:.2f} s"
         try:
             nb_results = len(self.results)
         except AttributeError:
@@ -415,12 +415,12 @@ class TopologyBase:
         code += '\nnode [shape="record"]\n'
         txt_queue = (
             '{name_quoted:40s} [label="<f0> {name}|'
-            + "|".join(["<f{}>".format(i) for i in range(1, 5)])
+            + "|".join([f"<f{i}>" for i in range(1, 5)])
             + '"]\n'
         )
 
         for q in self.queues:
-            name_quoted = '"{}"'.format(q.name)
+            name_quoted = f'"{q.name}"'
             code += txt_queue.format(name=q.name, name_quoted=name_quoted)
 
         # works and links
@@ -429,7 +429,7 @@ class TopologyBase:
         txt_work = '{name_quoted:40s} [label="{name}"]\n'
         for q in self.queues:
             name_work = q.work_name or str(q.work)
-            name_quoted = '"{}"'.format(name_work)
+            name_quoted = f'"{name_work}"'
             code += txt_work.format(name=name_work, name_quoted=name_quoted)
 
         code += "\n"

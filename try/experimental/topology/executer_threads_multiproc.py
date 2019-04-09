@@ -113,7 +113,7 @@ class ExecuterThreadsMultiprocs(ExecuterBase):
 
             def __init__(self):
                 self.has_to_stop = False
-                super(CheckWorksThread, self).__init__()
+                super().__init__()
                 self.exitcode = None
                 self.daemon = True
 
@@ -176,7 +176,7 @@ class ExecuterThreadsMultiprocs(ExecuterBase):
                             worker.really_started = True
                             worker.terminate()
 
-                super(CheckWorksProcess, self).in_time_loop()
+                super().in_time_loop()
 
         self.thread_check_works_t = CheckWorksThread()
         self.thread_check_works_t.start()
@@ -386,10 +386,10 @@ class ExecuterThreadsMultiprocs(ExecuterBase):
         queue_name = input_queue.__dict__["name"]
         #
         if input_queue is None:  # No input queue
-            print("Work {} has no input queue".format(input_queue))
+            print(f"Work {input_queue} has no input queue")
         elif work.kind is not None:  # kind is not empty
             if "one shot" in work.kind:
-                print("WORK func_or_cls {}".format(work))
+                print(f"WORK func_or_cls {work}")
                 queue = WaitingQueueOneShot(
                     name=input_queue.name,
                     work_name=work.name,

@@ -248,7 +248,7 @@ postfix : str
             names = series.get_name_all_arrays()
 
         nb_series = len(series)
-        print("Add {} surface fields to compute.".format(nb_series))
+        print(f"Add {nb_series} surface fields to compute.")
 
         for i, serie in enumerate(series):
             if i > 1:

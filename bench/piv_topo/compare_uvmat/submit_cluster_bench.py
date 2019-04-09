@@ -12,7 +12,7 @@ nb_min_1 = 48
 
 for nb_cores in [6]:
     nb_min = nb_min_1/nb_cores
-    str_nb_cores = '{}'.format(nb_cores)
+    str_nb_cores = f'{nb_cores}'
 
     print(str_nb_cores, '0:{}:00'.format(int(ceil(nb_min)) + 10))
 

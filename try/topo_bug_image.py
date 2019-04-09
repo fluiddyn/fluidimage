@@ -92,9 +92,7 @@ class TopologyDebug(TopologyBase):
         #     destination=self.wq_cpu,
         #     path_dir=path_dir, topology=self)
 
-        super(TopologyDebug, self).__init__(
-            [self.wq_load, self.wq_cpu, self.wq_save]
-        )
+        super().__init__([self.wq_load, self.wq_cpu, self.wq_save])
 
         flist = glob(
             "/home/users/vishnu1as/useful/project/16MILESTONE/Data/"
@@ -103,7 +101,7 @@ class TopologyDebug(TopologyBase):
         self.wq_load.update({os.path.basename(f): f for f in flist[:n]})
 
     def compute(self):
-        super(TopologyDebug, self).compute()
+        super().compute()
         gc.collect()
 
 

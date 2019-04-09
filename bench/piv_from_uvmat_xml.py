@@ -22,7 +22,7 @@ try:
 except ValueError:
     nb_cores = None
 else:
-    params.saving.path += '_{}cores'.format(nb_cores)
+    params.saving.path += f'_{nb_cores}cores'
 
 
 params.saving.how = 'complete'

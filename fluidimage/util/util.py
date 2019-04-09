@@ -67,9 +67,7 @@ imsave.__doc__ = _imsave.__doc__
 
 def _get_txt_memory_usage(string="Memory usage", color="OKGREEN"):
     mem = get_memory_usage()
-    cstr = cstring(
-        (string + ": ").ljust(30) + "{:.3f} Mb".format(mem), color=color
-    )
+    cstr = cstring((string + ": ").ljust(30) + f"{mem:.3f} Mb", color=color)
     return cstr
 
 

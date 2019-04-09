@@ -200,7 +200,7 @@ class ArrayCouple(DataObject):
         self.paths = eval(paths)
 
         try:
-            self.shape_images = hdf5_object["shape_images"].value
+            self.shape_images = hdf5_object["shape_images"][...]
         except KeyError:
             pass
 
@@ -404,11 +404,11 @@ class HeavyPIVResults(DataObject):
         if "deltaxs_tps" in self.__dict__:
             g = g_piv.create_group("deltaxs_tps")
             for i, arr in enumerate(self.deltaxs_tps):
-                g.create_dataset("subdom{}".format(i), data=arr)
+                g.create_dataset(f"subdom{i}", data=arr)
 
             g = g_piv.create_group("deltays_tps")
             for i, arr in enumerate(self.deltays_tps):
-                g.create_dataset("subdom{}".format(i), data=arr)
+                g.create_dataset(f"subdom{i}", data=arr)
 
     def _load(self, path):
 
@@ -448,11 +448,11 @@ class HeavyPIVResults(DataObject):
             g = g_piv["deltaxs_tps"]
             self.deltaxs_tps = []
             for arr in g.keys():
-                self.deltaxs_tps.append(g[arr].value)
+                self.deltaxs_tps.append(g[arr][...])
             g = g_piv["deltays_tps"]
             self.deltays_tps = []
             for arr in g.keys():
-                self.deltays_tps.append(g[arr].value)
+                self.deltays_tps.append(g[arr][...])
 
     def get_grid_pixel(self, index_pass):
         """Recompute 1d arrays containing the approximate positions of the vectors
@@ -518,7 +518,7 @@ class MultipassPIVResults(DataObject):
     def append(self, results):
         i = len(self.passes)
         self.passes.append(results)
-        self.__dict__["piv{}".format(i)] = results
+        self.__dict__[f"piv{i}"] = results
 
     def _get_name(self, kind):
 
@@ -555,7 +555,7 @@ class MultipassPIVResults(DataObject):
                 f.attrs["fluidimage_hg_rev"] = hg_rev
 
                 for i, r in enumerate(self.passes):
-                    r._save_in_hdf5_object(f, tag="piv{}".format(i))
+                    r._save_in_hdf5_object(f, tag=f"piv{i}")
 
         return path_file
 
@@ -575,7 +575,7 @@ class MultipassPIVResults(DataObject):
             nb_passes = f.attrs["nb_passes"]
 
             for ip in range(nb_passes):
-                g = f["piv{}".format(ip)]
+                g = f[f"piv{ip}"]
                 self.append(
                     HeavyPIVResults(
                         hdf5_object=g, couple=self.couple, params=self.params
@@ -596,65 +596,59 @@ class MultipassPIVResults(DataObject):
             tmp = np.zeros(ir.deltaxs.shape).astype("float32")
             inds = np.where(~np.isnan(ir.deltaxs))
 
-            f.create_variable("Civ{}_X".format(iuvmat), (str_nb_vec,), data=ir.xs)
-            f.create_variable("Civ{}_Y".format(iuvmat), (str_nb_vec,), data=ir.ys)
+            f.create_variable(f"Civ{iuvmat}_X", (str_nb_vec,), data=ir.xs)
+            f.create_variable(f"Civ{iuvmat}_Y", (str_nb_vec,), data=ir.ys)
             f.create_variable(
-                "Civ{}_U".format(iuvmat),
-                (str_nb_vec,),
-                data=np.nan_to_num(ir.deltaxs),
+                f"Civ{iuvmat}_U", (str_nb_vec,), data=np.nan_to_num(ir.deltaxs)
             )
             f.create_variable(
-                "Civ{}_V".format(iuvmat),
-                (str_nb_vec,),
-                data=np.nan_to_num(ir.deltays),
+                f"Civ{iuvmat}_V", (str_nb_vec,), data=np.nan_to_num(ir.deltays)
             )
 
             if ir.params.multipass.use_tps:
-                str_nb_subdom = "nb_subdomain_{}".format(iuvmat)
+                str_nb_subdom = f"nb_subdomain_{iuvmat}"
                 try:
                     f.dimensions[str_nb_subdom] = np.shape(ir.deltaxs_tps)[0]
-                    f.dimensions["nb_tps{}".format(iuvmat)] = np.shape(
-                        ir.deltaxs_tps
-                    )[1]
+                    f.dimensions[f"nb_tps{iuvmat}"] = np.shape(ir.deltaxs_tps)[1]
                     tmp[inds] = ir.deltaxs_smooth
                     f.create_variable(
-                        "Civ{}_U_smooth".format(iuvmat), (str_nb_vec,), data=tmp
+                        f"Civ{iuvmat}_U_smooth", (str_nb_vec,), data=tmp
                     )
                     tmp[inds] = ir.deltays_smooth
                     f.create_variable(
-                        "Civ{}_V_smooth".format(iuvmat), (str_nb_vec,), data=tmp
+                        f"Civ{iuvmat}_V_smooth", (str_nb_vec,), data=tmp
                     )
                     f.create_variable(
-                        "Civ{}_U_tps".format(iuvmat),
-                        (str_nb_subdom, "nb_vec_tps_{}".format(iuvmat)),
+                        f"Civ{iuvmat}_U_tps",
+                        (str_nb_subdom, f"nb_vec_tps_{iuvmat}"),
                         data=ir.deltaxs_tps,
                     )
                     f.create_variable(
-                        "Civ{}_V_tps".format(iuvmat),
-                        (str_nb_subdom, "nb_vec_tps_{}".format(iuvmat)),
+                        f"Civ{iuvmat}_V_tps",
+                        (str_nb_subdom, f"nb_vec_tps_{iuvmat}"),
                         data=ir.deltays_tps,
                     )
                     tmp = [None] * f.dimensions[str_nb_subdom]
                     for j in range(f.dimensions[str_nb_subdom]):
                         tmp[j] = np.shape(ir.deltaxs_tps[j])[0]
                     f.create_variable(
-                        "Civ{}_NbCentres".format(iuvmat),
-                        ("nb_subdomain_{}".format(iuvmat),),
+                        f"Civ{iuvmat}_NbCentres",
+                        (f"nb_subdomain_{iuvmat}",),
                         data=tmp,
                     )
                 except:
-                    print("no tps field at passe n {}".format(iuvmat))
+                    print(f"no tps field at passe n {iuvmat}")
 
             f.create_variable(
-                "Civ{}_C".format(iuvmat), (str_nb_vec,), data=ir.correls_max
+                f"Civ{iuvmat}_C", (str_nb_vec,), data=ir.correls_max
             )
             tmp = np.zeros(ir.deltaxs.shape).astype("float32")
             indsnan = np.where(np.isnan(ir.deltaxs))
             tmp[indsnan] = 1
-            f.create_variable("Civ{}_FF".format(iuvmat), (str_nb_vec,), data=tmp)
+            f.create_variable(f"Civ{iuvmat}_FF", (str_nb_vec,), data=tmp)
 
             # mettre bonne valeur de F correspondant a self.piv0.error...
-            f.create_variable("Civ{}_F".format(iuvmat), (str_nb_vec,), data=tmp)
+            f.create_variable(f"Civ{iuvmat}_F", (str_nb_vec,), data=tmp)
 
     # ADD
     # f.create_variable('Civ1_Coord_tps',
