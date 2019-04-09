@@ -75,12 +75,12 @@ class WorkSurfaceTracking(BaseWork):
                 "ymin": 50,
                 "ymax": 700,
                 "distance_lens": 0.36,
-                "distance_object": 1.07,
+                "distance_object": 1.293,
                 "pix_size": 2.4 * 10 ** -4,
                 "startref_frame": 0,
                 "lastref_frame": 49,
                 "sur": 16,
-                #"k_x": 70.75,
+                "k_x": 40.625,
                 "k_y": 0,
                 "slicer": 4,
                 "red_factor": 1,
@@ -215,7 +215,7 @@ offset: float (default 0.0)
             params.images.path_ref, params.images.str_slice_ref
         )
         k_x = self.compute_kx(self.refserie)
-        logger.warning("Value of kx computed = " + str(k_x))
+        logger.info("Value of kx computed = " + str(k_x))
         self.kslicer = 2 * k_x
         self.wave_proj = 1 / (k_x / self.l_x / self.pix_size)
         self.kxx = self.kx / self.pix_size
@@ -224,7 +224,7 @@ offset: float (default 0.0)
         )
         self.a1_tmp = None
         self.ref_height = self.process_ref()
-        logger.warning("reference computed")
+        logger.info("reference computed")
 
     def compute_kx(self, serie):
         """calculates the average wave vector from a set of reference images
@@ -241,8 +241,8 @@ offset: float (default 0.0)
             average wave vector from the reference frame
         """
         if len(serie) == 0:
-            logger.warning("0 ref image. Use of default k_x = 70.75.")
-            return 70.75
+            logger.warning("0 ref image. Use of default k_x = 40.625.")
+            return 40.625
         names = serie.get_path_arrays()
         ref = np.zeros((self.ymax - self.ymin, self.xmax - self.xmin))
         ii = 0
