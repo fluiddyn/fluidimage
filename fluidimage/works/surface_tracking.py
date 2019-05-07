@@ -37,11 +37,12 @@ import scipy.interpolate
 import scipy.io
 from skimage.transform import resize
 
+# import matplotlib.pyplot as plt
+
 from fluidimage import SerieOfArraysFromFiles
 from fluidimage.util import logger, imread
 from fluiddyn.util.paramcontainer import ParamContainer
 
-import matplotlib.pyplot as plt
 from . import BaseWork
 
 
@@ -204,9 +205,7 @@ offset: float (default 0.0)
         self.l_x = self.xmax - self.xmin
         self.l_y = self.ymax - self.ymin
 
-
         # wave_proj_pix = self.wave_proj / self.pix_size
-
 
         self.kx = np.arange(-self.l_x / 2, self.l_x / 2) / self.l_x
         self.ky = np.arange(-self.l_y / 2, self.l_y / 2) / self.l_y
@@ -249,7 +248,7 @@ offset: float (default 0.0)
 
         for name in names:
             array = imread(str(Path(self.path_ref) / name))
-            frame = array[self.ymin: self.ymax, self.xmin: self.xmax].astype(
+            frame = array[self.ymin : self.ymax, self.xmin : self.xmax].astype(
                 float
             )
             frame = self.frame_normalize(frame)
@@ -268,10 +267,8 @@ offset: float (default 0.0)
         X, Y = np.meshgrid(kx * l_x, ky * l_y)
         gain = np.exp(-1.0j * 2 * np.pi * (k_x / l_x * X))
         filt1 = np.fft.fftshift(
-            np.exp(-((kxgrid ** 2 + kygrid ** 2) / 2 / (
-                    k_x / slicer / l_x) ** 2))
-            * np.exp(1 - 1 / (1 + ((kxgrid + k_x) ** 2 +
-                                   kygrid ** 2) / k_x ** 2))
+            np.exp(-((kxgrid ** 2 + kygrid ** 2) / 2 / (k_x / slicer / l_x) ** 2))
+            * np.exp(1 - 1 / (1 + ((kxgrid + k_x) ** 2 + kygrid ** 2) / k_x ** 2))
         )
 
         filt2 = np.fft.fftshift(
@@ -343,8 +340,8 @@ offset: float (default 0.0)
             x_min = self.xmin
             print("INFO:x_min adjusted")
         calc_frame = self.ref
-        calc_frame[:, x_min - self.xmin: -(self.xmax - x_max)] = frame[
-            self.ymin: self.ymax, x_min: x_max
+        calc_frame[:, x_min - self.xmin : -(self.xmax - x_max)] = frame[
+            self.ymin : self.ymax, x_min:x_max
         ]
         return calc_frame
 
@@ -493,10 +490,12 @@ offset: float (default 0.0)
         array, shape, path = array_and_path
         array_ = []
         for a in array:
-            jumps = [np.sign(int(a[i+1]-angle)) for i, angle
-                     in enumerate(a[:-1])
-                     if a[i+1]-angle > 0.95*np.pi
-                     or a[i+1]-angle < 0.95*np.pi]
+            jumps = [
+                np.sign(int(a[i + 1] - angle))
+                for i, angle in enumerate(a[:-1])
+                if a[i + 1] - angle > 0.95 * np.pi
+                or a[i + 1] - angle < 0.95 * np.pi
+            ]
 
             mapper = np.zeros(len(jumps))
             smoother = []
@@ -508,9 +507,9 @@ offset: float (default 0.0)
                 if jumps[i] < 0:
                     switch = switch - 1
                 if switch >= 1:
-                    val = -2*np.pi*switch
+                    val = -2 * np.pi * switch
                 if switch <= -1:
-                    val = 2*np.pi*switch
+                    val = 2 * np.pi * switch
                 smoother.append(val)
             smoother.insert(0, 0)
             array_smoothed = a + smoother
@@ -518,10 +517,12 @@ offset: float (default 0.0)
         array_s = np.array(array_)
         array_s = array_s.T
         for a in array_s:
-            jumps = [np.sign(int(a[i+1]-angle)) for i, angle
-                     in enumerate(a[:-1])
-                     if a[i+1]-angle > 0.95*np.pi
-                     or a[i+1]-angle < 0.95*np.pi]
+            jumps = [
+                np.sign(int(a[i + 1] - angle))
+                for i, angle in enumerate(a[:-1])
+                if a[i + 1] - angle > 0.95 * np.pi
+                or a[i + 1] - angle < 0.95 * np.pi
+            ]
 
             mapper = np.zeros(len(jumps))
             smoother = []
@@ -533,9 +534,9 @@ offset: float (default 0.0)
                 if jumps[i] < 0:
                     switch = switch - 1
                 if switch >= 1:
-                    val = -2*np.pi
+                    val = -2 * np.pi
                 if switch <= -1:
-                    val = 2*np.pi
+                    val = 2 * np.pi
                 smoother.append(val)
             smoother.insert(0, 0)
             array_smoothed = a + smoother
@@ -575,25 +576,15 @@ offset: float (default 0.0)
             x_max = self.xmax - 1
             logger.warning("x_max adjusted")
         newarray = np.zeros(self.ref.shape)
-        newarray[:, self.borders:-self.borders] = resize(
-                                array[
-                                        :,
-                                  x_min
-                                  + self.borders
-                                  - self.xmin
-                                  : 
-                                  -(
-                                        self.xmax
-                                        - x_max
-                                        + self.borders
-                                   )
-                                ],
-                            (
-                             self.ref.shape[0],
-                              self.xmax - 2*self.borders
-                             -self.xmin
-                             )
-                    )
+        newarray[:, self.borders : -self.borders] = resize(
+            array[
+                :,
+                x_min
+                + self.borders
+                - self.xmin : -(self.xmax - x_max + self.borders),
+            ],
+            (self.ref.shape[0], self.xmax - 2 * self.borders - self.xmin),
+        )
         return (newarray, path)
 
     def convphase(self, phase, pix_size, dist, dist_p_c, wave_len, red_factor):
@@ -694,8 +685,7 @@ offset: float (default 0.0)
             average wave vector from the given frame
         """
         Fref = np.fft.fft2(ref, ((ymax - ymin) * sur, (xmax - xmin) * sur))
-        kxma = np.arange(-(xmax - xmin) * sur / 2,
-                         (xmax - xmin) * sur / 2) / sur
+        kxma = np.arange(-(xmax - xmin) * sur / 2, (xmax - xmin) * sur / 2) / sur
         indc = np.max(np.fft.fftshift(abs(Fref)), axis=0).argmax()
         return abs(kxma[indc])
 
@@ -705,19 +695,14 @@ offset: float (default 0.0)
         """
         frame_filtered = self.rectify_frame(self.ref, self.gain, self.filt)
         inversed_filt = np.fft.ifft2(frame_filtered)
-        inversed_filt = inversed_filt[::self.red_factor, ::self.red_factor]
+        inversed_filt = inversed_filt[:: self.red_factor, :: self.red_factor]
         ref_angle = np.unwrap(np.angle(inversed_filt), axis=1)  # by lines
         ref_angle = np.unwrap(ref_angle, axis=0)  # by columsref
         self.ref_height = np.zeros(ref_angle.shape)
-        return(
-                self.calculheight_func(
-                        (
-                                ref_angle,
-                                ref_angle.shape,
-                                self.path_ref
-                                )
-                    )[0]-self.offset
-            )
+        return (
+            self.calculheight_func((ref_angle, ref_angle.shape, self.path_ref))[0]
+            - self.offset
+        )
 
 
 if "sphinx" in sys.modules:

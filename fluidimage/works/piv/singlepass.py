@@ -30,13 +30,9 @@ import numpy as np
 
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
 
-from ...data_objects.piv import (
-    ArrayCouple,
-    HeavyPIVResults,
-    get_slices_from_strcrop,
-)
+from ...data_objects.piv import ArrayCouple, HeavyPIVResults
 from ...calcul.correl import correlation_classes
-from .. import BaseWork
+from ..with_mask import BaseWorkWithMask
 
 from ...calcul.interpolate.thin_plate_spline_subdom import ThinPlateSplineSubdom
 
@@ -53,7 +49,7 @@ def _isint(obj):
     return isinstance(obj, (int, np.integer))
 
 
-class BaseWorkPIV(BaseWork):
+class BaseWorkPIV(BaseWorkWithMask):
     """Base class for PIV.
 
     This class is meant to be subclassed, not instantiated directly.
@@ -318,7 +314,7 @@ class BaseWorkPIV(BaseWork):
                 errors[ivec] = "Bad im_crop shape."
                 continue
 
-            if (np.isnan(im0crop).any() or np.isnan(im1crop).any()):
+            if np.isnan(im0crop).any() or np.isnan(im1crop).any():
                 deltaxs[ivec] = np.nan
                 deltays[ivec] = np.nan
                 correls_max[ivec] = np.nan
@@ -422,24 +418,6 @@ class BaseWorkPIV(BaseWork):
         ]
         subim = np.array(subim, dtype=np.float32)
         return subim - subim.mean()
-
-    def _xymasked_from_xyoriginalimage(self, xs, ys):
-        if self.params.mask.strcrop is not None:
-            slices = get_slices_from_strcrop(self.params.mask.strcrop)
-            if slices[1].start is not None:
-                xs = xs - slices[1].start
-            if slices[0].start is not None:
-                ys = ys - slices[0].start
-        return xs, ys
-
-    def _xyoriginalimage_from_xymasked(self, xs, ys):
-        if self.params.mask.strcrop is not None:
-            slices = get_slices_from_strcrop(self.params.mask.strcrop)
-            if slices[1].start is not None:
-                xs = xs + slices[1].start
-            if slices[0].start is not None:
-                ys = ys + slices[0].start
-        return xs, ys
 
     def apply_interp(self, piv_results, last=False):
         """Interpolate a PIV result object on the grid of the PIV work.
@@ -651,18 +629,7 @@ from : str {'overlap'}
 """
         )
 
-        params._set_child("mask", attribs={"strcrop": None})
-
-        params.mask._set_doc(
-            """
-Parameters describing how images are masked.
-
-strcrop : None, str
-
-    Two-dimensional slice (for example '100:600, :'). If None, the whole image
-    is used.
-"""
-        )
+        cls._complete_params_with_default_mask(params)
 
     def __init__(self, params):
 

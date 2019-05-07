@@ -7,6 +7,7 @@ from fluidimage.topologies.surface_tracking import TopologySurfaceTracking
 from fluidimage import path_image_samples
 import skimage
 
+
 def rescale_intensity(tuple_image_path):
     """
     Rescale image intensities, between the specified minima and maxima,

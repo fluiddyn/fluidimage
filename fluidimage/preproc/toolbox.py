@@ -48,7 +48,7 @@ class PreprocToolsBase:
             for arg in list(func_args.keys()):
                 if arg in ["img"]:
                     # Remove arguments which are not parameters
-                    del (func_args[arg])
+                    del func_args[arg]
 
             func_args.update({"enable": False})
 
