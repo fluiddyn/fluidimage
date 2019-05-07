@@ -56,6 +56,8 @@ class TopologyPIV(TopologyBase):
 
     """
 
+    WorkVelocimetry = WorkPIV
+
     @classmethod
     def create_default_params(cls):
         """Class method returning the default parameters.
@@ -161,7 +163,7 @@ postfix : str
 """
         )
 
-        WorkPIV._complete_params_with_default(params)
+        cls.WorkVelocimetry._complete_params_with_default(params)
 
         params._set_internal_attr(
             "_value_text",
@@ -246,7 +248,7 @@ postfix : str
             kind="global",
         )
 
-        self.work_piv = WorkPIV(self.params)
+        self.work_piv = self.WorkVelocimetry(self.params)
 
         self.add_work(
             "compute piv",
@@ -373,8 +375,11 @@ if "sphinx" in sys.modules:
 
 
 if __name__ == "__main__":
+    from fluidimage import path_image_samples
+
     params = TopologyPIV.create_default_params()
-    params.series.path = "../../image_samples/Karman/Images"
+
+    params.series.path = str(path_image_samples / "Karman/Images")
     params.series.ind_start = 1
     params.series.ind_step = 2
 

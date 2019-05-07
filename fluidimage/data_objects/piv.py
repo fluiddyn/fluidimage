@@ -353,8 +353,9 @@ class HeavyPIVResults(DataObject):
                 self._save_as_uvmat(f)
         else:
             with h5py.File(path_file, "w") as f:
-                f.attrs["class_name"] = "MultipassPIVResults"
+                f.attrs["class_name"] = "HeavyPIVResults"
                 f.attrs["module_name"] = "fluidimage.data_objects.piv"
+                self._save_in_hdf5_object(f)
 
         return path_file
 
@@ -375,12 +376,14 @@ class HeavyPIVResults(DataObject):
         g_piv.attrs["module_name"] = "fluidimage.data_objects.piv"
 
         for k in self._keys_to_be_saved:
-            if k in self.__dict__:
+            if k in self.__dict__ and self.__dict__[k] is not None:
                 g_piv.create_dataset(k, data=self.__dict__[k])
 
         for name_dict in self._dict_to_be_saved:
             try:
                 d = self.__dict__[name_dict]
+                if d is None:
+                    raise KeyError
             except KeyError:
                 pass
             else:

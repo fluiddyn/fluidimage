@@ -68,7 +68,7 @@ image_samples/4th_PIV-Challenge_Case_E/E_Calibration_Images/Camera_0*/calib*.npy
 image_samples/Milestone/Images_many*
 
 image_samples/Karman/Images.civ/*
-image_samples/Karman/Images.piv_example*
+image_samples/Karman/Images.*_example*
 
 .coverage/*
 

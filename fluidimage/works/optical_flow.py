@@ -10,7 +10,7 @@ import cv2
 from fluiddyn.util.paramcontainer import ParamContainer
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
 
-from ..data_objects.piv import ArrayCouple
+from fluidimage.data_objects.piv import ArrayCouple, HeavyPIVResults
 from .with_mask import BaseWorkWithMask
 
 
@@ -165,4 +165,13 @@ displacement_max : None
         ys = positions[:, 1]
         xs, xy = self._xyoriginalimage_from_xymasked(xs, ys)
 
-        return xs, xy, displacements
+        result = HeavyPIVResults(
+            deltaxs=displacements[:, 0],
+            deltays=displacements[:, 1],
+            xs=xs,
+            ys=ys,
+            couple=couple,
+            params=self.params,
+        )
+
+        return result
