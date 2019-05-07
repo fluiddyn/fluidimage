@@ -32,7 +32,11 @@ class DisplayPIV:
 
         self.piv_results = piv_results
 
-        if show_correl and hasattr(piv_results, "correls"):
+        if (
+            show_correl
+            and hasattr(piv_results, "correls")
+            and piv_results.correls
+        ):
             self.show_correl = True
         else:
             self.show_correl = False
@@ -139,11 +143,13 @@ class DisplayPIV:
                 scale=scale,
             )
 
-            self.inds_error = inds_error = np.array(
-                list(piv_results.deltays_wrong.keys()), dtype=int
-            )
+            if show_error and not hasattr(piv_results, "deltays_wrong"):
+                show_error = False
 
             if show_error:
+                self.inds_error = inds_error = np.array(
+                    list(piv_results.deltays_wrong.keys()), dtype=int
+                )
                 xs_wrong = xs[inds_error]
                 ys_wrong = ys[inds_error]
                 dxs_wrong = np.array(
@@ -296,12 +302,19 @@ class DisplayPIV:
         self.l.set_visible(True)
         self.l.set_data(ix, iy)
 
-        correl_max = result.correls_max[ind_all]
         text = (
-            "vector at ix = {} : iy = {} ; " "U = {:.3f} ; V = {:.3f}, C = {:.3f}"
-        ).format(ix, iy, deltax, deltay, correl_max)
+            f"vector at ix = {ix} : iy = {iy}"
+            f" ; U = {deltax:.3f} ; V = {deltay:.3f}"
+        )
 
-        if ind_all in self.piv_results.errors:
+        if result.correls_max is not None:
+            correl_max = result.correls_max[ind_all]
+            text += f", C = {correl_max:.3f}"
+
+        if (
+            self.piv_results.errors is not None
+            and ind_all in self.piv_results.errors
+        ):
             text += ", error: " + self.piv_results.errors[ind_all]
 
         self.t.set_text(text)

@@ -1,3 +1,9 @@
+"""
+
+See https://github.com/groussea/opyflow
+
+"""
+
 import numpy as np
 import cv2
 
@@ -40,10 +46,17 @@ def optical_flow(
     positions = positions[correct_values]
     displacements = displacements[correct_values]
 
-    norm = np.sqrt(displacements[:, 0] ** 2 + displacements[:, 1] ** 2)
-    cond = vmin < norm < vmax
-    positions = positions[cond]
-    displacements = displacements[cond]
+    if vmin is not None or vmax is not None:
+        if vmin is None:
+            vmin = 0
+
+        if vmax is None:
+            vmax = np.inf
+
+        norm = np.sqrt(displacements[:, 0] ** 2 + displacements[:, 1] ** 2)
+        cond = vmin < norm < vmax
+        positions = positions[cond]
+        displacements = displacements[cond]
 
     return positions, displacements
 
@@ -93,7 +106,7 @@ Filters are needed to exclude bad vectors."""
         cls._complete_params_with_default_mask(params)
 
         params._set_child(
-            "filter",
+            "filters",
             attribs={
                 "threshold_diff_ab_ba": 1.0,
                 "displacement_min": None,
@@ -101,7 +114,7 @@ Filters are needed to exclude bad vectors."""
             },
         )
 
-        params.fix._set_doc(
+        params.filters._set_doc(
             """
 Parameters indicating how are detected and processed false vectors.
 
