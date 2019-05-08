@@ -1,6 +1,9 @@
-"""
+"""Works optical flow (:mod:`fluidimage.works.optical_flow`)
+============================================================
 
-See https://github.com/groussea/opyflow
+See
+https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_video/py_lucas_kanade
+(and https://github.com/groussea/opyflow by Gauthier Rousseau)
 
 """
 
@@ -54,7 +57,7 @@ def optical_flow(
             vmax = np.inf
 
         norm = np.sqrt(displacements[:, 0] ** 2 + displacements[:, 1] ** 2)
-        cond = vmin < norm < vmax
+        cond = (vmin < norm) & (norm < vmax)
         positions = positions[cond]
         displacements = displacements[cond]
 
@@ -86,8 +89,28 @@ class WorkOpticalFlow(BaseWorkWithMask):
         params.optical_flow._set_doc(
             """Parameters for the flow calculation using Lukas Kanade method
 
-WinSize characterize the size of the window in which we search movement.
-The algorithm is pyramidal."""
+See https://docs.opencv.org/3.0-beta/modules/video/doc/motion_analysis_and_object_tracking.html
+
+The algorithm is "pyramidal" (multiple passes).
+
+winSize :
+
+  Size of the search window at each pyramid level.
+
+maxLevel :
+
+  0-based maximal pyramid level number; if set to 0, pyramids are not used
+  (single level), if set to 1, two levels are used, and so on; if pyramids are
+  passed to input then algorithm will use as many levels as pyramids have but no
+  more than maxLevel.
+
+criteria :
+
+  Termination criteria of the iterative search algorithm (after the specified
+  maximum number of iterations criteria.maxCount or when the search window
+  moves by less than criteria.epsilon.
+
+"""
         )
 
         params._set_child(
@@ -98,9 +121,31 @@ The algorithm is pyramidal."""
         )
         params.features._set_doc(
             """Parameters for the Good Feature to Track algorithm (Shi-Tomasi Corner Detector)
-the more we consider corners, the more we are able to reproduce the velocity
-be careful that with a too low quality level for vectors the results are poor.
-Filters are needed to exclude bad vectors."""
+
+See https://docs.opencv.org/3.0-beta/modules/imgproc/doc/feature_detection.html#goodfeaturestotrack
+
+maxCorners :
+
+  Maximum number of corners to return. If there are more corners than are found,
+  the strongest of them is returned.
+
+qualityLevel :
+
+  Parameter characterizing the minimal accepted quality of image corners. The
+  parameter value is multiplied by the best corner quality measure, which is the
+  minimal eigenvalue or the Harris function response. The corners with the
+  quality measure less than the product are rejected. For example, if the best
+  corner has the quality measure = 1500, and the qualityLevel=0.01 , then all the
+  corners with the quality measure less than 15 are rejected.
+
+minDistance :
+
+  Minimum possible Euclidean distance between the returned corners.
+
+blockSize :
+
+  Size of an average block for computing a derivative covariation matrix over
+  each pixel neighborhood."""
         )
 
         cls._complete_params_with_default_mask(params)

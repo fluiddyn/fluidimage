@@ -15,6 +15,7 @@ define input/output and computational works.
    piv
    preproc
    surface_tracking
+   optical_flow
 
 """
 from .. import imread

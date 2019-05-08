@@ -1,3 +1,13 @@
+"""Topology for optical flow (:mod:`fluidimage.topologies.optical_flow`)
+========================================================================
+
+.. autoclass:: TopologyOpticalFlow
+   :members:
+   :private-members:
+
+
+"""
+
 import sys
 
 from fluidimage.works.optical_flow import WorkOpticalFlow
@@ -6,6 +16,8 @@ from .piv import TopologyPIV
 
 
 class TopologyOpticalFlow(TopologyPIV):
+    """Optical flow topology (Lukas Kanade method)"""
+
     WorkVelocimetry = WorkOpticalFlow
 
 

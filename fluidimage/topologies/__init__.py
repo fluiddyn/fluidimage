@@ -20,6 +20,7 @@ Users are particularly concerned with the following already defined topologies:
    preproc
    image2image
    surface_tracking
+   optical_flow
 
 These others modules defined classes and functions useful for developers.
 

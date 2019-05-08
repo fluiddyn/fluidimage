@@ -296,8 +296,8 @@ offset: float (default 0.0)
     def get_borders(self, frame):
         """find the left and right border of the surface in a given frame
 
-        Parameter
-        ---------
+        Parameters
+        ----------
 
         frame: int
             frame of the high speed video (np.array)
@@ -321,13 +321,13 @@ offset: float (default 0.0)
         """puts the actual frame in the reference plate frame to avoid jerks
         and to keep the dimensions
 
-        Parameter
-        ---------
+        Parameters
+        ----------
 
         frame: int
             frame of the high speed video (np.array)
 
-        Results
+        Returns
         -------
 
         calc_frame: int
@@ -348,8 +348,8 @@ offset: float (default 0.0)
     def rectify_frame(self, frame, gain, filt):
         """rectify a frame with gain and filt
 
-        Parameter
-        ---------
+        Parameters
+        ----------
 
         frame: int
             frame of the high speed video (np.array)
@@ -370,8 +370,8 @@ offset: float (default 0.0)
     def frame_normalize(self, frame):
         """normalize the frame values by its mean value
 
-        Parameter
-        ---------
+        Parameters
+        ----------
 
         frame: int
             frame of the high speed video (np.array)
