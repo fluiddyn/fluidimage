@@ -5,9 +5,11 @@ Examples
    :maxdepth: 2
 
    examples/preproc
-   examples/try_piv
+   examples/piv_try_params
    examples/piv_with_topology
    examples/piv_cluster
    examples/bos_with_topology
    examples/piv_as_real/README
    examples/pivchallenge/README
+
+See also https://bitbucket.org/fluiddyn/fluidimage/src/default/doc/examples/

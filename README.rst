@@ -32,9 +32,10 @@ This package is young but already good enough to be used "in production" to
 
 - display and pre-process images,
 
-- compute `Particle Image Velocimetry
-  <https://en.wikipedia.org/wiki/Particle_image_velocimetry (PIV)>`_ (PIV,
-  i.e. displacements of pattern obtained by correlations of cropped images),
+- compute displacement or velocity fields with `Particle Image Velocimetry
+  <https://en.wikipedia.org/wiki/Particle_image_velocimetry (PIV)>`_ (PIV, i.e.
+  displacements of pattern obtained by correlations of cropped images) and
+  `optical flow <https://en.wikipedia.org/wiki/Optical_flow>`_,
 
 - analyze and display PIV fields.
 
