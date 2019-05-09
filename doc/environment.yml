@@ -4,6 +4,7 @@ channels:
 
 dependencies:
   - python=3.6
+  - pip
   - numpy
   - scipy
   - h5py
@@ -11,10 +12,10 @@ dependencies:
   - matplotlib
   - fftw
   - pyfftw
+  - opencv
   - pip:
     - sphinx_rtd_theme
-    - opencv-python
-    - dask[array]
-    - scikit-image
     - sphinx
     - numpydoc
+    - dask[array]
+    - scikit-image

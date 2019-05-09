@@ -49,6 +49,7 @@ fluidimage/**.dot
 
 doc/generated/*
 doc/ipynb/*.rst
+doc/ipynb/*.h5
 doc/ipynb/.ipynb_checkpoints/*
 doc/ipynb/*.nbconvert.ipynb
 doc/ipynb/**.png
