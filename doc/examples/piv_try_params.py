@@ -1,3 +1,4 @@
+"""To be run in IPython to find a good set of parameters"""
 
 from fluidimage import SeriesOfArrays
 from fluidimage.works.piv import WorkPIV

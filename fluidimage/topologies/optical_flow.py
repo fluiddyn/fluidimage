@@ -20,6 +20,24 @@ class TopologyOpticalFlow(TopologyPIV):
 
     WorkVelocimetry = WorkOpticalFlow
 
+    @classmethod
+    def create_default_params(cls):
+        """Class method returning the default parameters.
+
+        Typical usage::
+
+          params = TopologyOpticalFlow.create_default_params()
+          # modify parameters here
+          ...
+
+          topo = TopologyOpticalFlow(params)
+
+        """
+
+        params = super().create_default_params()
+        params.saving.postfix = "optflow"
+        return params
+
 
 Topology = TopologyOpticalFlow
 

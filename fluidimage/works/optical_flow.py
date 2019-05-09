@@ -208,7 +208,7 @@ displacement_max : None
 
         xs = positions[:, 0]
         ys = positions[:, 1]
-        xs, xy = self._xyoriginalimage_from_xymasked(xs, ys)
+        xs, ys = self._xyoriginalimage_from_xymasked(xs, ys)
 
         result = HeavyPIVResults(
             deltaxs=displacements[:, 0],
