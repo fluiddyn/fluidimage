@@ -5,14 +5,10 @@ channels:
 dependencies:
   - python=3.6
   - pip
-  - numpy
-  - scipy
   - h5py
   - jupyter
-  - matplotlib
   - fftw
   - pyfftw
-  - opencv
   - pip:
     - sphinx_rtd_theme
     - sphinx
