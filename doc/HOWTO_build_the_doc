@@ -17,6 +17,7 @@ Build the doc nearly as in readthedocs with conda
 
 ```bash
 
+export READTHEDOCS=1
 cd ~/Dev/fluidimage
 conda remove --name latest --all -y
 conda env create --name latest --file doc/environment.yml
