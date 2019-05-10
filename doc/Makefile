@@ -48,10 +48,13 @@ help:
 	@echo "  linkcheck  to check all external links for integrity"
 	@echo "  doctest    to run all doctests embedded in the documentation (if enabled)"
 
-clean:
-	rm -rf $(BUILDDIR)/*
+cleanipynb:
 	rm -rf $(IPYTHON_NOTEBOOKS_DIR)
 	rm -f $(IPYTHON_NOTEBOOKS_RST)
+	rm -f ipynb/*.nbconvert.ipynb
+
+clean: cleanipynb
+	rm -rf $(BUILDDIR)/*
 
 cleanall: clean
 	rm -rf generated html.zip

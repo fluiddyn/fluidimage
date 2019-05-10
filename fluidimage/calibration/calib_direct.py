@@ -262,7 +262,7 @@ class CalibDirect:
     def load(self, pth_file):
         """Load calibration
         """
-        tmp = np.load(pth_file)
+        tmp = np.load(pth_file, allow_pickle=True)
         self.interp_lines = tmp[0]
         self.paths_xml = tmp[1]
         self.nb_pixels_x = tmp[2]
