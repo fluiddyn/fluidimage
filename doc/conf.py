@@ -38,6 +38,14 @@ if fluiddoc.on_rtd:
 
 import fluidimage
 
+# we want this module to be importable.
+try:
+    import fluidimage.topologies.optical_flow
+except Exception:
+    import traceback
+
+    traceback.print_exc()
+
 from fluiddoc.ipynb_maker import ipynb_to_rst
 
 ipynb_to_rst()
