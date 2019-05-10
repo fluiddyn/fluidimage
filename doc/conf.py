@@ -25,10 +25,6 @@ if fluiddoc.on_rtd:
     # this package comes from fluiddyn
     fluiddoc.mock_modules(
         [
-            "cv2",
-            "h5py",
-            "h5netcdf",
-            "pyfftw",
             "theano",
             "reikna.cluda",
             "reikna.fft",
