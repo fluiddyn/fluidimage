@@ -49,10 +49,6 @@ if os.path.exists(path_image_samples):
             "from pathlib import Path\n\n"
             'path_image_samples = Path("{}")\n'.format(path_image_samples))
 
-# I have not yet manage to use Pythran on Windows...
-if sys.platform == "win32":
-    use_pythran = False
-
 # Get the long description from the relevant file
 with open("README.rst") as f:
     long_description = f.read()
@@ -70,8 +66,8 @@ __version__ = d["__version__"]
 
 
 def write_rev(rev):
-    with open("fluidimage/_hg_rev.py", "w") as f:
-        f.write(f'hg_rev = "{rev}"\n')
+    with open("fluidimage/_hg_rev.py", "w") as file:
+        file.write(f'hg_rev = "{rev}"\n')
 
 
 try:

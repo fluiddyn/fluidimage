@@ -8,7 +8,6 @@
 """
 
 from glob import glob
-import os
 import time
 from pathlib import Path
 
@@ -21,6 +20,13 @@ if is_run_from_ipython():
     plt.ion()
 
 colors = ["r", "b", "y", "g"]
+
+
+def float_no_valueerror(word):
+    try:
+        return float(word)
+    except ValueError:
+        return np.nan
 
 
 class LogTopology:
@@ -160,16 +166,12 @@ class LogTopology:
                         if line.startswith("INFO: ") and ". mem usage: " in line:
                             line = line[11:]
                             words = line.split()
-
-                            try:
-                                mem = float(words[-2])
-                            except ValueError:
-                                pass
+                            mem = float_no_valueerror(words[-2])
 
                             if ". Launch work " in line:
                                 name = words[4]
                                 key = words[5][1:-2]
-                                t = float(words[0])
+                                t = float_no_valueerror(words[0])
                                 works.append(
                                     {
                                         "name": name,
@@ -182,7 +184,7 @@ class LogTopology:
                                 date = words[0][:-1]
                                 t = time.mktime(
                                     time.strptime(date[:-3], "%Y-%m-%d_%H-%M-%S")
-                                ) + float(date[-3:])
+                                ) + float_no_valueerror(date[-3:])
 
                             if ": starting execution. mem usage" in line:
                                 self.date_start = date
@@ -197,7 +199,7 @@ class LogTopology:
                             words = line.split()
                             name = words[2]
                             key = words[3][1:-1]
-                            duration = float(words[-2])
+                            duration = float_no_valueerror(words[-2])
                             works_ended.append(
                                 {"name": name, "key": key, "duration": duration}
                             )

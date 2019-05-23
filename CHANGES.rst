@@ -1,4 +1,10 @@
 
+0.1.1 (2019-05-23)
+------------------
+
+- Optical flow computation
+- Bugfixes + internal code improvements
+
 0.1.0 (2018-10-03)
 ------------------
 
