@@ -16,7 +16,7 @@ clean_so:
 cleanall: clean clean_so
 
 black:
-	black -l 82 fluidimage try
+	black -l 82 fluidimage try *.py
 
 tests:
 	OMP_NUM_THREADS=1 pytest

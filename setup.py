@@ -1,7 +1,7 @@
-
 import os
 import subprocess
 import sys
+from pathlib import Path
 from datetime import datetime
 
 from runpy import run_path
@@ -11,6 +11,10 @@ from distutils.sysconfig import get_config_var
 from setuptools import setup, find_packages
 from setuptools.command.build_ext import build_ext
 from setuptools.dist import Distribution
+
+
+if sys.version_info[:2] < (3, 6):
+    raise RuntimeError("Python version >= 3.6 required.")
 
 
 def install_setup_requires():
@@ -24,10 +28,10 @@ def install_setup_requires():
 install_setup_requires()
 
 
-
 fluid_build_ext = build_ext
 try:
     from pythran.dist import PythranExtension
+
     try:
         # pythran > 0.8.6
         from pythran.dist import PythranBuildExt as fluid_build_ext
@@ -38,20 +42,20 @@ try:
 except ImportError:
     use_pythran = False
 
+here = Path(__file__).parent.absolute()
 
-here = os.path.abspath(os.path.dirname(__file__))
-
-path_image_samples = os.path.join(here, "image_samples")
+path_image_samples = here / "image_samples"
 print(path_image_samples)
-if os.path.exists(path_image_samples):
-    with open("fluidimage/_path_image_samples.py", "w") as f:
-        f.write(
+if path_image_samples.exists():
+    with open("fluidimage/_path_image_samples.py", "w") as file:
+        file.write(
             "from pathlib import Path\n\n"
-            'path_image_samples = Path("{}")\n'.format(path_image_samples))
+            f'path_image_samples = Path(r"{path_image_samples}")\n'
+        )
 
 # Get the long description from the relevant file
-with open("README.rst") as f:
-    long_description = f.read()
+with open("README.rst") as file:
+    long_description = file.read()
 lines = long_description.splitlines(True)
 for i, line in enumerate(lines):
     if line.endswith(":alt: Code coverage\n"):
@@ -152,13 +156,10 @@ setup(
         "Programming Language :: Python :: 3.7",
     ],
     packages=find_packages(exclude=["doc", "include", "scripts"]),
-    scripts=[
-        "bin/fluidimviewer",
-        "bin/fluidimlauncher",
-    ],
+    scripts=["bin/fluidimviewer", "bin/fluidimlauncher"],
     entry_points={
-        'console_scripts':
-        ['fluidimviewer-pg = fluidimage.gui.pg_main:main']},
+        "console_scripts": ["fluidimviewer-pg = fluidimage.gui.pg_main:main"]
+    },
     ext_modules=ext_modules,
-    cmdclass={'build_ext': fluid_build_ext},
+    cmdclass={"build_ext": fluid_build_ext},
 )
