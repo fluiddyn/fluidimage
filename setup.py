@@ -3,6 +3,7 @@ import subprocess
 import sys
 from pathlib import Path
 from datetime import datetime
+from logging import ERROR, INFO, DEBUG
 
 from runpy import run_path
 
@@ -28,6 +29,17 @@ def install_setup_requires():
 install_setup_requires()
 
 
+from transonic.dist import ParallelBuildExt, get_logger
+
+if "egg_info" in sys.argv:
+    level = ERROR
+else:
+    level = INFO
+
+logger = get_logger("fluidimage")
+logger.setLevel(level)
+
+
 fluid_build_ext = build_ext
 try:
     from pythran.dist import PythranExtension
@@ -38,14 +50,12 @@ try:
     except ImportError:
         pass
     use_pythran = True
-    import numpy as np
 except ImportError:
     use_pythran = False
 
 here = Path(__file__).parent.absolute()
 
 path_image_samples = here / "image_samples"
-print(path_image_samples)
 if path_image_samples.exists():
     with open("fluidimage/_path_image_samples.py", "w") as file:
         file.write(
@@ -90,43 +100,49 @@ except (OSError, subprocess.CalledProcessError):
         pass
 
 
-def modification_date(filename):
-    t = os.path.getmtime(filename)
-    return datetime.fromtimestamp(t)
+def transonize():
+
+    from transonic.dist import make_backend_files
+
+    paths = [
+        "fluidimage/calcul/correl.py",
+        "fluidimage/topologies/example.py",
+        "fluidimage/calcul/interpolate/thin_plate_spline.py",
+        "fluidimage/calcul/subpix.py",
+    ]
+    make_backend_files([here / path for path in paths])
 
 
-def make_pythran_extensions(modules):
-    develop = sys.argv[-1] == "develop"
-    extensions = []
-    for mod in modules:
-        base_file = mod.replace(".", os.path.sep)
-        py_file = base_file + ".py"
-        # warning: does not work on Windows
-        suffix = get_config_var("EXT_SUFFIX") or ".so"
-        bin_file = base_file + suffix
-        if (
-            not develop
-            or not os.path.exists(bin_file)
-            or modification_date(bin_file) < modification_date(py_file)
-        ):
-            print('pythran extension "' + mod + '" needs to be built')
-            pext = PythranExtension(mod, [py_file])
-            pext.include_dirs.append(np.get_include())
-            extensions.append(pext)
+def create_pythran_extensions():
+    import numpy as np
+    from transonic.dist import init_pythran_extensions
+
+    compile_arch = os.getenv("CARCH", "native")
+    extensions = init_pythran_extensions(
+        "fluidimage",
+        include_dirs=np.get_include(),
+        compile_args=("-O3", f"-march={compile_arch}", "-DUSE_XSIMD"),
+    )
     return extensions
 
 
-if use_pythran:
-    ext_modules = make_pythran_extensions(
-        [
-            "fluidimage.calcul.correl_pythran",
-            "fluidimage.calcul.interpolate.tps_pythran",
-            "fluidimage.calcul.subpix_pythran",
-            "fluidimage.topologies.example_pythran",
-        ]
+def create_extensions():
+    if "egg_info" in sys.argv:
+        return []
+
+    logger.info("Running fluidimage setup.py on platform " + sys.platform)
+
+    transonize()
+
+    ext_modules = create_pythran_extensions()
+
+    logger.info(
+        "The following extensions could be built if necessary:\n"
+        + "".join([ext.name + "\n" for ext in ext_modules])
     )
-else:
-    ext_modules = []
+
+    return ext_modules
+
 
 setup(
     name="fluidimage",
@@ -160,6 +176,6 @@ setup(
     entry_points={
         "console_scripts": ["fluidimviewer-pg = fluidimage.gui.pg_main:main"]
     },
-    ext_modules=ext_modules,
-    cmdclass={"build_ext": fluid_build_ext},
+    ext_modules=create_extensions(),
+    cmdclass={"build_ext": ParallelBuildExt},
 )

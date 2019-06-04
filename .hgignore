@@ -17,6 +17,7 @@ fluidimage/_hg_rev.py
 \#*\#
 
 *build/*
+**/__pythran__
 .tox/*
 
 *.so

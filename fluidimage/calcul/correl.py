@@ -51,9 +51,9 @@ from scipy.signal import correlate2d
 from scipy.ndimage import correlate
 from numpy.fft import fft2, ifft2
 
-from .fft import FFTW2DReal2Complex, CUFFT2DReal2Complex, SKCUFFT2DReal2Complex
+from transonic import boost
 
-from .correl_pythran import correl_pythran
+from .fft import FFTW2DReal2Complex, CUFFT2DReal2Complex, SKCUFFT2DReal2Complex
 
 from .correl_pycuda import correl_pycuda
 
@@ -208,6 +208,108 @@ class CorrelBase:
         return self.compute_displacement_from_indices(ix, iy)
 
 
+A = "float32[][]"
+
+
+@boost
+def correl_numpy(im0: A, im1: A, disp_max: int):
+    """Correlations by hand using only numpy.
+
+    Parameters
+    ----------
+
+    im0, im1 : images
+      input images : 2D matrix
+
+    disp_max : int
+      displacement max.
+
+    Notes
+    -------
+
+    im1_shape inf to im0_shape
+
+    Returns
+    -------
+
+    the computing correlation (size of computed correlation = disp_max*2 + 1)
+
+    """
+    norm = np.sqrt(np.sum(im1 ** 2) * np.sum(im0 ** 2))
+
+    ny = nx = int(disp_max) * 2 + 1
+    ny0, nx0 = im0.shape
+    ny1, nx1 = im1.shape
+
+    zero = np.float32(0.0)
+    correl = np.empty((ny, nx), dtype=np.float32)
+
+    for xiy in range(disp_max + 1):
+        dispy = -disp_max + xiy
+        nymax = ny1 + min(ny0 // 2 - ny1 // 2 + dispy, 0)
+        ny1dep = -min(ny0 // 2 - ny1 // 2 + dispy, 0)
+        ny0dep = max(0, ny0 // 2 - ny1 // 2 + dispy)
+        for xix in range(disp_max + 1):
+            dispx = -disp_max + xix
+            nxmax = nx1 + min(nx0 // 2 - nx1 // 2 + dispx, 0)
+            nx1dep = -min(nx0 // 2 - nx1 // 2 + dispx, 0)
+            nx0dep = max(0, nx0 // 2 - nx1 // 2 + dispx)
+            tmp = zero
+            for iy in range(nymax):
+                for ix in range(nxmax):
+                    tmp += (
+                        im1[iy + ny1dep, ix + nx1dep]
+                        * im0[ny0dep + iy, nx0dep + ix]
+                    )
+            correl[xiy, xix] = tmp / (nxmax * nymax)
+        for xix in range(disp_max):
+            dispx = xix + 1
+            nxmax = nx1 - max(nx0 // 2 + nx1 // 2 + dispx - nx0, 0)
+            nx1dep = 0
+            nx0dep = nx0 // 2 - nx1 // 2 + dispx
+            tmp = zero
+            for iy in range(nymax):
+                for ix in range(nxmax):
+                    tmp += (
+                        im1[iy + ny1dep, ix + nx1dep]
+                        * im0[ny0dep + iy, nx0dep + ix]
+                    )
+            correl[xiy, xix + disp_max + 1] = tmp / (nxmax * nymax)
+    for xiy in range(disp_max):
+        dispy = xiy + 1
+        nymax = ny1 - max(ny0 // 2 + ny1 // 2 + dispy - ny0, 0)
+        ny1dep = 0
+        ny0dep = ny0 // 2 - ny1 // 2 + dispy
+        for xix in range(disp_max + 1):
+            dispx = -disp_max + xix
+            nxmax = nx1 + min(nx0 // 2 - nx1 // 2 + dispx, 0)
+            nx1dep = -min(nx0 // 2 - nx1 // 2 + dispx, 0)
+            nx0dep = max(0, nx0 // 2 - nx1 // 2 + dispx)
+            tmp = zero
+            for iy in range(nymax):
+                for ix in range(nxmax):
+                    tmp += (
+                        im1[iy + ny1dep, ix + nx1dep]
+                        * im0[ny0dep + iy, nx0dep + ix]
+                    )
+            correl[xiy + disp_max + 1, xix] = tmp / (nxmax * nymax)
+        for xix in range(disp_max):
+            dispx = xix + 1
+            nxmax = nx1 - max(nx0 // 2 + nx1 // 2 + dispx - nx0, 0)
+            nx1dep = 0
+            nx0dep = nx0 // 2 - nx1 // 2 + dispx
+            tmp = zero
+            for iy in range(nymax):
+                for ix in range(nxmax):
+                    tmp += (
+                        im1[iy + ny1dep, ix + nx1dep]
+                        * im0[ny0dep + iy, nx0dep + ix]
+                    )
+            correl[xiy + disp_max + 1, xix + disp_max + 1] = tmp / (nxmax * nymax)
+    correl = correl * im1.size
+    return correl, norm
+
+
 class CorrelPythran(CorrelBase):
     """Correlation using pythran.
        Correlation class by hands with with numpy.
@@ -241,7 +343,7 @@ class CorrelPythran(CorrelBase):
 
     def __call__(self, im0, im1):
         """Compute the correlation from images."""
-        correl, norm = correl_pythran(im0, im1, self.displacement_max)
+        correl, norm = correl_numpy(im0, im1, self.displacement_max)
         return correl, norm
 
 

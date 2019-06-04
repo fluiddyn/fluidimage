@@ -1,7 +1,7 @@
 
 .PHONY: clean clean_all develop build_ext_inplace
 
-develop: clean
+develop:
 	pip install -e .[dev]
 
 build_ext_inplace:
@@ -23,7 +23,7 @@ tests:
 
 _tests_coverage:
 	mkdir -p .coverage
-	OMP_NUM_THREADS=1 coverage run -p -m pytest
+	TRANSONIC_NO_REPLACE=1 OMP_NUM_THREADS=1 coverage run -p -m pytest
 
 _report_coverage:
 	coverage combine

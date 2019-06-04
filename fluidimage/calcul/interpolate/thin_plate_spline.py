@@ -29,7 +29,128 @@ obtained as ``dot(U_tps, EMDX)`` and ``dot(U_tps, EMDY)``, where
 
 import numpy as np
 
-from . import tps_pythran
+from transonic import Transonic, boost
+
+
+ts = Transonic()
+
+A = "float64[][]"
+
+
+@boost
+def compute_tps_matrix_pythran(new_pos: A, centers: A):
+    """calculate the thin plate spline (tps) interpolation at a set of points
+
+    Parameters
+    ----------
+
+    new_pos: np.array
+        ``[nb_dim, M]`` array representing the postions of the M
+        'observation' sites, with nb_dim the space dimension.
+
+    centers: np.array
+        ``[nb_dim, N]`` array representing the postions of the N centers,
+        sources of the tps.
+
+    Returns
+    -------
+
+    EM : np.array
+        ``[(N+nb_dim), M]`` matrix representing the contributions at the M sites.
+
+        From unit sources located at each of the N centers, +
+        (nb_dim+1) columns representing the contribution of the linear
+        gradient part.
+
+    Notes
+    -----
+
+    >>> U_interp = np.dot(U_tps, EM)
+
+    """
+
+    d, nb_new_pos = new_pos.shape
+    d2, nb_centers = centers.shape
+    assert d == d2
+
+    EM = np.zeros((nb_centers, nb_new_pos))
+
+    # # pythran 0.9.2 does not know np.meshgrid
+    # for ind_d in range(s):
+    #     Dsites, Centers = np.meshgrid(dsites[ind_d], centers[ind_d])
+    #     EM += (Dsites - Centers)**2
+
+    for ind_d in range(d):
+        for ic, center in enumerate(centers[ind_d]):
+            for inp, npos in enumerate(new_pos[ind_d]):
+                EM[ic, inp] += (npos - center) ** 2
+
+    nb_p = np.where(EM != 0)
+    EM[nb_p] = EM[nb_p] * np.log(EM[nb_p]) / 2
+    EM_ret = np.vstack([EM, np.ones(nb_new_pos), new_pos])
+    return EM_ret
+
+
+def compute_tps_matrix_numpy(new_pos: A, centers: A):
+    """calculate the thin plate spline (tps) interpolation at a set of points
+
+    Parameters
+    ----------
+
+    new_pos: np.array
+        ``[nb_dim, M]`` array representing the postions of the M
+        'observation' sites, with nb_dim the space dimension.
+
+    centers: np.array
+        ``[nb_dim, N]`` array representing the postions of the N centers,
+        sources of the tps.
+
+    Returns
+    -------
+
+    EM : np.array
+
+        ``[(N+nb_dim), M]`` matrix representing the contributions at the M
+        sites.
+
+        From unit sources located at each of the N centers, +
+        (nb_dim+1) columns representing the contribution of the linear
+        gradient part.
+
+    Notes
+    -----
+
+    >>> U_interp = np.dot(U_tps, EM)
+
+    """
+
+    d, nb_new_pos = new_pos.shape
+    d2, nb_centers = centers.shape
+    assert d == d2
+
+    EM = np.zeros((nb_centers, nb_new_pos))
+
+    for ind_d in range(d):
+        Dsites, Centers = np.meshgrid(new_pos[ind_d], centers[ind_d])
+        EM += (Dsites - Centers) ** 2
+
+    nb_p = np.where(EM != 0)
+    EM[nb_p] = EM[nb_p] * np.log(EM[nb_p]) / 2
+    EM_ret = np.vstack([EM, np.ones(nb_new_pos), new_pos])
+    return EM_ret
+
+
+if ts.is_compiled:
+
+    def compute_tps_matrix(newcenters, centers):
+        return compute_tps_matrix_pythran(
+            newcenters.astype(np.float64), centers.astype(np.float64)
+        )
+
+
+else:
+    print("Warning: function compute_tps_matrix_numpy not pythranized.")
+    compute_tps_matrix = compute_tps_matrix_numpy
 
 
 def compute_tps_coeff(centers, U, smoothing_coef):
@@ -86,65 +207,6 @@ def compute_tps_coeff(centers, U, smoothing_coef):
 
     U_smooth = np.dot(EM, U_tps)
     return U_smooth.ravel(), U_tps.ravel()
-
-
-def compute_tps_matrix_numpy(dsites, centers):
-    """calculate the thin plate spline (tps) interpolation at a set of points
-
-    Parameters
-    ----------
-
-    dsites: np.array
-        ``[nb_dim, M]`` array representing the postions of the M
-        'observation' sites, with nb_dim the space dimension.
-
-    centers: np.array
-        ``[nb_dim, N]`` array representing the postions of the N centers,
-        sources of the tps.
-
-    Returns
-    -------
-
-    EM : np.array
-
-        ``[(N+nb_dim), M]`` matrix representing the contributions at the M
-        sites.
-
-        From unit sources located at each of the N centers, +
-        (nb_dim+1) columns representing the contribution of the linear
-        gradient part.
-
-    Notes
-    -----
-
-    >>> U_interp = np.dot(U_tps, EM)
-
-    """
-    s, M = dsites.shape
-    s2, N = centers.shape
-    assert s == s2
-    EM = np.zeros([N, M])
-    for d in range(s):
-        Dsites, Centers = np.meshgrid(dsites[d], centers[d])
-        EM += (Dsites - Centers) ** 2
-
-    nb_p = np.where(EM != 0)
-    EM[nb_p] = EM[nb_p] * np.log(EM[nb_p]) / 2
-    EM = np.vstack([EM, np.ones(M), dsites])
-    return EM
-
-
-if hasattr(tps_pythran, "__pythran__"):
-
-    def compute_tps_matrix(newcenters, centers):
-        return tps_pythran.compute_tps_matrix(
-            newcenters.astype(np.float64), centers.astype(np.float64)
-        )
-
-
-else:
-    print("Warning: function compute_tps_matrix_numpy not pythranized.")
-    compute_tps_matrix = compute_tps_matrix_numpy
 
 
 def compute_tps_matrices_dxy(dsites, centers):
@@ -207,4 +269,5 @@ class ThinPlateSpline:
 
 
 class ThinPlateSplineNumpy(ThinPlateSpline):
-    _compute_tps_matrix = compute_tps_matrix_numpy
+    pass
+    # _compute_tps_matrix = compute_tps_matrix_numpy
