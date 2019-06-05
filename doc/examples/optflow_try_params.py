@@ -3,7 +3,6 @@
 from fluidimage import SeriesOfArrays
 from fluidimage.works.optical_flow import WorkOpticalFlow
 
-
 params = WorkOpticalFlow.create_default_params()
 
 params.mask.strcrop = "30:250, 50:350"

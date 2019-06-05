@@ -11,7 +11,7 @@
 
 """
 
-from logging import getLogger, DEBUG
+from logging import DEBUG, getLogger
 
 from fluiddyn.util import config_logging as _cl_fluiddyn
 

@@ -11,8 +11,10 @@ Provides:
 
 """
 import os
-from .. import ParamContainer, SerieOfArraysFromFiles
+
 from fluidimage.data_objects.display_pre import DisplayPreProc
+
+from .. import ParamContainer, SerieOfArraysFromFiles
 
 
 class PreprocBase:

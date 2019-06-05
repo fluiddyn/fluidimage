@@ -1,8 +1,8 @@
 import numpy as np
-
-from fluidimage.synthetic import make_synthetic_images
-from fluidimage.calcul.correl import correlation_classes
 import pylab
+
+from fluidimage.calcul.correl import correlation_classes
+from fluidimage.synthetic import make_synthetic_images
 
 classes = {k.replace(".", "_"): v for k, v in correlation_classes.items()}
 

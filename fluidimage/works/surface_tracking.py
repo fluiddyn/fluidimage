@@ -28,22 +28,22 @@
 #            oscillating profile experiment at LEGI 2017                      #
 ###############################################################################
 
+import math
 import sys
 from pathlib import Path
 
 import numpy as np
-import math
 import scipy.interpolate
 import scipy.io
 from skimage.transform import resize
 
-# import matplotlib.pyplot as plt
-
-from fluidimage import SerieOfArraysFromFiles
-from fluidimage.util import logger, imread
 from fluiddyn.util.paramcontainer import ParamContainer
+from fluidimage import SerieOfArraysFromFiles
+from fluidimage.util import imread, logger
 
 from . import BaseWork
+
+# import matplotlib.pyplot as plt
 
 
 class WorkSurfaceTracking(BaseWork):

@@ -1,15 +1,12 @@
-import unittest
-
 import os
+import unittest
 from glob import glob
 from shutil import rmtree
 
 from fluiddyn.io import stdout_redirected
-
-from fluidimage.preproc.base import PreprocBase
 from fluiddyn.io.image import imread, imsave
-
 from fluidimage import path_image_samples
+from fluidimage.preproc.base import PreprocBase
 
 
 class TestPreprocKarman(unittest.TestCase):

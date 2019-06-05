@@ -13,6 +13,8 @@ Provides:
 import numpy as np
 import scipy.ndimage as ndi
 
+from .io import iterate_multiple_imgs, multiple_imgs_as_ndarray
+
 try:
     import skimage
     from skimage import exposure, filters, morphology
@@ -27,8 +29,6 @@ except ImportError:
         "Warning: ImportError, to use fluidimage.preproc, "
         "first install scikit-image >= 0.13.0"
     )
-
-from .io import iterate_multiple_imgs, multiple_imgs_as_ndarray
 
 
 __all__ = [

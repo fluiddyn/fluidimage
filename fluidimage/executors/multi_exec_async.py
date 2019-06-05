@@ -12,17 +12,16 @@ Multi executors async (:mod:`fluidimage.executors.multi_exec_async`)
 
 """
 
-from multiprocessing import Process, Pipe
 import copy
 import math
-from time import time
-from pathlib import Path
 import os
-import sys
 import signal
+import sys
+from multiprocessing import Pipe, Process
+from pathlib import Path
+from time import time
 
 from fluiddyn import time_as_str
-
 from fluidimage.util import logger
 
 from .base import ExecutorBase

@@ -1,19 +1,17 @@
-import numpy as np
-
-import scipy as sc
-
-from matplotlib.mlab import griddata
-from scipy import interpolate
-from numpy import pi
-
 import matplotlib.pyplot as plt
+import numpy as np
+import scipy as sc
+from matplotlib.mlab import griddata
+from numpy import pi
+from scipy import interpolate
+
+from fluidimage.calcul.interpolate.thin_plate_spline import (
+    ThinPlateSpline,
+    compute_tps_coeff,
+)
 
 plt.ion()
 
-from fluidimage.calcul.interpolate.thin_plate_spline import (
-    compute_tps_coeff,
-    ThinPlateSpline,
-)
 
 n0 = 100
 n1 = 100

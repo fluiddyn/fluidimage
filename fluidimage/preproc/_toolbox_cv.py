@@ -13,9 +13,8 @@ Provides:
 
 import numpy as np
 
-from .._opencv import cv2
 from .io import iterate_multiple_imgs
-
+from .._opencv import cv2
 
 __all__ = [
     "sliding_median",

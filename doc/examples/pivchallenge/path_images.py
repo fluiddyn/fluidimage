@@ -3,7 +3,6 @@
 import os
 from glob import glob
 
-
 path_base = os.getenv('DIR_DATA_PIV_CHALLENGE')
 if path_base is None:
     possible_paths = []

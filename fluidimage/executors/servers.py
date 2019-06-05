@@ -21,19 +21,16 @@
 
 """
 
-import sys
 import signal
+import sys
 import time
-
-from multiprocessing import Process, Pipe, Event
+from multiprocessing import Event, Pipe, Process
 from threading import Thread
 
 import trio
 
 from fluiddyn.io.tee import MultiFile
-from fluidimage.util import logger, log_memory_usage, cstring, log_debug
-
-from fluidimage import config_logging
+from fluidimage.util import cstring, log_debug, log_memory_usage, logger
 
 
 def launch_server(
@@ -195,6 +192,8 @@ class WorkerServerMultiprocessing(WorkerServer):
         if logging_level:
             for handler in logger.handlers:
                 logger.removeHandler(handler)
+
+            from fluidimage import config_logging
 
             config_logging(logging_level, file=sys.stdout)
 

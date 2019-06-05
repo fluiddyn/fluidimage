@@ -1,5 +1,7 @@
+from fluidimage.experimental.executors.executor_await import (
+    ExecutorAwaitMultiprocs
+)
 from fluidimage.topologies.piv import TopologyPIV
-from fluidimage.experimental.executors.executor_await import ExecutorAwaitMultiprocs
 
 params = TopologyPIV.create_default_params()
 

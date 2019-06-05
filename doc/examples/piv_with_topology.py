@@ -1,6 +1,6 @@
 
-from fluidimage.topologies.piv import TopologyPIV
 from fluidimage import path_image_samples
+from fluidimage.topologies.piv import TopologyPIV
 
 params = TopologyPIV.create_default_params()
 

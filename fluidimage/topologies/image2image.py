@@ -11,17 +11,14 @@ import json
 import sys
 from pathlib import Path
 
-from fluidimage.topologies import prepare_path_dir_result
-
+from fluiddyn.io.image import imsave
 from fluidimage import ParamContainer, SerieOfArraysFromFiles
-from fluidimage.util import logger, imread
-
 from fluidimage.preproc.image2image import (
     complete_im2im_params_with_default,
     init_im2im_function,
 )
-
-from fluiddyn.io.image import imsave
+from fluidimage.topologies import prepare_path_dir_result
+from fluidimage.util import imread, logger
 
 from .base import TopologyBase
 

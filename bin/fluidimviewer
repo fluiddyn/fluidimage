@@ -5,7 +5,7 @@ Minimalist image viewer for PIV
 
 """
 
-from fluidimage.gui.imviewer import parse_args, ImageViewer
+from fluidimage.gui.imviewer import ImageViewer, parse_args
 
 args = parse_args()
 self = ImageViewer(args)

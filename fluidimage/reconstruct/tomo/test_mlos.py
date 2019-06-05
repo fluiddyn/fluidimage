@@ -1,17 +1,16 @@
-import unittest
-from tempfile import gettempdir
-from pathlib import Path
 import shutil
+import unittest
+from pathlib import Path
+from tempfile import gettempdir
 
 import matplotlib
 
-matplotlib.use("agg")
-
 from fluiddyn.io import stdout_redirected
-from fluidimage.reconstruct.tomo import TomoMLOSCV
-from fluidimage.data_objects.tomo import ArrayTomoCV
-
 from fluidimage import path_image_samples
+from fluidimage.data_objects.tomo import ArrayTomoCV
+from fluidimage.reconstruct.tomo import TomoMLOSCV
+
+matplotlib.use("agg")
 
 
 path_calib = str(path_image_samples / "TomoPIV" / "calibration" / "cam0.h5")

@@ -11,11 +11,9 @@ from copy import copy
 
 from fluiddyn.util.paramcontainer import ParamContainer
 
-from .. import BaseWork
-
 from .fix import WorkFIX
-from .singlepass import FirstWorkPIV, WorkPIVFromDisplacement, InterpError
-
+from .singlepass import FirstWorkPIV, InterpError, WorkPIVFromDisplacement
+from .. import BaseWork
 from ...data_objects.piv import MultipassPIVResults
 
 

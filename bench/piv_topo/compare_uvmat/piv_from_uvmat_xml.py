@@ -1,13 +1,15 @@
 
 import os
-import sys
 import socket
+import sys
 from glob import glob
 
-from fluidimage.topologies.piv import TopologyPIV
-
 from fluidimage.run_from_xml import (
-    ParamContainer, tidy_uvmat_instructions, params_from_uvmat_xml)
+    ParamContainer,
+    params_from_uvmat_xml,
+    tidy_uvmat_instructions,
+)
+from fluidimage.topologies.piv import TopologyPIV
 
 base = '/fsnet/project/meige/2016/16FLUIDIMAGE/samples/Bicouche'
 

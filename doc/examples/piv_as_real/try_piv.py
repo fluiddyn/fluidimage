@@ -13,11 +13,9 @@ Alternatively, run the script with::
 
 """
 
-from fluidimage import SeriesOfArrays
-
-from fluidimage.works.piv import WorkPIV
-
 import params_piv
+from fluidimage import SeriesOfArrays
+from fluidimage.works.piv import WorkPIV
 
 try:
     reload

@@ -2,7 +2,6 @@ from __future__ import print_function
 
 from fluidimage.topologies.preproc import TopologyPreproc
 
-
 params = TopologyPreproc.create_default_params()
 
 params.preproc.series.path = (

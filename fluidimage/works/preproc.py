@@ -13,9 +13,10 @@ Provides:
 import numpy as np
 
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
-from ..util import print_memory_usage
-from ..preproc.base import PreprocBase
+
 from ..data_objects.preproc import ArraySerie, PreprocResults, get_ind_middle
+from ..preproc.base import PreprocBase
+from ..util import print_memory_usage
 
 
 class WorkPreproc(PreprocBase):

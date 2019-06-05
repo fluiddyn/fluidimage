@@ -47,18 +47,16 @@ different methods.
 """
 
 import numpy as np
-from scipy.signal import correlate2d
-from scipy.ndimage import correlate
 from numpy.fft import fft2, ifft2
+from scipy.ndimage import correlate
+from scipy.signal import correlate2d
 
 from transonic import boost
 
-from .fft import FFTW2DReal2Complex, CUFFT2DReal2Complex, SKCUFFT2DReal2Complex
-
 from .correl_pycuda import correl_pycuda
-
-from .subpix import SubPix
 from .errors import PIVError
+from .fft import CUFFT2DReal2Complex, FFTW2DReal2Complex, SKCUFFT2DReal2Complex
+from .subpix import SubPix
 
 try:
     import theano

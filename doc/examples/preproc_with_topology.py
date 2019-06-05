@@ -1,6 +1,6 @@
 
-from fluidimage.topologies.preproc import TopologyPreproc
 from fluidimage import path_image_samples
+from fluidimage.topologies.preproc import TopologyPreproc
 
 params = TopologyPreproc.create_default_params()
 

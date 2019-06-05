@@ -1,10 +1,9 @@
 
-import sys
 import socket
+import sys
 
+from fluidimage.run_from_xml import ParamContainer, params_from_uvmat_xml
 from fluidimage.topologies.piv import TopologyPIV
-
-from fluidimage.run_from_xml import params_from_uvmat_xml, ParamContainer
 
 base = '/fsnet/project/meige/2016/16FLUIDIMAGE/samples/Bicouche'
 

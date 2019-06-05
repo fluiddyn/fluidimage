@@ -17,13 +17,13 @@ computation can use many CPU at a time.
 
 """
 
+import signal
 import time
 from collections import OrderedDict
-import signal
 
 import trio
 
-from fluidimage.util import logger, log_memory_usage, cstring, log_debug
+from fluidimage.util import cstring, log_debug, log_memory_usage, logger
 
 from .base import ExecutorBase
 

@@ -1,16 +1,15 @@
 import unittest
-from numpy.testing import assert_array_equal, assert_almost_equal
+
+from numpy.testing import assert_almost_equal, assert_array_equal
 
 from fluiddyn.io import stdout_redirected
-from fluidimage.calibration.calib_cv import (
-    construct_object_points,
-    SimpleCircleGrid,
-    CalibCV,
-)
-
-from fluidimage.util import imread
 from fluidimage import path_image_samples
-
+from fluidimage.calibration.calib_cv import (
+    CalibCV,
+    SimpleCircleGrid,
+    construct_object_points,
+)
+from fluidimage.util import imread
 
 pathbase = path_image_samples / "TomoPIV" / "calibration"
 

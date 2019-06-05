@@ -1,8 +1,6 @@
-import numpy as np
-
-from numpy import pi
-
 import matplotlib.pyplot as plt
+import numpy as np
+from numpy import pi
 
 from fluidimage.calcul.interpolate.thin_plate_spline2 import ThinPlateSpline
 

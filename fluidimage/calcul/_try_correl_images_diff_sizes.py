@@ -1,11 +1,10 @@
+import matplotlib.pyplot as plt
 import numpy as np
 
-import matplotlib.pyplot as plt
+from fluidimage.calcul.correl import CorrelScipySignal
+from fluidimage.synthetic import make_synthetic_images
 
 plt.ion()
-
-from fluidimage.synthetic import make_synthetic_images
-from fluidimage.calcul.correl import CorrelScipySignal
 
 
 nx = 64

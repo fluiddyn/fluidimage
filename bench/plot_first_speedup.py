@@ -1,10 +1,11 @@
 
-from glob import glob
 import os
 import re
-import numpy as np
+from glob import glob
 
 import matplotlib.pyplot as plt
+import numpy as np
+
 plt.ion()
 
 path = 'bench_cl7n010_2016-04-29'

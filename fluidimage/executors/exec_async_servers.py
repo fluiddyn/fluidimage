@@ -9,16 +9,15 @@ A executor using async for IO and servers for CPU-bounded tasks.
 
 """
 
-import signal
 import os
+import signal
 from pathlib import Path
 
-import trio
 import numpy as np
+import trio
 
 from fluiddyn import time_as_str
-
-from fluidimage.util import logger, log_debug
+from fluidimage.util import log_debug, logger
 
 from .exec_async import ExecutorAsync
 from .servers import launch_server

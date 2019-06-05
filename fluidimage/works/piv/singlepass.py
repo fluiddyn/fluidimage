@@ -30,15 +30,13 @@ import numpy as np
 
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
 
-from ...data_objects.piv import ArrayCouple, HeavyPIVResults
-from ...calcul.correl import correlation_classes
 from ..with_mask import BaseWorkWithMask
-
-from ...calcul.interpolate.thin_plate_spline_subdom import ThinPlateSplineSubdom
-
-from ...calcul.interpolate.griddata import griddata
-from ...calcul.subpix import SubPix
+from ...calcul.correl import correlation_classes
 from ...calcul.errors import PIVError
+from ...calcul.interpolate.griddata import griddata
+from ...calcul.interpolate.thin_plate_spline_subdom import ThinPlateSplineSubdom
+from ...calcul.subpix import SubPix
+from ...data_objects.piv import ArrayCouple, HeavyPIVResults
 
 
 class InterpError(ValueError):

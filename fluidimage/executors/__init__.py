@@ -26,16 +26,15 @@ an executor compared to another.
 """
 
 from .base import ExecutorBase
-
-from .exec_sequential import ExecutorSequential
 from .exec_async import ExecutorAsync
-from .exec_async_sequential import ExecutorAsyncSequential
-from .multi_exec_async import MultiExecutorAsync
 from .exec_async_multiproc import ExecutorAsyncMultiproc
+from .exec_async_sequential import ExecutorAsyncSequential
 from .exec_async_servers import (
     ExecutorAsyncServers,
     ExecutorAsyncServersThreading,
 )
+from .exec_sequential import ExecutorSequential
+from .multi_exec_async import MultiExecutorAsync
 
 executors = {
     "exec_sequential": ExecutorSequential,

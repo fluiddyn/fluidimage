@@ -1,5 +1,7 @@
 import pytest
 
+from fluidimage import path_image_samples
+
 try:
     import pyqtgraph
     from fluidimage.gui.pg_main import main, parse_args
@@ -8,8 +10,6 @@ try:
 except ImportError:
     use_pyqtgraph = False
 
-
-from fluidimage import path_image_samples
 
 # @pytest.mark.skipif(not use_pyqtgraph, reason="ImportError pyqtgraph")
 # def test_main0(qtbot):

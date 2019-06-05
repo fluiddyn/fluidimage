@@ -7,14 +7,13 @@ import pylab
 from fluidimage.data_objects.piv import LightPIVResults
 
 from .displayf import displayf
-
 from .util import (
-    compute_grid,
     compute_derivatives,
-    compute_rot,
     compute_div,
+    compute_grid,
     compute_ken,
     compute_norm,
+    compute_rot,
     oneD_fourier_transform,
     twoD_fourier_transform,
 )

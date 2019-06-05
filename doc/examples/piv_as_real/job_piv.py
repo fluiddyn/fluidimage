@@ -15,9 +15,8 @@ see also the help::
 
 from __future__ import print_function
 
-from fluidimage.topologies.piv import TopologyPIV
-
 import params_piv
+from fluidimage.topologies.piv import TopologyPIV
 
 
 def main(args):

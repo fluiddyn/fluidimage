@@ -3,9 +3,13 @@ from time import clock
 
 import numpy as np
 
+from fluidimage.calcul.correl import (
+    CorrelPyCuda,
+    CorrelPythran,
+    CorrelScipySignal,
+    CorrelTheano,
+)
 from fluidimage.synthetic import make_synthetic_images
-from fluidimage.calcul.correl import CorrelScipySignal
-from fluidimage.calcul.correl import CorrelTheano, CorrelPythran, CorrelPyCuda
 
 nx = 64
 ny = 64

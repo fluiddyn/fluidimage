@@ -1,10 +1,9 @@
 import unittest
-from shutil import rmtree
 from pathlib import Path
-
-from fluidimage.topologies.bos import TopologyBOS
+from shutil import rmtree
 
 from fluidimage import path_image_samples
+from fluidimage.topologies.bos import TopologyBOS
 
 
 class TestBOSNew(unittest.TestCase):

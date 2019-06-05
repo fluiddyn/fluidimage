@@ -18,10 +18,11 @@
 
 import os
 import shutil
-import numpy as np
-import h5py
+
 import dask.array as da
+import h5py
 import matplotlib.pyplot as plt
+import numpy as np
 
 try:
     import ipyvolume.pylab as p3

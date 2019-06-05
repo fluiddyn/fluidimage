@@ -1,8 +1,9 @@
 import unittest
-import numpy as np
 from time import time
 
-from fluidimage.calcul.correl import FFTW2DReal2Complex, CUFFT2DReal2Complex
+import numpy as np
+
+from fluidimage.calcul.correl import CUFFT2DReal2Complex, FFTW2DReal2Complex
 
 # from scipy.misc import lena
 # from correl import calcul_correl_norm_scipy, CorrelWithFFT

@@ -3,12 +3,11 @@
 from time import clock
 
 import numpy as np
-
-from scipy.signal import correlate2d
-from scipy.ndimage import correlate
 from numpy.fft import fft2, ifft2
+from scipy.ndimage import correlate
+from scipy.signal import correlate2d
 
-from fluidimage.calcul.fft import FFTW2DReal2Complex, CUFFT2DReal2Complex
+from fluidimage.calcul.fft import CUFFT2DReal2Complex, FFTW2DReal2Complex
 
 
 def corr_full(in0, in1):

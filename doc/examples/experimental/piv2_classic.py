@@ -1,5 +1,5 @@
-from fluidimage.experimental.topologies.piv_new import TopologyPIV
 from fluidimage.experimental.executors.executor_classic import ExecutorClassic
+from fluidimage.experimental.topologies.piv_new import TopologyPIV
 
 params = TopologyPIV.create_default_params()
 

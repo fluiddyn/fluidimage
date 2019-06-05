@@ -15,18 +15,17 @@
 
 """
 import json
-from pathlib import Path
 import sys
+from pathlib import Path
 
-from fluidimage.topologies import prepare_path_dir_result
-from fluidimage import ParamContainer, SerieOfArraysFromFiles, SeriesOfArrays
-from fluidimage.util import logger, imread
 from fluiddyn.io.image import imsave_h5
+from fluidimage import ParamContainer, SerieOfArraysFromFiles, SeriesOfArrays
+from fluidimage.topologies import prepare_path_dir_result
+from fluidimage.util import imread, logger
 from fluidimage.works.surface_tracking import WorkSurfaceTracking
 
-from .base import TopologyBase
-
 from . import image2image
+from .base import TopologyBase
 
 
 class TopologySurfaceTracking(TopologyBase):

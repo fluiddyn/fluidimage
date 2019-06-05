@@ -10,11 +10,11 @@ A executor using async for IO and multiprocessing for CPU bounded tasks.
 """
 
 import time
-from multiprocessing import Process, Pipe, Event
+from multiprocessing import Event, Pipe, Process
 
 import trio
 
-from fluidimage.util import logger, log_memory_usage, cstring, log_debug
+from fluidimage.util import cstring, log_debug, log_memory_usage, logger
 
 from .exec_async import ExecutorAsync
 

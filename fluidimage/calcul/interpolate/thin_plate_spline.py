@@ -31,7 +31,6 @@ import numpy as np
 
 from transonic import Transonic, boost
 
-
 ts = Transonic()
 
 A = "float64[][]"

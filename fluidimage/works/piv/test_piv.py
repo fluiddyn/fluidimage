@@ -2,14 +2,10 @@ import unittest
 from shutil import rmtree
 
 from fluiddyn.io import stdout_redirected
-
-from fluidimage import SeriesOfArrays
-from fluidimage.works.piv import WorkPIV
-
+from fluidimage import SeriesOfArrays, path_image_samples
 from fluidimage.data_objects.display_piv import DisplayPIV
-from fluidimage.data_objects.piv import MultipassPIVResults, LightPIVResults
-
-from fluidimage import path_image_samples
+from fluidimage.data_objects.piv import LightPIVResults, MultipassPIVResults
+from fluidimage.works.piv import WorkPIV
 
 
 class MyObj:

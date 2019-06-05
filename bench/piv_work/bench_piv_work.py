@@ -1,6 +1,6 @@
 
-import pstats
 import cProfile
+import pstats
 
 from fluidimage import SeriesOfArrays
 from fluidimage.works.piv import WorkPIV

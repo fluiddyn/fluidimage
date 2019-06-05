@@ -1,5 +1,7 @@
+from fluidimage.experimental.executors.executor_await import (
+    ExecutorAwaitMultiprocs
+)
 from fluidimage.experimental.topologies.image2image_new import TopologyImage2Image
-from fluidimage.experimental.executors.executor_await import ExecutorAwaitMultiprocs
 from fluidimage.preproc import image2image
 
 params = TopologyImage2Image.create_default_params()

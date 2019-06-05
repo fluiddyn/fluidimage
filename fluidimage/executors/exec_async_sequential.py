@@ -11,7 +11,7 @@ A executor using async for IO but launching CPU-bounded tasks sequentially.
 
 import time
 
-from fluidimage.util import logger, log_memory_usage, cstring
+from fluidimage.util import cstring, log_memory_usage, logger
 
 from .exec_async import ExecutorAsync
 

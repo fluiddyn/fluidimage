@@ -6,17 +6,15 @@
    :private-members:
 
 """
-import json
 import copy
+import json
 import sys
 
 from fluidimage import ParamContainer, SeriesOfArrays
-from fluidimage.util import imread, logger, DEBUG
-
-from fluidimage.topologies import prepare_path_dir_result, TopologyBase
-
+from fluidimage.data_objects.piv import ArrayCouple, get_name_piv
+from fluidimage.topologies import TopologyBase, prepare_path_dir_result
+from fluidimage.util import DEBUG, imread, logger
 from fluidimage.works.piv import WorkPIV
-from fluidimage.data_objects.piv import get_name_piv, ArrayCouple
 
 from . import image2image
 

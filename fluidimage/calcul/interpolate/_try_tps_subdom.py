@@ -1,12 +1,8 @@
+import matplotlib.pyplot as plt
 import numpy as np
-
 from numpy import pi
 
-import matplotlib.pyplot as plt
-
-from fluidimage.calcul.interpolate.thin_plate_spline_subdom import (
-    ThinPlateSplineSubdom,
-)
+from fluidimage.calcul.interpolate import thin_plate_spline_subdom
 
 
 def myplot(i, x, y, U, title=None):
@@ -34,7 +30,7 @@ centers = np.vstack([x, y])
 smoothing_coef = 0
 subdom_size = 20
 
-tps = ThinPlateSplineSubdom(
+tps = thin_plate_spline_subdom.ThinPlateSplineSubdom(
     centers, subdom_size, smoothing_coef, threshold=1, pourc_buffer_area=0.5
 )
 

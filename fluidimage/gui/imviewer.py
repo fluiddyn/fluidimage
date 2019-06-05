@@ -15,6 +15,10 @@ from glob import glob
 
 import matplotlib.pyplot as plt
 
+from fluiddyn.io.image import imread
+from fluiddyn.util import time_as_str
+from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
+
 try:
     from matplotlib.widgets import TextBox, Button
 
@@ -33,9 +37,6 @@ except ImportError as error_import_textbox:
     else:
         raise
 
-from fluiddyn.io.image import imread
-from fluiddyn.util import time_as_str
-from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
 
 extensions = ["png", "tif", "tiff", "jpg", "jpeg", "bmp", "cine"]
 extensions = ["." + ext for ext in extensions]

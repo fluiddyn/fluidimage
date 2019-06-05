@@ -1,5 +1,6 @@
-from fluidimage.topologies.piv import TopologyPIV
 import os
+
+from fluidimage.topologies.piv import TopologyPIV
 
 params = TopologyPIV.create_default_params()
 

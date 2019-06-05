@@ -12,9 +12,9 @@
 
 """
 
-from .calib_tsai import Calibration
-from .calib_direct import CalibDirect, DirectStereoReconstruction
 from .calib2d_simple import Calibration2DSimple
+from .calib_direct import CalibDirect, DirectStereoReconstruction
+from .calib_tsai import Calibration
 from .util import get_plane_equation
 
 __all__ = [

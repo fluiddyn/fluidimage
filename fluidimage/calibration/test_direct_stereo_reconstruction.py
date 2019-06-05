@@ -1,13 +1,12 @@
-import unittest
 import os
+import unittest
 
 import h5py
 import matplotlib.pyplot as plt
 
-from fluidimage.calibration.util import get_plane_equation
-from fluidimage.calibration import DirectStereoReconstruction, CalibDirect
-
 from fluidimage import path_image_samples
+from fluidimage.calibration import CalibDirect, DirectStereoReconstruction
+from fluidimage.calibration.util import get_plane_equation
 
 pathbase = path_image_samples / "4th_PIV-Challenge_Case_E"
 

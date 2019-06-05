@@ -7,9 +7,8 @@
 
 """
 
-import numpy as np
 import matplotlib.pyplot as plt
-
+import numpy as np
 
 from ..calcul.correl import compute_indices_from_displacement
 

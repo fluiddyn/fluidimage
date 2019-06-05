@@ -1,12 +1,10 @@
-import unittest
-import sys
 import os
+import sys
+import unittest
 
 from fluiddyn.io import stdout_redirected
-
-from fluidimage.run_from_xml import main
-
 from fluidimage import path_image_samples
+from fluidimage.run_from_xml import main
 
 
 class TestRunFromXML(unittest.TestCase):

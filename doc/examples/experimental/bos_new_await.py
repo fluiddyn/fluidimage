@@ -1,5 +1,7 @@
+from fluidimage.experimental.executors.executor_await import (
+    ExecutorAwaitMultiprocs
+)
 from fluidimage.experimental.topologies.bos_new import TopologyBOS
-from fluidimage.experimental.executors.executor_await import ExecutorAwaitMultiprocs
 
 params = TopologyBOS.create_default_params()
 

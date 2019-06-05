@@ -1,12 +1,10 @@
 import unittest
-from shutil import rmtree
 from functools import partialmethod
-
-from fluidimage.topologies.example import TopologyExample
-
-from fluidimage.topologies import LogTopology
+from shutil import rmtree
 
 from fluidimage import path_image_samples
+from fluidimage.topologies import LogTopology
+from fluidimage.topologies.example import TopologyExample
 
 path_input = path_image_samples / "Karman/Images"
 

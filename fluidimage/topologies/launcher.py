@@ -18,8 +18,8 @@ Launchers for topologies used for GUI (:mod:`fluidimage.topologies.launcher`)
 import inspect
 import json
 
-from fluidimage.topologies.preproc import TopologyPreproc
 from fluidimage.topologies.piv import TopologyPIV
+from fluidimage.topologies.preproc import TopologyPreproc
 
 
 def _get_args_bound_method(method):

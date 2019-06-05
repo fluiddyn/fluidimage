@@ -4,9 +4,27 @@ FluidImage
 
 """
 
-import sys
 import os
+import sys
 from warnings import warn
+
+import numpy as np
+
+from fluiddyn.util import create_object_from_file, get_memory_usage
+from fluiddyn.util.paramcontainer import ParamContainer
+from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles, SeriesOfArrays
+from fluidimage.topologies.log import LogTopology
+
+from ._version import __version__
+from .util import (
+    config_logging,
+    imread,
+    imsave,
+    log_memory_usage,
+    logger,
+    print_memory_usage,
+    reset_logger,
+)
 
 if "OMP_NUM_THREADS" not in os.environ:
     if "numpy" in sys.modules:
@@ -24,8 +42,6 @@ if "OMP_NUM_THREADS" not in os.environ:
         )
         os.environ["OMP_NUM_THREADS"] = "1"
 
-import numpy as np
-
 
 if any(
     any(test_tool in arg for arg in sys.argv)
@@ -42,24 +58,6 @@ if any(
 
     plt.show = lambda: None
 
-
-from ._version import __version__
-
-from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles, SeriesOfArrays
-from fluiddyn.util.paramcontainer import ParamContainer
-from fluiddyn.util import create_object_from_file, get_memory_usage
-
-from .util import (
-    imread,
-    imsave,
-    print_memory_usage,
-    logger,
-    reset_logger,
-    log_memory_usage,
-    config_logging,
-)
-
-from fluidimage.topologies.log import LogTopology
 
 try:
     from ._path_image_samples import path_image_samples

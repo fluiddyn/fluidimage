@@ -27,11 +27,12 @@ Slideshow mode: Keyboard interaction
   frame, then playback is in realtime.
 
 """
-import sys
-import os
 import argparse
-from fluidimage.gui.pg_wrapper import PGWrapper
+import os
+import sys
+
 from fluidimage import config_logging
+from fluidimage.gui.pg_wrapper import PGWrapper
 
 
 def dock(args, for_testing):

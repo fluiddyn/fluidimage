@@ -1,11 +1,9 @@
-import unittest
 import sys
+import unittest
 
 from fluiddyn.io import stdout_redirected
-
-from fluidimage.gui.imviewer import parse_args, ImageViewer
-
 from fluidimage import path_image_samples
+from fluidimage.gui.imviewer import ImageViewer, parse_args
 
 
 class TestImageViewer(unittest.TestCase):

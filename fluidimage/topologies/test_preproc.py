@@ -1,12 +1,10 @@
 import unittest
-
 from pathlib import Path
 from shutil import rmtree
 
-from fluidimage.topologies.preproc import TopologyPreproc
 from fluiddyn.io.image import imread, imsave
-
 from fluidimage import path_image_samples
+from fluidimage.topologies.preproc import TopologyPreproc
 
 
 class TestPreprocTemporal(unittest.TestCase):

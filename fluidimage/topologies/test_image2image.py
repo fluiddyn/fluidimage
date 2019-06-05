@@ -1,10 +1,9 @@
 import unittest
-from shutil import rmtree
 from pathlib import Path
-
-from fluidimage.topologies.image2image import TopologyImage2Image
+from shutil import rmtree
 
 from fluidimage import path_image_samples
+from fluidimage.topologies.image2image import TopologyImage2Image
 
 
 class TestPivNew(unittest.TestCase):

@@ -1,11 +1,11 @@
 import unittest
-from shutil import rmtree
 from pathlib import Path
+from shutil import rmtree
 
-from fluidimage.topologies.surface_tracking import TopologySurfaceTracking
+import skimage
 
 from fluidimage import path_image_samples
-import skimage
+from fluidimage.topologies.surface_tracking import TopologySurfaceTracking
 
 
 def rescale_intensity(tuple_image_path):

@@ -1,9 +1,10 @@
 import ctypes
+import time
 
 import numpy as np
+
 import pycuda.autoinit
 import pycuda.gpuarray as gpuarray
-import time
 
 CUSOLVER_STATUS_SUCCESS = 0
 

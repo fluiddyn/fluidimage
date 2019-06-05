@@ -15,12 +15,12 @@
 
 """
 
-from warnings import warn
 from collections import OrderedDict
+from warnings import warn
 
-from fluidimage.util import logger, cstring
+from fluidimage.util import cstring, logger
 
-from ..executors import executors, ExecutorBase
+from ..executors import ExecutorBase, executors
 
 
 class Work:

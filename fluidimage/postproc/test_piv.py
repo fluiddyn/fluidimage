@@ -1,8 +1,7 @@
 import unittest
 
-from fluidimage import path_image_samples, np
-
-from fluidimage.postproc.piv import get_grid_pixel_from_piv_file, PIV2d, ArrayPIV
+from fluidimage import np, path_image_samples
+from fluidimage.postproc.piv import ArrayPIV, PIV2d, get_grid_pixel_from_piv_file
 
 
 class TestPIV(unittest.TestCase):

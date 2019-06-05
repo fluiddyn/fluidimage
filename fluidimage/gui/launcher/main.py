@@ -10,15 +10,14 @@ import sys
 
 from matplotlib.backends.qt_compat import QtWidgets
 
-from .mainwindow import Ui_MainWindow
-
-from fluiddyn.util.paramcontainer_gui import QtParamContainer
 from fluiddyn.util.paramcontainer import ParamContainer
-
+from fluiddyn.util.paramcontainer_gui import QtParamContainer
 from fluidimage.topologies.launcher import (
-    TopologyPreprocLauncher,
     TopologyPIVLauncher,
+    TopologyPreprocLauncher,
 )
+
+from .mainwindow import Ui_MainWindow
 
 
 class Program(QtWidgets.QMainWindow, Ui_MainWindow):

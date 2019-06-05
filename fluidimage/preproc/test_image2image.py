@@ -2,8 +2,7 @@ import unittest
 
 from fluidimage import SerieOfArraysFromFiles, path_image_samples
 
-from .image2image import apply_im2im_filter, Im2ImExample
-
+from .image2image import Im2ImExample, apply_im2im_filter
 
 path_src = path_image_samples / "Karman/Images"
 

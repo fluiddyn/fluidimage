@@ -18,10 +18,10 @@ import types
 
 import numpy as np
 
-from ..data_objects.piv import ArrayCouple
-
 from fluiddyn.util import import_class
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
+
+from ..data_objects.piv import ArrayCouple
 
 
 def im2im_func_example(tuple_image_path):

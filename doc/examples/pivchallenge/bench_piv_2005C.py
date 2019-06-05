@@ -1,13 +1,11 @@
 
 
-import pstats
 import cProfile
-
 import os
-
-from path_images import get_path
+import pstats
 
 from fluidimage.topologies.piv import TopologyPIV
+from path_images import get_path
 
 path = os.path.join(get_path('2005C'), 'c*.bmp')
 

@@ -15,10 +15,11 @@
 
 """
 import os
-import numpy as np
+
 import matplotlib.pyplot as plt
-from matplotlib.transforms import Bbox
+import numpy as np
 from matplotlib.patches import Rectangle
+from matplotlib.transforms import Bbox
 from scipy.interpolate import griddata
 
 from fluiddyn.util.paramcontainer import ParamContainer

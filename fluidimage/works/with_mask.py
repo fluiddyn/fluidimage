@@ -1,6 +1,5 @@
-from ..data_objects.piv import get_slices_from_strcrop
-
 from . import BaseWork
+from ..data_objects.piv import get_slices_from_strcrop
 
 
 class BaseWorkWithMask(BaseWork):

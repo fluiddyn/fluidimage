@@ -33,14 +33,14 @@ These others modules defined classes and functions useful for developers.
 
 """
 
-from pathlib import Path
 import os
 import sys
+from pathlib import Path
 
 from fluiddyn.io.query import query
 
-from .log import LogTopology
 from .base import TopologyBase
+from .log import LogTopology
 
 __all__ = ["LogTopology", "TopologyBase"]
 

@@ -1,7 +1,7 @@
-from warnings import warn
-import re
 import os
+import re
 from multiprocessing import cpu_count
+from warnings import warn
 
 from fluidimage.config import get_config
 

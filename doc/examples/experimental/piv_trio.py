@@ -1,6 +1,7 @@
 import os
-from fluidimage.experimental.no_topology_computations.piv_trio import PivTrio
+
 from fluidimage.experimental.no_topology_computations.base_trio import BaseAsync
+from fluidimage.experimental.no_topology_computations.piv_trio import PivTrio
 from fluidimage.topologies.piv import TopologyPIV
 from fluidimage.works.piv import multipass
 

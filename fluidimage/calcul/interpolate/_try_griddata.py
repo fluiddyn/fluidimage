@@ -1,26 +1,20 @@
 from time import clock
 
+import matplotlib.pyplot as plt
 import numpy as np
-
 import scipy as sc
-
 from matplotlib import mlab
 from scipy import interpolate
 
-import matplotlib.pyplot as plt
+from fluidimage.calcul.interpolate import thin_plate_spline_subdom
+from fluidimage.calcul.interpolate.griddata import griddata
+from fluidimage.calcul.interpolate.thin_plate_spline import (
+    ThinPlateSpline,
+    compute_tps_coeff,
+)
 
 plt.ion()
 
-from fluidimage.calcul.interpolate.thin_plate_spline import (
-    compute_tps_coeff,
-    ThinPlateSpline,
-)
-
-from fluidimage.calcul.interpolate.thin_plate_spline_subdom import (
-    ThinPlateSplineSubdom,
-)
-
-from fluidimage.calcul.interpolate.griddata import griddata
 
 n0 = 40
 n1 = 100
@@ -86,7 +80,7 @@ elif method == "tps_subdom":
     smoothing_coef = 0.5
     subdom_size = 50
 
-    tps = ThinPlateSplineSubdom(
+    tps = thin_plate_spline_subdom.ThinPlateSplineSubdom(
         centers, subdom_size, smoothing_coef, threshold=1, pourc_buffer_area=0.5
     )
 

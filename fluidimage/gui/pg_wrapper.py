@@ -1,7 +1,9 @@
 import sys
 from pathlib import Path
+
 import numpy as np
-from fluidimage.util import logger, imread
+
+from fluidimage.util import imread, logger
 
 try:
     import pyqtgraph as pg

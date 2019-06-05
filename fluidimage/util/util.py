@@ -19,17 +19,16 @@ Provides:
 """
 
 import sys
-import psutil
 from pathlib import Path
 
+import psutil
 import six
-
 from IPython.lib.pretty import pretty
 
+from fluiddyn.io.image import imread as _imread
+from fluiddyn.io.image import imsave as _imsave
 from fluiddyn.util import get_memory_usage
 from fluiddyn.util import terminal_colors as term
-
-from fluiddyn.io.image import imread as _imread, imsave as _imsave
 
 color_dict = {
     "HEADER": term.HEADER,

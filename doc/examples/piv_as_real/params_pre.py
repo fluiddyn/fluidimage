@@ -22,7 +22,6 @@ from copy import deepcopy
 from glob import glob
 
 from fluidimage.topologies.preproc import TopologyPreproc
-
 from params_piv import get_path
 
 

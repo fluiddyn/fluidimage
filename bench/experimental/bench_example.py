@@ -1,11 +1,10 @@
 
-from shutil import rmtree
 from pathlib import Path
+from shutil import rmtree
 from time import time
 
-from fluidimage.experimental.topologies.example import TopologyExample
-
 from fluidimage import path_image_samples
+from fluidimage.experimental.topologies.example import TopologyExample
 
 path_input = path_image_samples / "Karman/Images"
 path_dir_result = path_input.parent / f"Images.bench"

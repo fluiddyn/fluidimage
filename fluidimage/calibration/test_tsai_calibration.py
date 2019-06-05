@@ -4,11 +4,11 @@ import h5py
 import matplotlib.pyplot as plt
 import numpy as np
 
+from fluidimage import path_image_samples
 from fluidimage.calibration import Calibration
 
 plt.show = lambda: 0
 
-from fluidimage import path_image_samples
 
 pathbase = path_image_samples / "Milestone"
 

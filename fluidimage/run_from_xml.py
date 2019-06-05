@@ -12,26 +12,24 @@ From matlab, something like::
 
 """
 
+import argparse
 import os
 from time import time
-import argparse
 
 import numpy as np
 import scipy
 
+from fluiddyn.util import import_class
+from fluiddyn.util.paramcontainer import tidy_container
+from fluidimage.topologies.piv import TopologyPIV
+
 from . import (
-    logger,
-    reset_logger,
-    config_logging,
     ParamContainer,
     SerieOfArraysFromFiles,
+    config_logging,
+    logger,
+    reset_logger,
 )
-
-
-from fluiddyn.util.paramcontainer import tidy_container
-from fluiddyn.util import import_class
-
-from fluidimage.topologies.piv import TopologyPIV
 
 
 def tidy_uvmat_instructions(params):

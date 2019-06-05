@@ -1,6 +1,5 @@
 from fluidimage.preproc.base import PreprocBase
 
-
 params = PreprocBase.create_default_params(backend="opencv")
 
 params.preproc.series.path = "../../image_samples/Karman/Images"

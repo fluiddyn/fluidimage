@@ -1,13 +1,11 @@
-import numpy as np
-
-from numpy import pi
-
 import matplotlib.pyplot as plt
+import numpy as np
+from numpy import pi
 
 from fluidimage.calcul.interpolate.thin_plate_spline import (
     compute_tps_coeff_iter,
-    compute_tps_matrix,
     compute_tps_matrices_dxy,
+    compute_tps_matrix,
 )
 
 

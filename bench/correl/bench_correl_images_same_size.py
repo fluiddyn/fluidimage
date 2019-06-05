@@ -1,13 +1,18 @@
 
-import numpy as np
-
 from time import clock
 
+import numpy as np
 
 from fluidimage.calcul.correl import (
-    CorrelScipySignal, CorrelScipyNdimage, CorrelFFTNumpy, CorrelFFTW,
-    CorrelTheano, CorrelCuFFT, CorrelSKCuFFT, CorrelPythran)
-
+    CorrelCuFFT,
+    CorrelFFTNumpy,
+    CorrelFFTW,
+    CorrelPythran,
+    CorrelScipyNdimage,
+    CorrelScipySignal,
+    CorrelSKCuFFT,
+    CorrelTheano,
+)
 from fluidimage.synthetic import make_synthetic_images
 
 nx = 158#32

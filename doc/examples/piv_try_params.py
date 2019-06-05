@@ -3,7 +3,6 @@
 from fluidimage import SeriesOfArrays
 from fluidimage.works.piv import WorkPIV
 
-
 params = WorkPIV.create_default_params()
 
 params.multipass.number = 2

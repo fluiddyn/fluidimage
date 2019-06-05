@@ -20,13 +20,15 @@
 """
 
 import os
-import h5py
+
 import h5netcdf
+import h5py
 import numpy as np
 
 from .display_piv import DisplayPIV
-from .. import imread, ParamContainer
+from .. import ParamContainer
 from .. import __version__ as fluidimage_version
+from .. import imread
 from .._hg_rev import hg_rev
 
 

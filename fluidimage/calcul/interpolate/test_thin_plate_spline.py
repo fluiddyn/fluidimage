@@ -1,11 +1,10 @@
 import numpy as np
 
 from .thin_plate_spline import (
-    compute_tps_coeff,
     ThinPlateSpline,
     ThinPlateSplineNumpy,
+    compute_tps_coeff,
 )
-
 
 pi = np.pi
 

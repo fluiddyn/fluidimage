@@ -12,15 +12,15 @@
 from fluiddyn.io.image import imsave_h5
 
 from .log import (
-    logger,
-    reset_logger,
-    log_memory_usage,
     DEBUG,
+    config_logging,
     log_debug,
     log_error,
-    config_logging,
+    log_memory_usage,
+    logger,
+    reset_logger,
 )
-from .util import imread, imsave, print_memory_usage, cstring, str_short
+from .util import cstring, imread, imsave, print_memory_usage, str_short
 
 __all__ = [
     "imread",

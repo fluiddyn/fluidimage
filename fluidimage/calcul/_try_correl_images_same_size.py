@@ -1,17 +1,16 @@
+import matplotlib.pyplot as plt
 import numpy as np
 
-import matplotlib.pyplot as plt
+from fluidimage.calcul.correl import (
+    CorrelFFTNumpy,
+    CorrelFFTW,
+    CorrelScipyNdimage,
+    CorrelScipySignal,
+)
+from fluidimage.synthetic import make_synthetic_images
 
 plt.ion()
 
-from fluidimage.calcul.correl import (
-    CorrelScipySignal,
-    CorrelScipyNdimage,
-    CorrelFFTNumpy,
-    CorrelFFTW,
-)
-
-from fluidimage.synthetic import make_synthetic_images
 
 nx = 32
 ny = 32

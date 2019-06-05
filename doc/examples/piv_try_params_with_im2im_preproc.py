@@ -1,9 +1,7 @@
 
 from fluidimage import SeriesOfArrays
-from fluidimage.works.piv import WorkPIV
-
 from fluidimage.preproc.image2image import apply_im2im_filter
-
+from fluidimage.works.piv import WorkPIV
 
 params = WorkPIV.create_default_params()
 

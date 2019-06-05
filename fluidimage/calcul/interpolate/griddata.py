@@ -4,7 +4,6 @@
 
 """
 import numpy as np
-
 from matplotlib import mlab
 from scipy import interpolate
 

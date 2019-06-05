@@ -1,8 +1,9 @@
-import h5py
-from fluiddyn.util.serieofarrays import SeriesOfArrays
-from fluidimage.works.piv import WorkPIV
 import numpy as np
 import pylab
+
+from fluiddyn.util.serieofarrays import SeriesOfArrays
+from fluidimage.works.piv import WorkPIV
+from postproc import PIV_Postproc, PIV_PostProc_serie
 
 # %%
 params = WorkPIV.create_default_params()
@@ -31,9 +32,6 @@ lightresult = result.make_light_result()
 lightresult.save()
 
 
-# %%
-from postproc import PIV_Postproc
-
 postp = PIV_Postproc(path="piv_Karman01-02_light.h5")
 
 rot = postp.compute_rot()
@@ -46,8 +44,6 @@ postp.displayf(X=postp.X, Y=postp.Y, U=postp.U, V=postp.V)
 pylab.figure
 postp.displayf(bg=rot)
 
-# %%
-from postproc import PIV_PostProc_serie
 
 postp = PIV_PostProc_serie(path=["piv_Karman01-02_light.h5"] * 10)
 postp.set_time(np.linspace(0, 10, 10))
@@ -67,9 +63,6 @@ postp.displayf(bg=rot)
 pylab.figure
 postp.displayf(U=postp.U, V=postp.V)
 
-
-# tests Fourier transform
-from postproc import PIV_PostProc_serie
 
 Nt = 100
 postp = PIV_PostProc_serie(path=["piv_Karman01-02_light.h5"] * Nt)

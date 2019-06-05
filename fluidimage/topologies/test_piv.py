@@ -1,11 +1,10 @@
 import unittest
-from shutil import rmtree
 from pathlib import Path
+from shutil import rmtree
 from time import sleep
 
-from fluidimage.topologies.piv import TopologyPIV
-
 from fluidimage import path_image_samples
+from fluidimage.topologies.piv import TopologyPIV
 
 
 class TestPivNew(unittest.TestCase):

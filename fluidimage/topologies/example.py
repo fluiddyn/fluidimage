@@ -12,13 +12,12 @@ with C functions.
 
 import os
 
-import scipy.io
 import numpy as np
+import scipy.io
 
 from transonic import boost
 
 from . import TopologyBase
-
 from ..util import imread
 
 A = "uint8[:,:]"

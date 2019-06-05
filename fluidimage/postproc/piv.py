@@ -15,14 +15,13 @@
 
 """
 
-from numbers import Number
 from copy import deepcopy
+from numbers import Number
 
-import numpy as np
-import matplotlib.pyplot as plt
 import h5py
-
-from scipy.ndimage.filters import median_filter, gaussian_filter
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.ndimage.filters import gaussian_filter, median_filter
 
 from fluiddyn.util.paramcontainer import ParamContainer
 from fluidimage.works.piv.multipass import WorkPIV

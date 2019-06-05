@@ -1,6 +1,6 @@
 import unittest
 
-from .util import imread, cprint, is_memory_full, str_short
+from .util import cprint, imread, is_memory_full, str_short
 
 
 class TestUtil(unittest.TestCase):

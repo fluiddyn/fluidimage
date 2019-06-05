@@ -6,27 +6,22 @@
    :private-members:
 
 """
-import os
-import json
 import copy
+import json
+import os
 import sys
-from typing import List, Tuple, Dict
+from typing import Dict, List, Tuple
+
 from fluiddyn.util.paramcontainer import ParamContainer
-
 from fluidimage import SeriesOfArrays
-from fluidimage.util import imread, logger, DEBUG
-
+from fluidimage.data_objects.preproc import ArraySerie as ArraySubset
+from fluidimage.data_objects.preproc import get_name_preproc
+from fluidimage.topologies import TopologyBase, prepare_path_dir_result
+from fluidimage.util import DEBUG, imread, logger
 from fluidimage.works.preproc import WorkPreproc
-from fluidimage.data_objects.preproc import (
-    get_name_preproc,
-    ArraySerie as ArraySubset,
-)
-
-from fluidimage.topologies import prepare_path_dir_result, TopologyBase
-
-from .piv import is_name_in_queue
 
 from . import image2image
+from .piv import is_name_in_queue
 
 
 class TopologyPreproc(TopologyBase):

@@ -4,9 +4,8 @@
 
 """
 import numpy as np
-
-from scipy.ndimage import convolve
 from scipy.interpolate import interp2d
+from scipy.ndimage import convolve
 
 from fluidimage.calcul.interpolate.griddata import griddata
 

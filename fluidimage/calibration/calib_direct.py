@@ -11,25 +11,29 @@
 
 """
 import glob
-from math import sqrt
 import warnings
+from math import sqrt
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pylab
+from scipy.interpolate import (
+    LinearNDInterpolator,
+    RegularGridInterpolator,
+    griddata,
+)
+
+from fluiddyn.util.paramcontainer import ParamContainer, tidy_container
+
+from .util import get_base_from_normal_vector, get_number_from_string2
+
+# from scipy.interpolate import CloughTocher2DInterpolator
+
 
 try:
     from mpl_toolkits.mplot3d import Axes3D
 except ImportError:
     pass
-from scipy.interpolate import griddata
-
-# from scipy.interpolate import CloughTocher2DInterpolator
-from scipy.interpolate import LinearNDInterpolator, RegularGridInterpolator
-import matplotlib.pyplot as plt
-
-from fluiddyn.util.paramcontainer import ParamContainer, tidy_container
-
-from .util import get_number_from_string2, get_base_from_normal_vector
 
 
 class Interpolent:

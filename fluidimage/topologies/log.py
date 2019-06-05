@@ -7,12 +7,12 @@
 
 """
 
-from glob import glob
 import time
+from glob import glob
 from pathlib import Path
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 from fluiddyn.util import is_run_from_ipython
 

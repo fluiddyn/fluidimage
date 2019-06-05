@@ -1,14 +1,12 @@
 
-from shutil import rmtree
-from pathlib import Path
-from time import time
 from os import symlink
-
-from fluidimage.experimental.topologies.piv_new import TopologyPIV
-
-from fluidimage.topologies.piv import TopologyPIV as OldTopologyPIV
+from pathlib import Path
+from shutil import rmtree
+from time import time
 
 from fluidimage import path_image_samples
+from fluidimage.experimental.topologies.piv_new import TopologyPIV
+from fluidimage.topologies.piv import TopologyPIV as OldTopologyPIV
 
 path_dir_images = path_image_samples / "Milestone/Images"
 path_images = list(path_dir_images.glob("im*"))

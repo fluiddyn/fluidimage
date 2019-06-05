@@ -8,26 +8,23 @@
 """
 
 import os
-import sys
-from time import time
 import signal
-from pathlib import Path
+import sys
 import traceback
+from pathlib import Path
+from time import time
 
 from fluiddyn import time_as_str
 from fluiddyn.io.tee import MultiFile
-
 from fluidimage.config import get_config
 from fluidimage.topologies.nb_cpu_cores import nb_cores
 from fluidimage.util import (
+    log_error,
+    log_memory_usage,
     logger,
     reset_logger,
     str_short,
-    log_memory_usage,
-    log_error,
 )
-
-from fluidimage import config_logging
 
 config = get_config()
 
@@ -98,6 +95,8 @@ class ExecutorBase:
         if logging_level:
             for handler in logger.handlers:
                 logger.removeHandler(handler)
+
+            from fluidimage import config_logging
 
             config_logging(logging_level, file=sys.stdout)
 

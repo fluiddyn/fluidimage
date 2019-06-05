@@ -19,9 +19,8 @@ see also the help::
 
 from __future__ import print_function
 
-from fluidimage.topologies.preproc import TopologyPreproc
-
 import params_pre
+from fluidimage.topologies.preproc import TopologyPreproc
 
 try:
     reload
