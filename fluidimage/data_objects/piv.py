@@ -19,8 +19,6 @@
 
 """
 
-from builtins import str
-
 import os
 import h5py
 import h5netcdf

@@ -18,6 +18,9 @@ cleanall: clean clean_so
 black:
 	black -l 82 fluidimage try *.py
 
+isort:
+	isort -rc --atomic -tc fluidimage bin bench doc/examples
+
 tests:
 	OMP_NUM_THREADS=1 pytest
 

@@ -27,7 +27,6 @@ Slideshow mode: Keyboard interaction
   frame, then playback is in realtime.
 
 """
-from __future__ import print_function
 import sys
 import os
 import argparse
