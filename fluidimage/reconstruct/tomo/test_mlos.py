@@ -5,12 +5,12 @@ from tempfile import gettempdir
 
 import matplotlib
 
+matplotlib.use("Agg")
+
 from fluiddyn.io import stdout_redirected
 from fluidimage import path_image_samples
 from fluidimage.data_objects.tomo import ArrayTomoCV
 from fluidimage.reconstruct.tomo import TomoMLOSCV
-
-matplotlib.use("agg")
 
 
 path_calib = str(path_image_samples / "TomoPIV" / "calibration" / "cam0.h5")

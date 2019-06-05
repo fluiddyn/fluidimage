@@ -8,6 +8,22 @@ import os
 import sys
 from warnings import warn
 
+if "OMP_NUM_THREADS" not in os.environ:
+    if "numpy" in sys.modules:
+        warn(
+            "The environment variable OMP_NUM_THREADS "
+            "was not set and numpy is already imported "
+            'so fluidimage can not set OMP_NUM_THREADS to "1". '
+            "It can be very bad for the performance of fluidimage topologies!"
+        )
+    else:
+        warn(
+            "The environment variable OMP_NUM_THREADS "
+            'was not set so fluidimage fixes it to "1", '
+            "which is needed for fluidimage topologies."
+        )
+        os.environ["OMP_NUM_THREADS"] = "1"
+
 import numpy as np
 
 from fluiddyn.util import create_object_from_file, get_memory_usage
@@ -25,22 +41,6 @@ from .util import (
     print_memory_usage,
     reset_logger,
 )
-
-if "OMP_NUM_THREADS" not in os.environ:
-    if "numpy" in sys.modules:
-        warn(
-            "The environment variable OMP_NUM_THREADS "
-            "was not set and numpy is already imported "
-            'so fluidimage can not set OMP_NUM_THREADS to "1". '
-            "It can be very bad for the performance of fluidimage topologies!"
-        )
-    else:
-        warn(
-            "The environment variable OMP_NUM_THREADS "
-            'was not set so fluidimage fixes it to "1", '
-            "which is needed for fluidimage topologies."
-        )
-        os.environ["OMP_NUM_THREADS"] = "1"
 
 
 if any(
