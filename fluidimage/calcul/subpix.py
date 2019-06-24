@@ -15,7 +15,7 @@ from .errors import PIVError
 
 
 @boost
-def compute_subpix_2d_gaussian2(correl, ix, iy):
+def compute_subpix_2d_gaussian2(correl: "float32[][]", ix: int, iy: int):
     correl_crop = correl[iy - 1 : iy + 2, ix - 1 : ix + 2]
     # hoops, pythran crashes because of this line
     # correl_crop[correl_crop < 0] = 1e-6

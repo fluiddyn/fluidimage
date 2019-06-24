@@ -84,9 +84,24 @@ def compute_tps_matrix_pythran(new_pos: A, centers: A):
             for inp, npos in enumerate(new_pos[ind_d]):
                 EM[ic, inp] += (npos - center) ** 2
 
-    nb_p = np.where(EM != 0)
-    EM[nb_p] = EM[nb_p] * np.log(EM[nb_p]) / 2
-    EM_ret = np.vstack([EM, np.ones(nb_new_pos), new_pos])
+    # Pythran does not like that!
+    # nb_p = np.where(EM != 0)
+    # EM[nb_p] = EM[nb_p] * np.log(EM[nb_p]) / 2
+
+    for ic in range(nb_centers):
+        for inp in range(nb_new_pos):
+            tmp = EM[ic, inp]
+            if tmp != 0:
+                EM[ic, inp] = tmp * np.log(tmp) / 2
+
+    # # pythran 0.9.2 does not know np.vstack
+    # EM_ret = np.vstack([EM, np.ones(nb_new_pos), new_pos])
+
+    EM_ret = np.empty((nb_centers + 1 + d, nb_new_pos))
+    EM_ret[:nb_centers, :] = EM
+    EM_ret[nb_centers, :] = np.ones(nb_new_pos)
+    EM_ret[nb_centers + 1 : nb_centers + 1 + d, :] = new_pos
+
     return EM_ret
 
 

@@ -136,10 +136,11 @@ def create_extensions():
 
     ext_modules = create_pythran_extensions()
 
-    logger.info(
-        "The following extensions could be built if necessary:\n"
-        + "".join([ext.name + "\n" for ext in ext_modules])
-    )
+    if ext_modules:
+        logger.info(
+            "The following extensions could be built if necessary:\n"
+            + "".join([ext.name + "\n" for ext in ext_modules])
+        )
 
     return ext_modules
 
