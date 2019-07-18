@@ -45,7 +45,7 @@ class ExecutorBase:
 
     nb_max_workers : int, optional (None)
 
-    nb_items_queue_max : int, optional (4),
+    nb_items_queue_max : int, optional (None),
 
     logging_level : str, optional {"info"},
 
@@ -65,7 +65,7 @@ class ExecutorBase:
         topology,
         path_dir_result,
         nb_max_workers=None,
-        nb_items_queue_max=4,
+        nb_items_queue_max=None,
         logging_level="info",
         sleep_time=None,
         stop_if_error=False,
@@ -119,7 +119,7 @@ class ExecutorBase:
         self.nb_max_workers = nb_max_workers
 
         if nb_items_queue_max is None:
-            nb_items_queue_max = max(2 * nb_max_workers, 2)
+            nb_items_queue_max = max(4 * nb_max_workers, 8)
         self.nb_items_queue_max = nb_items_queue_max
 
         self._has_to_stop = False
