@@ -10,10 +10,13 @@ build_ext_inplace:
 clean:
 	rm -rf build
 
-clean_so:
+cleanso:
 	find fluidimage -name "*.so" -delete
 
-cleanall: clean clean_so
+cleantransonic:
+	find fluidimage -type d -name __pythran__ | xargs rm -rf
+
+cleanall: clean cleanso cleantransonic
 
 black:
 	black -l 82 fluidimage try *.py
