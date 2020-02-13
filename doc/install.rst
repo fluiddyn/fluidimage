@@ -76,20 +76,20 @@ to work "as a developer", i.e. to get the source code and to use revision
 control and the development mode of the Python installer.
 
 For FluidImage, we use the revision control software Mercurial and the main
-repository is hosted `here <https://bitbucket.org/fluiddyn/fluidimage>`_ in
-Bitbucket, so you can get the source with the command::
+repository is hosted `here <https://foss.heptapod.net/fluiddyn/fluidimage>`_ in
+Heptapod, so you can get the source with the command::
 
-  hg clone https://bitbucket.org/fluiddyn/fluidimage
+  hg clone https://foss.heptapod.net/fluiddyn/fluidimage
 
 I would advice to fork this repository (click on "Fork") and to
 clone your newly created repository to get the code on your computer (click on
 "Clone" and run the command that will be given). If you are new with Mercurial
-and Bitbucket, you can also read `this short tutorial
-<http://fluiddyn.readthedocs.org/en/latest/mercurial_bitbucket.html>`_.
+and Heptapod, you can also read `this short tutorial
+<http://fluiddyn.readthedocs.org/en/latest/mercurial_heptapod.html>`_.
 
 If you really don't want to use Mercurial, you can also just manually
-download the package from `the Bitbucket page
-<https://bitbucket.org/fluiddyn/fluidimage>`_ or from `the PyPI page
+download the package from `the Heptapod page
+<https://foss.heptapod.net/fluiddyn/fluidimage>`_ or from `the PyPI page
 <https://pypi.python.org/pypi/fluidimage>`_.
 
 To install in development mode (with a virtualenv or with conda)::
@@ -116,4 +116,4 @@ FluidImage can also be installed from the Python Package Index::
   pip install fluidimage
 
 However, the project is in an active phase of development so it can be better
-to use the last version (from the mercurial repository hosted on Bitbucket).
+to use the last version (from the mercurial repository hosted on Heptapod).

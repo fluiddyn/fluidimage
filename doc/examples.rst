@@ -14,4 +14,4 @@ Examples
    examples/piv_as_real/README
    examples/pivchallenge/README
 
-See also https://bitbucket.org/fluiddyn/fluidimage/src/default/doc/examples/
+See also https://foss.heptapod.net/fluiddyn/fluidimage/tree/branch/default/doc/examples

@@ -153,7 +153,7 @@ setup(
     keywords="PIV",
     author="Pierre Augier",
     author_email="pierre.augier@legi.cnrs.fr",
-    url="https://bitbucket.org/fluiddyn/fluidimage",
+    url="https://foss.heptapod.net/fluiddyn/fluidimage",
     python_requires=">=3.6",
     license="CeCILL",
     classifiers=[
