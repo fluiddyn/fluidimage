@@ -3,12 +3,11 @@ channels:
   - conda-forge
 
 dependencies:
-  - python=3.6
+  - python=3.7
   - pip
-  - jupyter
-  - fftw
   - pyfftw
   - pip:
+    - jupyter
     - sphinx_rtd_theme
     - sphinx
     - numpydoc
