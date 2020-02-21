@@ -1,5 +1,5 @@
 variables:
-  CODECOV_TOKEN: 202255eb-62eb-4b29-b065-0f832265e84f
+  CODECOV_TOKEN: 0ac60028-17ba-4383-b4ad-b5ba5ca35f3d
   SKIP_SHTNS: 1
 
 tests:
