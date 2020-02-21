@@ -34,7 +34,7 @@
 
 - Bug fixes and documentation changes.
 - Continuous integration (python 2.7 and 3.5) with bitbucket pipelines
-  (`coverage ~40% <https://codecov.io/bb/fluiddyn/fluidimage/branch/default>`_)
+  (`coverage ~40% <https://codecov.io/gh/fluiddyn/fluidimage>`_)
 - Preprocessing of images.
 - First simple GUI (`fluidimviewer` and `fluidimlauncher`).
 

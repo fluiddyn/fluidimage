@@ -17,8 +17,8 @@ FluidImage
    :target: http://fluidimage.readthedocs.org
    :alt: Documentation status
 
-.. |coverage| image:: https://codecov.io/bb/fluiddyn/fluidimage/branch/default/graph/badge.svg
-   :target: https://codecov.io/bb/fluiddyn/fluidimage/branch/default/
+.. |coverage| image:: https://codecov.io/gh/fluiddyn/fluidimage/branch/master/graph/badge.svg
+   :target: https://codecov.io/gh/fluiddyn/fluidimage/branch/master/
    :alt: Code coverage
 
 .. |travis| image:: https://travis-ci.org/fluiddyn/fluidimage.svg?branch=master
@@ -47,7 +47,7 @@ This package is young but already good enough to be used "in production" to
 
 We want to make FluidImage easy (useful documentation, easy installation,
 usable with scripts and GUI in Qt), reliable (with good `unittests
-<https://codecov.io/bb/fluiddyn/fluidimage/>`_) and very efficient, in
+<https://codecov.io/gh/fluiddyn/fluidimage/>`_) and very efficient, in
 particular when the number of images to process becomes large. Thus we want
 FluidImage to be able to run efficiently and easily on a personal computer and
 on big clusters. The efficiency is achieved by using
