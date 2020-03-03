@@ -50,7 +50,9 @@ class Calibration:
             and angle
         ):
             testangle = 1
+            # norm of rotation angle in radians
             om = np.linalg.norm(params.slices.slice_angle[index_level])
+            # unit vector marking the rotation axis
             axis_rot = params.slices.slice_angle[index_level] / om
             cos_om = np.cos(np.pi * om / 180.0)
             sin_om = np.sin(np.pi * om / 180.0)
@@ -64,6 +66,7 @@ class Calibration:
                 / norm_plane[2]
             )
         else:
+            # horizontal plane z=cte
             Z0 = params.slices.zslice_coord[index_level][2]
         Z0virt = Z0
         if hasattr(params, "interface_coord") and hasattr(
@@ -71,8 +74,8 @@ class Calibration:
         ):
             H = params.interface_coord[2]
             if H > Z0:
-                Z0virt = H - (H - Z0) / params.refraction_index
                 # corrected z (virtual object)
+                Z0virt = H - (H - Z0) / params.refraction_index
                 test_refraction = 1
 
         if hasattr(params, "f") is False:
@@ -108,15 +111,15 @@ class Calibration:
                 a = -norm_plane[0] / norm_plane[2]
                 b = -norm_plane[1] / norm_plane[2]
                 if test_refraction:
-                    atmp = a / params.refraction_index
-                    btmp = b / params.refraction_index
+                    a /= params.refraction_index
+                    b /= params.refraction_index
 
-                    R[0] += atmp * R[2]
-                    R[1] += btmp * R[2]
-                    R[3] += atmp * R[5]
-                    R[4] += btmp * R[5]
-                    R[6] += atmp * R[8]
-                    R[7] += btmp * R[8]
+                R[0] += a * R[2]
+                R[1] += b * R[2]
+                R[3] += a * R[5]
+                R[4] += b * R[5]
+                R[6] += a * R[8]
+                R[7] += b * R[8]
 
             Tx = params.T[0]
             Ty = params.T[1]
