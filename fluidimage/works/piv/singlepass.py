@@ -333,7 +333,12 @@ class BaseWorkPIV(BaseWorkWithMask):
 
             # compute displacements corresponding to peaks
             try:
-                deltax, deltay, correl_max, other_peaks = self.correl.compute_displacements_from_correl(
+                (
+                    deltax,
+                    deltay,
+                    correl_max,
+                    other_peaks,
+                ) = self.correl.compute_displacements_from_correl(
                     correl, norm=norm
                 )
             except PIVError as e:
@@ -442,12 +447,18 @@ class BaseWorkPIV(BaseWorkWithMask):
         """
 
         if not last and not hasattr(piv_results, "ixvecs_approx"):
-            piv_results.ixvecs_approx, piv_results.iyvecs_approx = self._xyoriginalimage_from_xymasked(
+            (
+                piv_results.ixvecs_approx,
+                piv_results.iyvecs_approx,
+            ) = self._xyoriginalimage_from_xymasked(
                 self.ixvecs_grid, self.iyvecs_grid
             )
 
         if last and not hasattr(piv_results, "ixvecs_final"):
-            piv_results.ixvecs_final, piv_results.iyvecs_final = self._xyoriginalimage_from_xymasked(
+            (
+                piv_results.ixvecs_final,
+                piv_results.iyvecs_final,
+            ) = self._xyoriginalimage_from_xymasked(
                 self.ixvecs_grid, self.iyvecs_grid
             )
 
