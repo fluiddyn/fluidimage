@@ -17,6 +17,8 @@
 
 from copy import deepcopy
 from numbers import Number
+import itertools
+from typing import Optional
 
 import h5py
 import matplotlib.pyplot as plt
@@ -25,6 +27,7 @@ from scipy.ndimage.filters import gaussian_filter, median_filter
 
 from fluiddyn.util.paramcontainer import ParamContainer
 from fluidimage.works.piv.multipass import WorkPIV
+from fluidimage.data_objects.piv import LightPIVResults
 
 
 def get_grid_pixel_from_piv_file(path, index_pass=-1):
@@ -55,9 +58,9 @@ def get_grid_pixel_from_piv_file(path, index_pass=-1):
       Indices (1st, direction "y") of the pixel in the image
 
     """
-    with h5py.File(path) as f:
-        params = ParamContainer(hdf5_object=f["params"])
-        shape_images = f["couple/shape_images"][...]
+    with h5py.File(path, "r") as file:
+        params = ParamContainer(hdf5_object=file["params"])
+        shape_images = file["couple/shape_images"][...]
 
     return get_grid_pixel(params, shape_images, index_pass)
 
@@ -145,6 +148,14 @@ class PIV2d:
 
     """
 
+    _attr_saved_as_dataset = list(
+        "".join(t) for t in itertools.product(["v", ""], "xyz")
+    )
+    _attr_saved_as_attr = list(
+        "".join(t)
+        for t in itertools.product(["name", "unit"], _attr_saved_as_dataset)
+    ) + ["name", "history"]
+
     def __init__(
         self,
         x,
@@ -165,6 +176,9 @@ class PIV2d:
         unitx="?",
         unity="?",
         unitz="?",
+        name="Fluidimage_field",
+        history=["fluidimage"],
+        params: Optional[ParamContainer] = None,
     ):
 
         self.x = x
@@ -186,10 +200,60 @@ class PIV2d:
         self.unitz = unitz
         self.namez = namez
 
-        self.name = "Fluidimage_field"
-        self.history = ["fluidimage"]
-        self.setname = "??"
-        self.ysign = "ysign"
+        self.name = name
+        self.history = history
+        self.params = params
+
+    def save(self, path, params=None):
+        with h5py.File(path, "w") as file:
+            cls = self.__class__
+            file.attrs["class_name"] = cls.__name__
+            file.attrs["module_name"] = cls.__module__
+
+            for attr_name in self._attr_saved_as_dataset:
+                file.create_dataset(attr_name, data=getattr(self, attr_name))
+
+            for attr_name in self._attr_saved_as_attr:
+                file.attrs[attr_name] = getattr(self, attr_name)
+
+            if params is None and self.params is not None:
+                params = self.params
+
+            if params is not None:
+                params._save_as_hdf5(hdf5_parent=file)
+
+    @classmethod
+    def from_file(cls, path, load_params=False):
+        """Create a PIV2d object from a file
+
+        It can be a file representing a LightPIVResults or a PIV2d object.
+
+        """
+
+        with h5py.File(path, "r") as file:
+            class_name = file.attrs["class_name"]
+            module_name = file.attrs["module_name"]
+
+        if (
+            class_name == "LightPIVResults"
+            and module_name == "fluidimage.data_objects.piv"
+        ):
+            raise NotImplementedError
+        elif class_name == cls.__name__ and cls.__module__:
+            kwargs = {}
+            with h5py.File(path, "r") as file:
+                for attr_name in cls._attr_saved_as_dataset:
+                    kwargs[attr_name] = file[attr_name][...]
+                for attr_name in cls._attr_saved_as_attr:
+                    kwargs[attr_name] = file.attrs[attr_name]
+
+                if "params" in file.keys():
+                    params = ParamContainer(hdf5_object=file["params"])
+                    kwargs["params"] = params
+
+            return cls(**kwargs)
+        else:
+            raise RuntimeError
 
     def __add__(self, other):
         if isinstance(other, Number):

@@ -786,11 +786,11 @@ class LightPIVResults(DataObject):
         else:
             path_file = name
 
-        with h5py.File(path_file, "w") as f:
-            f.attrs["class_name"] = "LightPIVResults"
-            f.attrs["module_name"] = "fluidimage.data_objects.piv"
+        with h5py.File(path_file, "w") as file:
+            file.attrs["class_name"] = "LightPIVResults"
+            file.attrs["module_name"] = "fluidimage.data_objects.piv"
 
-            self._save_in_hdf5_object(f, tag="piv")
+            self._save_in_hdf5_object(file, tag="piv")
 
         return self
 
