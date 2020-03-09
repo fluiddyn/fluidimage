@@ -1,4 +1,3 @@
-
 import os
 import re
 from glob import glob
@@ -8,22 +7,22 @@ import numpy as np
 
 plt.ion()
 
-path = 'bench_cl7n010_2016-04-29'
+path = "bench_cl7n010_2016-04-29"
 
-files = glob(path+'/*out')
+files = glob(path + "/*out")
 
 times = {}
 times_wo_hyperthreading = {}
 
 for fn in files:
     allow_hyperthreading = True
-    with open(fn) as f:
-        for line in f:
-            if re.findall(r'Cpus_allowed:', line):
-                nb_p = int(line.split(' ')[-1])
-            if re.findall(r'ellapsed time:', line):
-                t = float(line.split(' ')[-1][:-2])
-            if 'hyperthreading' in line:
+    with open(fn) as file:
+        for line in file:
+            if re.findall(r"Cpus_allowed:", line):
+                nb_p = int(line.split(" ")[-1])
+            if re.findall(r"ellapsed time:", line):
+                t = float(line.split(" ")[-1][:-2])
+            if "hyperthreading" in line:
                 allow_hyperthreading = False
 
         if allow_hyperthreading:
@@ -50,20 +49,18 @@ nb_proc_woh /= 2
 plt.figure()
 ax = plt.gca()
 
-ax.plot(nb_proc, time_ref/times, 'ob')
-ax.plot(nb_proc_woh, time_ref/times_woh, 'or')
+ax.plot(nb_proc, time_ref / times, "ob")
+ax.plot(nb_proc_woh, time_ref / times_woh, "or")
 
-ax.set_xlabel('number of cores')
-ax.set_ylabel(r'speedup compared to 1 core without hyperthreading')
+ax.set_xlabel("number of cores")
+ax.set_ylabel(r"speedup compared to 1 core without hyperthreading")
 
 tmp = [0, nb_proc.max()]
-ax.plot(tmp, tmp, 'k')
-
-
+ax.plot(tmp, tmp, "k")
 
 
 ylim = list(ax.get_ylim())
-ylim[0] = 0.
+ylim[0] = 0.0
 ax.set_ylim(ylim)
 
 

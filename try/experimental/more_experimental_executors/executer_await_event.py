@@ -29,9 +29,9 @@ class ExecuterAwaitMultiprocs(ExecutorBase):
         self.store_async_works()
         self.define_function()
         print("\nWhat's in function dicts ?\n ")
-        for key, af in self.async_funcs.items():
+        for key, afunc in self.async_funcs.items():
             print(f"async func : {key} ")
-        for key, f in self.funcs.items():
+        for key, func in self.funcs.items():
             print(f"func : {key} ")
         print("\n")
 
