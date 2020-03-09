@@ -92,7 +92,7 @@ class DisplayPIV:
         else:
             self.image0 = None
 
-        l, = ax1.plot(0, 0, "oy")
+        (l,) = ax1.plot(0, 0, "oy")
         l.set_visible(False)
 
         ax1.set_title("im 0 (alt+s to switch)")

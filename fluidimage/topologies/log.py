@@ -266,7 +266,7 @@ class LogTopology:
         for i, name in enumerate(self.names_works):
             times = np.array(self.times[name])
             durations = self.durations[name]
-            l, = ax.plot(times, durations, colors[i] + "o")
+            (l,) = ax.plot(times, durations, colors[i] + "o")
             lines.append(l)
 
             for it, t in enumerate(times):
@@ -326,7 +326,7 @@ class LogTopology:
         lines = []
 
         for i, name in enumerate(self.names_works):
-            l, = ax.plot(times[name], nb_workers[name], colors[i] + "-")
+            (l,) = ax.plot(times[name], nb_workers[name], colors[i] + "-")
             lines.append(l)
 
         ax.legend(lines, names, loc="center left", fontsize="x-small")

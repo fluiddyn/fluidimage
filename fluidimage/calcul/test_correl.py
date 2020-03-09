@@ -86,9 +86,12 @@ for k, cls in classes.items():
 
         # first, no displacement
         c, norm = correl(self.im0, self.im0)
-        dx, dy, correl_max, other_peaks = correl.compute_displacements_from_correl(
-            c, norm=norm
-        )
+        (
+            dx,
+            dy,
+            correl_max,
+            other_peaks,
+        ) = correl.compute_displacements_from_correl(c, norm=norm)
         displacement_computed = np.array([dx, dy])
 
         logger.debug(

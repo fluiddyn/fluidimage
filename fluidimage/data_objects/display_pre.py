@@ -111,7 +111,7 @@ class DisplayPreProc:
             ax4.set_ylim(0, max(hist1[0]))
             fig2.show()
 
-        l, = ax1.plot(0, 0, "oy")
+        (l,) = ax1.plot(0, 0, "oy")
         l.set_visible(False)
 
         ax1.set_title("im 0 (alt+s to switch)")
@@ -127,7 +127,7 @@ class DisplayPreProc:
         ax1.set_xlabel("pixels")
         ax1.set_ylabel("pixels")
 
-        l, = ax2.plot(0, 0, "oy")
+        (l,) = ax2.plot(0, 0, "oy")
         l.set_visible(False)
 
         ax2.set_title("im 0p (alt+s to switch)")
