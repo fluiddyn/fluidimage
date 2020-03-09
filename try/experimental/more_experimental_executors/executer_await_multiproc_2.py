@@ -74,14 +74,12 @@ class ExecuterAwaitMultiprocs(ExecutorBase):
                             if self.has_to_stop():
                                 return
                             await trio.sleep(self.sleep_time)
-                        key, obj = await trio.run_sync_in_worker_thread(
+                        key, obj = await trio.to_thread.run_sync(
                             self.pull, work.input_queue.queue
                         )
                         work.input_queue.queue["test"] = True
-                        ret = await trio.run_sync_in_worker_thread(
-                            work.func_or_cls, obj
-                        )
-                        await trio.run_sync_in_worker_thread(
+                        ret = await trio.to_thread.run_sync(work.func_or_cls, obj)
+                        await trio.to_thread.run_sync(
                             self.push, key, ret, work.output_queue.queue
                         )
                         del work.input_queue.queue["test"]
@@ -103,7 +101,7 @@ class ExecuterAwaitMultiprocs(ExecutorBase):
                             if self.has_to_stop():
                                 return
                             await trio.sleep(self.sleep_time)
-                        key, obj = await trio.run_sync_in_worker_thread(
+                        key, obj = await trio.to_thread.run_sync(
                             self.pull, work.input_queue.queue
                         )
                         work.input_queue.queue["test"] = True
@@ -126,7 +124,7 @@ class ExecuterAwaitMultiprocs(ExecutorBase):
                         try:
                             ret = pickle.loads(b"".join(data))
                             if work.output_queue is not None:
-                                await trio.run_sync_in_worker_thread(
+                                await trio.to_thread.run_sync(
                                     self.push, key, ret, work.output_queue.queue
                                 )
                             del work.input_queue.queue["test"]
@@ -144,13 +142,13 @@ class ExecuterAwaitMultiprocs(ExecutorBase):
                             if self.has_to_stop():
                                 return
                             await trio.sleep(self.sleep_time)
-                        (key, obj) = await trio.run_sync_in_worker_thread(
+                        (key, obj) = await trio.to_thread.run_sync(
                             self.pull, work.input_queue.queue
                         )
                         work.input_queue.queue["test"] = True
                         ret = work.func_or_cls(obj)
                         if work.output_queue is not None:
-                            await trio.run_sync_in_worker_thread(
+                            await trio.to_thread.run_sync(
                                 self.push, key, ret, work.output_queue.queue
                             )
                         del work.input_queue.queue["test"]

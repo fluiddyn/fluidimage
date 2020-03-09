@@ -349,29 +349,29 @@ class HeavyPIVResults(DataObject):
             path_file = name
 
         if out_format == "uvmat":
-            with h5netcdf.File(path_file, "w") as f:
-                self._save_as_uvmat(f)
+            with h5netcdf.File(path_file, "w") as file:
+                self._save_as_uvmat(file)
         else:
-            with h5py.File(path_file, "w") as f:
-                f.attrs["class_name"] = "HeavyPIVResults"
-                f.attrs["module_name"] = "fluidimage.data_objects.piv"
-                self._save_in_hdf5_object(f)
+            with h5py.File(path_file, "w") as file:
+                file.attrs["class_name"] = "HeavyPIVResults"
+                file.attrs["module_name"] = "fluidimage.data_objects.piv"
+                self._save_in_hdf5_object(file)
 
         return path_file
 
-    def _save_in_hdf5_object(self, f, tag="piv0"):
+    def _save_in_hdf5_object(self, file, tag="piv0"):
 
-        if "class_name" not in f.attrs.keys():
-            f.attrs["class_name"] = "HeavyPIVResults"
-            f.attrs["module_name"] = "fluidimage.data_objects.piv"
+        if "class_name" not in file.attrs.keys():
+            file.attrs["class_name"] = "HeavyPIVResults"
+            file.attrs["module_name"] = "fluidimage.data_objects.piv"
 
-        if "params" not in f.keys():
-            self.params._save_as_hdf5(hdf5_parent=f)
+        if "params" not in file.keys():
+            self.params._save_as_hdf5(hdf5_parent=file)
 
-        if "couple" not in f.keys():
-            self.couple.save(hdf5_parent=f)
+        if "couple" not in file.keys():
+            self.couple.save(hdf5_parent=file)
 
-        g_piv = f.create_group(tag)
+        g_piv = file.create_group(tag)
         g_piv.attrs["class_name"] = "HeavyPIVResults"
         g_piv.attrs["module_name"] = "fluidimage.data_objects.piv"
 
@@ -416,22 +416,22 @@ class HeavyPIVResults(DataObject):
     def _load(self, path):
 
         self.file_name = os.path.basename(path)
-        with h5py.File(path, "r") as f:
-            self._load_from_hdf5_object(f["piv0"])
+        with h5py.File(path, "r") as file:
+            self._load_from_hdf5_object(file["piv0"])
 
     def _load_from_hdf5_object(self, g_piv):
 
-        f = g_piv.parent
+        file = g_piv.parent
 
         if not hasattr(self, "params"):
-            self.params = ParamContainer(hdf5_object=f["params"])
+            self.params = ParamContainer(hdf5_object=file["params"])
             try:
                 params_mask = self.params.mask
             except AttributeError:
                 params_mask = None
 
         if not hasattr(self, "couple"):
-            self.couple = ArrayCouple(hdf5_parent=f, params_mask=params_mask)
+            self.couple = ArrayCouple(hdf5_parent=file, params_mask=params_mask)
 
         for k in self._keys_to_be_saved:
             if k in g_piv:
@@ -545,96 +545,98 @@ class MultipassPIVResults(DataObject):
             path_file = name
 
         if out_format == "uvmat":
-            with h5netcdf.File(path_file, "w") as f:
-                self._save_as_uvmat(f)
+            with h5netcdf.File(path_file, "w") as file:
+                self._save_as_uvmat(file)
         else:
-            with h5py.File(path_file, "w") as f:
-                f.attrs["class_name"] = "MultipassPIVResults"
-                f.attrs["module_name"] = "fluidimage.data_objects.piv"
+            with h5py.File(path_file, "w") as file:
+                file.attrs["class_name"] = "MultipassPIVResults"
+                file.attrs["module_name"] = "fluidimage.data_objects.piv"
 
-                f.attrs["nb_passes"] = len(self.passes)
+                file.attrs["nb_passes"] = len(self.passes)
 
-                f.attrs["fluidimage_version"] = fluidimage_version
-                f.attrs["fluidimage_hg_rev"] = hg_rev
+                file.attrs["fluidimage_version"] = fluidimage_version
+                file.attrs["fluidimage_hg_rev"] = hg_rev
 
                 for i, r in enumerate(self.passes):
-                    r._save_in_hdf5_object(f, tag=f"piv{i}")
+                    r._save_in_hdf5_object(file, tag=f"piv{i}")
 
         return path_file
 
     def _load(self, path):
 
         self.file_name = os.path.basename(path)
-        with h5py.File(path, "r") as f:
-            self.params = ParamContainer(hdf5_object=f["params"])
+        with h5py.File(path, "r") as file:
+            self.params = ParamContainer(hdf5_object=file["params"])
 
             try:
                 params_mask = self.params.mask
             except AttributeError:
                 params_mask = None
 
-            self.couple = ArrayCouple(hdf5_parent=f, params_mask=params_mask)
+            self.couple = ArrayCouple(hdf5_parent=file, params_mask=params_mask)
 
-            nb_passes = f.attrs["nb_passes"]
+            nb_passes = file.attrs["nb_passes"]
 
             for ip in range(nb_passes):
-                g = f[f"piv{ip}"]
+                g = file[f"piv{ip}"]
                 self.append(
                     HeavyPIVResults(
                         hdf5_object=g, couple=self.couple, params=self.params
                     )
                 )
 
-    def _save_as_uvmat(self, f):
+    def _save_as_uvmat(self, file):
 
-        f.dimensions = {"nb_coord": 2, "nb_bounds": 2}
+        file.dimensions = {"nb_coord": 2, "nb_bounds": 2}
 
         for i, ir in enumerate(self.passes):
 
             iuvmat = i + 1
             str_i = str(iuvmat)
             str_nb_vec = "nb_vec_" + str_i
-            f.dimensions[str_nb_vec] = ir.xs.size
+            file.dimensions[str_nb_vec] = ir.xs.size
 
             tmp = np.zeros(ir.deltaxs.shape).astype("float32")
             inds = np.where(~np.isnan(ir.deltaxs))
 
-            f.create_variable(f"Civ{iuvmat}_X", (str_nb_vec,), data=ir.xs)
-            f.create_variable(f"Civ{iuvmat}_Y", (str_nb_vec,), data=ir.ys)
-            f.create_variable(
+            file.create_variable(f"Civ{iuvmat}_X", (str_nb_vec,), data=ir.xs)
+            file.create_variable(f"Civ{iuvmat}_Y", (str_nb_vec,), data=ir.ys)
+            file.create_variable(
                 f"Civ{iuvmat}_U", (str_nb_vec,), data=np.nan_to_num(ir.deltaxs)
             )
-            f.create_variable(
+            file.create_variable(
                 f"Civ{iuvmat}_V", (str_nb_vec,), data=np.nan_to_num(ir.deltays)
             )
 
             if ir.params.multipass.use_tps:
                 str_nb_subdom = f"nb_subdomain_{iuvmat}"
                 try:
-                    f.dimensions[str_nb_subdom] = np.shape(ir.deltaxs_tps)[0]
-                    f.dimensions[f"nb_tps{iuvmat}"] = np.shape(ir.deltaxs_tps)[1]
+                    file.dimensions[str_nb_subdom] = np.shape(ir.deltaxs_tps)[0]
+                    file.dimensions[f"nb_tps{iuvmat}"] = np.shape(ir.deltaxs_tps)[
+                        1
+                    ]
                     tmp[inds] = ir.deltaxs_smooth
-                    f.create_variable(
+                    file.create_variable(
                         f"Civ{iuvmat}_U_smooth", (str_nb_vec,), data=tmp
                     )
                     tmp[inds] = ir.deltays_smooth
-                    f.create_variable(
+                    file.create_variable(
                         f"Civ{iuvmat}_V_smooth", (str_nb_vec,), data=tmp
                     )
-                    f.create_variable(
+                    file.create_variable(
                         f"Civ{iuvmat}_U_tps",
                         (str_nb_subdom, f"nb_vec_tps_{iuvmat}"),
                         data=ir.deltaxs_tps,
                     )
-                    f.create_variable(
+                    file.create_variable(
                         f"Civ{iuvmat}_V_tps",
                         (str_nb_subdom, f"nb_vec_tps_{iuvmat}"),
                         data=ir.deltays_tps,
                     )
-                    tmp = [None] * f.dimensions[str_nb_subdom]
-                    for j in range(f.dimensions[str_nb_subdom]):
+                    tmp = [None] * file.dimensions[str_nb_subdom]
+                    for j in range(file.dimensions[str_nb_subdom]):
                         tmp[j] = np.shape(ir.deltaxs_tps[j])[0]
-                    f.create_variable(
+                    file.create_variable(
                         f"Civ{iuvmat}_NbCentres",
                         (f"nb_subdomain_{iuvmat}",),
                         data=tmp,
@@ -642,19 +644,19 @@ class MultipassPIVResults(DataObject):
                 except:
                     print(f"no tps field at passe n {iuvmat}")
 
-            f.create_variable(
+            file.create_variable(
                 f"Civ{iuvmat}_C", (str_nb_vec,), data=ir.correls_max
             )
             tmp = np.zeros(ir.deltaxs.shape).astype("float32")
             indsnan = np.where(np.isnan(ir.deltaxs))
             tmp[indsnan] = 1
-            f.create_variable(f"Civ{iuvmat}_FF", (str_nb_vec,), data=tmp)
+            file.create_variable(f"Civ{iuvmat}_FF", (str_nb_vec,), data=tmp)
 
             # mettre bonne valeur de F correspondant a self.piv0.error...
-            f.create_variable(f"Civ{iuvmat}_F", (str_nb_vec,), data=tmp)
+            file.create_variable(f"Civ{iuvmat}_F", (str_nb_vec,), data=tmp)
 
     # ADD
-    # f.create_variable('Civ1_Coord_tps',
+    # file.create_variable('Civ1_Coord_tps',
     #                   ('nb_subdomain_1', 'nb_coord', 'nb_tps_1'),
     #                   data=???)
 
@@ -786,25 +788,25 @@ class LightPIVResults(DataObject):
         else:
             path_file = name
 
-        with h5py.File(path_file, "w") as f:
-            f.attrs["class_name"] = "LightPIVResults"
-            f.attrs["module_name"] = "fluidimage.data_objects.piv"
+        with h5py.File(path_file, "w") as file:
+            file.attrs["class_name"] = "LightPIVResults"
+            file.attrs["module_name"] = "fluidimage.data_objects.piv"
 
-            self._save_in_hdf5_object(f, tag="piv")
+            self._save_in_hdf5_object(file, tag="piv")
 
         return self
 
-    def _save_in_hdf5_object(self, f, tag="piv"):
+    def _save_in_hdf5_object(self, file, tag="piv"):
 
-        if "class_name" not in f.attrs.keys():
-            f.attrs["class_name"] = "LightPIVResults"
-            f.attrs["module_name"] = "fluidimage.data_objects.piv"
-        if "params" not in f.keys():
-            self.params._save_as_hdf5(hdf5_parent=f)
-        if "couple" not in f.keys():
-            self.couple.save(hdf5_parent=f)
+        if "class_name" not in file.attrs.keys():
+            file.attrs["class_name"] = "LightPIVResults"
+            file.attrs["module_name"] = "fluidimage.data_objects.piv"
+        if "params" not in file.keys():
+            self.params._save_as_hdf5(hdf5_parent=file)
+        if "couple" not in file.keys():
+            self.couple.save(hdf5_parent=file)
 
-        g_piv = f.create_group(tag)
+        g_piv = file.create_group(tag)
         g_piv.attrs["class_name"] = "LightPIVResults"
         g_piv.attrs["module_name"] = "fluidimage.data_objects.piv"
 
@@ -813,31 +815,31 @@ class LightPIVResults(DataObject):
                 g_piv.create_dataset(k, data=self.__dict__[k])
 
     def _load(self, path):
-        with h5py.File(path, "r") as f:
-            self.params = ParamContainer(hdf5_object=f["params"])
+        with h5py.File(path, "r") as file:
+            self.params = ParamContainer(hdf5_object=file["params"])
             try:
                 params_mask = self.params.mask
             except AttributeError:
                 params_mask = None
-            self.couple = ArrayCouple(hdf5_parent=f, params_mask=params_mask)
+            self.couple = ArrayCouple(hdf5_parent=file, params_mask=params_mask)
 
-        with h5py.File(path, "r") as f:
-            keys = [(key) for key in f.keys() if "piv" in key]
-            self._load_from_hdf5_object(f[max(keys)])
+        with h5py.File(path, "r") as file:
+            keys = [(key) for key in file.keys() if "piv" in key]
+            self._load_from_hdf5_object(file[max(keys)])
 
     def _load_from_hdf5_object(self, g_piv):
 
-        f = g_piv.parent
+        file = g_piv.parent
 
         if not hasattr(self, "params"):
-            self.params = ParamContainer(hdf5_object=f["params"])
+            self.params = ParamContainer(hdf5_object=file["params"])
             try:
                 params_mask = self.params.mask
             except AttributeError:
                 params_mask = None
 
         if not hasattr(self, "couple"):
-            self.couple = ArrayCouple(hdf5_parent=f, params_mask=params_mask)
+            self.couple = ArrayCouple(hdf5_parent=file, params_mask=params_mask)
 
         for k in self._keys_to_be_saved:
             if k in g_piv:

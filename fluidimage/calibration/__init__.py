@@ -18,6 +18,7 @@ from .calib_tsai import Calibration
 from .util import get_plane_equation
 
 __all__ = [
+    "Calibration2DSimple",
     "Calibration",
     "CalibDirect",
     "DirectStereoReconstruction",

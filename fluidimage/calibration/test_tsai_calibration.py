@@ -16,14 +16,14 @@ pathbase = path_image_samples / "Milestone"
 def get_piv_field(path):
 
     try:
-        with h5py.File(path, "r") as f:
-            keyspiv = [key for key in f.keys() if key.startswith("piv")]
+        with h5py.File(path, "r") as file:
+            keyspiv = [key for key in file.keys() if key.startswith("piv")]
             keyspiv.sort()
             key = keyspiv[-1]
-            X = f[key]["xs"][...]
-            Y = f[key]["ys"][...]
-            dx = f[key]["deltaxs_final"][...]
-            dy = f[key]["deltays_final"][...]
+            X = file[key]["xs"][...]
+            Y = file[key]["ys"][...]
+            dx = file[key]["deltaxs_final"][...]
+            dy = file[key]["deltays_final"][...]
     except Exception:
         print(path)
         raise

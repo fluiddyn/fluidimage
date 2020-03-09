@@ -134,8 +134,8 @@ class ArrayTomoBase:
         else:
             self.h5file_path = h5file_path
 
-        with h5py.File(h5file_path) as f:
-            grp = f["tomo"]
+        with h5py.File(h5file_path, "r") as file:
+            grp = file["tomo"]
             for k in self._keys_to_save:
                 setattr(self, k, grp[k][...])
             for attr in self._attrs_to_save:
@@ -152,23 +152,23 @@ class ArrayTomoBase:
             else:
                 h5file_path = self.h5file_path
 
-        f = h5py.File(h5file_path)
+        file = h5py.File(h5file_path, "r")
         try:
-            grp = f[tag]
+            grp = file[tag]
             dset = grp[key]
         except KeyError:
             print(
                 h5file_path,
                 "contains\n Groups:",
-                list(f),
+                list(file),
                 "and",
                 tag,
                 "contains\n Datasets:",
                 list(grp),
             )
-            f.close()
+            file.close()
             raise
-        return f, dset, h5file_path
+        return file, dset, h5file_path
 
     def _get_name(self):
         return os.path.splitext(os.path.basename(self.image_path))[0] + ".h5"
@@ -181,20 +181,20 @@ class ArrayTomoBase:
         if sparse:
             raise NotImplementedError("Save the intensity values as sparse")
 
-        with h5py.File(path, "w") as f:
-            self._save_in_hdf5_object(f)
+        with h5py.File(path, "w") as file:
+            self._save_in_hdf5_object(file)
 
-    def _save_in_hdf5_object(self, f, tag="tomo"):
-        if "class_name" not in f.attrs.keys():
-            f.attrs["class_name"] = self.__class__.__name__
-            f.attrs["module_name"] = self.__module__
-        if "params" not in f.keys() and self.params is not None:
-            self.params._save_as_hdf5(hdf5_parent=f)
+    def _save_in_hdf5_object(self, file, tag="tomo"):
+        if "class_name" not in file.attrs.keys():
+            file.attrs["class_name"] = self.__class__.__name__
+            file.attrs["module_name"] = self.__module__
+        if "params" not in file.keys() and self.params is not None:
+            self.params._save_as_hdf5(hdf5_parent=file)
 
-        if tag in f:
-            grp = f[tag]
+        if tag in file:
+            grp = file[tag]
         else:
-            grp = f.create_group(tag)
+            grp = file.create_group(tag)
 
         grp.attrs["class_name"] = self.__class__.__name__
         grp.attrs["module_name"] = self.__module__

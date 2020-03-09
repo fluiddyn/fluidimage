@@ -21,12 +21,12 @@ def cpu_bounded_task(input_data):
 def server(q_c2s, q_s2c):
     async def main_server():
         # get the data to be processed
-        input_data = await trio.run_sync_in_worker_thread(q_c2s.get)
+        input_data = await trio.to_thread.run_sync(q_c2s.get)
         print("in server: input_data received", input_data)
         # a CPU-bounded task
         result = cpu_bounded_task(input_data)
         print("in server: sending back the answer", result)
-        await trio.run_sync_in_worker_thread(q_s2c.put, result)
+        await trio.to_thread.run_sync(q_s2c.put, result)
 
     trio.run(main_server)
 
@@ -34,8 +34,8 @@ def server(q_c2s, q_s2c):
 async def client(q_c2s, q_s2c):
     input_data = np.arange(10)
     print("in client: sending the input_data", input_data)
-    await trio.run_sync_in_worker_thread(q_c2s.put, input_data)
-    result = await trio.run_sync_in_worker_thread(q_s2c.get)
+    await trio.to_thread.run_sync(q_c2s.put, input_data)
+    result = await trio.to_thread.run_sync(q_s2c.get)
     print("in client: result received", result)
 
 

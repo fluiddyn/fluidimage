@@ -218,7 +218,7 @@ class ExecutorAsyncServers(ExecutorAsync):
             assert key == key_received
             return result
 
-        ret = await trio.run_sync_in_worker_thread(run_process)
+        ret = await trio.to_thread.run_sync(run_process)
         if work.output_queue is not None:
             work.output_queue[key] = ret
         worker.well_done_thanks()

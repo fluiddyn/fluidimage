@@ -235,7 +235,7 @@ class ExecutorAsync(ExecutorBase):
         )
         # pylint: disable=W0703
         try:
-            ret = await trio.run_sync_in_worker_thread(work.func_or_cls, obj)
+            ret = await trio.to_thread.run_sync(work.func_or_cls, obj)
         except Exception as error:
             self.log_exception(error, work.name_no_space, key)
             if self.stop_if_error:
@@ -285,7 +285,7 @@ class ExecutorAsync(ExecutorBase):
         )
         # pylint: disable=W0703
         try:
-            ret = await trio.run_sync_in_worker_thread(work.func_or_cls, obj)
+            ret = await trio.to_thread.run_sync(work.func_or_cls, obj)
         except Exception as error:
             self.log_exception(error, work.name_no_space, key)
             if self.stop_if_error:

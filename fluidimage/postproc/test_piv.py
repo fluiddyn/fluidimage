@@ -1,13 +1,28 @@
 import unittest
+from shutil import rmtree
 
+import numpy as np
+import h5py
+
+from fluiddyn.util.paramcontainer import ParamContainer
 from fluidimage import np, path_image_samples
 from fluidimage.postproc.piv import ArrayPIV, PIV2d, get_grid_pixel_from_piv_file
 
 
 class TestPIV(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.path_piv = path_image_samples / "Milestone/piv_0000a-b.h5"
+        cls.path_tests = cls.path_piv.parent / "tmp_tests"
+        cls.path_tests.mkdir(exist_ok=True)
+
+    @classmethod
+    def tearDownClass(cls):
+        if cls.path_tests.exists():
+            rmtree(cls.path_tests)
+
     def test_get_grid(self):
-        path_piv = path_image_samples / "Milestone" / "piv_0000a-b.h5"
-        xs1d, ys1d = get_grid_pixel_from_piv_file(path_piv)
+        xs1d, ys1d = get_grid_pixel_from_piv_file(self.path_piv)
 
     def test_piv_objects(self):
 
@@ -37,6 +52,19 @@ class TestPIV(unittest.TestCase):
         len(arr1)
 
         arr1 = arr1.truncate().extract(0, 4, 2, 7).extract_square()
+
+        with h5py.File(self.path_piv, "r") as file:
+            params = ParamContainer(hdf5_object=file["params"])
+
+        path = self.path_tests / "piv2d.h5"
+        piv2.save(path, params=params)
+        piv_loaded = PIV2d.from_file(path, load_params=True)
+
+        assert np.allclose(piv2.x, piv_loaded.x)
+        assert np.allclose(piv2.vx, piv_loaded.vx)
+        assert piv2.namevx == piv_loaded.namevx
+        assert piv2.unitvx == piv_loaded.unitvx
+        assert params == piv_loaded.params
 
 
 if __name__ == "__main__":

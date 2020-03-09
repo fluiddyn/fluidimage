@@ -59,9 +59,8 @@ def correl_pycuda(im0, im1, disp_max):
     kernel_file = os.path.join(
         os.path.dirname(os.path.abspath(__file__)), "correl.cu"
     )
-    f = open(kernel_file, "r")
-    kernel = pycuda.compiler.SourceModule(f.read())
-    f.close()
+    with open(kernel_file, "r") as file:
+        kernel = pycuda.compiler.SourceModule(file.read())
     correlate_cuda = kernel.get_function("cucorrelate")
     # correlate_cuda.prepare([np.intp, np.intp, np.intp, np.int32,
     #                        np.int32,np.int32,np.int32,np.int32,np.int32,
@@ -73,9 +72,8 @@ def correl_pycuda(im0, im1, disp_max):
     kernel_file = os.path.join(
         os.path.dirname(os.path.abspath(__file__)), "reduction_kernel.cu"
     )
-    f = open(kernel_file, "r")
-    kernel1 = pycuda.compiler.SourceModule(f.read())
-    f.close()
+    with open(kernel_file, "r") as file:
+        kernel1 = pycuda.compiler.SourceModule(file.read())
 
     reduction_cuda = kernel1.get_function("reduce1")
 

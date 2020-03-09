@@ -85,11 +85,11 @@ class TomoMLOSBase:
             if save:
                 if os.path.exists(self.array.h5file_path):
                     # Create a temporary copy to read from
-                    f, dset, h5file_tmp = self.array.load_dataset(copy=True)
+                    file, dset, h5file_tmp = self.array.load_dataset(copy=True)
                     self.array.I = da.from_array(dset, chunks=chunks)
                     self.array.I *= i_vox
                     self.array.save()
-                    f.close()
+                    file.close()
                     os.remove(h5file_tmp)
                 else:
                     self.array.I = i_vox

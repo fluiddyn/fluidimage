@@ -31,11 +31,11 @@ if "server" not in sys.argv:
         input_data = np.arange(4)
         print("in client: sending the input_data", input_data)
         send = partial(comm.send, dest=0, tag=0)
-        await trio.run_sync_in_worker_thread(send, input_data)
+        await trio.to_thread.run_sync(send, input_data)
 
         print("in client: recv")
         recv = partial(comm.recv, tag=1)
-        result = await trio.run_sync_in_worker_thread(recv)
+        result = await trio.to_thread.run_sync(recv)
         print("in client: result received", result)
 
     async def parent():
@@ -55,13 +55,13 @@ else:
     async def main_server():
         # get the data to be processed
         recv = partial(comm.recv, tag=0)
-        input_data = await trio.run_sync_in_worker_thread(recv)
+        input_data = await trio.to_thread.run_sync(recv)
         print("in server: input_data received", input_data)
         # a CPU-bounded task
         result = cpu_bounded_task(input_data)
         print("in server: sending back the answer", result)
         send = partial(comm.send, dest=0, tag=1)
-        await trio.run_sync_in_worker_thread(send, result)
+        await trio.to_thread.run_sync(send, result)
 
     trio.run(main_server)
     comm.barrier()

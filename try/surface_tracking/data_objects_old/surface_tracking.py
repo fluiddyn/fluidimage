@@ -122,13 +122,13 @@ class SurfaceTrackingObject(SerieOfArraysFromFiles):
 
         with h5py.File(
             path_file + self.file_name + "_" + suffix_save + ".hdf5", "a"
-        ) as f:
-            f.attrs["class_name"] = "SurfaceTrackingObject"
-            f.attrs["module_name"] = "fluidimage.data_objects.surface_tracking"
-            f.attrs["fluidimage_version"] = fluidimage_version
-            f.attrs["fluidimage_hg_rev"] = hg_rev
+        ) as file:
+            file.attrs["class_name"] = "SurfaceTrackingObject"
+            file.attrs["module_name"] = "fluidimage.data_objects.surface_tracking"
+            file.attrs["fluidimage_version"] = fluidimage_version
+            file.attrs["fluidimage_hg_rev"] = hg_rev
             try:
-                f.create_dataset(nameFrame, data=self.H)
+                file.create_dataset(nameFrame, data=self.H)
             except:
                 pass
         return path_file

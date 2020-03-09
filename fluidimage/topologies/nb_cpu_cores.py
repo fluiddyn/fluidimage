@@ -26,8 +26,8 @@ if config is not None:
 
 try:  # should work on UNIX
     # found in http://stackoverflow.com/questions/1006289/how-to-find-out-the-number-of-cpus-using-python # noqa
-    with open("/proc/self/status") as f:
-        status = f.read()
+    with open("/proc/self/status") as file:
+        status = file.read()
     m = re.search(r"(?m)^Cpus_allowed:\s*(.*)$", status)
     if m:
         nb_cpus_allowed = bin(int(m.group(1).replace(",", ""), 16)).count("1")
@@ -35,8 +35,8 @@ try:  # should work on UNIX
     if nb_cpus_allowed > 0:
         nb_cores = nb_cpus_allowed
 
-    with open("/proc/cpuinfo") as f:
-        cpuinfo = f.read()
+    with open("/proc/cpuinfo") as file:
+        cpuinfo = file.read()
 
     nb_proc_tot = 0
     siblings = None
