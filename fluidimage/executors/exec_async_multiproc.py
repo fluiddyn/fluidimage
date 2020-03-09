@@ -117,7 +117,7 @@ class ExecutorAsyncMultiproc(ExecutorAsync):
 
             return result
 
-        ret = await trio.run_sync_in_worker_thread(run_process)
+        ret = await trio.to_thread.run_sync(run_process)
 
         if isinstance(ret, Exception):
             self.log_exception(ret, work.name_no_space, key)

@@ -116,7 +116,7 @@ class ExecuterAwaitMultiprocs(ExecutorBase):
                             print(f"global funtion {work.name} is working")
                             key, obj = work.input_queue.queue.popitem()
                             # ret = await trio.open_file(obj)
-                            ret = await trio.run_sync_in_worker_thread(
+                            ret = await trio.to_thread.run_sync(
                                 work.func_or_cls, obj
                             )
                             work.output_queue.queue[key] = ret
@@ -157,7 +157,7 @@ class ExecuterAwaitMultiprocs(ExecutorBase):
                             conn = await trio.open_tcp_stream(
                                 "localhost", port=18813
                             )
-                            res = await trio.run_sync_in_worker_thread(
+                            res = await trio.to_thread.run_sync(
                                 work.func_or_cls, obj
                             )
                             if work.output_queue is not None:

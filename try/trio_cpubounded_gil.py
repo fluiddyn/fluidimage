@@ -39,7 +39,7 @@ async def calcul():
     i_task = i_task_global
     i_task_global += 1
     print(f"start {i_task}: {time()-t_start:.4f} s")
-    await trio.run_sync_in_worker_thread(long_func, n)
+    await trio.to_thread.run_sync(long_func, n)
     print(f"end {i_task}:   {time()-t_start:.4f} s")
 
 

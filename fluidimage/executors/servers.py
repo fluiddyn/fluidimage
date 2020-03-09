@@ -208,7 +208,7 @@ class WorkerServerMultiprocessing(WorkerServer):
 
     async def receive(self):
         while self._has_to_continue:
-            ret = await trio.run_sync_in_worker_thread(self.conn.recv)
+            ret = await trio.to_thread.run_sync(self.conn.recv)
             log_debug(f"receive: {ret}")
             if isinstance(ret, tuple) and ret[0] == "__t_start__":
                 self.t_start = ret[1]
@@ -235,9 +235,7 @@ class WorkerServerMultiprocessing(WorkerServer):
             )
             # pylint: disable=W0703
             try:
-                result = await trio.run_sync_in_worker_thread(
-                    do_the_job, work, obj
-                )
+                result = await trio.to_thread.run_sync(do_the_job, work, obj)
             except Exception as error:
                 logger.error(
                     cstring(
@@ -261,6 +259,6 @@ class WorkerServerMultiprocessing(WorkerServer):
             work_name, key, result, child_conn = self.to_be_resent.pop(0)
 
             log_debug(f"send {work_name}, {key}")
-            await trio.run_sync_in_worker_thread(
+            await trio.to_thread.run_sync(
                 child_conn.send, (work_name, key, result)
             )
