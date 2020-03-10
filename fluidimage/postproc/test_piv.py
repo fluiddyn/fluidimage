@@ -5,7 +5,7 @@ import numpy as np
 import h5py
 
 from fluiddyn.util.paramcontainer import ParamContainer
-from fluidimage import np, path_image_samples
+from fluidimage import path_image_samples
 from fluidimage.postproc.piv import ArrayPIV, PIV2d, get_grid_pixel_from_piv_file
 
 
