@@ -229,9 +229,7 @@ class PIV_PostProc_serie(LightPIVResults):
 
     def compute_temporal_fft(self, parseval=False):
         if not hasattr(self, "t"):
-            print(
-                "please define time before perform " "temporal Fourier transform"
-            )
+            print("please define time before perform temporal Fourier transform")
         else:
             fftU, omega, psdU = oneD_fourier_transform(
                 self.t, self.U, axis=0, parseval=False
