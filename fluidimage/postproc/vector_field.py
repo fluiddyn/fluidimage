@@ -182,12 +182,19 @@ class VectorFieldOnGrid:
             module_name = module_name.decode()
 
         if (
-            class_name == "MultipassPIVResults"
+            class_name in ("MultipassPIVResults", "LightPIVResults")
             and module_name == "fluidimage.data_objects.piv"
         ):
             with h5py.File(path, "r") as file:
                 params = ParamContainer(hdf5_object=file["params"])
-                piv = file[f"/piv{params.multipass.number-1}"]
+
+            if class_name == "MultipassPIVResults":
+                key_piv = f"/piv{params.multipass.number-1}"
+            else:
+                key_piv = "piv"
+
+            with h5py.File(path, "r") as file:
+                piv = file[key_piv]
                 ixvecs_final = piv["ixvecs_final"][...]
                 iyvecs_final = piv["iyvecs_final"][...]
                 deltaxs = piv["deltaxs_final"][...]
