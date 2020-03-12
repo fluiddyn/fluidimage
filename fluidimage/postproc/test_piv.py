@@ -42,6 +42,9 @@ class TestPIV(unittest.TestCase):
         piv1 = (2 * piv0 + 1) / 3 + piv0
 
         piv1.compute_spatial_fft()
+        piv1.compute_divh()
+        piv1.compute_rotz()
+        piv1.compute_norm()
 
         arr = ArrayPIV((piv0,))
         arr.append(piv1)
@@ -51,8 +54,9 @@ class TestPIV(unittest.TestCase):
         assert len(arr.times) == 5
         assert arr.times.max() == 0.4
 
-        arr1 = 0 + 2 * arr * 3 + 1 - 2
+        arr.compute_temporal_fft()
 
+        arr1 = 0 + 2 * arr * 3 + 1 - 2
         arr1 = (1 + arr1).median_filter(3).gaussian_filter(0.5)
 
         piv2 = arr1[0]
@@ -74,6 +78,23 @@ class TestPIV(unittest.TestCase):
         assert piv2.namevx == piv_loaded.namevx
         assert piv2.unitvx == piv_loaded.unitvx
         assert params == piv_loaded.params
+
+    def test_compute_time_average(self):
+
+        ny, nx = 8, 12
+
+        xs1d = np.linspace(-1, 1, nx)
+        ys1d = np.linspace(-1, 1, ny)
+        xs2d, ys2d = np.meshgrid(xs1d, ys1d)
+        piv = PIV2d(xs1d, ys1d, 0, xs2d, ys2d)
+        nt = 5
+
+        arr = ArrayPIV([piv] * nt)
+
+        piv_mean = arr.compute_time_average()
+
+        assert np.allclose(piv.vx, piv_mean.vx)
+        assert np.allclose(piv.vy, piv_mean.vy)
 
 
 if __name__ == "__main__":

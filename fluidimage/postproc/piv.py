@@ -21,7 +21,7 @@ import h5py
 
 from fluiddyn.util.paramcontainer import ParamContainer
 from fluidimage.works.piv.multipass import WorkPIV
-from .vector_field import VectorFieldOnGrid, ArrayOfVectorFieldOnGrid
+from .vector_field import VectorFieldOnGrid, ArrayOfVectorFieldsOnGrid
 
 
 class PIV2d(VectorFieldOnGrid):
@@ -110,5 +110,5 @@ def get_grid_pixel(params, shape_images, index_pass=-1):
     return xs1d, ys1d
 
 
-class ArrayPIV(ArrayOfVectorFieldOnGrid):
+class ArrayPIV(ArrayOfVectorFieldsOnGrid):
     """Array of PIV fields on a regular grid."""

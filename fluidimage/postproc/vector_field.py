@@ -23,7 +23,13 @@ from scipy.ndimage.filters import gaussian_filter, median_filter
 
 from fluiddyn.util.paramcontainer import ParamContainer
 
-from .util import reshape_on_grid_final, compute_2dspectrum
+from .util import (
+    reshape_on_grid_final,
+    compute_rot,
+    compute_div,
+    compute_1dspectrum,
+    compute_2dspectrum,
+)
 
 
 def _is_regular(x):
@@ -101,7 +107,7 @@ class VectorFieldOnGrid:
     ):
 
         if isinstance(z, np.ndarray) and z.ndim == 0:
-            z = np.asscalar(z)
+            z = z.item()
 
         self.x = x
         self.y = y
@@ -126,11 +132,20 @@ class VectorFieldOnGrid:
         self.history = history
         self.params = params
 
-        self.is_regular = (
+        self.is_grid_regular = (
             _is_regular(x)
             and _is_regular(y)
             and (z is None or isinstance(z, Number) or _is_regular(z))
         )
+
+        if self.is_grid_regular:
+            self.dx = x[1] - x[0]
+            self.dy = y[1] - y[0]
+
+    @property
+    def shape(self):
+        if self.z is None or isinstance(self.z, Number):
+            return (len(self.y), len(self.x))
 
     def save(self, path, params=None):
         with h5py.File(path, "w") as file:
@@ -444,8 +459,26 @@ class VectorFieldOnGrid:
 
         return vx_fft, vy_fft, kx, ky, psd_vx, psd_vy
 
+    def compute_rotz(self, edge_order=2):
 
-class ArrayOfVectorFieldOnGrid:
+        if not self.is_grid_regular:
+            raise NotImplementedError
+
+        dvx_dy = np.gradient(self.vx, self.dy, axis=0, edge_order=edge_order)
+        dvy_dx = np.gradient(self.vy, self.dx, axis=1, edge_order=edge_order)
+        return compute_rot(dvx_dy, dvy_dx)
+
+    def compute_divh(self, edge_order=2):
+
+        if not self.is_grid_regular:
+            raise NotImplementedError
+
+        dvx_dx = np.gradient(self.vx, self.dx, axis=1, edge_order=edge_order)
+        dvy_dy = np.gradient(self.vy, self.dy, axis=0, edge_order=edge_order)
+        return compute_div(dvx_dx, dvy_dy)
+
+
+class ArrayOfVectorFieldsOnGrid:
     def __init__(self, fields=None):
         if fields is None:
             fields = []
@@ -462,8 +495,11 @@ class ArrayOfVectorFieldOnGrid:
         nb_files = len(self)
         self.times = np.linspace(0, timestep * (nb_files - 1), nb_files)
 
-    def compute_time_average(self, U):
-        raise NotImplementedError
+    def compute_time_average(self):
+        result = deepcopy(self._list[0])
+        for piv in self._list[1:]:
+            result += piv
+        return result / len(self._list)
 
     def append(self, v):
         self._list.append(v)
@@ -564,3 +600,24 @@ class ArrayOfVectorFieldOnGrid:
         for v in self:
             result.append(v.extract_square(cut=cut))
         return result
+
+    def compute_temporal_fft(self):
+        if self.times is None:
+            raise RuntimeError(
+                "please use `set_timestep` to define time before performing "
+                "temporal Fourier transform"
+            )
+
+        piv0 = self._list[0]
+        fields = np.empty([len(self._list), *piv0.shape])
+        for it, piv in enumerate(self._list):
+            fields[it, :, :] = piv.vx
+
+        vx_fft, omega, psdU = compute_1dspectrum(self.times, fields, axis=0)
+
+        for it, piv in enumerate(self._list):
+            fields[it, :, :] = piv.vy
+
+        vy_fft, omega, psdV = compute_1dspectrum(self.times, fields, axis=0)
+
+        return vx_fft, vy_fft, omega, psdU, psdV

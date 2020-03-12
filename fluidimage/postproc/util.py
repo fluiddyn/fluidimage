@@ -48,13 +48,11 @@ def compute_derivatives(dx, dy, U, V, edge_order=2):
 
 
 def compute_rot(dUdy, dVdx):
-    rot = dVdx - dUdy
-    return rot
+    return dVdx - dUdy
 
 
 def compute_div(dUdx, dVdy):
-    div = dUdx + dVdy
-    return div
+    return dUdx + dVdy
 
 
 def compute_ken(U, V):
