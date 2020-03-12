@@ -1,5 +1,6 @@
 import os
 import time
+from warnings import warn
 
 import numpy as np
 import pylab
@@ -26,6 +27,13 @@ class DataObject:
 class PIV_Postproc(LightPIVResults):
     def __init__(self, path):
         super().__init__(str_path=path)
+
+        warn(
+            "The class PIV_Postproc is deprecated (the code is not tested!). "
+            "Please use fluidimage.postproc.vector_field.VectorFieldOnGrid instead.",
+            DeprecationWarning,
+        )
+
         self.path = os.path.abspath(path)
 
         self.X, self.Y, self.U, self.V = compute_grid(
@@ -86,10 +94,10 @@ class PIV_Postproc(LightPIVResults):
     def compute_spatial_fft(self, parseval=False):
 
         fftU, kx, ky, psdU = compute_2dspectrum(
-            self.X, self.Y, self.U, axis=(0, 1)
+            self.X, self.Y, self.U, axes=(0, 1)
         )
         fftV, kx, ky, psdV = compute_2dspectrum(
-            self.X, self.Y, self.V, axis=(0, 1)
+            self.X, self.Y, self.V, axes=(0, 1)
         )
 
         if not hasattr(self, "fft"):
@@ -124,6 +132,13 @@ class PIV_Postproc(LightPIVResults):
 
 class PIV_PostProc_serie(LightPIVResults):
     def __init__(self, path=None):
+
+        warn(
+            "The class PIV_Postproc_serie is deprecated (the code is not tested!). "
+            "Please use fluidimage.postproc.vector_field.ArrayOfVectorFieldOnGrid instead.",
+            DeprecationWarning,
+        )
+
         self.path = path
         path0 = path[0]
         super().__init__(str_path=path0)
@@ -260,10 +275,10 @@ class PIV_PostProc_serie(LightPIVResults):
     def compute_spatial_fft(self):
 
         fftU, kx, ky, psdU = compute_2dspectrum(
-            self.X, self.Y, self.U, axis=(1, 2)
+            self.X, self.Y, self.U, axes=(1, 2)
         )
         fftV, kx, ky, psdV = compute_2dspectrum(
-            self.X, self.Y, self.V, axis=(1, 2)
+            self.X, self.Y, self.V, axes=(1, 2)
         )
 
         if not hasattr(self, "fft"):
@@ -313,10 +328,10 @@ class PIV_PostProc_serie(LightPIVResults):
             psdV *= 1.0 / Lkx / nx / Lky / ny
         elif hasattr(self, "fft.time"):
             fftU, kx, ky, psdU = compute_2dspectrum(
-                self.X, self.Y, self.fft.time.fftU, axis=(1, 2)
+                self.X, self.Y, self.fft.time.fftU, axes=(1, 2)
             )
             fftV, kx, ky, psdV = compute_2dspectrum(
-                self.X, self.Y, self.fft.time.fftV, axis=(1, 2)
+                self.X, self.Y, self.fft.time.fftV, axes=(1, 2)
             )
             omega = self.fft.time.omega
             Lomega = np.max(omega) - np.min(omega)
@@ -326,10 +341,10 @@ class PIV_PostProc_serie(LightPIVResults):
         else:
             self.compute_temporal_fft()
             fftU, kx, ky, psdU = compute_2dspectrum(
-                self.X, self.Y, self.fft.time.fftU, axis=(1, 2)
+                self.X, self.Y, self.fft.time.fftU, axes=(1, 2)
             )
             fftV, kx, ky, psdV = compute_2dspectrum(
-                self.X, self.Y, self.fft.time.fftV, axis=(1, 2)
+                self.X, self.Y, self.fft.time.fftV, axes=(1, 2)
             )
             omega = self.fft.time.omega
             Lomega = np.max(omega) - np.min(omega)

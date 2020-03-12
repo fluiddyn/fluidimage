@@ -5,6 +5,10 @@
    :members:
    :private-members:
 
+.. autoclass:: ArrayOfVectorFieldOnGrid
+   :members:
+   :private-members:
+
 """
 
 from copy import deepcopy
@@ -19,7 +23,12 @@ from scipy.ndimage.filters import gaussian_filter, median_filter
 
 from fluiddyn.util.paramcontainer import ParamContainer
 
-from .util import reshape_on_grid_final
+from .util import reshape_on_grid_final, compute_2dspectrum
+
+
+def _is_regular(x):
+    dx = x[1] - x[0]
+    return np.allclose(np.diff(x), dx)
 
 
 class VectorFieldOnGrid:
@@ -91,6 +100,9 @@ class VectorFieldOnGrid:
         params: Optional[ParamContainer] = None,
     ):
 
+        if isinstance(z, np.ndarray) and z.ndim == 0:
+            z = np.asscalar(z)
+
         self.x = x
         self.y = y
         self.z = z
@@ -113,6 +125,12 @@ class VectorFieldOnGrid:
         self.name = name
         self.history = history
         self.params = params
+
+        self.is_regular = (
+            _is_regular(x)
+            and _is_regular(y)
+            and (z is None or isinstance(z, Number) or _is_regular(z))
+        )
 
     def save(self, path, params=None):
         with h5py.File(path, "w") as file:
@@ -161,14 +179,12 @@ class VectorFieldOnGrid:
                 deltays = piv["deltays_final"][...]
 
                 kwargs = {}
-                (
-                    kwargs["x"],
-                    kwargs["y"],
-                    kwargs["vx"],
-                    kwargs["vy"],
-                ) = reshape_on_grid_final(
+                (X, Y, kwargs["vx"], kwargs["vy"],) = reshape_on_grid_final(
                     ixvecs_final, iyvecs_final, deltaxs, deltays
                 )
+
+                kwargs["x"] = X[0, :]
+                kwargs["y"] = Y[:, 0]
 
                 kwargs["z"] = None
                 kwargs["params"] = params
@@ -416,3 +432,135 @@ class VectorFieldOnGrid:
 
     def compute_norm(self):
         return np.sqrt(self.vx ** 2 + self.vy ** 2)
+
+    def compute_spatial_fft(self):
+
+        vx_fft, kx, ky, psd_vx = compute_2dspectrum(
+            self.x, self.y, self.vx, axes=(0, 1)
+        )
+        vy_fft, kx, ky, psd_vy = compute_2dspectrum(
+            self.x, self.y, self.vy, axes=(0, 1)
+        )
+
+        return vx_fft, vy_fft, kx, ky, psd_vx, psd_vy
+
+
+class ArrayOfVectorFieldOnGrid:
+    def __init__(self, fields=None):
+        if fields is None:
+            fields = []
+        elif not isinstance(fields, (list, tuple)):
+            raise TypeError
+
+        self._list = list(fields)
+
+        self.timestep = None
+        self.times = None
+
+    def set_timestep(self, timestep):
+        self.timestep = timestep
+        nb_files = len(self)
+        self.times = np.linspace(0, timestep * (nb_files - 1), nb_files)
+
+    def compute_time_average(self, U):
+        raise NotImplementedError
+
+    def append(self, v):
+        self._list.append(v)
+
+    def extend(self, l):
+        self._list.extend(l)
+
+    def __add__(self, other):
+        result = type(self)()
+        for v in self._list:
+            result.append(v + other)
+        return result
+
+    def __radd__(self, other):
+        if other == 0:
+            return self
+        else:
+            return self.__add__(other)
+
+    def __sub__(self, other):
+        result = type(self)()
+        for v in self._list:
+            result.append(v - other)
+        return result
+
+    def __mul__(self, other):
+        result = type(self)()
+        for v in self._list:
+            result.append(v * other)
+        return result
+
+    def __rmul__(self, other):
+        result = type(self)()
+        for v in self._list:
+            result.append(other * v)
+        return result
+
+    def __rdiv__(self, other):
+        result = type(self)()
+        for v in self._list:
+            result.append(v / other)
+        return result
+
+    def __iter__(self):
+        return iter(self._list)
+
+    def __getitem__(self, key):
+        r = self._list.__getitem__(key)
+        if isinstance(r, list):
+            r = type(self)(r)
+        return r
+
+    def __setitem__(self, key, value):
+        self._list.__setitem__(key, value)
+
+    def __delitem__(self, key):
+        self._list.__detitem__(key)
+
+    def __repr__(self):
+        return (
+            "ArrayPIV containing {} fields:\n".format(len(self))
+            + self._list.__repr__()
+        )
+
+    def __len__(self):
+        return self._list.__len__()
+
+    def median_filter(self, size, niter=1, valid=True):
+        result = type(self)()
+        for v in self:
+            result.append(v.median_filter(size, niter=niter, valid=valid))
+        return result
+
+    def gaussian_filter(self, sigma, niter=1, truncate=3, valid=True):
+        result = type(self)()
+        for v in self:
+            result.append(
+                v.gaussian_filter(
+                    sigma, niter=niter, truncate=truncate, valid=valid
+                )
+            )
+        return result
+
+    def extract(self, start0, stop0, start1, stop1, phys=False):
+        result = type(self)()
+        for v in self:
+            result.append(v.extract(start0, stop0, start1, stop1, phys=phys))
+        return result
+
+    def truncate(self, cut=1, phys=False):
+        result = type(self)()
+        for v in self:
+            result.append(v.truncate(cut=cut, phys=phys))
+        return result
+
+    def extract_square(self, cut=0):
+        result = type(self)()
+        for v in self:
+            result.append(v.extract_square(cut=cut))
+        return result

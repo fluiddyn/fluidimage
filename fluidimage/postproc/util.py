@@ -116,10 +116,17 @@ def compute_2dspectrum(X, Y, signal, axes=(1, 2)):
     psd: power spectral density normalized such that
     np.sum(signal**2) * dx / Lx = np.sum(psd) * domega
     """
-    nx = X.shape[1]
-    ny = X.shape[0]
-    x = X[0, :2]
-    y = Y[:2, 0]
+    if X.ndim == 2:
+        nx = X.shape[1]
+        ny = X.shape[0]
+        x = X[0, :2]
+        y = Y[:2, 0]
+    else:
+        nx = X.size
+        x = X
+        ny = Y.size
+        y = Y
+
     dx = x[1] - x[0]
     dy = y[1] - y[0]
     lx = nx * dx
