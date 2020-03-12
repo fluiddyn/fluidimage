@@ -4,6 +4,7 @@
 .. autosummary::
    :toctree:
 
+   vector_field
    piv
 
 .. todo::
