@@ -24,6 +24,9 @@ class TestPIV(unittest.TestCase):
     def test_get_grid(self):
         xs1d, ys1d = get_grid_pixel_from_piv_file(self.path_piv)
 
+    def test_from_MultipassPIVResults(self):
+        PIV2d.from_file(self.path_piv)
+
     def test_piv_objects(self):
 
         ny, nx = 8, 12

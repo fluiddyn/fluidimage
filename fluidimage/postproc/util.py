@@ -6,15 +6,39 @@
 import numpy as np
 
 
+def get_grid_from_ivecs_final(ixvecs_final, iyvecs_final):
+    x = np.unique(ixvecs_final)
+    y = np.unique(iyvecs_final)
+    X, Y = np.meshgrid(x, y)
+    return X, Y
+
+
+def reshape_on_grid_final(ixvecs_final, iyvecs_final, deltaxs, deltays):
+    X, Y = get_grid_from_ivecs_final(ixvecs_final, iyvecs_final)
+    shape = X.shape
+    if ixvecs_final[1] == ixvecs_final[0]:
+        second_index_corresponds_to_x = True
+        shape = shape[::-1]
+    else:
+        second_index_corresponds_to_x = False
+
+    U = np.reshape(deltaxs, shape)
+    V = np.reshape(deltays, shape)
+
+    if second_index_corresponds_to_x:
+        U = U.T
+        V = V.T
+
+    return X, Y, U, V
+
+
 def compute_grid(xs, ys, deltaxs, deltays):
     x = np.unique(xs)
     y = np.unique(ys)
-    Y, X = np.meshgrid(y, x)
+    X, Y = np.meshgrid(x, y)
     U = np.reshape(deltaxs, X.shape)
     V = np.reshape(deltays, X.shape)
-    dx = x[1] - x[0]
-    dy = y[1] - y[0]
-    return X, Y, dx, dy, U, V
+    return X, Y, U, V
 
 
 def compute_derivatives(dx, dy, U, V, edge_order=2):
@@ -43,7 +67,7 @@ def compute_norm(U, V):
     return norm
 
 
-def oneD_fourier_transform(x, signal, axis=0, parseval=False):
+def compute_1dspectrum(x, signal, axis=0):
 
     """
     Computes the 1D Fourier Transform
@@ -51,81 +75,79 @@ def oneD_fourier_transform(x, signal, axis=0, parseval=False):
     INPUT:
     x: 1D np.array
     signal: np.array to Fourier transform
-    axis: direction of the fourier transform
-    parseval=True  -> chexk parseval theorem
+    axis: direction of the Fourier transform
 
     OUTPUT:
-    ft = fourier transform
+    signal_fft = fourier transform
     omega = puslation (in rad/s if x in s)
     psd: power spectral density normalized such that
     np.sum(signal**2) * dx / Lx = np.sum(psd) * domega
 
     """
-
     n = x.size
     dx = x[1] - x[0]
-    Lx = np.max(x) - np.min(x)
+    Lx = n * dx
+    dk = 2 * np.pi / Lx
 
-    ft = np.fft.fftshift(np.fft.fft(signal, axis=axis), axes=axis)
+    signal_fft = (
+        dx / Lx * np.fft.fftshift(np.fft.fft(signal, axis=axis), axes=axis)
+    )
     omega = np.fft.fftshift(np.fft.fftfreq(n, dx)) * 2 * np.pi
 
-    Lomega = np.max(omega) - np.min(omega)
-    domega = omega[1] - omega[0]
+    psd = 0.5 / dk * np.abs(signal_fft) ** 2
 
-    psd = 1.0 / Lomega / n * np.abs(ft) ** 2
-
-    if parseval:
-        print("np.sum(signal**2) * dx / Lx =")
-        print(np.sum(signal ** 2) * dx / Lx)
-        print("np.sum(psd) * domega=")
-        print(np.sum(psd) * domega)
-
-    return ft, omega, psd
+    return signal_fft, omega, psd
 
 
-def twoD_fourier_transform(X, Y, U, axis=(1, 2), parseval=False):
+def compute_2dspectrum(X, Y, signal, axes=(1, 2)):
     """
     Computes the 2D Fourier Transform
+
     INPUT:
     X: 2D np.array
     Y: 2D np.array
-    U: np.array to Fourier transform
+    signal: np.array to Fourier transform
     axis: directions of the fourier transform
-    parseval=True  -> chexk parseval theorem
 
     OUTPUT:
-    ft = fourier transform
+    signal_fft = fourier transform
     kx: puslation (in rad/m if X in m)
     ky: pulsation (in rad/m if Y in m)
     psd: power spectral density normalized such that
     np.sum(signal**2) * dx / Lx = np.sum(psd) * domega
     """
-    nx = X.shape[0]
-    ny = X.shape[1]
-    dx = X[1][0] - X[0][0]
-    dy = Y[0][1] - Y[0][0]
-    Lx = np.max(X) - np.min(X)
-    Ly = np.max(Y) - np.min(Y)
+    nx = X.shape[1]
+    ny = X.shape[0]
+    x = X[0, :2]
+    y = Y[:2, 0]
+    dx = x[1] - x[0]
+    dy = y[1] - y[0]
+    lx = nx * dx
+    ly = ny * dy
+    dkx = 2 * np.pi / lx
+    dky = 2 * np.pi / ly
 
-    ft = np.fft.fftshift(np.fft.fft2(U, axes=axis), axes=axis)
+    # energy = 0.5 * np.mean(signal**2)
 
-    kx = np.fft.fftshift(np.fft.fftfreq(nx, dx)) * (2 * np.pi)  # in rad/m
-    ky = np.fft.fftshift(np.fft.fftfreq(ny, dy)) * (2 * np.pi)  # in rad/m
+    signal_fft = (
+        1 / (nx * ny) * np.fft.fftshift(np.fft.fft2(signal, axes=axes), axes=axes)
+    )
 
-    Lkx = np.max(kx) - np.min(kx)
-    dkx = kx[1] - kx[0]
-    Lky = np.max(ky) - np.min(ky)
-    dky = ky[1] - ky[0]
-    # Kx, Ky = np.meshgrid(kx, ky)
-    # Kx = Kx.transpose()
-    # Ky = Ky.transpose()
+    # if axes == (1, 2):
+    #     nt = signal.shape[0]
+    # else:
+    #     nt = 1
 
-    psd = 1.0 / Lkx / nx / Lky / ny * np.abs(ft) ** 2
+    # energy_fft = 0.5 / nt * np.sum(np.abs(signal_fft)**2)
+    # assert np.allclose(energy, energy_fft), (energy, energy_fft)
 
-    if parseval:
-        print("np.sum(signal**2)* dx* dy/ Lx/ Ly")
-        print(np.sum(np.power(U, 2) * 1.0 * dx * dy / Lx / Ly))
-        print("np.sum(psd) *dkx * dky =")
-        print(np.sum(psd) * 1.0 * dkx * dky)
+    # in rad/m
+    kx = np.fft.fftshift(np.fft.fftfreq(nx, dx)) * (2 * np.pi)
+    ky = np.fft.fftshift(np.fft.fftfreq(ny, dy)) * (2 * np.pi)
 
-    return ft, kx, ky, psd
+    psd = 0.5 / (dkx * dky) * np.abs(signal_fft) ** 2
+
+    # energy_psd = dkx * dky * np.sum(psd) / nt
+    # assert np.allclose(energy, energy_psd)
+
+    return signal_fft, kx, ky, psd

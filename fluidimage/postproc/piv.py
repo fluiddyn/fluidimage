@@ -27,7 +27,7 @@ from scipy.ndimage.filters import gaussian_filter, median_filter
 
 from fluiddyn.util.paramcontainer import ParamContainer
 from fluidimage.works.piv.multipass import WorkPIV
-from fluidimage.data_objects.piv import LightPIVResults
+from .util import reshape_on_grid_final
 
 
 def get_grid_pixel_from_piv_file(path, index_pass=-1):
@@ -234,12 +234,36 @@ class PIV2d:
             class_name = file.attrs["class_name"]
             module_name = file.attrs["module_name"]
 
+        if isinstance(class_name, bytes):
+            class_name = class_name.decode()
+            module_name = module_name.decode()
+
         if (
-            class_name == "LightPIVResults"
+            class_name == "MultipassPIVResults"
             and module_name == "fluidimage.data_objects.piv"
         ):
-            raise NotImplementedError
-        elif class_name == cls.__name__ and cls.__module__:
+            with h5py.File(path, "r") as file:
+                params = ParamContainer(hdf5_object=file["params"])
+                piv = file[f"/piv{params.multipass.number-1}"]
+                ixvecs_final = piv["ixvecs_final"][...]
+                iyvecs_final = piv["iyvecs_final"][...]
+                deltaxs = piv["deltaxs_final"][...]
+                deltays = piv["deltays_final"][...]
+
+                kwargs = {}
+                (
+                    kwargs["x"],
+                    kwargs["y"],
+                    kwargs["vx"],
+                    kwargs["vy"],
+                ) = reshape_on_grid_final(
+                    ixvecs_final, iyvecs_final, deltaxs, deltays
+                )
+
+                kwargs["z"] = None
+                kwargs["params"] = params
+
+        elif class_name == cls.__name__ and module_name == cls.__module__:
             kwargs = {}
             with h5py.File(path, "r") as file:
                 for attr_name in cls._attr_saved_as_dataset:
@@ -251,9 +275,10 @@ class PIV2d:
                     params = ParamContainer(hdf5_object=file["params"])
                     kwargs["params"] = params
 
-            return cls(**kwargs)
         else:
-            raise RuntimeError
+            print(class_name, module_name)
+            raise NotImplementedError
+        return cls(**kwargs)
 
     def __add__(self, other):
         if isinstance(other, Number):
