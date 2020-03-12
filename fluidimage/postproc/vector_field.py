@@ -5,7 +5,7 @@
    :members:
    :private-members:
 
-.. autoclass:: ArrayOfVectorFieldOnGrid
+.. autoclass:: ArrayOfVectorFieldsOnGrid
    :members:
    :private-members:
 
