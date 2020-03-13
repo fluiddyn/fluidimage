@@ -143,10 +143,14 @@ class LogTopology:
                     words = line.split()
                     name = words[2]
                     key = words[3][1:-1]
-                    duration = float(words[-2])
-                    works_ended.append(
-                        {"name": name, "key": key, "duration": duration}
-                    )
+                    try:
+                        duration = float(words[-2])
+                    except ValueError:
+                        pass
+                    else:
+                        works_ended.append(
+                            {"name": name, "key": key, "duration": duration}
+                        )
 
         print("\rdone" + 20 * " ")
 

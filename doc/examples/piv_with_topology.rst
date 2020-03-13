@@ -1,5 +1,5 @@
-PIV computation 
-===============
+PIV computation in parallel with ``TopologyPIV``
+================================================
 
 This minimal example presents how to carry out a simple PIV computation.  See
 also the documentation of the class

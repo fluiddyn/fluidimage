@@ -15,3 +15,7 @@ Provides:
    image2image
 
 """
+
+from .base import PreprocBase
+
+__all__ = ["PreprocBase"]

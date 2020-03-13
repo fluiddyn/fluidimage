@@ -178,6 +178,10 @@ class ArrayCouple(DataObject):
 
         hdf5_parent.create_group("couple")
         group = hdf5_parent["couple"]
+
+        assert isinstance(self.names, tuple)
+        assert isinstance(self.paths, tuple)
+
         group.attrs["names"] = repr(self.names).encode()
         group.attrs["paths"] = repr(self.paths).encode()
 
@@ -198,6 +202,9 @@ class ArrayCouple(DataObject):
 
         self.names = eval(names)
         self.paths = eval(paths)
+
+        assert isinstance(self.names, tuple)
+        assert isinstance(self.paths, tuple)
 
         try:
             self.shape_images = hdf5_object["shape_images"][...]

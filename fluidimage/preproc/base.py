@@ -11,6 +11,7 @@ Provides:
 
 """
 import os
+import sys
 
 from fluidimage.data_objects.display_pre import DisplayPreProc
 
@@ -105,3 +106,17 @@ path : str, {''}
             results[name_files[1]],
             hist=hist,
         )
+
+
+def _make_doc_with_filtered_params_doc(cls):
+    params = cls.create_default_params()
+    strings = ("Parameters", "References", "----------")
+    return "\n".join(
+        line
+        for line in params._get_formatted_docs().split("\n")
+        if not any(line.endswith(string) for string in strings)
+    )
+
+
+if "sphinx" in sys.modules:
+    __doc__ += _make_doc_with_filtered_params_doc(PreprocBase)

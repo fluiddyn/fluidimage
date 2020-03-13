@@ -18,7 +18,10 @@ from fluidimage.data_objects.preproc import ArraySerie as ArraySubset
 from fluidimage.data_objects.preproc import get_name_preproc
 from fluidimage.topologies import TopologyBase, prepare_path_dir_result
 from fluidimage.util import DEBUG, imread, logger
-from fluidimage.works.preproc import WorkPreproc
+from fluidimage.works.preproc import (
+    WorkPreproc,
+    _make_doc_with_filtered_params_doc,
+)
 
 from . import image2image
 from .piv import is_name_in_queue
@@ -358,17 +361,7 @@ postfix : str
                         del queue_arrays[key_array]
 
 
+Topology = TopologyPreproc
+
 if "sphinx" in sys.modules:
-    params = TopologyPreproc.create_default_params()
-
-    doc = params._get_formatted_docs()
-
-    lines = doc.split("\n")
-
-    strings = ("Parameters", "References", "----------")
-    doc = "\n".join(
-        line
-        for line in doc.split("\n")
-        if not any(line.endswith(string) for string in strings)
-    )
-    __doc__ += doc
+    __doc__ += _make_doc_with_filtered_params_doc(Topology)

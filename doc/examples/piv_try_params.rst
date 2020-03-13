@@ -1,11 +1,18 @@
-Try PIV parameters
-==================
+How to find good PIV parameters?
+================================
 
-The asynchronous PIV topology is not very convenient to look for the best
-parameters for a PIV computation. It is better to use the PIV work directly as
-in these examples:
+Fluidimage is designed to process several images in parallel with asynchronous
+"topologies". However, the asynchronous PIV topology is not very convenient to
+look for the best parameters for a PIV computation. It is better to use the PIV
+"work" directly as in these examples:
 
 .. literalinclude:: piv_try_params.py
+
+We see that we have to define an object ``SeriesOfArrays`` and to select one
+serie (which represents here a couple of images). It is also what is done
+internally in the PIV topology. Have a look at `our tutorial
+<https://fluiddyn.readthedocs.io/en/latest/ipynb/tuto_serieofarrays.html>`__ to
+discover how to use this powerful tool!
 
 This other example includes a simple image-to-image preprocessing.
 
