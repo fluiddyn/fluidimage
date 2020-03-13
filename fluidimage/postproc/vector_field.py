@@ -299,8 +299,9 @@ class VectorFieldOnGrid:
 
         pcm = ax.pcolormesh(self.x, self.y, self.compute_norm())
 
+        # minus because the y axis is inverted
         q = ax.quiver(
-            self.x, self.y, self.vx, self.vy, scale_units="xy", scale=scale
+            self.x, self.y, self.vx, -self.vy, scale_units="xy", scale=scale
         )
         ax.set_xlabel(self.namex + " [" + self.unitx + "]")
         ax.set_ylabel(self.namey + " [" + self.unity + "]")
@@ -328,7 +329,8 @@ class VectorFieldOnGrid:
         ly = ymax - ymin
         n = 20
         ax.set_xlim([xmin - lx / n, xmax + lx / n])
-        ax.set_ylim([ymin - ly / n, ymax + ly / n])
+        # y axis inverted!
+        ax.set_ylim([ymax + ly / n, ymin - ly / n])
         ax.set_aspect("equal")
 
         return ax
