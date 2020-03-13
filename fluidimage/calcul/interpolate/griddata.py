@@ -11,7 +11,7 @@ from scipy import interpolate
 def griddata(centers, values, new_positions, using="scipy"):
     xnew = new_positions[1]
     ynew = new_positions[0]
-    grid_y, grid_x = np.meshgrid(ynew, xnew)
+    grid_x, grid_y = np.meshgrid(xnew, ynew)
 
     if using == "scipy":
         # 'linear' or 'cubic'
