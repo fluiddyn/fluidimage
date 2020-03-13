@@ -7,7 +7,6 @@ import pylab
 
 from fluidimage.data_objects.piv import LightPIVResults
 
-from .displayf import displayf
 from .util import (
     compute_derivatives,
     compute_div,
@@ -18,6 +17,14 @@ from .util import (
     compute_1dspectrum,
     compute_2dspectrum,
 )
+
+
+def displayf(X, Y, U=None, V=None, background=None, *args):
+
+    if background is not None:
+        pylab.pcolor(X, Y, background)
+    if U is not None:
+        pylab.quiver(X, Y, U, V)
 
 
 class DataObject:
