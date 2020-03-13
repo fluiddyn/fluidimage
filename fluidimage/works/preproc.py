@@ -10,12 +10,14 @@ Provides:
    :private-members:
 
 """
+import sys
+
 import numpy as np
 
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
 
 from ..data_objects.preproc import ArraySerie, PreprocResults, get_ind_middle
-from ..preproc.base import PreprocBase
+from ..preproc.base import PreprocBase, _make_doc_with_filtered_params_doc
 from ..util import print_memory_usage
 
 
@@ -74,3 +76,9 @@ class WorkPreproc(PreprocBase):
         }
 
         return super().display(ind, hist, results)
+
+
+Work = WorkPreproc
+
+if "sphinx" in sys.modules:
+    __doc__ += _make_doc_with_filtered_params_doc(Work)
