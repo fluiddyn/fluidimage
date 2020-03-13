@@ -1,5 +1,5 @@
-Optical flow computation
-========================
+Optical flow computation in parallel with ``TopologyOpticalFlow``
+=================================================================
 
 This minimal example presents how to carry out a simple optical flow
 computation. See also the documentation of the class

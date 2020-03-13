@@ -1,7 +1,9 @@
 PIV challenge
 =============
 
-We put here scripts to compute PIV on data of the `PIV challenge
+We put `here
+<https://foss.heptapod.net/fluiddyn/fluidimage/tree/branch/default/doc/examples/pivchallenge>`__
+scripts to compute PIV on data of the `PIV challenge
 <http://www.pivchallenge.org>`_.
 
 In the scripts, we use the environment variable

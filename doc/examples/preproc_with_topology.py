@@ -27,5 +27,8 @@ params.preproc.tools.global_threshold.minima = 0.0
 
 topology = TopologyPreproc(params, logging_level="info")
 
+# Compute in parallel
 topology.compute()
-# topology.compute(sequential=True)  # can be used for debuging
+
+# Compute in sequential (for debugging)
+# topology.compute(sequential=True)
