@@ -1,119 +1,109 @@
 Installation and advice
 =======================
 
-Dependencies and useful packages
+See our general advice `on using Python
+<https://fluiddyn.readthedocs.io/en/latest/advice_on_Python.html>`__ and and
+`on installing a good scientific Python environment
+<https://fluiddyn.readthedocs.io/en/latest/get_good_Python_env.html>`__.
+
+The simplest method (with conda)
 --------------------------------
 
-- Python >= 3.6
+The simplest method to install FluidImage is to use ``conda`` (installed with
+miniconda) and the conda-forge channel (activated with the command ``conda
+config --add channels conda-forge``).
 
-- FFTW
+To just install FluidImage, you can run::
 
-- numpy, scipy, matplotlib, h5py
+  conda install fluidimage
 
-- fluiddyn
-
-- pyfftw (simplest way to compute fft quite efficiently)
-
-- `Pythran <https://github.com/serge-sans-paille/pythran>`_
-
-  We choose to use the new static Python compiler `Pythran
-  <https://github.com/serge-sans-paille/pythran>`_ for some functions of the
-  operators. Our microbenchmarks show that the performances are as good as what
-  we are able to get with Fortran or C++!
-
-  .. warning::
-
-     To reach good performance, we advice to try to put in the file
-     `~/.pythranrc` the lines (it seems to work well on Linux, see the `Pythran
-     documentation <https://pythonhosted.org/pythran/MANUAL.html>`_):
-
-     .. code:: bash
-
-        [pythran]
-        complex_hook = True
-
-  .. warning::
-
-     The compilation of C++ files produced by Pythran can be long and can
-     consume a lot of memory. If you encounter any problems, you can try to use
-     clang (for example with ``conda install clangdev``) and to enable its use
-     in the file `~/.pythranrc` with:
-
-     .. code:: bash
-
-        [compiler]
-        CXX = clang++
-        CC = clang
-
-- h5netcdf (only if you need netcdf files)
-
-- scikit-image (only for preprocessing of images)
-
-- PyQt5 (only for GUI)
-
-- IPython (important to play interactively with parameters, images and results)
-
-- Jupyter (to try the tutorials yourself)
-
-The simplest way to get a good environment for fluidimage is by using conda
-(with anaconda or miniconda). If you use conda, install the main packages
+Alternativally, you can install FluidImage in a dedicated conda environment
 with::
 
-  conda config --add channels conda-forge
+  conda create -n env_fluidimage fluidimage
 
-  conda install numpy scipy matplotlib h5py imageio scikit-image pyqt \
-                ipython jupyterlab clangdev fftw
+If you use an environment, you will need to activate it with ``conda activate
+env_fluidimage``.
 
-and the other packages with pip::
+Slightly more complicated: with pip, from the package on PyPI or the repository
+-------------------------------------------------------------------------------
 
-  pip install pyfftw pythran h5netcdf colorlog fluiddyn
+FluidImage depends on Python >= 3.6 and on Python packages that are today very
+simple to install with pip or conda, namely numpy, scipy, matplotlib, h5py,
+scikit-image, pyfftw and IPython. You should not care about these dependencies
+because they are going to be installed automatically for you.
 
-Install in development mode (recommended)
------------------------------------------
+PyQt5 is used only for some graphical user interfaces, so you need to install
+it manually if needed. This can be done with ``pip install pyqt5`` or ``conda
+install pyqt``.
 
-FluidImage is still in beta version ("testing for users").  So it can be good
-to work "as a developer", i.e. to get the source code and to use revision
-control and the development mode of the Python installer.
+I would also advice to install Jupyterlab, which interacts nicely with FluidImage.
 
-For FluidImage, we use the revision control software Mercurial and the main
-repository is hosted `here <https://foss.heptapod.net/fluiddyn/fluidimage>`_ in
-Heptapod, so you can get the source with the command::
+To compile, or not to compile?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We choose to use the static Python compiler `Pythran
+<https://github.com/serge-sans-paille/pythran>`__ for some numerical functions.
+Our microbenchmarks show that the performances are as good as what we are able
+to get with Fortran or C++!
+
+We don't upload "wheels" (package with already compiled binaries) on PyPI, so
+installing with pip *can* involve local compilation. Some code in FluidImage
+will be compiled *only if* `Pythran
+<https://github.com/serge-sans-paille/pythran>`__ is available during
+installation.
+
+therefore, to install FluidImage with compilation, you need to install Pythran
+before FluidImage, which can be done with::
+
+  pip install pythran colorlog
+
+Moreover, you need a C++ compiler (we recommend clang). With conda, it's very
+easy to install clang with ``conda install clangdev``.
+
+Finally, for better performance, Pythran needs a configuration file with
+something like (see the `Pythran documentation
+<https://pythran.readthedocs.io/en/latest/MANUAL.html>`__)::
+
+  [pythran]
+  complex_hook = True
+
+  [compiler]
+  CXX = clang++
+  CC = clang
+
+Ready? Let's install with pip
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To install the last version of FluidImage uploaded to the Python Package Index::
+
+  pip install fluidimage -U
+
+However, the project is in an active phase of development so it can be better
+to use the last version (from the mercurial repository hosted on Heptapod).
+Moreover, like that, you get all examples and tutorials! For FluidImage, we use
+the revision control software Mercurial and the main repository is hosted in
+https://foss.heptapod.net/fluiddyn/fluidimage, so you can get the source with
+the command::
 
   hg clone https://foss.heptapod.net/fluiddyn/fluidimage
 
-I would advice to fork this repository (click on "Fork") and to
-clone your newly created repository to get the code on your computer (click on
-"Clone" and run the command that will be given). If you are new with Mercurial
-and Heptapod, you can also read `this short tutorial
-<http://fluiddyn.readthedocs.org/en/latest/mercurial_heptapod.html>`_.
+If you are new with Mercurial and Heptapod, you can also read `this short
+tutorial <http://fluiddyn.readthedocs.org/en/latest/mercurial_heptapod.html>`_.
 
-If you really don't want to use Mercurial, you can also just manually
-download the package from `the Heptapod page
+If you really can't use Mercurial, you can also just manually download the
+package from `the Heptapod page
 <https://foss.heptapod.net/fluiddyn/fluidimage>`_ or from `the PyPI page
 <https://pypi.python.org/pypi/fluidimage>`_.
 
 To install in development mode (with a virtualenv or with conda)::
 
   cd fluidimage
-  python setup.py develop
+  pip install -e .
 
 or (without virtualenv)::
 
-  python setup.py develop --user
-
-Of course you can also install FluidDyn with the install command ``python
-setup.py install``.
+  pip install -e . --user
 
 After the installation, it is a good practice to run the unit tests by running
-``python -m unittest discover`` (or just ``make tests``) from the root
-directory or from any of the "test" directories.
-
-Installation with pip
----------------------
-
-FluidImage can also be installed from the Python Package Index::
-
-  pip install fluidimage
-
-However, the project is in an active phase of development so it can be better
-to use the last version (from the mercurial repository hosted on Heptapod).
+``pytest`` from the root directory.
