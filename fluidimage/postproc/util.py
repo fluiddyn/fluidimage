@@ -6,20 +6,40 @@
 import numpy as np
 
 
-def get_grid_from_ivecs_final(ixvecs_final, iyvecs_final):
-    x = np.unique(ixvecs_final)
-    y = np.unique(iyvecs_final)
+def get_grid_from_ivecs_final(x_flat, y_flat):
+    x = np.unique(x_flat)
+    y = np.unique(y_flat)
+
+    if x_flat[1] == x_flat[0]:
+        assert y_flat[1] != y_flat[0]
+        # second_index_corresponds_to_x = True
+        dx = x_flat[len(y)] - x_flat[0]
+        dy = y_flat[1] - y_flat[0]
+    else:
+        assert y_flat[1] == y_flat[0]
+        # second_index_corresponds_to_x = False
+        dx = x_flat[1] - x_flat[0]
+        dy = y_flat[len(x)] - y_flat[0]
+
+    if dx < 0:
+        x = x[::-1]
+
+    if dy < 0:
+        y = y[::-1]
+
     X, Y = np.meshgrid(x, y)
     return X, Y
 
 
-def reshape_on_grid_final(ixvecs_final, iyvecs_final, deltaxs, deltays):
-    X, Y = get_grid_from_ivecs_final(ixvecs_final, iyvecs_final)
+def reshape_on_grid_final(x_flat, y_flat, deltaxs, deltays):
+    X, Y = get_grid_from_ivecs_final(x_flat, y_flat)
     shape = X.shape
-    if ixvecs_final[1] == ixvecs_final[0]:
+    if x_flat[1] == x_flat[0]:
+        assert y_flat[1] != y_flat[0]
         second_index_corresponds_to_x = True
         shape = shape[::-1]
     else:
+        assert y_flat[1] == y_flat[0]
         second_index_corresponds_to_x = False
 
     U = np.reshape(deltaxs, shape)
