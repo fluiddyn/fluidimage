@@ -544,7 +544,7 @@ class ArrayOfVectorFieldsOnGrid:
             result.append(other * v)
         return result
 
-    def __rdiv__(self, other):
+    def __truediv__(self, other):
         result = type(self)()
         for v in self._list:
             result.append(v / other)
@@ -563,7 +563,7 @@ class ArrayOfVectorFieldsOnGrid:
         self._list.__setitem__(key, value)
 
     def __delitem__(self, key):
-        self._list.__detitem__(key)
+        self._list.__delitem__(key)
 
     def __repr__(self):
         return (

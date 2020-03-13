@@ -8,15 +8,43 @@ import pylab
 from fluidimage.data_objects.piv import LightPIVResults
 
 from .util import (
-    compute_derivatives,
     compute_div,
-    compute_grid,
-    compute_ken,
-    compute_norm,
     compute_rot,
     compute_1dspectrum,
     compute_2dspectrum,
 )
+
+warn(
+    "Functions and classes defined in this module (fluidimage.postproc.postproc)"
+    "are deprecated (the code is not tested!). "
+    "Please use fluidimage.postproc.vector_field instead.",
+    DeprecationWarning,
+)
+
+
+def compute_ken(U, V):
+    ken = (U ** 2 + V ** 2) / 2
+    return ken
+
+
+def compute_norm(U, V):
+    norm = np.sqrt(U ** 2 + V ** 2)
+    return norm
+
+
+def compute_grid(xs, ys, deltaxs, deltays):
+    x = np.unique(xs)
+    y = np.unique(ys)
+    X, Y = np.meshgrid(x, y)
+    U = np.reshape(deltaxs, X.shape)
+    V = np.reshape(deltays, X.shape)
+    return X, Y, U, V
+
+
+def compute_derivatives(dx, dy, U, V, edge_order=2):
+    dUdx, dUdy = np.gradient(U, dx, dy, edge_order=edge_order)
+    dVdx, dVdy = np.gradient(V, dx, dy, edge_order=edge_order)
+    return dUdx, dUdy, dVdx, dVdy
 
 
 def displayf(X, Y, U=None, V=None, background=None, *args):

@@ -48,7 +48,9 @@ class TestPIV(unittest.TestCase):
 
         arr = ArrayPIV((piv0,))
         arr.append(piv1)
-        arr.extend((piv0 - 1, piv1 - piv0, 0 + piv0 * 3 + 1))
+        arr.extend(
+            (piv0 - 1, 1 + piv1 * piv0 - piv0 / piv0 - 1, 0 + piv0 * 3 + 1)
+        )
 
         arr.set_timestep(0.1)
         assert len(arr.times) == 5
@@ -57,12 +59,13 @@ class TestPIV(unittest.TestCase):
         arr.compute_temporal_fft()
 
         arr1 = 0 + 2 * arr * 3 + 1 - 2
-        arr1 = (1 + arr1).median_filter(3).gaussian_filter(0.5)
+        arr1 = (1 + arr1 / 2).median_filter(3).gaussian_filter(0.5)
 
         piv2 = arr1[0]
         arr1[1] = piv2
         repr(arr1)
         len(arr1)
+        del arr1[-1]
 
         arr1 = arr1.truncate().extract(0, 4, 2, 7).extract_square()
 
