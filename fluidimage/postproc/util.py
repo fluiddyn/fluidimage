@@ -1,12 +1,25 @@
-# TO DO
-#####
-# ADD epsilon, reynolds stresses etc...
+"""Utilities for post-processing (:mod:`fluidimage.postproc.util`)
+==================================================================
 
+.. autofunction:: get_grid_from_ivecs_final
+
+.. autofunction:: reshape_on_grid_final
+
+.. autofunction:: compute_rot
+
+.. autofunction:: compute_div
+
+.. autofunction:: compute_1dspectrum
+
+.. autofunction:: compute_2dspectrum
+"""
 
 import numpy as np
 
 
 def get_grid_from_ivecs_final(x_flat, y_flat):
+    """Get a 2d grid from flat arrays"""
+
     x = np.unique(x_flat)
     y = np.unique(y_flat)
 
@@ -32,6 +45,8 @@ def get_grid_from_ivecs_final(x_flat, y_flat):
 
 
 def reshape_on_grid_final(x_flat, y_flat, deltaxs, deltays):
+    """Reshape flat arrays on a 2d grid"""
+
     X, Y = get_grid_from_ivecs_final(x_flat, y_flat)
     shape = X.shape
     if x_flat[1] == x_flat[0]:
@@ -53,10 +68,12 @@ def reshape_on_grid_final(x_flat, y_flat, deltaxs, deltays):
 
 
 def compute_rot(dUdy, dVdx):
+    """Compute the rotational"""
     return dVdx - dUdy
 
 
 def compute_div(dUdx, dVdy):
+    """Compute the divergence"""
     return dUdx + dVdy
 
 
@@ -65,16 +82,32 @@ def compute_1dspectrum(x, signal, axis=0):
     """
     Computes the 1D Fourier Transform
 
-    INPUT:
-    x: 1D np.array
-    signal: np.array to Fourier transform
-    axis: direction of the Fourier transform
+    Parameters
+    ----------
 
-    OUTPUT:
-    signal_fft = fourier transform
-    omega = puslation (in rad/s if x in s)
-    psd: power spectral density normalized such that
-    np.sum(signal**2) * dx / Lx = np.sum(psd) * domega
+    x: 1D np.ndarray
+
+    signal: np.ndarray
+
+    axis: int
+
+      Direction of the Fourier transform
+
+    Returns
+    -------
+
+    signal_fft: np.ndarray
+
+      fourier transform
+
+    omega: np.ndarray
+
+      puslation (in rad/s if x in s)
+
+    psd: np.ndarray
+
+      power spectral density normalized such that
+      np.sum(signal**2) * dx / Lx = np.sum(psd) * domega
 
     """
     n = x.size

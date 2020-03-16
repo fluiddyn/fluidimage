@@ -1,5 +1,9 @@
-"""PIV post-processing
-======================
+"""PIV post-processing (:mod:`fluidimage.postproc.piv`)
+=======================================================
+
+.. autofunction:: get_grid_pixel_from_piv_file
+
+.. autofunction:: get_grid_pixel
 
 .. autoclass:: PIV2d
    :members:
@@ -8,10 +12,6 @@
 .. autoclass:: ArrayPIV
    :members:
    :private-members:
-
-.. autofunction:: get_grid_pixel_from_piv_file
-
-.. autofunction:: get_grid_pixel
 
 """
 
@@ -71,7 +71,7 @@ def get_grid_pixel(params, shape_images, index_pass=-1):
     Parameters
     ----------
 
-    params: :class:`fluiddyn.util.paramcontainer.ParamContainer`
+    params: fluiddyn.util.paramcontainer.ParamContainer
 
       Parameters for the class :class:`fluidimage.works.piv.multipass.WorkPIV`
 

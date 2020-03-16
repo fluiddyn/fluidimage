@@ -1,5 +1,5 @@
-"""Post-processing of vector fields
-===================================
+"""Post-processing of vector fields (:mod:`fluidimage.postproc.vector_field`)
+=============================================================================
 
 .. autoclass:: VectorFieldOnGrid
    :members:
@@ -144,10 +144,14 @@ class VectorFieldOnGrid:
 
     @property
     def shape(self):
+        """Shape of the field (``(nz, ny, nx)`` or ``(ny, nx)``)"""
         if self.z is None or isinstance(self.z, Number):
-            return (len(self.y), len(self.x))
+            return len(self.y), len(self.x)
+        else:
+            return len(self.z), len(self.y), len(self.x)
 
     def save(self, path, params=None):
+        """Save the object in a hdf5 file"""
         with h5py.File(path, "w") as file:
             cls = self.__class__
             file.attrs["class_name"] = cls.__name__
@@ -288,6 +292,7 @@ class VectorFieldOnGrid:
         return self.__div__(other)
 
     def display(self, scale=1, background=None, ax=None):
+        """Display the vector field"""
 
         if background is not None:
             raise NotImplementedError
@@ -336,6 +341,7 @@ class VectorFieldOnGrid:
         return ax
 
     def median_filter(self, size, niter=1, valid=True):
+        """Return a new field filtered with a median filter"""
         if np.isscalar(size):
             size = [size, size]
 
@@ -360,14 +366,13 @@ class VectorFieldOnGrid:
             ret = ret.extract(mf, ny - mf, mf, nx - mf)
 
         ret.history.append(
-            "median_filter(size={}, niter={}, valid ={})".format(
-                size, niter, valid
-            )
+            f"median_filter(size={size}, niter={niter}, valid ={valid})"
         )
 
         return ret
 
     def gaussian_filter(self, sigma, niter=1, truncate=3, valid=True):
+        """Return a new field filtered with a gaussian filter"""
         if np.isscalar(sigma):
             sigma = [sigma, sigma]
 
@@ -398,6 +403,8 @@ class VectorFieldOnGrid:
         return ret
 
     def extract(self, start0, stop0, start1, stop1, phys=False):
+        """Return a new field extrated from `self`"""
+
         ret = deepcopy(self)
 
         if phys:
@@ -427,6 +434,8 @@ class VectorFieldOnGrid:
         return ret
 
     def truncate(self, cut=1, phys=False):
+        """Return a new truncated field"""
+
         if phys:
             raise NotImplementedError
 
@@ -434,6 +443,7 @@ class VectorFieldOnGrid:
         return self.extract(cut, ny - cut, cut, nx - cut)
 
     def extract_square(self, cut=0, force_even=True):
+        """Return a square field"""
         n1 = self.x.size
         n0 = self.y.size
         n = min(n0, n1) - 2 * cut
@@ -455,10 +465,11 @@ class VectorFieldOnGrid:
         return self.extract(start0, stop0, start1, stop1)
 
     def compute_norm(self):
+        """Compute the norm of the vector field"""
         return np.sqrt(self.vx ** 2 + self.vy ** 2)
 
     def compute_spatial_fft(self):
-
+        """Compute the spatial Fourier transform"""
         vx_fft, kx, ky, psd_vx = compute_2dspectrum(
             self.x, self.y, self.vx, axes=(0, 1)
         )
@@ -469,6 +480,7 @@ class VectorFieldOnGrid:
         return vx_fft, vy_fft, kx, ky, psd_vx, psd_vy
 
     def compute_rotz(self, edge_order=2):
+        """Compute the vertical curl"""
 
         if not self.is_grid_regular:
             raise NotImplementedError
@@ -478,6 +490,7 @@ class VectorFieldOnGrid:
         return compute_rot(dvx_dy, dvy_dx)
 
     def compute_divh(self, edge_order=2):
+        """Compute the horizontal divergence"""
 
         if not self.is_grid_regular:
             raise NotImplementedError
@@ -500,20 +513,24 @@ class ArrayOfVectorFieldsOnGrid:
         self.times = None
 
     def set_timestep(self, timestep):
+        """Set the timestep (and a time vector)"""
         self.timestep = timestep
         nb_files = len(self)
         self.times = np.linspace(0, timestep * (nb_files - 1), nb_files)
 
     def compute_time_average(self):
+        """Compute the time average"""
         result = deepcopy(self._list[0])
         for piv in self._list[1:]:
             result += piv
         return result / len(self._list)
 
     def append(self, v):
+        """Append an element"""
         self._list.append(v)
 
     def extend(self, l):
+        """Extend from an iterable"""
         self._list.extend(l)
 
     def __add__(self, other):
@@ -577,12 +594,14 @@ class ArrayOfVectorFieldsOnGrid:
         return self._list.__len__()
 
     def median_filter(self, size, niter=1, valid=True):
+        """Return a new array filtered with a median filter"""
         result = type(self)()
         for v in self:
             result.append(v.median_filter(size, niter=niter, valid=valid))
         return result
 
     def gaussian_filter(self, sigma, niter=1, truncate=3, valid=True):
+        """Return a new array filtered with a gaussian filter"""
         result = type(self)()
         for v in self:
             result.append(
@@ -593,24 +612,28 @@ class ArrayOfVectorFieldsOnGrid:
         return result
 
     def extract(self, start0, stop0, start1, stop1, phys=False):
+        """Extract new fields from the fields"""
         result = type(self)()
         for v in self:
             result.append(v.extract(start0, stop0, start1, stop1, phys=phys))
         return result
 
     def truncate(self, cut=1, phys=False):
+        """Truncate the fields"""
         result = type(self)()
         for v in self:
             result.append(v.truncate(cut=cut, phys=phys))
         return result
 
     def extract_square(self, cut=0):
+        """Extract square fields"""
         result = type(self)()
         for v in self:
             result.append(v.extract_square(cut=cut))
         return result
 
     def compute_temporal_fft(self):
+        """Compute the temporal Fourier transform"""
         if self.times is None:
             raise RuntimeError(
                 "please use `set_timestep` to define time before performing "

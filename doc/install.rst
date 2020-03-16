@@ -51,10 +51,8 @@ We don't upload "wheels" (package with already compiled binaries) on PyPI, so
 installing with pip *can* involve local compilation. Some code in FluidImage
 will be compiled *only if* `Pythran
 <https://github.com/serge-sans-paille/pythran>`__ is available during
-installation.
-
-therefore, to install FluidImage with compilation, you need to install Pythran
-before FluidImage, which can be done with::
+installation. Therefore, to install FluidImage with compilation, you need to
+install Pythran before FluidImage, which can be done with::
 
   pip install pythran colorlog
 
