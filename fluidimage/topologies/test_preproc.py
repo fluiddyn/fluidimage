@@ -3,7 +3,7 @@ from pathlib import Path
 from shutil import rmtree
 
 from fluiddyn.io.image import imread, imsave
-from fluidimage import path_image_samples
+from fluidimage import get_path_image_samples
 from fluidimage.topologies.preproc import TopologyPreproc
 
 
@@ -12,7 +12,7 @@ class TestPreprocTemporal(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        path_in = path_image_samples / cls.name / "Images"
+        path_in = get_path_image_samples() / cls.name / "Images"
 
         cls._work_dir = Path("test_topo_preproc_" + cls.name) / "Images"
         cls._work_dir.mkdir(parents=True, exist_ok=True)

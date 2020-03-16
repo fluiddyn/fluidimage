@@ -2,11 +2,11 @@ import unittest
 from functools import partialmethod
 from shutil import rmtree
 
-from fluidimage import path_image_samples
+from fluidimage import get_path_image_samples
 from fluidimage.topologies import LogTopology
 from fluidimage.topologies.example import TopologyExample
 
-path_input = path_image_samples / "Karman/Images"
+path_input = get_path_image_samples() / "Karman/Images"
 
 executors = [
     "exec_sequential",

@@ -1,6 +1,6 @@
 import pytest
 
-from fluidimage import path_image_samples
+from fluidimage import get_path_image_samples
 
 try:
     import pyqtgraph
@@ -10,6 +10,7 @@ try:
 except ImportError:
     use_pyqtgraph = False
 
+path_image_samples = get_path_image_samples()
 
 # @pytest.mark.skipif(not use_pyqtgraph, reason="ImportError pyqtgraph")
 # def test_main0(qtbot):

@@ -2,14 +2,14 @@ import unittest
 from pathlib import Path
 from shutil import rmtree
 
-from fluidimage import path_image_samples
+from fluidimage import get_path_image_samples
 from fluidimage.topologies.image2image import TopologyImage2Image
 
 
 class TestPivNew(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.path_src = path_image_samples / "Karman/Images"
+        cls.path_src = get_path_image_samples() / "Karman/Images"
         cls.postfix = "test_im2im_new"
 
     @classmethod

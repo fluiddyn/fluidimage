@@ -1,9 +1,9 @@
-from fluidimage import path_image_samples
+from fluidimage import get_path_image_samples
 from fluidimage.topologies.optical_flow import Topology
 
 params = Topology.create_default_params()
 
-params.series.path = path_image_samples / "Karman/Images"
+params.series.path = get_path_image_samples() / "Karman/Images"
 params.series.ind_start = 1
 params.series.ind_step = 2
 

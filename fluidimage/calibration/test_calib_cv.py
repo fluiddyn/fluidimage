@@ -3,7 +3,7 @@ import unittest
 from numpy.testing import assert_almost_equal, assert_array_equal
 
 from fluiddyn.io import stdout_redirected
-from fluidimage import path_image_samples
+from fluidimage import get_path_image_samples
 from fluidimage.calibration.calib_cv import (
     CalibCV,
     SimpleCircleGrid,
@@ -11,7 +11,7 @@ from fluidimage.calibration.calib_cv import (
 )
 from fluidimage.util import imread
 
-pathbase = path_image_samples / "TomoPIV" / "calibration"
+pathbase = get_path_image_samples() / "TomoPIV" / "calibration"
 
 
 def construct_image_points(path, origin):

@@ -1,13 +1,13 @@
-
 from pathlib import Path
 from shutil import rmtree
 from time import time
 
-from fluidimage import path_image_samples
+from fluidimage import get_path_image_samples
 from fluidimage.experimental.topologies.example import TopologyExample
 
-path_input = path_image_samples / "Karman/Images"
+path_input = get_path_image_samples() / "Karman/Images"
 path_dir_result = path_input.parent / f"Images.bench"
+
 
 def bench():
     params = TopologyExample.create_default_params()
@@ -44,6 +44,7 @@ def bench():
 
     # if path_dir_result.exists():
     #     rmtree(path_dir_result)
+
 
 if __name__ == "__main__":
     bench()

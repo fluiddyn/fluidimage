@@ -3,8 +3,10 @@ from pathlib import Path
 from shutil import rmtree
 from time import sleep
 
-from fluidimage import path_image_samples
+from fluidimage import get_path_image_samples
 from fluidimage.topologies.piv import TopologyPIV
+
+path_image_samples = get_path_image_samples()
 
 
 class TestPivNew(unittest.TestCase):

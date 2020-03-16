@@ -2,7 +2,7 @@ import unittest
 from shutil import rmtree
 
 from fluiddyn.io import stdout_redirected
-from fluidimage import SeriesOfArrays, path_image_samples
+from fluidimage import SeriesOfArrays, get_path_image_samples
 from fluidimage.data_objects.display_piv import DisplayPIV
 from fluidimage.data_objects.piv import LightPIVResults, MultipassPIVResults
 from fluidimage.works.piv import WorkPIV
@@ -15,7 +15,7 @@ class MyObj:
 class TestPIV(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        path_images = path_image_samples / "Oseen/Images"
+        path_images = get_path_image_samples() / "Oseen/Images"
         series = SeriesOfArrays(str(path_images / "Oseen*"), "i+1:i+3")
         cls.path_tmp = path_images.parent / "tmp_test_work_piv"
 

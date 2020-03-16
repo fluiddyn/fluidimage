@@ -1,14 +1,13 @@
-
 from os import symlink
 from pathlib import Path
 from shutil import rmtree
 from time import time
 
-from fluidimage import path_image_samples
+from fluidimage import get_path_image_samples
 from fluidimage.experimental.topologies.piv_new import TopologyPIV
 from fluidimage.topologies.piv import TopologyPIV as OldTopologyPIV
 
-path_dir_images = path_image_samples / "Milestone/Images"
+path_dir_images = get_path_image_samples() / "Milestone/Images"
 path_images = list(path_dir_images.glob("im*"))
 path_images.sort()
 
@@ -23,7 +22,7 @@ path_dir_many = path_dir_images.with_name("Images_many")
 
 paths_images_link = list(path_dir_many.glob("im*"))
 
-if len(paths_images_link) != 2*nb_couples:
+if len(paths_images_link) != 2 * nb_couples:
 
     if path_dir_many.exists():
         rmtree(path_dir_many)
@@ -37,20 +36,21 @@ if len(paths_images_link) != 2*nb_couples:
 path_src = path_dir_many / "im*"
 postfix = "bench_piv_new"
 
+
 def modify_params(params):
     params.series.path = str(path_src)
     params.series.ind_start = 0
     params.series.strcouple = "i, 0:2"
 
     params.piv0.shape_crop_im0 = 192
-    params.piv0.method_correl = 'fftw'
+    params.piv0.method_correl = "fftw"
     params.piv0.displacement_max = "50%"
 
-    params.mask.strcrop = ':, :'
+    params.mask.strcrop = ":, :"
 
     params.multipass.number = 2
-    params.multipass.use_tps = 'last'
-    params.multipass.smoothing_coef = 10.
+    params.multipass.use_tps = "last"
+    params.multipass.smoothing_coef = 10.0
     params.multipass.threshold_tps = 0.1
 
     params.fix.correl_min = 0.07
@@ -104,6 +104,7 @@ not thread safe (maybe the FFT used for the correlation).
     path_out = Path(str(path_src.parent) + "." + postfix)
     if path_out.exists():
         rmtree(path_out)
+
 
 if __name__ == "__main__":
     bench()

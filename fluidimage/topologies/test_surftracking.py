@@ -4,7 +4,7 @@ from shutil import rmtree
 
 import skimage
 
-from fluidimage import path_image_samples
+from fluidimage import get_path_image_samples
 from fluidimage.topologies.surface_tracking import TopologySurfaceTracking
 
 
@@ -31,7 +31,7 @@ def rescale_intensity(tuple_image_path):
 class TestSurfaceTracking(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.path_src = path_image_samples / "SurfTracking/Images"
+        cls.path_src = get_path_image_samples() / "SurfTracking/Images"
         cls.postfix = "test_surftracking_new"
         cls.path_out = Path(str(cls.path_src) + "." + cls.postfix)
 

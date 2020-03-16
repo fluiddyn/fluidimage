@@ -1,9 +1,9 @@
-from fluidimage import path_image_samples
+from fluidimage import get_path_image_samples
 from fluidimage.topologies.preproc import TopologyPreproc
 
 params = TopologyPreproc.create_default_params()
 
-params.preproc.series.path = path_image_samples / "/Jet/Images"
+params.preproc.series.path = get_path_image_samples() / "/Jet/Images"
 params.preproc.series.strcouple = "i+60:i+62, 0"
 
 print("Available preprocessing tools: ", params.preproc.tools.available_tools)

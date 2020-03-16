@@ -1,10 +1,10 @@
 import unittest
 
-from fluidimage import SerieOfArraysFromFiles, path_image_samples
+from fluidimage import SerieOfArraysFromFiles, get_path_image_samples
 
 from .image2image import Im2ImExample, apply_im2im_filter
 
-path_src = path_image_samples / "Karman/Images"
+path_src = get_path_image_samples() / "Karman/Images"
 
 
 class TestTopoExample(unittest.TestCase):

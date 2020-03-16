@@ -5,14 +5,14 @@ import numpy as np
 import h5py
 
 from fluiddyn.util.paramcontainer import ParamContainer
-from fluidimage import path_image_samples
+from fluidimage import get_path_image_samples
 from fluidimage.postproc.piv import ArrayPIV, PIV2d, get_grid_pixel_from_piv_file
 
 
 class TestPIV(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.path_piv = path_image_samples / "Milestone/piv_0000a-b.h5"
+        cls.path_piv = get_path_image_samples() / "Milestone/piv_0000a-b.h5"
         cls.path_tests = cls.path_piv.parent / "tmp_tests"
         cls.path_tests.mkdir(exist_ok=True)
 

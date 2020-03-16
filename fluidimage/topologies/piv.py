@@ -375,11 +375,11 @@ if "sphinx" in sys.modules:
 
 
 if __name__ == "__main__":
-    from fluidimage import path_image_samples
+    from fluidimage import get_path_image_samples
 
     params = Topology.create_default_params()
 
-    params.series.path = str(path_image_samples / "Karman/Images")
+    params.series.path = str(get_path_image_samples() / "Karman/Images")
     params.series.ind_start = 1
     params.series.ind_step = 2
 

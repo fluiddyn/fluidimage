@@ -2,14 +2,14 @@ import unittest
 from pathlib import Path
 from shutil import rmtree
 
-from fluidimage import path_image_samples
+from fluidimage import get_path_image_samples
 from fluidimage.topologies.bos import TopologyBOS
 
 
 class TestBOSNew(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.path_input_files = path_image_samples / "Karman/Images"
+        cls.path_input_files = get_path_image_samples() / "Karman/Images"
         cls.postfix = "test_bos_new"
 
     @classmethod

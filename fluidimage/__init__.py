@@ -7,6 +7,8 @@ FluidImage
 import os
 import sys
 from warnings import warn
+from subprocess import getoutput
+from pathlib import Path
 
 if "OMP_NUM_THREADS" not in os.environ:
     if "numpy" in sys.modules:
@@ -59,10 +61,25 @@ if any(
     plt.show = lambda: None
 
 
-try:
-    from ._path_image_samples import path_image_samples
-except ImportError:
-    pass
+def get_path_image_samples():
+    try:
+        from ._path_image_samples import path_image_samples
+    except ImportError:
+        pass
+    else:
+        if path_image_samples.exists():
+            return path_image_samples
+
+    path_image_samples = (
+        Path.home() / ".local/fluidimage/repository/image_samples"
+    )
+    path_repo = path_image_samples.parent
+    path_repo.mkdir(parents=True, exist_ok=True)
+    if not path_image_samples.exists():
+        getoutput(
+            f"hg clone https://foss.heptapod.net/fluiddyn/fluidimage {path_repo}"
+        )
+    return path_image_samples
 
 
 __all__ = [
@@ -78,7 +95,7 @@ __all__ = [
     "print_memory_usage",
     "ParamContainer",
     "LogTopology",
-    "path_image_samples",
+    "get_path_image_samples",
     "SeriesOfArrays",
     "SerieOfArraysFromFiles",
     "np",

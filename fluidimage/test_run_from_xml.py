@@ -3,8 +3,10 @@ import sys
 import unittest
 
 from fluiddyn.io import stdout_redirected
-from fluidimage import path_image_samples
+from fluidimage import get_path_image_samples
 from fluidimage.run_from_xml import main
+
+path_image_samples = get_path_image_samples()
 
 
 class TestRunFromXML(unittest.TestCase):

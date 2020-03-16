@@ -5,13 +5,13 @@ from pathlib import Path
 from fluiddyn.io import stdout_redirected
 
 
-from fluidimage import path_image_samples
+from fluidimage import get_path_image_samples
 
 
 class TTeestSurftrack(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.path_input_files = path_image_samples / "SurfTracking/Images"
+        cls.path_input_files = get_path_image_samples() / "SurfTracking/Images"
         cls.postfix = "test_surftrack"
 
     @classmethod

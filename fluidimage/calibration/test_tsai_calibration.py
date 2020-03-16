@@ -4,13 +4,13 @@ import h5py
 import matplotlib.pyplot as plt
 import numpy as np
 
-from fluidimage import path_image_samples
+from fluidimage import get_path_image_samples
 from fluidimage.calibration import Calibration
 
 plt.show = lambda: 0
 
 
-pathbase = path_image_samples / "Milestone"
+pathbase = get_path_image_samples() / "Milestone"
 
 
 def get_piv_field(path):

@@ -5,7 +5,7 @@ from shutil import rmtree
 
 from fluiddyn.io import stdout_redirected
 from fluiddyn.io.image import imread, imsave
-from fluidimage import path_image_samples
+from fluidimage import get_path_image_samples
 from fluidimage.preproc.base import PreprocBase
 
 
@@ -15,7 +15,7 @@ class TestPreprocKarman(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        path_in = str(path_image_samples / cls.name / "Images")
+        path_in = str(get_path_image_samples() / cls.name / "Images")
 
         cls._work_dir = os.path.join(
             "test_fluidimage_topo_preproc_" + cls.name, "Images"
