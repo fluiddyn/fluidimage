@@ -132,11 +132,12 @@ class VectorFieldOnGrid:
         self.history = history
         self.params = params
 
-        self.is_grid_regular = (
-            _is_regular(x)
-            and _is_regular(y)
-            and (z is None or isinstance(z, Number) or _is_regular(z))
-        )
+        self.is_grid_regular = _is_regular(x) and _is_regular(y)
+
+        if z is not None and self.is_grid_regular:
+            self.is_grid_regular = (
+                isinstance(z, Number) or z.shape == vx.shape or _is_regular(z)
+            )
 
         if self.is_grid_regular:
             self.dx = x[1] - x[0]
