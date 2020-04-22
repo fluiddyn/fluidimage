@@ -146,7 +146,7 @@ class VectorFieldOnGrid:
     @property
     def shape(self):
         """Shape of the field (``(nz, ny, nx)`` or ``(ny, nx)``)"""
-        if self.z is None or isinstance(self.z, Number) or self.z.ndim>1:
+        if self.z is None or isinstance(self.z, Number) or self.z.ndim > 1:
             return len(self.y), len(self.x)
         else:
             return len(self.z), len(self.y), len(self.x)
@@ -222,10 +222,10 @@ class VectorFieldOnGrid:
                 for attr_name in cls._attr_saved_as_dataset:
                     kwargs[attr_name] = file[attr_name][...]
                 for attr_name in cls._attr_saved_as_attr:
-                    if isinstance(file.attrs[attr_name],np.ndarray):
-                        kwargs[attr_name] = list(file.attrs[attr_name])
-                    else:
-                        kwargs[attr_name] = file.attrs[attr_name]
+                    attr = file.attrs[attr_name]
+                    if isinstance(attr, np.ndarray):
+                        attr = list(attr)
+                    kwargs[attr_name] = attr
 
                 if "params" in file.keys():
                     params = ParamContainer(hdf5_object=file["params"])
