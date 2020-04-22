@@ -146,7 +146,7 @@ class VectorFieldOnGrid:
     @property
     def shape(self):
         """Shape of the field (``(nz, ny, nx)`` or ``(ny, nx)``)"""
-        if self.z is None or isinstance(self.z, Number):
+        if self.z is None or isinstance(self.z, Number) or self.z.ndim>1:
             return len(self.y), len(self.x)
         else:
             return len(self.z), len(self.y), len(self.x)
