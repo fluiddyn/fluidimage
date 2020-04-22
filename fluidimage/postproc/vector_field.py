@@ -222,7 +222,10 @@ class VectorFieldOnGrid:
                 for attr_name in cls._attr_saved_as_dataset:
                     kwargs[attr_name] = file[attr_name][...]
                 for attr_name in cls._attr_saved_as_attr:
-                    kwargs[attr_name] = file.attrs[attr_name]
+                    if isinstance(file.attrs[attr_name],np.ndarray):
+                        kwargs[attr_name] = list(file.attrs[attr_name])
+                    else:
+                        kwargs[attr_name] = file.attrs[attr_name]
 
                 if "params" in file.keys():
                     params = ParamContainer(hdf5_object=file["params"])
