@@ -139,6 +139,30 @@ class VectorFieldOnGrid:
                 isinstance(z, Number) or z.shape == vx.shape or _is_regular(z)
             )
 
+        # data orientation for proper quiver
+        flipx = self.x[1] - self.x[0] < 0
+        flipy = self.y[1] - self.y[0] < 0
+        if flipx:
+            self.x = np.flip(self.x)
+            self.vx = np.fliplr(self.vx)
+            self.vy = np.fliplr(self.vy)
+            if vz.shape == vx.shape:
+                self.vz = np.fliplr(self.vz)
+            if not (
+                isinstance(self.z, Number) or not self.vx.shape == self.z.shape
+            ):
+                self.z = np.fliplr(self.z)
+        if flipy:
+            self.y = np.flip(self.y)
+            self.vx = np.flipud(self.vx)
+            self.vy = np.flipud(self.vy)
+            if vz.shape == vx.shape:
+                self.vz = np.flipud(self.vz)
+            if not (
+                isinstance(self.z, Number) or not self.vx.shape == self.z.shape
+            ):
+                self.z = np.flipud(self.z)
+
         if self.is_grid_regular:
             self.dx = x[1] - x[0]
             self.dy = y[1] - y[0]
@@ -310,7 +334,7 @@ class VectorFieldOnGrid:
 
         # minus because the y axis is inverted
         q = ax.quiver(
-            self.x, self.y, self.vx, -self.vy, scale_units="xy", scale=scale
+            self.x, self.y, self.vx, self.vy, scale_units="xy", scale=scale
         )
         ax.set_xlabel(self.namex + " [" + self.unitx + "]")
         ax.set_ylabel(self.namey + " [" + self.unity + "]")
@@ -339,7 +363,8 @@ class VectorFieldOnGrid:
         n = 20
         ax.set_xlim([xmin - lx / n, xmax + lx / n])
         # y axis inverted!
-        ax.set_ylim([ymax + ly / n, ymin - ly / n])
+        # ax.set_ylim([ymax + ly / n, ymin - ly / n])
+        ax.set_ylim([ymin - ly / n, ymax + ly / n])
         ax.set_aspect("equal")
 
         return ax
