@@ -146,9 +146,7 @@ class VectorFieldOnGrid:
             self.x = np.flip(self.x)
             self.vx = np.fliplr(self.vx)
             self.vy = np.fliplr(self.vy)
-            if not (
-                isinstance(self.vz, Number) or not vz.shape == vx.shape
-            ):
+            if not (isinstance(self.vz, Number) or not vz.shape == vx.shape):
                 self.vz = np.fliplr(self.vz)
             if not (
                 isinstance(self.z, Number) or not self.vx.shape == self.z.shape
@@ -158,9 +156,7 @@ class VectorFieldOnGrid:
             self.y = np.flip(self.y)
             self.vx = np.flipud(self.vx)
             self.vy = np.flipud(self.vy)
-            if not (
-                isinstance(self.vz, Number) or not vz.shape == vx.shape
-            ):
+            if not (isinstance(self.vz, Number) or not vz.shape == vx.shape):
                 self.vz = np.flipud(self.vz)
             if not (
                 isinstance(self.z, Number) or not self.vx.shape == self.z.shape
@@ -168,8 +164,8 @@ class VectorFieldOnGrid:
                 self.z = np.flipud(self.z)
 
         if self.is_grid_regular:
-            self.dx = x[1] - x[0]
-            self.dy = y[1] - y[0]
+            self.dx = self.x[1] - self.x[0]
+            self.dy = self.y[1] - self.y[0]
 
     @property
     def shape(self):
