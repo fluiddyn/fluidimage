@@ -7,12 +7,11 @@
 
 """
 import json
-import os
 import sys
 from pathlib import Path
 
 from fluidimage import ParamContainer, SerieOfArraysFromFiles
-from fluidimage.data_objects.piv import ArrayCoupleBOS
+from fluidimage.data_objects.piv import ArrayCoupleBOS, get_name_bos
 from fluidimage.topologies import TopologyBase, prepare_path_dir_result
 from fluidimage.util import imread, logger
 from fluidimage.works.piv import WorkPIV
@@ -266,7 +265,7 @@ postfix : str
         names = serie.get_name_arrays()
 
         for name in names:
-            path_im_output = self.path_dir_result / name
+            path_im_output = self.path_dir_result / get_name_bos(name, serie)
             path_im_input = str(self.path_dir_src / name)
             if self.how_saving == "complete":
                 if not path_im_output.exists():
@@ -296,7 +295,7 @@ postfix : str
 
     def make_text_at_exit(self, time_since_start):
         """Make a text printed at exit"""
-        txt = "Stop compute after t = {time_since_start:.2f} s"
+        txt = f"Stop compute after t = {time_since_start:.2f} s"
         try:
             nb_results = len(self.results)
         except AttributeError:

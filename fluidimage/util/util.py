@@ -18,11 +18,9 @@ Provides:
 
 """
 
-import sys
 from pathlib import Path
 
 import psutil
-import six
 from IPython.lib.pretty import pretty
 
 from fluiddyn.io.image import imread as _imread
