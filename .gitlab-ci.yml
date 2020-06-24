@@ -1,6 +1,5 @@
 variables:
   CODECOV_TOKEN: 0ac60028-17ba-4383-b4ad-b5ba5ca35f3d
-  SKIP_SHTNS: 1
 
 tests:
   image: fluiddyn/python3-stable

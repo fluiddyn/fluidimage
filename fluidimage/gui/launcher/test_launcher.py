@@ -1,6 +1,17 @@
-from .main import Program
+import os
 
+from warnings import warn
 
-def test_launcher(qtbot):
-    widget = Program()
-    qtbot.addWidget(widget)
+GITLAB_CI = os.getenv("GITLAB_CI")
+
+if not GITLAB_CI:
+    warn(
+        "Skip test in fluidimage.gui.launcher.test_launcher "
+        f"because GITLAB_CI={GITLAB_CI}"
+    )
+
+    from .main import Program
+
+    def test_launcher(qtbot):
+        widget = Program()
+        qtbot.addWidget(widget)
