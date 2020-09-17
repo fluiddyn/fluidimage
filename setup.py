@@ -2,34 +2,16 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from datetime import datetime
-from logging import ERROR, INFO, DEBUG
+from logging import ERROR, INFO
 
 from runpy import run_path
 
-from distutils.sysconfig import get_config_var
-
 from setuptools import setup, find_packages
-from setuptools.command.build_ext import build_ext
-from setuptools.dist import Distribution
 
+from transonic.dist import ParallelBuildExt, get_logger
 
 if sys.version_info[:2] < (3, 6):
     raise RuntimeError("Python version >= 3.6 required.")
-
-
-def install_setup_requires():
-    dist = Distribution()
-    # Honor setup.cfg's options.
-    dist.parse_config_files(ignore_option_errors=True)
-    if dist.setup_requires:
-        dist.fetch_build_eggs(dist.setup_requires)
-
-
-install_setup_requires()
-
-
-from transonic.dist import ParallelBuildExt, get_logger
 
 if "egg_info" in sys.argv:
     level = ERROR
@@ -39,19 +21,6 @@ else:
 logger = get_logger("fluidimage")
 logger.setLevel(level)
 
-
-fluid_build_ext = build_ext
-try:
-    from pythran.dist import PythranExtension
-
-    try:
-        # pythran > 0.8.6
-        from pythran.dist import PythranBuildExt as fluid_build_ext
-    except ImportError:
-        pass
-    use_pythran = True
-except ImportError:
-    use_pythran = False
 
 here = Path(__file__).parent.absolute()
 
@@ -171,6 +140,7 @@ setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
     ],
     packages=find_packages(exclude=["doc", "include", "scripts"]),
     scripts=["bin/fluidimviewer", "bin/fluidimlauncher"],

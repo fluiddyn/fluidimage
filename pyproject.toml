@@ -1,0 +1,16 @@
+[build-system]
+requires = [
+    "setuptools",
+    "wheel",
+    "setuptools_scm",
+    "transonic >= 0.2.2",
+    "numpy",
+    "pythran==0.9.6",
+    "gast~=0.3.3",
+    "beniget~=0.2.1",
+    ]
+
+build-backend = "setuptools.build_meta"
+
+[tox]
+isolated_build = "True"
