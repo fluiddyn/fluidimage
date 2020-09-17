@@ -1,5 +1,4 @@
 import os
-import subprocess
 import sys
 from pathlib import Path
 from logging import ERROR, INFO
@@ -9,6 +8,7 @@ from runpy import run_path
 from setuptools import setup, find_packages
 
 from transonic.dist import ParallelBuildExt, get_logger
+import setuptools_scm
 
 if sys.version_info[:2] < (3, 6):
     raise RuntimeError("Python version >= 3.6 required.")
@@ -54,19 +54,17 @@ def write_rev(rev):
 
 
 try:
-    hg_rev = subprocess.check_output(["hg", "id", "--id"]).decode("utf-8").strip()
-    write_rev(hg_rev)
-except (OSError, subprocess.CalledProcessError):
+    full_version = setuptools_scm.get_version()
+except LookupError:
+    pass
+else:
     try:
-        hg_rev = (
-            "git:"
-            + subprocess.check_output(["git", "rev-parse", "HEAD"])
-            .decode("utf-8")
-            .strip()
-        )
-        write_rev(hg_rev)
-    except (OSError, subprocess.CalledProcessError):
-        pass
+        revision = full_version.split("+")[1]
+    except IndexError:
+        revision = full_version
+    if "." in revision:
+        revision = revision.split(".")[0]
+    write_rev(revision)
 
 
 def transonize():
