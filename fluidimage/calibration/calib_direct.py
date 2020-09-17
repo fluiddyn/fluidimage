@@ -41,8 +41,7 @@ class Interpolent:
 
 
 def get_points(points_file):
-    """Get grid points extracted from calibration images
-    """
+    """Get grid points extracted from calibration images"""
     imgpts = ParamContainer(path_file=points_file)
     tidy_container(imgpts)
     imgpts = imgpts.geometry_calib.source_calib.__dict__
@@ -187,7 +186,7 @@ class CalibDirect:
             titles = ["X0", "Y0", "Z0", "dx", "dy", "dz"]
             for j in range(6):
                 pylab.figure()
-                pylab.pcolor(x, y, V[:, :, j])
+                pylab.pcolor(x, y, V[:, :, j], shading="nearest")
                 pylab.title(titles[j])
                 pylab.xlabel("x (pix)")
                 pylab.ylabel("y (pix)")
@@ -195,7 +194,10 @@ class CalibDirect:
 
             pylab.figure()
             pylab.pcolor(
-                x, y, np.sqrt(V[:, :, 3] ** 2 + V[:, :, 4] ** 2 + V[:, :, 5] ** 2)
+                x,
+                y,
+                np.sqrt(V[:, :, 3] ** 2 + V[:, :, 4] ** 2 + V[:, :, 5] ** 2),
+                shading="nearest",
             )
             pylab.title("norm(d)")
             pylab.xlabel("x (pix)")
@@ -251,8 +253,7 @@ class CalibDirect:
             return np.hstack([np.nan] * 6)
 
     def save(self, pth_file):
-        """Save calibration
-        """
+        """Save calibration"""
         np.save(
             pth_file,
             [
@@ -264,8 +265,7 @@ class CalibDirect:
         )
 
     def load(self, pth_file):
-        """Load calibration
-        """
+        """Load calibration"""
         tmp = np.load(pth_file, allow_pickle=True)
         self.interp_lines = tmp[0]
         self.paths_xml = tmp[1]
@@ -300,8 +300,7 @@ class CalibDirect:
         return displacements
 
     def get_base_camera_plane(self, indx=None, indy=None):
-        """Matrix of base change from camera plane to fixed plane
-        """
+        """Matrix of base change from camera plane to fixed plane"""
         if indx is None:
             indx = range(self.nb_pixels_x // 2 - 20, self.nb_pixels_x // 2 + 20)
             indy = range(self.nb_pixels_y // 2 - 20, self.nb_pixels_y // 2 + 20)
@@ -313,8 +312,7 @@ class CalibDirect:
         return A, B
 
     def check_interp_levels(self, number=100):
-        """Plot to check interp_levels
-        """
+        """Plot to check interp_levels"""
         interp = self.interp_levels
         indx = range(0, self.nb_pixels_x, self.nb_pixels_x // number)
         indy = range(0, self.nb_pixels_y, self.nb_pixels_y // number)
@@ -324,14 +322,14 @@ class CalibDirect:
             X = interp.indices_pixel2xphys[i]((indx, indy))
             Y = interp.indices_pixel2yphys[i]((indx, indy))
             pylab.figure()
-            pylab.pcolor(indx, indy, X)
+            pylab.pcolor(indx, indy, X, shading="nearest")
             pylab.title(f"Level {i}, X")
             pylab.xlabel("x (pix)")
             pylab.ylabel("y (pix)")
             pylab.colorbar()
 
             pylab.figure()
-            pylab.pcolor(indx, indy, Y)
+            pylab.pcolor(indx, indy, Y, shading="nearest")
             pylab.title(f"Level {i}, Y")
             pylab.xlabel("x (pix)")
             pylab.ylabel("y (pix)")
@@ -340,8 +338,7 @@ class CalibDirect:
         plt.show()
 
     def check_interp_lines(self, number=10):
-        """Plot to check interp_lines
-        """
+        """Plot to check interp_lines"""
         fig = pylab.figure()
         ax = Axes3D(fig)
         for i, path in enumerate(self.paths_xml):
@@ -370,8 +367,7 @@ class CalibDirect:
         plt.show()
 
     def check_interp_lines_coeffs(self, number=100):
-        """Plot to check interp_lines coefficients
-        """
+        """Plot to check interp_lines coefficients"""
         x = range(0, self.nb_pixels_x, self.nb_pixels_x // number)
         y = range(0, self.nb_pixels_y, self.nb_pixels_y // number)
         x, y = np.meshgrid(x, y)
@@ -393,43 +389,45 @@ class CalibDirect:
                 dz[i, j] = self.interp_lines[5]((x[i, j], y[i, j]))
 
         pylab.figure()
-        pylab.pcolor(x, y, X0)
+        pylab.pcolor(x, y, X0, shading="nearest")
         pylab.title("X0")
         pylab.xlabel("x (pix)")
         pylab.ylabel("y (pix)")
         pylab.colorbar()
         pylab.figure()
-        pylab.pcolor(x, y, Y0)
+        pylab.pcolor(x, y, Y0, shading="nearest")
         pylab.title("Y0")
         pylab.xlabel("x (pix)")
         pylab.ylabel("y (pix)")
         pylab.colorbar()
         pylab.figure()
-        pylab.pcolor(x, y, Z0)
+        pylab.pcolor(x, y, Z0, shading="nearest")
         pylab.title("Z0")
         pylab.xlabel("x (pix)")
         pylab.ylabel("y (pix)")
         pylab.colorbar()
         pylab.figure()
-        pylab.pcolor(x, y, dx)
+        pylab.pcolor(x, y, dx, shading="nearest")
         pylab.title("dx")
         pylab.xlabel("x (pix)")
         pylab.ylabel("y (pix)")
         pylab.colorbar()
         pylab.figure()
-        pylab.pcolor(x, y, dy)
+        pylab.pcolor(x, y, dy, shading="nearest")
         pylab.title("dy")
         pylab.xlabel("x (pix)")
         pylab.ylabel("y (pix)")
         pylab.colorbar()
         pylab.figure()
-        pylab.pcolor(x, y, dz)
+        pylab.pcolor(x, y, dz, shading="nearest")
         pylab.title("dz")
         pylab.xlabel("x (pix)")
         pylab.ylabel("y (pix)")
         pylab.colorbar()
         pylab.figure()
-        pylab.pcolor(x, y, np.sqrt(dx ** 2 + dy ** 2 + dz ** 2))
+        pylab.pcolor(
+            x, y, np.sqrt(dx ** 2 + dy ** 2 + dz ** 2), shading="nearest"
+        )
         pylab.title("norm(d)")
         pylab.xlabel("x (pix)")
         pylab.ylabel("y (pix)")
@@ -531,8 +529,7 @@ class DirectStereoReconstruction:
         return X0, X1, d0cam, d1cam
 
     def find_common_grid(self, X0, X1, a, b, c, d):
-        """Find a common grid for the 2 cameras
-        """
+        """Find a common grid for the 2 cameras"""
         xmin0 = np.nanmin(X0[:, 0])
         xmax0 = np.nanmax(X0[:, 0])
         ymin0 = np.nanmin(X0[:, 1])
