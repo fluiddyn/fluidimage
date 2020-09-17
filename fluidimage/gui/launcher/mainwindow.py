@@ -6,7 +6,9 @@
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+# !!! Changed by hand to get the tests working !!!
+# before it was `from PyQt5 ...`
+from matplotlib.backends.qt_compat import QtCore, QtGui, QtWidgets
 
 
 class Ui_MainWindow:
