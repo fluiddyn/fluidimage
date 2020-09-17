@@ -56,7 +56,7 @@ def write_rev(rev):
 try:
     full_version = setuptools_scm.get_version()
 except LookupError:
-    pass
+    revision = "?"
 else:
     try:
         revision = full_version.split("+")[1]
@@ -64,7 +64,7 @@ else:
         revision = full_version
     if "." in revision:
         revision = revision.split(".")[0]
-    write_rev(revision)
+write_rev(revision)
 
 
 def transonize():
