@@ -4,8 +4,8 @@ python:
   - 3.6
 
 env:
-  - TOXENV=py,codecov-travis CC=gcc-6 CXX=g++-6
-  - TOXENV=py-pythran,codecov-travis CC=clang CXX=clang++
+  - TOXENV=py36,codecov-travis
+  - TOXENV=py36-pythran,codecov-travis CC=clang CXX=clang++
 
 before_cache:
   - |
@@ -17,22 +17,8 @@ cache:
         - $HOME/.cache/pip
         - $TRAVIS_BUILD_DIR/.tox
 
-addons:
-    apt:
-        sources:
-            - ubuntu-toolchain-r-test
-        packages:
-            - gcc-6
-            - g++-6
-            - libfftw3-dev
-            - libhdf5-openmpi-dev
-            - openmpi-bin
-            - libopenblas-dev
-
 install:
-    - pip install -U pip setuptools wheel six colorlog
-    - pip install -U tox coverage pytest pytest-qt
-    - pip install -U numpy
+    - pip install -U pip tox coverage
 
 before_script:
     - |
