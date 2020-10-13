@@ -1,13 +1,7 @@
-.. warning ::
-
-   Our repositories in Bitbucket.org will soon be deleted! Our new home:
-   https://foss.heptapod.net/fluiddyn (`more details
-   <https://fluiddyn.readthedocs.io/en/latest/advice_developers.html>`_).
-
 FluidImage
 ==========
 
-|release| |docs| |coverage| |travis|
+|release| |docs| |coverage| |heptapod_ci|  |travis|
 
 .. |release| image:: https://img.shields.io/pypi/v/fluidimage.svg
    :target: https://pypi.python.org/pypi/fluidimage/
@@ -17,11 +11,15 @@ FluidImage
    :target: http://fluidimage.readthedocs.org
    :alt: Documentation status
 
-.. |coverage| image:: https://codecov.io/gh/fluiddyn/fluidimage/branch/master/graph/badge.svg
-   :target: https://codecov.io/gh/fluiddyn/fluidimage/branch/master/
+.. |coverage| image:: https://codecov.io/gh/fluiddyn/fluidimage/branch/branch%2Fdefault/graph/badge.svg
+   :target: https://codecov.io/gh/fluiddyn/fluidimage/branch/branch%2Fdefault/
    :alt: Code coverage
 
-.. |travis| image:: https://travis-ci.org/fluiddyn/fluidimage.svg?branch=master
+.. |heptapod_ci| image:: https://foss.heptapod.net/fluiddyn/fluidimage/badges/branch/default/pipeline.svg
+   :target: https://foss.heptapod.net/fluiddyn/fluidimage/-/pipelines
+   :alt: Heptapod CI
+
+.. |travis| image:: https://travis-ci.org/fluiddyn/fluidimage.svg?branch=branch%2Fdefault
     :target: https://travis-ci.org/fluiddyn/fluidimage
 
 FluidImage is a libre Python framework for scientific processing of large
