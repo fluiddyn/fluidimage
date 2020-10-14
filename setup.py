@@ -2,6 +2,7 @@ import os
 import sys
 from pathlib import Path
 from logging import ERROR, INFO
+from distutils.util import strtobool
 
 from runpy import run_path
 
@@ -21,6 +22,37 @@ else:
 logger = get_logger("fluidimage")
 logger.setLevel(level)
 
+build_dependencies_backends = {
+    "pythran": ["pythran>=0.9.7"],
+    "cython": ["cython"],
+    "python": [],
+    "numba": [],
+}
+
+TRANSONIC_BACKEND = os.environ.get("FLUIDIMAGE_TRANSONIC_BACKEND", "pythran")
+
+if "DISABLE_PYTHRAN" in os.environ:
+    DISABLE_PYTHRAN = strtobool(os.environ["DISABLE_PYTHRAN"])
+
+    if (
+        "FLUIDIMAGE_TRANSONIC_BACKEND" in os.environ
+        and DISABLE_PYTHRAN
+        and TRANSONIC_BACKEND == "pythran"
+    ):
+        raise ValueError
+
+    if DISABLE_PYTHRAN:
+        TRANSONIC_BACKEND = "python"
+
+
+if TRANSONIC_BACKEND not in build_dependencies_backends:
+    raise ValueError(
+        f"FLUIDIMAGE_TRANSONIC_BACKEND={TRANSONIC_BACKEND} "
+        f"not in {list(build_dependencies_backends.keys())}"
+    )
+
+setup_requires = []
+setup_requires.extend(build_dependencies_backends[TRANSONIC_BACKEND])
 
 here = Path(__file__).parent.absolute()
 
@@ -145,6 +177,7 @@ setup(
     entry_points={
         "console_scripts": ["fluidimviewer-pg = fluidimage.gui.pg_main:main"]
     },
+    setup_requires=setup_requires,
     ext_modules=create_extensions(),
     cmdclass={"build_ext": ParallelBuildExt},
 )
