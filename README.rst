@@ -1,7 +1,7 @@
 FluidImage
 ==========
 
-|release| |docs| |coverage| |heptapod_ci|  |travis|
+|release| |docs| |coverage| |heptapod_ci| |travis|
 
 .. |release| image:: https://img.shields.io/pypi/v/fluidimage.svg
    :target: https://pypi.python.org/pypi/fluidimage/
