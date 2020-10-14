@@ -6,5 +6,5 @@ tests:
   script:
     - pip install -U pip tox --user
     - rm -rf .tox
-    - tox -e py36 -vv
+    - tox -e py36-pyqt5 -vv
     - tox -e codecov -vv

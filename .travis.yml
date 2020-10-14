@@ -15,7 +15,6 @@ before_cache:
 cache:
     directories:
         - $HOME/.cache/pip
-        - $TRAVIS_BUILD_DIR/.tox
 
 install:
     - pip install -U pip tox coverage
@@ -23,8 +22,9 @@ install:
 before_script:
     - |
       mkdir -p $HOME/.config/matplotlib
-      echo 'backend      : agg' > $HOME/.config/matplotlib/matplotlibrc
+      echo 'backend      : TkAgg' > $HOME/.config/matplotlib/matplotlibrc
       echo -e "[pythran]\ncomplex_hook=True\n\n[compiler]\nCXX = clang++\nCC = clang\n" > $HOME/.pythranrc
+      rm -rf $TRAVIS_BUILD_DIR/.tox
 
 script:
     - tox -vv
