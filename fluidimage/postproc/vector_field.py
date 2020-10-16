@@ -134,7 +134,7 @@ class VectorFieldOnGrid:
 
         self.is_grid_regular = _is_regular(x) and _is_regular(y)
 
-        if z is not None and self.is_grid_regular:
+        if z is not None and not isinstance(z,list) and self.is_grid_regular:
             self.is_grid_regular = (
                 isinstance(z, Number) or z.shape == vx.shape or _is_regular(z)
             )
@@ -453,6 +453,10 @@ class VectorFieldOnGrid:
         ret.vy = _extract2d(ret.vy)
         if hasattr(self, "vz") and np.size(self.vz) > 1:
             ret.vz = _extract2d(ret.vz)
+        if not (
+            isinstance(self.z, Number) or not self.vx.shape == self.z.shape
+        ):
+            ret.z = _extract2d(ret.z)
 
         ret.history.append(
             (
@@ -497,16 +501,32 @@ class VectorFieldOnGrid:
         """Compute the norm of the vector field"""
         return np.sqrt(self.vx ** 2 + self.vy ** 2)
 
-    def compute_spatial_fft(self):
+    def compute_spatial_fft(self, axes=(0, 1)):
         """Compute the spatial Fourier transform"""
-        vx_fft, kx, ky, psd_vx = compute_2dspectrum(
-            self.x, self.y, self.vx, axes=(0, 1)
-        )
-        vy_fft, kx, ky, psd_vy = compute_2dspectrum(
-            self.x, self.y, self.vy, axes=(0, 1)
-        )
-
-        return vx_fft, vy_fft, kx, ky, psd_vx, psd_vy
+        if axes == (0, 1):
+            vx_fft, kx, ky, psd_vx = compute_2dspectrum(
+                self.x, self.y, self.vx, axes=axes
+            )
+            vy_fft, kx, ky, psd_vy = compute_2dspectrum(
+                self.x, self.y, self.vy, axes=axes
+            )
+            return vx_fft, vy_fft, kx, ky, psd_vx, psd_vy
+        elif axes == 0:
+            vx_fft, ky, psd_vx = compute_1dspectrum(
+                self.y, self.vx, axis=axes
+            )
+            vy_fft, ky, psd_vy = compute_1dspectrum(
+                self.y, self.vy, axis=axes
+            )
+            return vx_fft, vy_fft, self.x, ky, psd_vx, psd_vy
+        elif axes == 1:
+            vx_fft, kx, psd_vx = compute_1dspectrum(
+                self.x, self.vx, axis=axes
+            )
+            vy_fft, kx, psd_vy = compute_1dspectrum(
+                self.x, self.vy, axis=axes
+            )
+            return vx_fft, vy_fft, kx, self.y, psd_vx, psd_vy
 
     def compute_rotz(self, edge_order=2):
         """Compute the vertical curl"""
@@ -682,3 +702,37 @@ class ArrayOfVectorFieldsOnGrid:
         vy_fft, omega, psdV = compute_1dspectrum(self.times, fields, axis=0)
 
         return vx_fft, vy_fft, omega, psdU, psdV
+
+    def apply_function_tofields(self,func):
+        piv0 = self._list[0]
+        fields = np.empty([len(self._list), *piv0.shape])
+        for it, piv in enumerate(self._list):
+            fields[it, :, :] = piv.vx
+        retvx = func(fields)
+        for it, piv in enumerate(self._list):
+            fields[it, :, :] = piv.vy
+        retvy = func(fields)
+        result = deepcopy(self)
+        for it,v in enumerate(result):
+            v.vx = retvx[it]
+            v.vy = retvy[it]
+        return result
+
+    def display(self, ind=0, scale=1, background=None, ax=None):
+        ax = self._list[ind].display(scale, background, ax)
+        fig = ax.figure
+        self.currentind = ind
+        def onscroll(event):
+            if event.button == "up":
+                self.currentind  = (self.currentind + 1) % len(self)
+            else:
+                self.currentind  = (self.currentind - 1) % len(self)
+            C = self._list[self.currentind].compute_norm()
+            C = C[:-1, :-1]
+            ax.collections[0].set_array(C.ravel())
+            ax.collections[1].set_UVC(self._list[self.currentind].vx, self._list[self.currentind].vy)
+            print(f"t ={self.times[self.currentind]:.2f} sec")
+            fig.canvas.draw()
+
+        fig.canvas.mpl_connect("scroll_event", onscroll)
+        return ax
