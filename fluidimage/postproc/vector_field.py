@@ -148,7 +148,7 @@ class VectorFieldOnGrid:
             self.vy = np.fliplr(self.vy)
             if not (isinstance(self.vz, Number) or not vz.shape == vx.shape):
                 self.vz = np.fliplr(self.vz)
-            if not (
+            if z is not None and not (
                 isinstance(self.z, Number) or not self.vx.shape == self.z.shape
             ):
                 self.z = np.fliplr(self.z)
@@ -158,7 +158,7 @@ class VectorFieldOnGrid:
             self.vy = np.flipud(self.vy)
             if not (isinstance(self.vz, Number) or not vz.shape == vx.shape):
                 self.vz = np.flipud(self.vz)
-            if not (
+            if z is not None and not (
                 isinstance(self.z, Number) or not self.vx.shape == self.z.shape
             ):
                 self.z = np.flipud(self.z)
@@ -560,10 +560,12 @@ class ArrayOfVectorFieldsOnGrid:
 
         self.timestep = None
         self.times = None
+        self.unittimes = None
 
-    def set_timestep(self, timestep):
+    def set_timestep(self, timestep, unittimes = "sec"):
         """Set the timestep (and a time vector)"""
         self.timestep = timestep
+        self.unittimes = unittimes
         nb_files = len(self)
         self.times = np.linspace(0, timestep * (nb_files - 1), nb_files)
 
@@ -731,7 +733,7 @@ class ArrayOfVectorFieldsOnGrid:
             C = C[:-1, :-1]
             ax.collections[0].set_array(C.ravel())
             ax.collections[1].set_UVC(self._list[self.currentind].vx, self._list[self.currentind].vy)
-            print(f"t ={self.times[self.currentind]:.2f} sec")
+            print(f"t ={self.times[self.currentind]:.2f} "+ self.unittimes)
             fig.canvas.draw()
 
         fig.canvas.mpl_connect("scroll_event", onscroll)
