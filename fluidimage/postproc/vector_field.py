@@ -319,7 +319,7 @@ class VectorFieldOnGrid:
     def __truediv__(self, other):
         return self.__div__(other)
 
-    def display(self, scale=1, background=None, ax=None):
+    def display(self, scale=1, background=None, ax=None, skip=(slice(None),slice(None))):
         """Display the vector field"""
 
         if background is not None:
@@ -334,7 +334,7 @@ class VectorFieldOnGrid:
 
         # minus because the y axis is inverted
         q = ax.quiver(
-            self.x, self.y, self.vx, self.vy, scale_units="xy", scale=scale
+            self.x[skip[0]], self.y[skip[1]], self.vx[skip], self.vy[skip], scale_units="xy", scale=scale
         )
         ax.set_xlabel(self.namex + " [" + self.unitx + "]")
         ax.set_ylabel(self.namey + " [" + self.unity + "]")
@@ -720,8 +720,8 @@ class ArrayOfVectorFieldsOnGrid:
             v.vy = retvy[it]
         return result
 
-    def display(self, ind=0, scale=1, background=None, ax=None):
-        ax = self._list[ind].display(scale, background, ax)
+    def display(self, ind=0, scale=1, background=None, ax=None, skip=slice(None)):
+        ax = self._list[ind].display(scale, background, ax, skip)
         fig = ax.figure
         self.currentind = ind
         def onscroll(event):
@@ -732,7 +732,7 @@ class ArrayOfVectorFieldsOnGrid:
             C = self._list[self.currentind].compute_norm()
             C = C[:-1, :-1]
             ax.collections[0].set_array(C.ravel())
-            ax.collections[1].set_UVC(self._list[self.currentind].vx, self._list[self.currentind].vy)
+            ax.collections[1].set_UVC(self._list[self.currentind].vx[skip], self._list[self.currentind].vy[skip])
             print(f"t ={self.times[self.currentind]:.2f} "+ self.unittimes)
             fig.canvas.draw()
 
