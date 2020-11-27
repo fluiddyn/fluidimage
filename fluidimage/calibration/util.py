@@ -3,7 +3,6 @@
 
 """
 
-import re
 from math import cos, sin
 
 import numpy as np
@@ -12,11 +11,8 @@ from fluiddyn.util.paramcontainer import ParamContainer, tidy_container
 
 
 def get_number_from_string(string):
-    return [float(s) for s in re.findall(r"[-+]?\d*\.\d+|\d+", string)]
 
-
-def get_number_from_string2(string):
-    return [float(s) for s in string.split()]
+    return [float(word) for word in string.split() if word]
 
 
 def get_plane_equation(z0, alpha, beta):
@@ -71,9 +67,7 @@ def get_base_from_normal_vector(nx, ny, nz):
 
 
 def make_params_calibration(path_file):
-    """Make a tidy parameter container from a UVmat file.
-
-    """
+    """Make a tidy parameter container from a UVmat file."""
     params = ParamContainer(tag="calib")
 
     calib_uvmat = ParamContainer(path_file=str(path_file))

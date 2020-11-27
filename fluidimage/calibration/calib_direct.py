@@ -25,7 +25,7 @@ from scipy.interpolate import (
 
 from fluiddyn.util.paramcontainer import ParamContainer, tidy_container
 
-from .util import get_base_from_normal_vector, get_number_from_string2
+from .util import get_base_from_normal_vector, get_number_from_string
 
 # from scipy.interpolate import CloughTocher2DInterpolator
 
@@ -53,7 +53,7 @@ def get_points(points_file):
     # X, Y and Z are coordinate in real space (physical unit)
     # x and y are the indices of the pixel in the image
     for point in points:
-        numbers = get_number_from_string2(imgpts[point])
+        numbers = get_number_from_string(imgpts[point])
 
         for i, result in enumerate(results):
             result.append(numbers[i])
