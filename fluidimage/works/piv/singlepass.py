@@ -146,7 +146,7 @@ class BaseWorkPIV(BaseWorkWithMask):
         self.ixvecs = ixvecs
         self.iyvecs = iyvecs
 
-        ixvecs, iyvecs = np.meshgrid(ixvecs, iyvecs)
+        iyvecs, ixvecs = np.meshgrid(iyvecs, ixvecs)
 
         self.ixvecs_grid = ixvecs.flatten()
         self.iyvecs_grid = iyvecs.flatten()
