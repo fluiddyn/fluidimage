@@ -197,8 +197,12 @@ class ArrayCouple(DataObject):
         if path is not None:
             raise NotImplementedError
 
-        names = hdf5_object.attrs["names"].decode()
-        paths = hdf5_object.attrs["paths"].decode()
+        names = hdf5_object.attrs["names"]
+        paths = hdf5_object.attrs["paths"]
+
+        if isinstance(names, bytes):
+            names = names.decode()
+            paths = paths.decode()
 
         self.names = eval(names)
         self.paths = eval(paths)
