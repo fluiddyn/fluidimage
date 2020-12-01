@@ -720,7 +720,7 @@ class ArrayOfVectorFieldsOnGrid:
             v.vy = retvy[it]
         return result
 
-    def display(self, ind=0, scale=1, background=None, ax=None, skip=slice(None)):
+    def display(self, ind=0, scale=1, background=None, ax=None, skip=(slice(None),slice(None)):
         ax = self._list[ind].display(scale, background, ax, skip)
         fig = ax.figure
         self.currentind = ind
