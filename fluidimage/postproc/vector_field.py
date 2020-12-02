@@ -134,7 +134,7 @@ class VectorFieldOnGrid:
 
         self.is_grid_regular = _is_regular(x) and _is_regular(y)
 
-        if z is not None and not isinstance(z,list) and self.is_grid_regular:
+        if z is not None and not isinstance(z, list) and self.is_grid_regular:
             self.is_grid_regular = (
                 isinstance(z, Number) or z.shape == vx.shape or _is_regular(z)
             )
@@ -319,7 +319,9 @@ class VectorFieldOnGrid:
     def __truediv__(self, other):
         return self.__div__(other)
 
-    def display(self, scale=1, background=None, ax=None, skip=(slice(None),slice(None))):
+    def display(
+        self, scale=1, background=None, ax=None, skip=(slice(None), slice(None))
+    ):
         """Display the vector field"""
 
         if background is not None:
@@ -334,7 +336,12 @@ class VectorFieldOnGrid:
 
         # minus because the y axis is inverted
         q = ax.quiver(
-            self.x[skip[0]], self.y[skip[1]], self.vx[skip], self.vy[skip], scale_units="xy", scale=scale
+            self.x[skip[0]],
+            self.y[skip[1]],
+            self.vx[skip],
+            self.vy[skip],
+            scale_units="xy",
+            scale=scale,
         )
         ax.set_xlabel(self.namex + " [" + self.unitx + "]")
         ax.set_ylabel(self.namey + " [" + self.unity + "]")
@@ -453,9 +460,7 @@ class VectorFieldOnGrid:
         ret.vy = _extract2d(ret.vy)
         if hasattr(self, "vz") and np.size(self.vz) > 1:
             ret.vz = _extract2d(ret.vz)
-        if not (
-            isinstance(self.z, Number) or not self.vx.shape == self.z.shape
-        ):
+        if not (isinstance(self.z, Number) or not self.vx.shape == self.z.shape):
             ret.z = _extract2d(ret.z)
 
         ret.history.append(
@@ -512,20 +517,12 @@ class VectorFieldOnGrid:
             )
             return vx_fft, vy_fft, kx, ky, psd_vx, psd_vy
         elif axes == 0:
-            vx_fft, ky, psd_vx = compute_1dspectrum(
-                self.y, self.vx, axis=axes
-            )
-            vy_fft, ky, psd_vy = compute_1dspectrum(
-                self.y, self.vy, axis=axes
-            )
+            vx_fft, ky, psd_vx = compute_1dspectrum(self.y, self.vx, axis=axes)
+            vy_fft, ky, psd_vy = compute_1dspectrum(self.y, self.vy, axis=axes)
             return vx_fft, vy_fft, self.x, ky, psd_vx, psd_vy
         elif axes == 1:
-            vx_fft, kx, psd_vx = compute_1dspectrum(
-                self.x, self.vx, axis=axes
-            )
-            vy_fft, kx, psd_vy = compute_1dspectrum(
-                self.x, self.vy, axis=axes
-            )
+            vx_fft, kx, psd_vx = compute_1dspectrum(self.x, self.vx, axis=axes)
+            vy_fft, kx, psd_vy = compute_1dspectrum(self.x, self.vy, axis=axes)
             return vx_fft, vy_fft, kx, self.y, psd_vx, psd_vy
 
     def compute_rotz(self, edge_order=2):
@@ -562,7 +559,7 @@ class ArrayOfVectorFieldsOnGrid:
         self.times = None
         self.unittimes = None
 
-    def set_timestep(self, timestep, unittimes = "sec"):
+    def set_timestep(self, timestep, unittimes="sec"):
         """Set the timestep (and a time vector)"""
         self.timestep = timestep
         self.unittimes = unittimes
@@ -705,7 +702,7 @@ class ArrayOfVectorFieldsOnGrid:
 
         return vx_fft, vy_fft, omega, psdU, psdV
 
-    def apply_function_tofields(self,func):
+    def apply_function_tofields(self, func):
         piv0 = self._list[0]
         fields = np.empty([len(self._list), *piv0.shape])
         for it, piv in enumerate(self._list):
@@ -715,25 +712,36 @@ class ArrayOfVectorFieldsOnGrid:
             fields[it, :, :] = piv.vy
         retvy = func(fields)
         result = deepcopy(self)
-        for it,v in enumerate(result):
+        for it, v in enumerate(result):
             v.vx = retvx[it]
             v.vy = retvy[it]
         return result
 
-    def display(self, ind=0, scale=1, background=None, ax=None, skip=(slice(None),slice(None)):
+    def display(
+        self,
+        ind=0,
+        scale=1,
+        background=None,
+        ax=None,
+        skip=(slice(None), slice(None)),
+    ):
         ax = self._list[ind].display(scale, background, ax, skip)
         fig = ax.figure
         self.currentind = ind
+
         def onscroll(event):
             if event.button == "up":
-                self.currentind  = (self.currentind + 1) % len(self)
+                self.currentind = (self.currentind + 1) % len(self)
             else:
-                self.currentind  = (self.currentind - 1) % len(self)
+                self.currentind = (self.currentind - 1) % len(self)
             C = self._list[self.currentind].compute_norm()
             C = C[:-1, :-1]
             ax.collections[0].set_array(C.ravel())
-            ax.collections[1].set_UVC(self._list[self.currentind].vx[skip], self._list[self.currentind].vy[skip])
-            print(f"t ={self.times[self.currentind]:.2f} "+ self.unittimes)
+            ax.collections[1].set_UVC(
+                self._list[self.currentind].vx[skip],
+                self._list[self.currentind].vy[skip],
+            )
+            print(f"t ={self.times[self.currentind]:.2f} " + self.unittimes)
             fig.canvas.draw()
 
         fig.canvas.mpl_connect("scroll_event", onscroll)
