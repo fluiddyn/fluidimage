@@ -134,7 +134,7 @@ class VectorFieldOnGrid:
 
         self.is_grid_regular = _is_regular(x) and _is_regular(y)
 
-        if z is not None and not isinstance(z, list) and self.is_grid_regular:
+        if z is not None and self.is_grid_regular:
             self.is_grid_regular = (
                 isinstance(z, Number) or z.shape == vx.shape or _is_regular(z)
             )
@@ -557,12 +557,12 @@ class ArrayOfVectorFieldsOnGrid:
 
         self.timestep = None
         self.times = None
-        self.unittimes = None
+        self.unit_times = None
 
-    def set_timestep(self, timestep, unittimes="sec"):
+    def set_timestep(self, timestep, unit_times="sec"):
         """Set the timestep (and a time vector)"""
         self.timestep = timestep
-        self.unittimes = unittimes
+        self.unit_times = unit_times
         nb_files = len(self)
         self.times = np.linspace(0, timestep * (nb_files - 1), nb_files)
 
@@ -702,7 +702,10 @@ class ArrayOfVectorFieldsOnGrid:
 
         return vx_fft, vy_fft, omega, psdU, psdV
 
-    def apply_function_tofields(self, func):
+    def apply_function_to_spatiotemp_data(self, func):
+        """
+        Apply the function func on 3D data vx(t, y, x) and vy(t, y, x).
+        """
         piv0 = self._list[0]
         fields = np.empty([len(self._list), *piv0.shape])
         for it, piv in enumerate(self._list):
@@ -735,7 +738,6 @@ class ArrayOfVectorFieldsOnGrid:
             else:
                 self.currentind = (self.currentind - 1) % len(self)
             C = self._list[self.currentind].compute_norm()
-            C = C[:-1, :-1]
             ax.collections[0].set_array(C.ravel())
             ax.collections[1].set_UVC(
                 self._list[self.currentind].vx[skip],
