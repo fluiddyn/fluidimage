@@ -557,12 +557,12 @@ class ArrayOfVectorFieldsOnGrid:
 
         self.timestep = None
         self.times = None
-        self.unit_times = None
+        self.unit_time = None
 
-    def set_timestep(self, timestep, unit_times="sec"):
+    def set_timestep(self, timestep, unit_time="sec"):
         """Set the timestep (and a time vector)"""
         self.timestep = timestep
-        self.unit_times = unit_times
+        self.unit_time = unit_time
         nb_files = len(self)
         self.times = np.linspace(0, timestep * (nb_files - 1), nb_files)
 
