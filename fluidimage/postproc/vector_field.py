@@ -460,7 +460,11 @@ class VectorFieldOnGrid:
         ret.vy = _extract2d(ret.vy)
         if hasattr(self, "vz") and np.size(self.vz) > 1:
             ret.vz = _extract2d(ret.vz)
-        if not (isinstance(self.z, Number) or not self.vx.shape == self.z.shape):
+        if (
+            z is not None
+            and not isinstance(self.z, Number)
+            and self.vx.shape == self.z.shape
+        ):
             ret.z = _extract2d(ret.z)
 
         ret.history.append(
