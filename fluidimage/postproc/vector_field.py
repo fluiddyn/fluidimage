@@ -743,7 +743,7 @@ class ArrayOfVectorFieldsOnGrid:
                 self._list[self.currentind].vx[skip],
                 self._list[self.currentind].vy[skip],
             )
-            print(f"t ={self.times[self.currentind]:.2f} " + self.unittimes)
+            print(f"t ={self.times[self.currentind]:.2f} " + self.unit_time)
             fig.canvas.draw()
 
         fig.canvas.mpl_connect("scroll_event", onscroll)
