@@ -461,7 +461,7 @@ class VectorFieldOnGrid:
         if hasattr(self, "vz") and np.size(self.vz) > 1:
             ret.vz = _extract2d(ret.vz)
         if (
-            z is not None
+            self.z is not None
             and not isinstance(self.z, Number)
             and self.vx.shape == self.z.shape
         ):
