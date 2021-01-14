@@ -87,7 +87,7 @@ def write_rev(rev):
 
 try:
     full_version = setuptools_scm.get_version()
-except LookupError:
+except (LookupError, OSError):
     revision = "?"
 else:
     try:
