@@ -454,16 +454,19 @@ class HeavyPIVResults(DataObject):
                 g = g_piv[name_dict]
                 keys = g["keys"]
                 values = g["values"]
-                dico = {k: v for k, v in zip(keys, values)}
-                try:
-                    dico.update((k.decode(), dico[k]) for k in dico)
-                except AttributeError:
-                    pass
-                try:
-                    dico.update((k, dico[k].decode()) for k in dico)
-                except AttributeError:
-                    pass
-                self.__dict__[name_dict] = dico
+                dictionary = {}
+                for key, value in zip(keys, values):
+                    try:
+                        key = k.decode()
+                    except AttributeError:
+                        pass
+                    try:
+                        value = value.decode()
+                    except AttributeError:
+                        pass
+                    dictionary[key] = value
+                self.__dict__[name_dict] = dictionary
+
             except KeyError:
                 pass
 
