@@ -146,7 +146,7 @@ class BaseWorkPIV(BaseWorkWithMask):
         self.ixvecs = ixvecs
         self.iyvecs = iyvecs
 
-        iyvecs, ixvecs = np.meshgrid(iyvecs, ixvecs)
+        ixvecs, iyvecs = np.meshgrid(ixvecs, iyvecs)
 
         self.ixvecs_grid = ixvecs.flatten()
         self.iyvecs_grid = iyvecs.flatten()
@@ -508,10 +508,10 @@ class BaseWorkPIV(BaseWorkWithMask):
             except np.linalg.LinAlgError:
                 print("compute delta_approx with griddata (in tps)")
                 deltaxs_approx = griddata(
-                    centers, deltaxs, (self.iyvecs, self.ixvecs)
+                    centers[::-1], deltaxs, (self.ixvecs, self.iyvecs)
                 )
                 deltays_approx = griddata(
-                    centers, deltays, (self.iyvecs, self.ixvecs)
+                    centers[::-1], deltays, (self.ixvecs, self.iyvecs)
                 )
             else:
                 piv_results.deltaxs_smooth = deltaxs_smooth
@@ -527,10 +527,10 @@ class BaseWorkPIV(BaseWorkWithMask):
                 deltays_approx = tps.compute_eval(deltays_tps)
         else:
             deltaxs_approx = griddata(
-                centers, deltaxs, (self.iyvecs, self.ixvecs)
+                centers[::-1], deltaxs, (self.ixvecs, self.iyvecs)
             )
             deltays_approx = griddata(
-                centers, deltays, (self.iyvecs, self.ixvecs)
+                centers[::-1], deltays, (self.ixvecs, self.iyvecs)
             )
 
         if last:
