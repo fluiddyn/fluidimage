@@ -25,6 +25,8 @@ FluidImage
 FluidImage is a libre Python framework for scientific processing of large
 series of images.
 
+**Documentation:** http://fluidimage.readthedocs.org
+
 Image processing for fluid mechanics is highly dominated by proprietary tools.
 Such tools are not ideal when you want to understand and tweak the processes
 and/or to use clusters. With the improvement of the open-source tools for
