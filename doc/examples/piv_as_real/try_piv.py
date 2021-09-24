@@ -34,7 +34,8 @@ work = WorkPIV(params=params)
 pathin = params.series.path
 
 series = SeriesOfArrays(
-    pathin, params.series.strcouple, ind_start=params.series.ind_start)
+    pathin, params.series.strcouple, ind_start=params.series.ind_start
+)
 
 # c060a.png and c060b.png
 serie = series.get_serie_from_index(params.series.ind_start)

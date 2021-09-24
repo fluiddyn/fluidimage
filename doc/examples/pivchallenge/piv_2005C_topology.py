@@ -1,15 +1,14 @@
-
 import os
 
 from fluidimage.topologies.piv import TopologyPIV
 from path_images import get_path
 
-path = os.path.join(get_path('2005C'), 'c*.bmp')
+path = os.path.join(get_path("2005C"), "c*.bmp")
 
 params = TopologyPIV.create_default_params()
 
 params.series.path = path
-params.series.strcouple = 'i, 0:2'
+params.series.strcouple = "i, 0:2"
 params.series.ind_start = 48
 params.series.ind_stop = 52
 
@@ -24,7 +23,7 @@ params.fix.correl_min = 0.1
 params.fix.threshold_diff_neighbour = 3
 
 
-params.saving.how = 'complete'
+params.saving.how = "complete"
 
 topology = TopologyPIV(params)
 

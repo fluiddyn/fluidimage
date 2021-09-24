@@ -245,7 +245,7 @@ class CalibCV:
         """Calibrate a camera based on a list of image points (in pixel
         coordinates) and object points (in world coordinates) and the z-locations
         (in world coordinates).
- 
+
         Parameters
         ----------
         imgpoints : list of arrays

@@ -44,9 +44,7 @@ from fluidimage.data_objects.old.surface_tracking import SurfaceTrackingObject
 
 
 class WorkSurfaceTracking(BaseWork):
-    """Base class for surface tracking
-
-    """
+    """Base class for surface tracking"""
 
     @classmethod
     def _complete_params_with_default(cls, params):
@@ -425,7 +423,7 @@ class WorkSurfaceTracking(BaseWork):
         return ref, abs(kxma[indc])
 
     def sum_frame_from(self, path="./", fn=None):
-        """read the frames from file in 
+        """read the frames from file in
         path or from a specified file if fn-arg is given
         and make the mean of the frame"""
         film = self.get_file(self.path)

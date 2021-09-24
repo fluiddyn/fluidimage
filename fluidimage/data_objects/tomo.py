@@ -33,9 +33,7 @@ except ImportError:
 
 
 class ArrayTomoBase:
-    """Data structure to hold the tomographic data for a single instant.
-
-    """
+    """Data structure to hold the tomographic data for a single instant."""
 
     _keys_to_save = ["xs", "ys", "zs", "I"]
     _attrs_to_save = ["nx", "ny", "nz"]

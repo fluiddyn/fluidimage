@@ -71,8 +71,7 @@ class WorkPreproc(PreprocBase):
 
         results_series = SerieOfArraysFromFiles(self.params.saving.path)
         results = {
-            name: results_series.get_array_from_name(name)
-            for name in name_files
+            name: results_series.get_array_from_name(name) for name in name_files
         }
 
         return super().display(ind, hist, results)

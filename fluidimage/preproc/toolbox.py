@@ -31,9 +31,7 @@ class PreprocToolsBase:
 
     @classmethod
     def create_default_params(cls, params):
-        """Create default parameters from the function argument list.
-
-        """
+        """Create default parameters from the function argument list."""
         tools = cls._get_backend()
         available_tools = tools.__all__
 

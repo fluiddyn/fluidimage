@@ -1,4 +1,3 @@
-
 import os
 
 from fluidimage import SeriesOfArrays
@@ -18,9 +17,9 @@ params.fix.correl_min = 0.1
 
 piv = WorkPIV(params=params)
 
-path = os.path.join(get_path('2001A'), 'A*')
+path = os.path.join(get_path("2001A"), "A*")
 
-series = SeriesOfArrays(path, 'i, 1:3', ind_start=1)
+series = SeriesOfArrays(path, "i, 1:3", ind_start=1)
 serie = series.get_serie_from_index(1)
 
 result = piv.calcul(serie)

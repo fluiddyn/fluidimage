@@ -1,5 +1,5 @@
 from fluidimage.experimental.executors.executor_await import (
-    ExecutorAwaitMultiprocs
+    ExecutorAwaitMultiprocs,
 )
 from fluidimage.experimental.topologies.piv_new import TopologyPIV
 
@@ -23,6 +23,10 @@ topology = TopologyPIV(params, logging_level="info")
 
 
 executer = ExecutorAwaitMultiprocs(
-    topology, multi_executor=False, sleep_time=0.1, worker_limit=None, queues_limit=12
+    topology,
+    multi_executor=False,
+    sleep_time=0.1,
+    worker_limit=None,
+    queues_limit=12,
 )
 executer.compute()

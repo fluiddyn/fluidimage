@@ -19,7 +19,7 @@ cleantransonic:
 cleanall: clean cleanso cleantransonic
 
 black:
-	black -l 82 fluidimage try *.py
+	black -l 82 fluidimage try *.py doc
 
 isort:
 	isort -rc --atomic -tc fluidimage bin bench doc/examples

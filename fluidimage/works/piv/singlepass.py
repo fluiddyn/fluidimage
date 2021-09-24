@@ -116,8 +116,7 @@ class BaseWorkPIV(BaseWorkWithMask):
         )
 
     def _prepare_with_image(self, im0=None, imshape=None):
-        """Initialize the object with an image.
-        """
+        """Initialize the object with an image."""
         if imshape is None:
             imshape = im0.shape
 

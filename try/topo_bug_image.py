@@ -71,9 +71,7 @@ def load(k):
 
 
 class TopologyDebug(TopologyBase):
-    """Topology for PIV.
-
-    """
+    """Topology for PIV."""
 
     def __init__(self, n=10):
 

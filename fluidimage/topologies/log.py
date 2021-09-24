@@ -30,9 +30,7 @@ def float_no_valueerror(word):
 
 
 class LogTopology:
-    """Parse and analyze logging files.
-
-    """
+    """Parse and analyze logging files."""
 
     def __init__(self, path):
         path = Path(path)

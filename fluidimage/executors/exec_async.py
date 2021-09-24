@@ -95,9 +95,7 @@ class ExecutorAsync(ExecutorBase):
         self._finalize_compute()
 
     async def start_async_works(self):
-        """Create a trio nursery and start all async functions.
-
-        """
+        """Create a trio nursery and start all async functions."""
         async with trio.open_nursery() as self.nursery:
             for af in self.async_funcs.values():
                 self.nursery.start_soon(af)

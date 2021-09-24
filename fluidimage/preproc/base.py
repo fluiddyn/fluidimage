@@ -19,7 +19,7 @@ from .. import ParamContainer, SerieOfArraysFromFiles
 
 
 class PreprocBase:
-    """Preprocess series of images with various tools. """
+    """Preprocess series of images with various tools."""
 
     @classmethod
     def create_default_params(cls, backend="python"):

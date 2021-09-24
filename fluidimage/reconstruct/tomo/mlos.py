@@ -143,9 +143,7 @@ class TomoMLOSRbf(TomoMLOSBase):
 
 
 class TomoMLOSNeighbour(TomoMLOSBase):
-    """Interpolation is calculated using a nearest neighbour interpolation.
-
-    """
+    """Interpolation is calculated using a nearest neighbour interpolation."""
 
     def get_interpolator(self, image, threshold):
         im = imread(image)

@@ -16,9 +16,7 @@ from ...calcul.smooth_clean import smooth_clean
 
 
 class WorkFIX(BaseWork):
-    """Fix a displacement vector field.
-
-    """
+    """Fix a displacement vector field."""
 
     @classmethod
     def create_default_params(cls):

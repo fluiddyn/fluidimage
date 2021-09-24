@@ -107,7 +107,7 @@ class PivTrio:
         :param listdir: list of image names to compute
         :type list
         :return:
-            """
+        """
         tasks = []
         serie = self.serie
         serie_names = serie.get_name_all_arrays()
@@ -121,5 +121,7 @@ class PivTrio:
                     )
                 )
 
-    def main(self,):
+    def main(
+        self,
+    ):
         trio.run(self.fill_queue)

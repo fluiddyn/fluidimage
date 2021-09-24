@@ -8,7 +8,7 @@ from rpyc.utils.server import ThreadedServer
 
 
 class MyClass(rpyc.Service):
-    """ Manages jobs requested on a Node instance"""
+    """Manages jobs requested on a Node instance"""
 
     def on_connect(self):
         # code that runs when a connection is created

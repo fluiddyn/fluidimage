@@ -54,13 +54,13 @@ class TopologyImage2Image(TopologyBase):
     def create_default_params(cls):
         """Class method returning the default parameters.
 
-       Typical usage::
+        Typical usage::
 
-          params = TopologyImage2Image.create_default_params()
-          # modify parameters here
-          ...
+           params = TopologyImage2Image.create_default_params()
+           # modify parameters here
+           ...
 
-          topo = TopologyImage2Image(params)
+           topo = TopologyImage2Image(params)
 
         """
         params = ParamContainer(tag="params")

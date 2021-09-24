@@ -310,7 +310,7 @@ def correl_numpy(im0: A, im1: A, disp_max: int):
 
 class CorrelPythran(CorrelBase):
     """Correlation using pythran.
-       Correlation class by hands with with numpy.
+    Correlation class by hands with with numpy.
     """
 
     _tag = "pythran"
@@ -347,7 +347,7 @@ class CorrelPythran(CorrelBase):
 
 class CorrelPyCuda(CorrelBase):
     """Correlation using pycuda.
-       Correlation class by hands with with cuda.
+    Correlation class by hands with with cuda.
     """
 
     _tag = "pycuda"

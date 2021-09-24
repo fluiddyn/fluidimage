@@ -37,7 +37,7 @@ class DataObject:
 
 class SurfaceTrackingObject(SerieOfArraysFromFiles):
     """
-        Define objects for surface tracking
+    Define objects for surface tracking
     """
 
     _keys_to_be_saved = ["H_sav", "H_filt", "status", "ttlast"]

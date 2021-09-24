@@ -18,9 +18,7 @@ class ExecutorSequential(ExecutorBase):
     """Execute a topology sequentially"""
 
     def compute(self):
-        """Compute the whole topology.
-
-        """
+        """Compute the whole topology."""
         self._init_compute()
         self.exec_one_shot_works()
         self._run_works()
