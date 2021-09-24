@@ -14,29 +14,11 @@ import os
 from glob import glob
 
 import matplotlib.pyplot as plt
+from matplotlib.widgets import TextBox, Button
 
 from fluiddyn.io.image import imread
 from fluiddyn.util import time_as_str
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
-
-try:
-    from matplotlib.widgets import TextBox, Button
-
-    str_error_import_textbox = False
-except ImportError as error_import_textbox:
-    str_error_import_textbox = (
-        str(error_import_textbox)
-        + "\nfluidimviewer needs matplotlib.widgets.TextBox "
-        "which is included in matplotlib 2.1."
-    )
-
-    import matplotlib
-
-    if matplotlib.__version__ < "2.1":
-        print("Warning: " + str_error_import_textbox)
-    else:
-        raise
-
 
 extensions = ["png", "tif", "tiff", "jpg", "jpeg", "bmp", "cine"]
 extensions = ["." + ext for ext in extensions]
@@ -88,9 +70,6 @@ class ImageViewer:
 
     def __init__(self, args):
 
-        if str_error_import_textbox:
-            raise ImportError(str_error_import_textbox)
-
         path_in = args.path
         if os.path.isdir(path_in):
             self.path_files = glob(os.path.join(path_in, "*"))
@@ -123,7 +102,7 @@ class ImageViewer:
         self._textboxes = {}
 
         fig = self.fig = plt.figure()
-        fig.canvas.set_window_title(
+        fig.canvas.manager.set_window_title(
             path_dir + " (" + time_as_str()[-8:].replace("-", ":") + ")"
         )
         self.ax = fig.add_axes([0.07, 0.15, 0.7, 0.78])

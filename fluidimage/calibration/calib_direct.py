@@ -340,7 +340,9 @@ class CalibDirect:
     def check_interp_lines(self, number=10):
         """Plot to check interp_lines"""
         fig = pylab.figure()
-        ax = Axes3D(fig)
+        ax = Axes3D(fig, auto_add_to_figure=False)
+        fig.add_axes(ax)
+
         for i, path in enumerate(self.paths_xml):
             X, Y, Z, x, y = get_points(path)
             ax.scatter(X, Y, Z, marker=".", color="blue")
