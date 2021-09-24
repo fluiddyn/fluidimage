@@ -41,7 +41,9 @@ class ExecutorAsyncForMulti(ExecutorAsyncSequential):
         stop_if_error=False,
     ):
         if stop_if_error:
-            raise NotImplementedError
+            raise NotImplementedError(
+                "stop_if_error not implemented for ExecutorAsyncForMulti"
+            )
 
         self._log_path = log_path
         super().__init__(
