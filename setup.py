@@ -11,8 +11,8 @@ from setuptools import setup, find_packages
 from transonic.dist import ParallelBuildExt, get_logger
 import setuptools_scm
 
-if sys.version_info[:2] < (3, 6):
-    raise RuntimeError("Python version >= 3.6 required.")
+if sys.version_info[:2] < (3, 7):
+    raise RuntimeError("Python version >= 3.7 required.")
 
 if "egg_info" in sys.argv:
     level = ERROR
@@ -168,9 +168,9 @@ setup(
         # actually CeCILL License (GPL compatible license for French laws)
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
     ],
     packages=find_packages(exclude=["doc", "include", "scripts"]),
     scripts=["bin/fluidimviewer", "bin/fluidimlauncher"],
