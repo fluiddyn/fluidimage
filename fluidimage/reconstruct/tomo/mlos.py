@@ -29,7 +29,6 @@ Reference::
 import os
 from pathlib import Path
 
-import cv2
 import dask.array as da
 import matplotlib.pyplot as plt
 import numpy as np
@@ -37,6 +36,7 @@ from dask.diagnostics import ProgressBar
 from psutil import virtual_memory
 from scipy import interpolate, sparse
 
+from fluidimage._opencv import cv2
 from fluidimage.calibration.calib_cv import CalibCV
 from fluidimage.data_objects.tomo import ArrayTomoCV
 from fluidimage.util import imread

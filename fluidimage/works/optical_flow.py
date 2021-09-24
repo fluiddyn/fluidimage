@@ -7,12 +7,12 @@ https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_video/py
 
 """
 
-import cv2
 import numpy as np
 
 from fluiddyn.util.paramcontainer import ParamContainer
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
 from fluidimage.data_objects.piv import ArrayCouple, HeavyPIVResults
+from fluidimage._opencv import cv2
 
 from .with_mask import BaseWorkWithMask
 
