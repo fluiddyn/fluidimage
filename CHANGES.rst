@@ -1,11 +1,18 @@
+0.1.3_ (2021-09-29)
+-------------------
 
-0.1.2 (2019-06-05)
-------------------
+- Many bugfixes!
+- Improve VectorFieldOnGrid and ArrayOfVectorFieldsOnGrid
+- UVmat compatibility
+- Fix incompatibility OpenCV and PyQt5
+
+0.1.2_ (2019-06-05)
+-------------------
 
 - Bugfix install Windows
 
-0.1.1 (2019-05-23)
-------------------
+0.1.1_ (2019-05-23)
+-------------------
 
 - Optical flow computation
 - Bugfixes + internal code improvements
@@ -43,3 +50,7 @@
 
 - Topology and waiting queues classes to run work in parallel.
 - PIV work and topology (multipass, different correlation methods).
+
+.. _0.1.3: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.1.2...0.1.3
+.. _0.1.2: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.1.1...0.1.2
+.. _0.1.1: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.1.0...0.1.1
