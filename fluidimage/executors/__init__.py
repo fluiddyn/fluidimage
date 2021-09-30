@@ -32,7 +32,8 @@ def afterfork():
     trio._core._thread_cache.THREAD_CACHE._idle_workers.clear()
 
 
-os.register_at_fork(after_in_child=afterfork)
+if hasattr(os, "register_at_fork"):
+    os.register_at_fork(after_in_child=afterfork)
 
 from .base import ExecutorBase
 from .exec_async import ExecutorAsync
