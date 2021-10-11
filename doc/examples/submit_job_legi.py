@@ -1,6 +1,13 @@
-from fluiddyn.clusters.legi import Calcul7 as Cluster
+from fluiddyn.clusters.legi import Calcul8
 
-cluster = Cluster()
+cluster = Calcul8()
+
+cluster.commands_setting_env = [
+    "source /etc/profile",
+    "module purge",
+    "source $HOME/miniconda3/etc/profile.d/conda.sh",
+    "conda activate env_fluidimage",
+]
 
 cluster.submit_script(
     "piv_complete.py",
