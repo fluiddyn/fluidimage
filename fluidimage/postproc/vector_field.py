@@ -19,7 +19,7 @@ from typing import Optional
 import matplotlib.pyplot as plt
 import numpy as np
 import h5py
-from scipy.ndimage.filters import gaussian_filter, median_filter
+from scipy.ndimage import gaussian_filter, median_filter
 
 from fluiddyn.util.paramcontainer import ParamContainer
 

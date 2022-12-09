@@ -202,7 +202,7 @@ class FFTW2DReal2Complex:
 
     def fft(self, ff):
         self.arrayX[:] = ff
-        self.fftplan(normalise_idft=False)
+        self.fftplan()
         return self.arrayK.copy()
 
     def ifft(self, ff_fft):

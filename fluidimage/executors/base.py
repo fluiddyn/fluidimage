@@ -188,11 +188,14 @@ class ExecutorBase:
         )
 
         self.path_dir_exceptions.mkdir(exist_ok=True)
-        formated_exception = "".join(
-            traceback.format_exception(
+
+        try:
+            parts = traceback.format_exception(
                 etype=type(exception), value=exception, tb=exception.__traceback__
             )
-        )
+        except TypeError:
+            parts = traceback.format_exception(exception)
+        formated_exception = "".join(parts)
 
         with open(path_log, "w") as file:
             file.write(

@@ -304,7 +304,7 @@ class ImageViewer:
         self.mappable.set_clim(self.clim)
         self.fig.canvas.draw()
         # self.cbar.set_clim(self.clim)
-        self.cbar.draw_all()
+        self.fig.draw_without_rendering()
 
         txt_cmax = self._textboxes["cmax = "]
         txt_cmin = self._textboxes["cmin = "]

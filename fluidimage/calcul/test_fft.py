@@ -105,7 +105,7 @@ class TestFFTW2DReal2Complex(unittest.TestCase):
 
         rtime, ntime = 0.0, 0.0
         Nloops = 2
-        for nloop in xrange(Nloops):
+        for nloop in range(Nloops):
 
             op = FFTW2DReal2Complex(nx, ny)
 
