@@ -94,8 +94,8 @@ displacement_max : None
 
         # condition delta2 < displacement_max2
         if self.params.displacement_max:
-            displacement_max2 = self.params.displacement_max ** 2
-            delta2s = deltaxs ** 2 + deltays ** 2
+            displacement_max2 = self.params.displacement_max**2
+            delta2s = deltaxs**2 + deltays**2
             with np.errstate(invalid="ignore"):
                 inds = (delta2s > displacement_max2).nonzero()[0]
             put_to_nan(inds, "delta2 < displacement_max2")

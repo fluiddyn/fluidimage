@@ -49,8 +49,8 @@ def compute_subpix_2d_gaussian2(correl: "float32[][]", ix: int, iy: int):
         c20 / 6,
         c02 / 6,
     )
-    deplx = (c11 * c01 - 2 * c10 * c02) / (4 * c20 * c02 - c11 ** 2)
-    deply = (c11 * c10 - 2 * c01 * c20) / (4 * c20 * c02 - c11 ** 2)
+    deplx = (c11 * c01 - 2 * c10 * c02) / (4 * c20 * c02 - c11**2)
+    deply = (c11 * c10 - 2 * c01 * c20) / (4 * c20 * c02 - c11**2)
     return deplx, deply, correl_crop
 
 
@@ -91,7 +91,7 @@ class SubPix:
         X = X.ravel()
         Y = Y.ravel()
         M = np.reshape(
-            np.concatenate((X ** 2, Y ** 2, X, Y, np.ones(nx * ny))), (5, nx * ny)
+            np.concatenate((X**2, Y**2, X, Y, np.ones(nx * ny))), (5, nx * ny)
         ).T
         self.Minv_subpix = np.linalg.pinv(M)
 
@@ -166,8 +166,8 @@ class SubPix:
 
             sigmax = 1 / np.sqrt(-2 * coef[0])
             sigmay = 1 / np.sqrt(-2 * coef[1])
-            deplx = coef[2] * sigmax ** 2
-            deply = coef[3] * sigmay ** 2
+            deplx = coef[2] * sigmax**2
+            deply = coef[3] * sigmay**2
 
             if np.isnan(deplx) or np.isnan(deply):
                 return self.compute_subpix(
@@ -194,7 +194,7 @@ class SubPix:
         elif method == "no_subpix":
             deplx = deply = 0.0
 
-        if deplx ** 2 + deply ** 2 > 2 * (0.5 + nsubpix) ** 2:
+        if deplx**2 + deply**2 > 2 * (0.5 + nsubpix) ** 2:
             if method == "2d_gaussian2":
                 return self.compute_subpix(
                     correl, ix, iy, method="centroid", nsubpix=nsubpix

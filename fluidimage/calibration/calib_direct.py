@@ -428,7 +428,7 @@ class CalibDirect:
         pylab.colorbar()
         pylab.figure()
         pylab.pcolor(
-            x, y, np.sqrt(dx ** 2 + dy ** 2 + dz ** 2), shading="nearest"
+            x, y, np.sqrt(dx**2 + dy**2 + dz**2), shading="nearest"
         )
         pylab.title("norm(d)")
         pylab.xlabel("x (pix)")

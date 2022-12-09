@@ -105,7 +105,7 @@ def is_memory_full():
 
     mem = psutil.virtual_memory()
 
-    if mem.percent > 90 or mem.available < 500 * 1024 ** 2:
+    if mem.percent > 90 or mem.available < 500 * 1024**2:
         log_memory_usage("Memory full! Current process using", mode="info")
         return True
 

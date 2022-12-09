@@ -10,7 +10,7 @@ def test_compute_1dspectrum():
     x = dx * np.arange(nx)
     signal = np.random.rand(nx)
 
-    energy = np.mean(signal ** 2) / 2
+    energy = np.mean(signal**2) / 2
 
     signal_fft, omega, psd = compute_1dspectrum(x, signal)
 
@@ -50,7 +50,7 @@ def _test_compute_2dspectrum(nt):
 
     signal = np.random.rand(size).reshape(shape)
 
-    energy = 0.5 * np.mean(signal ** 2)
+    energy = 0.5 * np.mean(signal**2)
 
     signal_fft, kx, ky, psd = compute_2dspectrum(X, Y, signal, axes=axes)
     energy_fft = 0.5 * np.sum(np.abs(signal_fft) ** 2) / nt

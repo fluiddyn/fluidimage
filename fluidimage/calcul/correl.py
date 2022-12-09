@@ -233,7 +233,7 @@ def correl_numpy(im0: A, im1: A, disp_max: int):
     the computing correlation (size of computed correlation = disp_max*2 + 1)
 
     """
-    norm = np.sqrt(np.sum(im1 ** 2) * np.sum(im0 ** 2))
+    norm = np.sqrt(np.sum(im1**2) * np.sum(im0**2))
 
     ny = nx = int(disp_max) * 2 + 1
     ny0, nx0 = im0.shape
@@ -416,7 +416,7 @@ class CorrelScipySignal(CorrelBase):
 
     def __call__(self, im0, im1):
         """Compute the correlation from images."""
-        norm = np.sqrt(np.sum(im1 ** 2) * np.sum(im0 ** 2))
+        norm = np.sqrt(np.sum(im1**2) * np.sum(im0**2))
         if self.mode == "valid":
             correl = correlate2d(im0, im1, mode="valid")
         elif self.mode == "same":
@@ -437,7 +437,7 @@ class CorrelScipyNdimage(CorrelBase):
 
     def __call__(self, im0, im1):
         """Compute the correlation from images."""
-        norm = np.sum(im1 ** 2)
+        norm = np.sum(im1**2)
         correl = correlate(im0, im1, mode="constant", cval=im1.min())
 
         return correl, norm
@@ -556,7 +556,7 @@ class CorrelTheano(CorrelBase):
 
     def __call__(self, im0, im1):
         """Compute the correlation from images."""
-        norm = np.sqrt(np.sum(im1 ** 2) * np.sum(im0 ** 2))
+        norm = np.sqrt(np.sum(im1**2) * np.sum(im0**2))
         im1 = np.rot90(im1, 2)
         im1 = im1.reshape(1, 1, self.ny1, self.nx1)
         if self.mode == "valid":
@@ -636,7 +636,7 @@ class CorrelFFTBase(CorrelBase):
 
             for indices, v in np.ndenumerate(where_large_displacement):
                 dx, dy = self.compute_displacement_from_indices(*indices[::-1])
-                displacement = np.sqrt(dx ** 2 + dy ** 2)
+                displacement = np.sqrt(dx**2 + dy**2)
                 if displacement > self.displacement_max:
                     where_large_displacement[indices] = True
 
@@ -672,7 +672,7 @@ class CorrelFFTNumpy(CorrelFFTBase):
 
     def __call__(self, im0, im1):
         """Compute the correlation from images."""
-        norm = np.sqrt(np.sum(im1 ** 2) * np.sum(im0 ** 2))
+        norm = np.sqrt(np.sum(im1**2) * np.sum(im0**2))
         corr = ifft2(fft2(im0).conj() * fft2(im1)).real
         correl = np.fft.fftshift(corr[::-1, ::-1])
         return correl, norm
@@ -691,7 +691,7 @@ class CorrelFFTW(CorrelFFTBase):
 
     def __call__(self, im0, im1):
         """Compute the correlation from images."""
-        norm = np.sqrt(np.sum(im1 ** 2) * np.sum(im0 ** 2)) * im0.size
+        norm = np.sqrt(np.sum(im1**2) * np.sum(im0**2)) * im0.size
         op = self.op
         corr = op.ifft(op.fft(im0).conj() * op.fft(im1))
         correl = np.fft.fftshift(corr[::-1, ::-1])
@@ -710,9 +710,9 @@ class CorrelCuFFT(CorrelFFTBase):
 
     def __call__(self, im0, im1):
         """Compute the correlation from images."""
-        norm = np.sqrt(np.sum(im1 ** 2) * np.sum(im0 ** 2)) * im0.size
+        norm = np.sqrt(np.sum(im1**2) * np.sum(im0**2)) * im0.size
         op = self.op
-        corr = op.ifft(op.fft(im0).conj() * op.fft(im1)).real * im0.size ** 2
+        corr = op.ifft(op.fft(im0).conj() * op.fft(im1)).real * im0.size**2
         correl = np.fft.fftshift(corr[::-1, ::-1])
         return correl, norm
 
@@ -730,7 +730,7 @@ class CorrelSKCuFFT(CorrelFFTBase):
 
     def __call__(self, im0, im1):
         """Compute the correlation from images."""
-        norm = np.sqrt(np.sum(im1 ** 2) * np.sum(im0 ** 2)) * im0.size
+        norm = np.sqrt(np.sum(im1**2) * np.sum(im0**2)) * im0.size
         op = self.op
         corr = op.ifft(op.fft(im0).conj() * op.fft(im1))
         correl = np.fft.fftshift(corr[::-1, ::-1])

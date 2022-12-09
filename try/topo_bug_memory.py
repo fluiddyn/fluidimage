@@ -28,7 +28,7 @@ def save(o):
 
 
 def calcul(o):
-    return o ** 2
+    return o**2
 
 
 def load(k):

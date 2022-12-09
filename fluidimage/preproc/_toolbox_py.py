@@ -335,7 +335,7 @@ def rescale_intensity_tanh(img=None, threshold=None):
 
     """
     if threshold is None:
-        threshold = 2 * np.sqrt(np.mean(img ** 2))
+        threshold = 2 * np.sqrt(np.mean(img**2))
 
     if threshold == 0:
         return img

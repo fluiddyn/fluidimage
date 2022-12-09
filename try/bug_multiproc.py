@@ -12,7 +12,7 @@ process = psutil.Process(os.getpid())
 def print_memory_usage():
     """Return the memory usage in Mo."""
     gc.collect()
-    mem = process.memory_info()[0] / float(2 ** 20)
+    mem = process.memory_info()[0] / float(2**20)
     print(f"Memory usage: {mem} Mo")
     return mem
 

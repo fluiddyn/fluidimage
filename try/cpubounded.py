@@ -5,7 +5,7 @@ import numpy as np
 
 def long_func(n):
     a = np.arange(n)
-    return a ** 3
+    return a**3
 
 
 # pythran export long_func1(int)
@@ -16,4 +16,4 @@ def long_func1(n):
     a = np.arange(n // nloops)
     result = a
     for i in range(nloops):
-        result += a ** 3 + a ** 2 + 2
+        result += a**3 + a**2 + 2

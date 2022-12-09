@@ -11,6 +11,8 @@ fluidimage/_hg_rev.py
 
 **/.vscode/*
 
+venv/*
+
 *.swp
 *.swo
 

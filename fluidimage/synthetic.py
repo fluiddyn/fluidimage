@@ -34,7 +34,7 @@ def make_synthetic_images(
 
         for xpart, ypart in zip(xparts, yparts):
             result += np.exp(
-                -(1 / part_size ** 2) * ((x - xpart) ** 2 + (y - ypart) ** 2)
+                -(1 / part_size**2) * ((x - xpart) ** 2 + (y - ypart) ** 2)
             )
 
         return result

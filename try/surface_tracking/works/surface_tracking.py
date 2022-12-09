@@ -57,7 +57,7 @@ class WorkSurfaceTracking(BaseWork):
                 "ymax": 700,
                 "distance_lens": 0.36,
                 "distance_object": 1.07,
-                "pix_size": 2.4 * 10 ** -4,
+                "pix_size": 2.4 * 10**-4,
                 "startref_frame": 0,
                 "lastref_frame": 49,
                 "sur": 16,
@@ -297,14 +297,14 @@ class WorkSurfaceTracking(BaseWork):
         X, Y = np.meshgrid(kx * l_x, ky * l_y)
         gain = np.exp(-1.0j * 2 * np.pi * (k_x / l_x * X))
         filt1 = np.fft.fftshift(
-            np.exp(-((kxgrid ** 2 + kygrid ** 2) / 2 / (k_x / slicer / l_x) ** 2))
-            * np.exp(1 - 1 / (1 + ((kxgrid + k_x) ** 2 + kygrid ** 2) / k_x ** 2))
+            np.exp(-((kxgrid**2 + kygrid**2) / 2 / (k_x / slicer / l_x) ** 2))
+            * np.exp(1 - 1 / (1 + ((kxgrid + k_x) ** 2 + kygrid**2) / k_x**2))
         )
 
         filt2 = np.fft.fftshift(
             -np.exp(
                 -(
-                    ((kxgrid + (k_x / l_x)) ** 2 + kygrid ** 2)
+                    ((kxgrid + (k_x / l_x)) ** 2 + kygrid**2)
                     / 2
                     / (k_x / 10 / l_x) ** 2
                 )
@@ -314,7 +314,7 @@ class WorkSurfaceTracking(BaseWork):
         filt3 = np.fft.fftshift(
             -np.exp(
                 -(
-                    ((kxgrid - (k_x / l_x)) ** 2 + kygrid ** 2)
+                    ((kxgrid - (k_x / l_x)) ** 2 + kygrid**2)
                     / 2
                     / (k_x / 10 / l_x) ** 2
                 )

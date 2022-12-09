@@ -61,7 +61,7 @@ def save(d):
 def calcul(d):
     log("calcul")
     k, v = d
-    v = v ** 2
+    v = v**2
     return (k, np.transpose(v))
 
 

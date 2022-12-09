@@ -508,7 +508,7 @@ class VectorFieldOnGrid:
 
     def compute_norm(self):
         """Compute the norm of the vector field"""
-        return np.sqrt(self.vx ** 2 + self.vy ** 2)
+        return np.sqrt(self.vx**2 + self.vy**2)
 
     def compute_spatial_fft(self, axes=(0, 1)):
         """Compute the spatial Fourier transform"""

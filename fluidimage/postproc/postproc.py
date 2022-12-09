@@ -23,12 +23,12 @@ warn(
 
 
 def compute_ken(U, V):
-    ken = (U ** 2 + V ** 2) / 2
+    ken = (U**2 + V**2) / 2
     return ken
 
 
 def compute_norm(U, V):
-    norm = np.sqrt(U ** 2 + V ** 2)
+    norm = np.sqrt(U**2 + V**2)
     return norm
 
 

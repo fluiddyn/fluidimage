@@ -161,7 +161,6 @@ if ts.is_compiled:
             newcenters.astype(np.float64), centers.astype(np.float64)
         )
 
-
 else:
     print("Warning: function compute_tps_matrix_numpy not pythranized.")
     compute_tps_matrix = compute_tps_matrix_numpy

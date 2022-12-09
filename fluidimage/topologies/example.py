@@ -29,7 +29,7 @@ def cpu1(array1: A, array2: A, nloops: int = 10):
     a = np.arange(10000000 // nloops)
     result = a
     for i in range(nloops):
-        result += a ** 3 + a ** 2 + 2
+        result += a**3 + a**2 + 2
 
     for i in range(nloops):
         array1 = array1 * array2
@@ -42,7 +42,7 @@ def cpu2(array1: A, array2: A, nloops: int = 10):
     a = np.arange(10000000 // nloops)
     result = a
     for i in range(nloops):
-        result += a ** 3 + a ** 2 + 2
+        result += a**3 + a**2 + 2
 
     for i in range(nloops):
         array1 = np.multiply(array1, array2)
