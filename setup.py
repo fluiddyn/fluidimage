@@ -126,7 +126,7 @@ def create_pythran_extensions():
 
 
 def create_extensions():
-    if "egg_info" in sys.argv:
+    if "egg_info" in sys.argv or "dist_info" in sys.argv:
         return []
 
     logger.info("Running fluidimage setup.py on platform " + sys.platform)
