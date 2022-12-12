@@ -28,7 +28,10 @@ mycmap = cm.get_cmap("viridis")
 mycmap.set_under("w")
 
 from fluidimage import __version__ as fluidimage_version
-from fluidimage._hg_rev import hg_rev
+try:
+    from .._hg_rev import hg_rev
+except ImportError:
+    hg_rev = "?"
 
 
 class DataObject:

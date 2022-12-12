@@ -29,7 +29,10 @@ from .display_piv import DisplayPIV
 from .. import ParamContainer
 from .. import __version__ as fluidimage_version
 from .. import imread
-from .._hg_rev import hg_rev
+try:
+    from .._hg_rev import hg_rev
+except ImportError:
+    hg_rev = "?"
 
 
 def get_str_index(serie, i, index):
