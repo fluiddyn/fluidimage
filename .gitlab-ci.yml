@@ -2,10 +2,13 @@ variables:
   CODECOV_TOKEN: 0ac60028-17ba-4383-b4ad-b5ba5ca35f3d
 
 tests:
-  image: python:3.8-buster
+  image: fluiddyn/python3-stable:lastest
   script:
     - python -m venv venv
     - source venv/bin/activate
     - pip install -U pip nox
     - nox -s tests-cov
     # - tox -e codecov -vv
+    - curl -Os https://uploader.codecov.io/latest/linux/codecov
+    - chmod +x codecov
+    - ./codecov
