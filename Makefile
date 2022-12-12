@@ -1,5 +1,5 @@
 
-.PHONY: clean clean_all develop build_ext_inplace
+.PHONY: clean clean_all develop build_ext_inplace requirements
 
 develop:
 	pip install -e .[dev]
@@ -40,3 +40,14 @@ _report_coverage:
 	@echo "file://${PWD}/.coverage/index.html"
 
 coverage: _tests_coverage _report_coverage
+
+list-sessions:
+	@nox --version 2>/dev/null || pip install nox
+	@$(NOX) -l
+
+requirements: 'pip-compile(main)' 'pip-compile(doc)' 'pip-compile(test)' 'pip-compile(dev)'
+
+# Catch-all target: route all unknown targets to nox sessions
+%: Makefile
+	@nox --version 2>/dev/null || pip install nox
+	@nox -s $@

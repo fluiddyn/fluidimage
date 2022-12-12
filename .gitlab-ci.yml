@@ -6,7 +6,6 @@ tests:
   script:
     - python -m venv venv
     - source venv/bin/activate
-    - pip install -U pip tox
-    - rm -rf .tox
-    - tox -e py38-pyqt5 -vv
-    - tox -e codecov -vv
+    - pip install -U pip nox
+    - nox -s tests-cov
+    # - tox -e codecov -vv
