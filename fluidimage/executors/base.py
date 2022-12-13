@@ -194,6 +194,7 @@ class ExecutorBase:
                 etype=type(exception), value=exception, tb=exception.__traceback__
             )
         except TypeError:
+            # Python >= 3.10
             parts = traceback.format_exception(exception)
         formated_exception = "".join(parts)
 

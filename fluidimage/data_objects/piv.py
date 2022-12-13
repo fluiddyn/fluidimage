@@ -25,14 +25,9 @@ import h5netcdf
 import h5py
 import numpy as np
 
+from fluidimage import ParamContainer, __version__ as fluidimage_version, imread
+from fluidimage._version import hg_rev
 from .display_piv import DisplayPIV
-from .. import ParamContainer
-from .. import __version__ as fluidimage_version
-from .. import imread
-try:
-    from .._hg_rev import hg_rev
-except ImportError:
-    hg_rev = "?"
 
 
 def get_str_index(serie, i, index):

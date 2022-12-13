@@ -12,3 +12,8 @@ http://legacy.python.org/dev/peps/pep-0386/
 'b' or 'beta' means beta version (external testing).
 """
 __version__ = "0.1.3.post0"
+
+try:
+    from fluidimage._hg_rev import hg_rev
+except ImportError:
+    hg_rev = "?"
