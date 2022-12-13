@@ -1,0 +1,12 @@
+include *.py
+include *.txt
+include *.rst
+include *.md
+prune doc
+prune bench
+prune .github
+prune try
+prune image_samples
+prune requirements
+prune fluidimage/calcul/plot_evaluate_subpix
+prune **/__pythran__
