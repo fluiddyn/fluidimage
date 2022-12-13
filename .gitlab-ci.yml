@@ -7,7 +7,7 @@ tests:
     - python -m venv venv
     - source venv/bin/activate
     - pip install -U pip nox
-    - nox -s tests-cov
+    - xvfb-run nox -s tests-cov
     # - tox -e codecov -vv
     - curl -Os https://uploader.codecov.io/latest/linux/codecov
     - chmod +x codecov
