@@ -1,7 +1,7 @@
 FluidImage
 ==========
 
-|release| |docs| |coverage| |heptapod_ci| |travis|
+|release| |docs| |coverage| |heptapod_ci| |github_actions|
 
 .. |release| image:: https://img.shields.io/pypi/v/fluidimage.svg
    :target: https://pypi.python.org/pypi/fluidimage/
@@ -19,8 +19,9 @@ FluidImage
    :target: https://foss.heptapod.net/fluiddyn/fluidimage/-/pipelines
    :alt: Heptapod CI
 
-.. |travis| image:: https://travis-ci.org/fluiddyn/fluidimage.svg?branch=branch%2Fdefault
-    :target: https://travis-ci.org/fluiddyn/fluidimage
+.. |github_actions| image:: https://github.com/fluiddyn/fluidimage/actions/workflows/ci.yml/badge.svg?branch=branch/default
+   :target: https://github.com/fluiddyn/fluidimage/actions
+   :alt: Github Actions
 
 FluidImage is a libre Python framework for scientific processing of large
 series of images.
