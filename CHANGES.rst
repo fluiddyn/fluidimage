@@ -1,3 +1,9 @@
+0.1.4_ (2022-12-13)
+-------------------
+
+- Support Python 3.10
+- Avoid a bug with pyfftw 0.13
+
 0.1.3_ (2021-09-29)
 -------------------
 
@@ -51,6 +57,7 @@
 - Topology and waiting queues classes to run work in parallel.
 - PIV work and topology (multipass, different correlation methods).
 
+.. _0.1.3: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.1.3...0.1.4
 .. _0.1.3: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.1.2...0.1.3
 .. _0.1.2: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.1.1...0.1.2
 .. _0.1.1: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.1.0...0.1.1
