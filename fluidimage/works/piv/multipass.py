@@ -101,7 +101,8 @@ smoothing_coef : float
 threshold_tps :  float
 
     Allowed difference of displacement (in pixels) between smoothed and input
-    field for TPS filter.
+    field for TPS filter used in an iterative filtering method. Vectors too far
+    from the corresponding interpolated vector are removed.
 
 """
         )

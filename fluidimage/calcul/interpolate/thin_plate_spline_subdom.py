@@ -214,9 +214,13 @@ class ThinPlateSplineSubdom:
                 count += 1
 
                 if count > 10:
-                    print("tps stopped after 10 iterations")
+                    print(
+                        "iterative tps interp.: stopped because maximum number "
+                        "of iteration (10) was reached. "
+                        "params.multipass.threshold_tps might be too small."
+                    )
                     break
 
-        if count > 1:
-            print("tps done after ", count, " attempt(s)")
+        if 1 < count < 10:
+            print(f"iterative tps interp.: done after {count} iterations.")
         return U_smooth, U_tps
