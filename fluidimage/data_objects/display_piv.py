@@ -12,6 +12,21 @@ import numpy as np
 
 from ..calcul.correl import compute_indices_from_displacement
 
+legend_text = """
+
+- Click on a vector to show information.
+- Press alt+s to switch between images.
+- Press alt+left or alt+right to change vector.
+
+# Legend correlation
+
+- "or": position corresponding to no displacement,
+- "xr": displacement found from correlation,
+- "ow": displacement final (after interpolation),
+- "sr": other peaks.
+
+"""
+
 
 class DisplayPIV:
     """Display a piv result object."""
@@ -92,15 +107,13 @@ class DisplayPIV:
         else:
             self.image0 = None
 
-        (l,) = ax1.plot(0, 0, "oy")
-        l.set_visible(False)
+        (point,) = ax1.plot(0, 0, "oy")
+        point.set_visible(False)
 
         ax1.set_title("im 0 (alt+s to switch)")
 
-        t = fig.text(0.1, 0.05, "")
-
-        self.t = t
-        self.l = l
+        self._text = fig.text(0.1, 0.05, "")
+        self._point = point
 
         if im0 is not None:
             ax1.set_xlim(0, im0.shape[1])
@@ -216,17 +229,13 @@ class DisplayPIV:
         fig.canvas.mpl_connect("pick_event", self.onpick)
         fig.canvas.mpl_connect("key_press_event", self.onclick)
 
-        print("press alt+h for help")
+        print("press alt+h for help and legend")
 
         plt.show()
 
     def onclick(self, event):
         if event.key == "alt+h":
-            print(
-                "\nclick on a vector to show information\n"
-                "alt+s\t\t\t switch between images\n"
-                "alt+left or alt+right\t change vector."
-            )
+            print(legend_text)
 
         if event.inaxes != self.ax1:
             return
@@ -298,8 +307,8 @@ class DisplayPIV:
             deltax = result.deltaxs_wrong[ind_all]
             deltay = result.deltays_wrong[ind_all]
 
-        self.l.set_visible(True)
-        self.l.set_data(ix, iy)
+        self._point.set_visible(True)
+        self._point.set_data(ix, iy)
 
         text = (
             f"vector at ix = {ix} : iy = {iy}"
@@ -316,7 +325,7 @@ class DisplayPIV:
         ):
             text += ", error: " + self.piv_results.errors[ind_all]
 
-        self.t.set_text(text)
+        self._text.set_text(text)
 
         if self.show_correl:
             ax2 = self.ax2
@@ -366,14 +375,14 @@ class DisplayPIV:
             if params.piv0.nb_peaks_to_search > 1:
                 other_peaks = result.secondary_peaks[ind_all]
                 if other_peaks is not None:
-                    if len(other_peaks) == 0:
+                    if not other_peaks:
                         s = "no other peak"
-                        ax2.set_title(s)
-                        print(s)
+                    elif len(other_peaks) == 1:
+                        s = "1 other peak"
                     else:
-                        s = "{} other peaks".format(len(other_peaks))
-                        ax2.set_title(s)
-                        print(s)
+                        s = f"{len(other_peaks)} other peaks"
+                    ax2.set_title(s)
+                    print(s)
 
                     for (dx, dy, cmax) in other_peaks:
                         i1, i0 = compute_indices_from_displacement(
