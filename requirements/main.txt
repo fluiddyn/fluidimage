@@ -62,7 +62,7 @@ imageio==2.22.4
     #   fluidimage (setup.cfg)
     #   pims
     #   scikit-image
-ipython==8.7.0
+ipython==8.10.0
     # via fluidimage (setup.cfg)
 jedi==0.18.2
     # via ipython

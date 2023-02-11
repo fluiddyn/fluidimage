@@ -71,7 +71,7 @@ imageio==2.22.4
     #   scikit-image
 iniconfig==1.1.1
     # via pytest
-ipython==8.7.0
+ipython==8.10.0
     # via fluidimage (setup.cfg)
 jedi==0.18.2
     # via ipython

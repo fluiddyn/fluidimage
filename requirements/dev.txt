@@ -135,7 +135,7 @@ ipykernel==6.19.2
     #   nbclassic
     #   notebook
     #   qtconsole
-ipython==8.7.0
+ipython==8.10.0
     # via
     #   fluidimage (setup.cfg)
     #   ipykernel
