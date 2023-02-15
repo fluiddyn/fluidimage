@@ -16,6 +16,7 @@ from time import time
 
 from fluiddyn import time_as_str
 from fluiddyn.io.tee import MultiFile
+
 from fluidimage.config import get_config
 from fluidimage.topologies.nb_cpu_cores import nb_cores
 from fluidimage.util import (
@@ -27,6 +28,8 @@ from fluidimage.util import (
 )
 
 config = get_config()
+
+_omp_num_threads_equal_1_at_import = os.environ.get("OMP_NUM_THREADS") == "1"
 
 
 class ExecutorBase:
@@ -70,6 +73,14 @@ class ExecutorBase:
         sleep_time=None,
         stop_if_error=False,
     ):
+
+        if not _omp_num_threads_equal_1_at_import:
+            raise SystemError(
+                "For performance reason,"
+                'the environment variable OMP_NUM_THREADS has to be set to "1" '
+                "before executing a Fluidimage topology."
+            )
+
         del sleep_time
         self.topology = topology
         self.logging_level = logging_level

@@ -617,7 +617,7 @@ nb_peaks_to_search : 1, int
     Number of peaks to search. Secondary peaks can be used during the fix step.
 
 particle_radius : 3, int
-    Typical radius of a particle (or more preciselly of a correlation
+    Typical radius of a particle (or more precisely of a correlation
     peak). Used only if `nb_peaks_to_search` is larger than one.
 
 """
