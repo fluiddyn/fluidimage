@@ -32,7 +32,7 @@ else:
     BUILD_SYSTEM = "setuptools"
     PACKAGE_SPEC = "setup.cfg"
 
-TEST_ENV_VARS = {}
+TEST_ENV_VARS = {"OMP_NUM_THREADS": "1"}
 
 EXTRA_REQUIRES = ("main", "doc", "test", "dev")
 

@@ -1,3 +1,10 @@
+
+0.1.5_ (2023-02-15)
+-------------------
+
+- Requires Python 3.9
+- Improves legend, warnings, error log and documentation
+
 0.1.4_ (2022-12-13)
 -------------------
 

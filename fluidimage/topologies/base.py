@@ -199,6 +199,9 @@ class TopologyBase:
             if executor not in executors:
                 raise NotImplementedError(f"executor {executor} does not exist")
 
+            if nb_max_workers is None:
+                nb_max_workers = self.nb_max_workers
+
             exec_class = executors[executor]
             self.executor = exec_class(
                 self,

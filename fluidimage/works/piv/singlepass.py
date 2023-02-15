@@ -603,7 +603,9 @@ method_subpix : str, default '2d_gaussian2'
             + """
 
 nsubpix : None
-    Integer used in the subpix finder. It is related to the typical size of the
+
+    Integer used in the subpix finder to compute the shape of the correlation
+    crop (`(1+2*nsubpix,)*2`). It is related to the typical size of the
     particles. It has to be increased in case of peak locking (plot the
     histograms of the displacements).
 
@@ -615,7 +617,7 @@ nb_peaks_to_search : 1, int
     Number of peaks to search. Secondary peaks can be used during the fix step.
 
 particle_radius : 3, int
-    Typical radius of a particle (or more preciselly of a correlation
+    Typical radius of a particle (or more precisely of a correlation
     peak). Used only if `nb_peaks_to_search` is larger than one.
 
 """
