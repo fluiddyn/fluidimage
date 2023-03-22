@@ -201,7 +201,7 @@ class SubPix:
                 )
             print(
                 "Wrong subpix for one vector:"
-                " {deplx**2 + deply**2 = } > {(0.5+nsubpix)**2 = }\n"
+                f" {deplx**2 + deply**2 = :8.3f} > {(0.5+nsubpix)**2 = }\n"
                 "method: " + method + f"\ndeplx, deply = ({deplx}, {deply})\n"
             )
             raise PIVError(
