@@ -66,16 +66,18 @@ class SubPix:
     methods = ["2d_gaussian", "2d_gaussian2", "centroid", "no_subpix"]
 
     def __init__(self, method="centroid", nsubpix=None):
-        if method == "2d_gaussian2" and nsubpix is not None:
+        if method == "2d_gaussian2" and nsubpix is not None and nsubpix != 1:
             raise ValueError(
                 "Subpixel method '2d_gaussian2' doesn't require nsubpix. "
                 "In this case, nsubpix has to be equal to None."
             )
 
-        self.prepare_subpix(method, nsubpix)
+        self.count_too_large_depl = 0
 
-    def prepare_subpix(self, method, nsubpix):
         self.method = method
+        self.prepare_subpix(nsubpix)
+
+    def prepare_subpix(self, nsubpix):
         if nsubpix is None:
             nsubpix = 1
         self.n = nsubpix
@@ -129,7 +131,6 @@ class SubPix:
                 method = self.method
             if nsubpix is None:
                 nsubpix = self.n
-            self.prepare_subpix(method, nsubpix)
 
         if method not in self.methods:
             raise ValueError(f"method has to be in {self.methods}")
@@ -195,6 +196,7 @@ class SubPix:
             deplx = deply = 0.0
 
         if deplx**2 + deply**2 > 2 * (0.5 + nsubpix) ** 2:
+            self.count_too_large_depl += 1
             if method == "2d_gaussian2":
                 return self.compute_subpix(
                     correl, ix, iy, method="centroid", nsubpix=nsubpix
