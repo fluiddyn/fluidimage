@@ -322,6 +322,8 @@ class HeavyPIVResults(DataObject):
         pourcent_histo=99,
         hist=False,
         show_correl=True,
+        xlim=None,
+        ylim=None,
     ):
         try:
             im0, im1 = self.get_images()
@@ -337,6 +339,8 @@ class HeavyPIVResults(DataObject):
             pourcent_histo=pourcent_histo,
             hist=hist,
             show_correl=show_correl,
+            xlim=xlim,
+            ylim=ylim,
         )
 
     def _get_name(self, kind):
@@ -525,6 +529,8 @@ class MultipassPIVResults(DataObject):
         pourcent_histo=99,
         hist=False,
         show_correl=True,
+        xlim=None,
+        ylim=None,
     ):
         r = self.passes[i]
         return r.display(
@@ -534,6 +540,8 @@ class MultipassPIVResults(DataObject):
             pourcent_histo=pourcent_histo,
             hist=hist,
             show_correl=show_correl,
+            xlim=xlim,
+            ylim=ylim,
         )
 
     def __getitem__(self, key):

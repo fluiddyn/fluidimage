@@ -23,7 +23,8 @@ legend_text = """
 - "or": position corresponding to no displacement,
 - "xr": displacement found from correlation,
 - "ow": displacement final (after interpolation),
-- "sr": other peaks.
+- "+r": other peaks,
+- "vr": bad peak removed.
 
 """
 
@@ -42,6 +43,8 @@ class DisplayPIV:
         pourcent_histo=99,
         hist=False,
         show_correl=True,
+        xlim=None,
+        ylim=None,
     ):
 
         self.piv_results = piv_results
@@ -55,18 +58,15 @@ class DisplayPIV:
         else:
             self.show_correl = False
 
-        fig = plt.figure()
-        fig.event_handler = self
-
         if self.show_correl:
-            ax1 = plt.subplot(121)
-            ax2 = plt.subplot(122)
-            self.ax2 = ax2
+            fig, (ax0, ax1) = plt.subplots(ncols=2)
+            self.ax1 = ax1
         else:
-            ax1 = plt.gca()
+            fig, ax0 = plt.subplots()
 
         self.fig = fig
-        self.ax1 = ax1
+        self.ax0 = ax0
+        fig.event_handler = self
 
         if im0 is not None:
             p0 = np.percentile(
@@ -84,7 +84,7 @@ class DisplayPIV:
             im0[im0 > p0] = p0
             im1[im1 > p1] = p1
 
-            self.image0 = ax1.imshow(
+            self.image0 = ax0.imshow(
                 im0,
                 interpolation="nearest",
                 cmap=plt.cm.gray,
@@ -94,7 +94,7 @@ class DisplayPIV:
                 vmax=0.99 * im0.max(),
             )
 
-            self.image1 = ax1.imshow(
+            self.image1 = ax0.imshow(
                 im1,
                 interpolation="nearest",
                 cmap=plt.cm.gray,
@@ -107,20 +107,27 @@ class DisplayPIV:
         else:
             self.image0 = None
 
-        (point,) = ax1.plot(0, 0, "oy")
+        (point,) = ax0.plot(0, 0, "oy")
         point.set_visible(False)
 
-        ax1.set_title("im 0 (alt+s to switch)")
+        ax0.set_title("im 0 (alt+s to switch)")
 
         self._text = fig.text(0.1, 0.05, "")
         self._point = point
 
         if im0 is not None:
-            ax1.set_xlim(0, im0.shape[1])
-            ax1.set_ylim(im0.shape[0], 0)
+            if xlim is None:
+                xlim = (0, im0.shape[1])
+            if ylim is None:
+                ylim = (im0.shape[0], 0)
 
-        ax1.set_xlabel("pixels")
-        ax1.set_ylabel("pixels")
+        if xlim is not None:
+            ax0.set_xlim(xlim)
+        if ylim is not None:
+            ax0.set_ylim(ylim)
+
+        ax0.set_xlabel("pixels")
+        ax0.set_ylabel("pixels")
 
         if piv_results is not None:
             if show_interp:
@@ -143,7 +150,7 @@ class DisplayPIV:
             if im0 is None:
                 deltays *= -1
 
-            self.q = ax1.quiver(
+            self.q = ax0.quiver(
                 xs,
                 ys,
                 deltaxs,
@@ -174,7 +181,7 @@ class DisplayPIV:
                 if im0 is None:
                     dys_wrong *= -1
 
-                self.q_wrong = ax1.quiver(
+                self.q_wrong = ax0.quiver(
                     xs_wrong,
                     ys_wrong,
                     dxs_wrong,
@@ -191,7 +198,7 @@ class DisplayPIV:
                 ys_isnan = ys[inds_isnan]
 
                 zeros = np.zeros_like(xs_isnan)
-                self.q_isnan = ax1.quiver(
+                self.q_isnan = ax0.quiver(
                     xs_isnan,
                     ys_isnan,
                     zeros,
@@ -237,7 +244,7 @@ class DisplayPIV:
         if event.key == "alt+h":
             print(legend_text)
 
-        if event.inaxes != self.ax1:
+        if event.inaxes != self.ax0:
             return
 
         if event.key == "alt+s":
@@ -291,7 +298,7 @@ class DisplayPIV:
         else:
             raise NotImplementedError("other artist" + str(artist))
 
-        if ind >= len(q.X) or ind < 0:
+        if ind >= len(q.X) or ind < 0 or self.ind == ind_all:
             return
 
         self.ind = ind_all
@@ -311,7 +318,7 @@ class DisplayPIV:
         self._point.set_data(ix, iy)
 
         text = (
-            f"vector at ix = {ix} : iy = {iy}"
+            f"vector {ind_all} at ix = {ix} : iy = {iy}"
             f" ; U = {deltax:.3f} ; V = {deltay:.3f}"
         )
 
@@ -328,7 +335,7 @@ class DisplayPIV:
         self._text.set_text(text)
 
         if self.show_correl:
-            ax2 = self.ax2
+            ax2 = self.ax1
             ax2.cla()
             alphac = result.correls[ind_all]
             alphac_max = alphac.max()
@@ -340,6 +347,7 @@ class DisplayPIV:
                 result.indices_no_displacement[0],
                 result.indices_no_displacement[1],
                 "or",
+                mfc="none",
             )
 
             try:
@@ -370,17 +378,34 @@ class DisplayPIV:
 
                 ax2.plot(i1, i0, "ow")
 
+            if hasattr(result, "replaced_vectors"):
+                try:
+                    (dx_bad, dy_bad, _) = result.replaced_vectors[ind_all]
+                except KeyError:
+                    pass
+                else:
+                    try:
+                        dx_bad -= result.deltaxs_approx0[ind_all]
+                        dy_bad -= result.deltays_approx0[ind_all]
+                    except AttributeError:
+                        pass
+                    i1_bad, i0_bad = compute_indices_from_displacement(
+                        dx_bad, dy_bad, result.indices_no_displacement
+                    )
+                    ax2.plot(i1_bad, i0_bad, "vr")
+
             params = self.piv_results.params
 
             if params.piv0.nb_peaks_to_search > 1:
                 other_peaks = result.secondary_peaks[ind_all]
                 if other_peaks is not None:
+                    s = text + "\n"
                     if not other_peaks:
-                        s = "no other peak"
+                        s += "  no other peak"
                     elif len(other_peaks) == 1:
-                        s = "1 other peak"
+                        s += "  1 other peak"
                     else:
-                        s = f"{len(other_peaks)} other peaks"
+                        s += f"  {len(other_peaks)} other peaks"
                     ax2.set_title(s)
                     print(s)
 
@@ -388,8 +413,8 @@ class DisplayPIV:
                         i1, i0 = compute_indices_from_displacement(
                             dx, dy, result.indices_no_displacement
                         )
-                        ax2.plot(i1, i0, "sr")
-                        print(dx, dy, cmax)
+                        ax2.plot(i1, i0, "+r")
+                        print(f"  {(dx, dy, cmax) = }")
 
             if params.piv0.displacement_max is not None:
                 circle = plt.Circle(
@@ -410,7 +435,7 @@ class DisplayPIV:
             self.image0.set_visible(not self.image0.get_visible())
             self.image1.set_visible(not self.image1.get_visible())
 
-            self.ax1.set_title(
+            self.ax0.set_title(
                 "im {} (alt+s to switch)".format(int(self.image1.get_visible()))
             )
 

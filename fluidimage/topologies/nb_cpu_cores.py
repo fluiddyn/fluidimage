@@ -7,13 +7,6 @@ from fluidimage.config import get_config
 
 config = get_config()
 
-if "OMP_NUM_THREADS" not in os.environ:
-    warn("OMP_NUM_THREADS not set")
-else:
-    OMP_NUM_THREADS = int(os.environ["OMP_NUM_THREADS"])
-    if OMP_NUM_THREADS > 1:
-        warn("OMP_NUM_THREADS is greater than 1!")
-
 nb_cores = cpu_count()
 
 allow_hyperthreading = False
