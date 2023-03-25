@@ -484,11 +484,12 @@ class BaseWorkPIV(BaseWorkWithMask):
             or self.params.multipass.use_tps == "last"
             and last
         ):
-            print(f"TPS interpolation ({piv_results.couple.name}).")
             # compute TPS coef
             smoothing_coef = self.params.multipass.smoothing_coef
             subdom_size = self.params.multipass.subdom_size
             threshold = self.params.multipass.threshold_tps
+            print(f"TPS interpolation ({piv_results.couple.name}, "
+            f"{smoothing_coef=}, {threshold=}).")
 
             tps = ThinPlateSplineSubdom(
                 centers,

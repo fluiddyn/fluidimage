@@ -201,9 +201,17 @@ class ThinPlateSplineSubdom:
         if self.threshold is not None:
             Udiff = np.sqrt((U_smooth - U) ** 2)
             ind_erratic_vector = np.argwhere(Udiff > self.threshold)
-
             count = 1
+
+            if ind_erratic_vector.size == 0:
+                print(
+                    "iterative tps interp.: no erratic vector "
+                    f"({max(Udiff)=:.2f} < threshold)"
+                )
+
+            nb_fixed_vectors = 0
             while ind_erratic_vector.size != 0:
+                nb_fixed_vectors += ind_erratic_vector.size
                 U[ind_erratic_vector] = U_smooth[ind_erratic_vector]
                 U_smooth, U_tps = compute_tps_coeff(
                     centers, U, self.smoothing_coef
@@ -222,5 +230,8 @@ class ThinPlateSplineSubdom:
                     break
 
         if 1 < count < 10:
-            print(f"iterative tps interp.: done after {count} iterations.")
+            print(
+                f"iterative tps interp.: done after {count} iterations. "
+                f'{nb_fixed_vectors} "erratic" vectors changed.'
+            )
         return U_smooth, U_tps
