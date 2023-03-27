@@ -38,7 +38,6 @@ class ThinPlateSplineSubdom:
         threshold=None,
         percent_buffer_area=0.2,
     ):
-
         self.centers = centers
         self.subdom_size = subdom_size
         self.smoothing_coef = smoothing_coef
@@ -109,29 +108,32 @@ class ThinPlateSplineSubdom:
         self.nb_subdom = nb_subdom
 
     def compute_tps_coeff_subdom(self, U):
-
         U_smooth = [None] * self.nb_subdom
         U_tps = [None] * self.nb_subdom
+        summaries = [None] * self.nb_subdom
 
         for i in range(self.nb_subdom):
-
             centers_tmp = self.centers[:, self.ind_v_subdom[i]]
 
             U_tmp = U[self.ind_v_subdom[i]]
-            U_smooth[i], U_tps[i] = self.compute_tps_coeff_iter(
+            U_smooth[i], U_tps[i], summaries[i] = self.compute_tps_coeff_iter(
                 centers_tmp, U_tmp
             )
 
         U_smooth_tmp = np.zeros(self.centers[1].shape)
         nb_tps = np.zeros(self.centers[1].shape, dtype=int)
+        summary = {"nb_fixed_vectors": [], "max(Udiff)": [], "nb_iterations": []}
 
         for i in range(self.nb_subdom):
             U_smooth_tmp[self.ind_v_subdom[i]] += U_smooth[i]
             nb_tps[self.ind_v_subdom[i]] += 1
+            for key in ("nb_fixed_vectors", "max(Udiff)", "nb_iterations"):
+                summary[key].append(summaries[i][key])
 
+        summary["nb_fixed_vectors_tot"] = sum(summary["nb_fixed_vectors"])
         U_smooth_tmp /= nb_tps
 
-        return U_smooth_tmp, U_tps
+        return U_smooth_tmp, U_tps, summary
 
     def init_with_new_positions(self, new_positions):
         npos = self.new_positions = new_positions
@@ -161,7 +163,6 @@ class ThinPlateSplineSubdom:
         self._init_EM_subdom()
 
     def _init_EM_subdom(self):
-
         EM = [None] * self.nb_subdom
 
         for i in range(self.nb_subdom):
@@ -174,7 +175,6 @@ class ThinPlateSplineSubdom:
         self.EM = EM
 
     def compute_eval(self, U_tps):
-
         U_eval = np.zeros(self.new_positions[1].shape)
         nb_tps = np.zeros(self.new_positions[1].shape, dtype=int)
 
@@ -197,17 +197,14 @@ class ThinPlateSplineSubdom:
         larger than the given threshold
 
         """
+        summary = {"nb_fixed_vectors": 0}
         U_smooth, U_tps = compute_tps_coeff(centers, U, self.smoothing_coef)
+        count = 1
         if self.threshold is not None:
             Udiff = np.sqrt((U_smooth - U) ** 2)
             ind_erratic_vector = np.argwhere(Udiff > self.threshold)
-            count = 1
 
-            if ind_erratic_vector.size == 0:
-                print(
-                    "iterative tps interp.: no erratic vector "
-                    f"({max(Udiff)=:.2f} < threshold)"
-                )
+            summary["max(Udiff)"] = max(Udiff)
 
             nb_fixed_vectors = 0
             while ind_erratic_vector.size != 0:
@@ -229,9 +226,6 @@ class ThinPlateSplineSubdom:
                     )
                     break
 
-        if 1 < count < 10:
-            print(
-                f"iterative tps interp.: done after {count} iterations. "
-                f'{nb_fixed_vectors} "erratic" vectors changed.'
-            )
-        return U_smooth, U_tps
+            summary["nb_fixed_vectors"] = nb_fixed_vectors
+        summary["nb_iterations"] = count
+        return U_smooth, U_tps, summary

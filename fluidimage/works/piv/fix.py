@@ -102,7 +102,6 @@ displacement_max : None
                 inds = (delta2s > displacement_max2).nonzero()[0]
             put_to_nan(inds, "delta2 < displacement_max2")
 
-        # warning condition neighbour not implemented...
         if self.params_fix.threshold_diff_neighbour is not None:
             threshold = self.params_fix.threshold_diff_neighbour
             ixvecs = self.piv_work.ixvecs
@@ -110,7 +109,6 @@ displacement_max : None
             xs = piv_results.xs
             ys = piv_results.ys
 
-            # import ipdb; ipdb.set_trace()
             ixvecs, iyvecs = self.piv_work._xyoriginalimage_from_xymasked(
                 ixvecs, iyvecs
             )
@@ -241,6 +239,8 @@ displacement_max : None
                     )
 
         if nb_bad_peaks_replaced > 0:
-            print(f"{nb_bad_peaks_replaced} bad peak(s) replaced")
+            print(
+                f"Secondary peaks: {nb_bad_peaks_replaced} bad peak(s) replaced"
+            )
 
         return piv_results
