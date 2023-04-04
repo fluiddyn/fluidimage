@@ -21,6 +21,9 @@ import signal
 import time
 from collections import OrderedDict
 
+from random import random
+import tracemalloc
+
 import trio
 
 from fluidimage.util import cstring, log_debug, log_memory_usage, logger
@@ -96,11 +99,17 @@ class ExecutorAsync(ExecutorBase):
 
     async def start_async_works(self):
         """Create a trio nursery and start all async functions."""
+
+        tracemalloc.start(4)
+        self.snapshot_tracemalloc = tracemalloc.take_snapshot()
+
         async with trio.open_nursery() as self.nursery:
             for af in self.async_funcs.values():
                 self.nursery.start_soon(af)
 
             self.nursery.start_soon(self.update_has_to_stop)
+
+            self.nursery.start_soon(self.debug_memory_leak)
 
     def define_functions(self):
         """Define sync and async functions.
@@ -329,3 +338,12 @@ class ExecutorAsync(ExecutorBase):
                 )
 
             await trio.sleep(self.sleep_time)
+
+    async def debug_memory_leak(self):
+        await trio.sleep(600 + 10 * random())
+        snapshot = tracemalloc.take_snapshot()
+        top_stats = snapshot.compare_to(self.snapshot_tracemalloc, "lineno")
+        logger.info("[ Top 10 differences ]")
+        for stat in top_stats[:10]:
+            logger.info(stat)
+        self.snapshot_tracemalloc = snapshot
