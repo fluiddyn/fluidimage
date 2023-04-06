@@ -223,14 +223,23 @@ class LogTopology:
                     times[name].append(work["time"])
                     keys[name].append(work["key"])
 
+            works_ended_name = [
+                work for work in self.works_ended if work["name"] == name
+            ]
+            index_vs_keys = {
+                work["key"]: index for index, work in enumerate(works_ended_name)
+            }
+
             durations[name] = []
             for key in keys[name]:
-                founded = False
-                for work in self.works_ended:
-                    if work["name"] == name and work["key"] == key:
-                        durations[name].append(work["duration"])
-                        founded = True
-                        break
+                try:
+                    index_key = index_vs_keys[key]
+                except KeyError:
+                    founded = False
+                else:
+                    founded = True
+                    work = works_ended_name[index_key]
+                    durations[name].append(work["duration"])
 
                 if not founded:
                     durations[name].append(np.nan)

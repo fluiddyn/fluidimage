@@ -59,7 +59,6 @@ class BaseWorkPIV(BaseWorkWithMask):
         pass
 
     def _init_shape_crop(self, shape_crop_im0, shape_crop_im1):
-
         if shape_crop_im1 is None:
             shape_crop_im1 = shape_crop_im0
 
@@ -279,7 +278,6 @@ class BaseWorkPIV(BaseWorkWithMask):
         has_to_apply_subpix = self.index_pass == self.params.multipass.number - 1
 
         for ivec in range(nb_vec):
-
             ixvec0 = ixs0_pad[ivec]
             iyvec0 = iys0_pad[ivec]
             ixvec1 = ixs1_pad[ivec]
@@ -292,7 +290,6 @@ class BaseWorkPIV(BaseWorkWithMask):
                 im0crop.shape != self.shape_crop_im0
                 or im1crop.shape != self.shape_crop_im1
             ):
-
                 print(
                     "Warning: Bad im_crop shape.",
                     ixvec0,
@@ -484,11 +481,14 @@ class BaseWorkPIV(BaseWorkWithMask):
             or self.params.multipass.use_tps == "last"
             and last
         ):
-            print(f"TPS interpolation ({piv_results.couple.name}).")
             # compute TPS coef
             smoothing_coef = self.params.multipass.smoothing_coef
             subdom_size = self.params.multipass.subdom_size
             threshold = self.params.multipass.threshold_tps
+            print(
+                f"TPS interpolation ({piv_results.couple.name}, "
+                f"{smoothing_coef=}, {threshold=})."
+            )
 
             tps = ThinPlateSplineSubdom(
                 centers,
@@ -498,14 +498,18 @@ class BaseWorkPIV(BaseWorkWithMask):
                 percent_buffer_area=0.25,
             )
             try:
-                deltaxs_smooth, deltaxs_tps = tps.compute_tps_coeff_subdom(
-                    deltaxs
-                )
-                deltays_smooth, deltays_tps = tps.compute_tps_coeff_subdom(
-                    deltays
-                )
+                (
+                    deltaxs_smooth,
+                    deltaxs_tps,
+                    summary,
+                ) = tps.compute_tps_coeff_subdom(deltaxs)
+                (
+                    deltays_smooth,
+                    deltays_tps,
+                    summary,
+                ) = tps.compute_tps_coeff_subdom(deltays)
             except np.linalg.LinAlgError:
-                print("compute delta_approx with griddata (in tps)")
+                print("LinAlgError in TPS: compute delta_approx with griddata")
                 deltaxs_approx = griddata(
                     centers[::-1], deltaxs, (self.ixvecs, self.iyvecs)
                 )
@@ -524,6 +528,24 @@ class BaseWorkPIV(BaseWorkWithMask):
 
                 deltaxs_approx = tps.compute_eval(deltaxs_tps)
                 deltays_approx = tps.compute_eval(deltays_tps)
+
+                print("TPS summary: ", end="")
+                nb_fixed_vectors_tot = summary.pop("nb_fixed_vectors_tot")
+                if nb_fixed_vectors_tot > 0:
+                    print(f'{nb_fixed_vectors_tot} "erratic" vectors changed.')
+                else:
+                    print("no erratic vector found.")
+
+                print("  Statistics on TPS subdomains:")
+                for key, value in summary.items():
+                    fmt = ".3f" if isinstance(value[0], float) else "d"
+                    print(
+                        f"    {{:18s}}: min={{:{fmt}}}; max={{:{fmt}}}; ".format(
+                            key, min(value), max(value)
+                        )
+                        + f"mean={sum(value)/len(value):.3f}"
+                    )
+
         else:
             deltaxs_approx = griddata(
                 centers[::-1], deltaxs, (self.ixvecs, self.iyvecs)
@@ -642,7 +664,6 @@ from : str {'overlap'}
         cls._complete_params_with_default_mask(params)
 
     def __init__(self, params):
-
         self.params = params
 
         self.overlap = params.piv0.grid.overlap
@@ -690,7 +711,6 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
     def __init__(
         self, params, index_pass=1, shape_crop_im0=None, shape_crop_im1=None
     ):
-
         self.params = params
         self.index_pass = index_pass
 

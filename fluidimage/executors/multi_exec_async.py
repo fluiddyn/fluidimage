@@ -322,8 +322,12 @@ class MultiExecutorAsync(ExecutorBase):
         # wait until end of all processes
 
         self.topology.results = results_all = []
-        for process in self.processes:
-            results = process.connection.recv()
+        for index, process in enumerate(self.processes):
+            try:
+                results = process.connection.recv()
+            except EOFError:
+                logger.error(f"EOFError for process {index} ({process})")
+                results = None
 
             if results is not None:
                 results_all.extend(results)
