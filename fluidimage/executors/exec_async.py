@@ -100,6 +100,7 @@ class ExecutorAsync(ExecutorBase):
     async def start_async_works(self):
         """Create a trio nursery and start all async functions."""
 
+        print("STUDY_MEM_LEAK")
         tracemalloc.start(4)
         self.snapshot_tracemalloc = tracemalloc.take_snapshot()
 
@@ -340,9 +341,10 @@ class ExecutorAsync(ExecutorBase):
             await trio.sleep(self.sleep_time)
 
     async def debug_memory_leak(self):
-        await trio.sleep(600 + 10 * random())
+        await trio.sleep(10 + 10 * random())
         snapshot = tracemalloc.take_snapshot()
         top_stats = snapshot.compare_to(self.snapshot_tracemalloc, "lineno")
+        print("STUDY_MEM_LEAK")
         logger.info("[ Top 10 differences ]")
         for stat in top_stats[:10]:
             logger.info(stat)
