@@ -325,8 +325,8 @@ class MultiExecutorAsync(ExecutorBase):
         for index, process in enumerate(self.processes):
             try:
                 results = process.connection.recv()
-            except EOFError:
-                logger.error(f"EOFError for process {index} ({process})")
+            except (EOFError, ProcessLookupError) as err:
+                logger.error(f"{err.__class__} for process {index} ({process})")
                 results = None
 
             if results is not None:
