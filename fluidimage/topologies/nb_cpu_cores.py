@@ -39,7 +39,7 @@ try:  # should work on UNIX
         if line.startswith("siblings") and siblings is None:
             siblings = int(line.split()[-1])
 
-    if nb_cores == siblings * 2:
+    if siblings is not None and nb_cores == siblings * 2:
         if not allow_hyperthreading:
             print("We do not use hyperthreading.")
             nb_cores //= 2
