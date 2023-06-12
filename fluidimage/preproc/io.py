@@ -56,11 +56,12 @@ def iterate_multiple_imgs(tool, *args, **kwargs):
         if img_array_in.ndim == 2:
             return tool(*args, **kwargs)  # Function call!
 
+    img_array_out = np.empty(img_array_in.shape)
     for i, img in enumerate(img_array_in):
         args, kwargs = _replace_img_arg(img, *args, **kwargs)
-        img_array_in[i] = tool(*args, **kwargs)  # Function call!
+        img_array_out[i, :, :] = tool(*args, **kwargs)  # Function call!
 
-    return img_array_in
+    return img_array_out
 
 
 @decorator
