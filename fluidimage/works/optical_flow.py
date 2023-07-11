@@ -1,9 +1,8 @@
 """Works optical flow (:mod:`fluidimage.works.optical_flow`)
 ============================================================
 
-See
-https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_video/py_lucas_kanade
-(and https://github.com/groussea/opyflow by Gauthier Rousseau)
+See https://docs.opencv.org/4.x/d4/dee/tutorial_optical_flow.html (and
+https://github.com/groussea/opyflow by Gauthier Rousseau)
 
 """
 
