@@ -14,7 +14,6 @@ pathbase = get_path_image_samples() / "Milestone"
 
 
 def get_piv_field(path):
-
     try:
         with h5py.File(path, "r") as file:
             keyspiv = [key for key in file.keys() if key.startswith("piv")]

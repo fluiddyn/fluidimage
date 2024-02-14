@@ -64,7 +64,6 @@ new_positions = np.vstack([XI, YI])
 t0 = clock()
 
 if method == "tps":
-
     # calculate tps coeff
     U_smooth, U_tps = compute_tps_coeff(centers, U, 0)
     # evaluate interpolation on the new grid
@@ -76,7 +75,6 @@ if method == "tps":
         DUX_eval, DUY_eval = tps.compute_gradient(U_tps)
 
 elif method == "tps_subdom":
-
     smoothing_coef = 0.5
     subdom_size = 50
 
@@ -90,11 +88,9 @@ elif method == "tps_subdom":
     U_eval = tps.compute_eval(U_tps)
 
 elif method == "griddata_mpl":
-
     U_eval = mlab.griddata(x, y, U, xI, yI, "linear")
 
 elif method == "griddata_scipy":
-
     grid_x, grid_y = np.meshgrid(xI, yI)
     # nearest, linear, cubic
     U_eval = interpolate.griddata(centers.T, U, (grid_x, grid_y), "cubic", 0)

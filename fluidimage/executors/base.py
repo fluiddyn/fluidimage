@@ -73,7 +73,6 @@ class ExecutorBase:
         sleep_time=None,
         stop_if_error=False,
     ):
-
         if not _omp_num_threads_equal_1_at_import:
             raise SystemError(
                 "For performance reason,"

@@ -10,7 +10,6 @@ from fluidimage.calcul.correl import CUFFT2DReal2Complex, FFTW2DReal2Complex
 
 
 class TestFFTW2DReal2Complex(unittest.TestCase):
-
     # def test_correl(self):
 
     #     rtime, ntime = 0., 0.
@@ -57,7 +56,6 @@ class TestFFTW2DReal2Complex(unittest.TestCase):
         self.compute_and_check(func_fft, op)
 
     def compute_and_check(self, func_fft, op):
-
         energyK = op.compute_energy_from_Fourier(func_fft)
 
         func = op.ifft(func_fft)
@@ -77,7 +75,6 @@ class TestFFTW2DReal2Complex(unittest.TestCase):
         self.assertAlmostEqual(energyK / energyKback, 1.0, places=3)
 
     def compute_and_check2(self, func, op):
-
         energyX = op.compute_energy_from_spatial(func)
         func_fft = op.fft(func)
         energyK = op.compute_energy_from_Fourier(func_fft)
@@ -106,7 +103,6 @@ class TestFFTW2DReal2Complex(unittest.TestCase):
         rtime, ntime = 0.0, 0.0
         Nloops = 2
         for nloop in range(Nloops):
-
             op = FFTW2DReal2Complex(nx, ny)
 
             func = np.random.random(op.shapeX)

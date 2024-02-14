@@ -140,7 +140,6 @@ postfix : str
         return params
 
     def __init__(self, params, logging_level="info", nb_max_workers=None):
-
         self.params = params
 
         if params.surface_tracking is None:
@@ -304,7 +303,6 @@ postfix : str
         imsave_h5(path_out, image, splitext=False)
 
     def fill_queue_paths(self, input_queue, output_queues):
-
         assert input_queue is None
         queue_paths = output_queues[0]
         queue_couples_of_names = output_queues[1]

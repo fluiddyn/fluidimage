@@ -29,7 +29,6 @@ reload(params_pre)
 
 
 def main(args):
-
     list_params = params_pre.make_params_pre(
         args.exp, savinghow=args.saving_how, postfix_out=args.postfix_out
     )
@@ -41,7 +40,6 @@ def main(args):
 
 
 if __name__ == "__main__":
-
     from args import parse_args
 
     args = parse_args(doc=__doc__, postfix_in=None, postfix_out="pre")

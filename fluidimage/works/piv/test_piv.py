@@ -30,7 +30,6 @@ class TestPIV(unittest.TestCase):
             rmtree(cls.path_tmp)
 
     def test_minimal_piv(self):
-
         params = WorkPIV.create_default_params()
 
         # for a very short computation
@@ -66,7 +65,6 @@ class TestPIV(unittest.TestCase):
         LightPIVResults(str_path=str(path_file))
 
     def test_piv_list(self):
-
         params = WorkPIV.create_default_params()
 
         # for a very short computation

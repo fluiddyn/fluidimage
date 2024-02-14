@@ -49,7 +49,6 @@ YI = YI.ravel()
 new_positions = np.vstack([XI, YI])
 
 if method == "tps":
-
     # calculate tps coeff
     U_smooth, U_tps = compute_tps_coeff(centers, U, 0)
     # evaluate interpolation on the new grid
@@ -62,13 +61,11 @@ if method == "tps":
     DUX_eval, DUY_eval = tps.compute_gradient(U_tps)
 
 elif method == "griddata_mpl":
-
     U_eval = griddata(x, y, U, xI, yI, "linear")
 
     DUX_eval, DUY_eval = sc.gradient(U_eval)
 
 elif method == "griddata_scipy":
-
     grid_x, grid_y = np.meshgrid(xI, yI)
     # nearest, linear, cubic
     U_eval = interpolate.griddata(centers.T, U, (grid_x, grid_y), "cubic", 0)

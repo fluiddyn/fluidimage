@@ -15,7 +15,6 @@ class DisplayPreProc:
     """Display pairs of images"""
 
     def __init__(self, im0, im1, im0p, im1p, pourcent_histo=99, hist=False):
-
         fig = plt.figure()
         fig.event_handler = self
 
@@ -27,19 +26,19 @@ class DisplayPreProc:
         self.ax2 = ax2
 
         p0 = np.percentile(
-            np.reshape(im0, (1, np.product(im0.shape))).transpose(),
+            np.reshape(im0, (1, np.prod(im0.shape))).transpose(),
             pourcent_histo,
         )
         p1 = np.percentile(
-            np.reshape(im1, (1, np.product(im1.shape))).transpose(),
+            np.reshape(im1, (1, np.prod(im1.shape))).transpose(),
             pourcent_histo,
         )
         p0p = np.percentile(
-            np.reshape(im0p, (1, np.product(im0p.shape))).transpose(),
+            np.reshape(im0p, (1, np.prod(im0p.shape))).transpose(),
             pourcent_histo,
         )
         p1p = np.percentile(
-            np.reshape(im1p, (1, np.product(im1p.shape))).transpose(),
+            np.reshape(im1p, (1, np.prod(im1p.shape))).transpose(),
             pourcent_histo,
         )
         im0[im0 > p0] = p0
@@ -86,17 +85,17 @@ class DisplayPreProc:
             ax3 = plt.subplot(121)
             ax4 = plt.subplot(122)
             hist0 = np.histogram(
-                np.reshape(im0, (1, np.product(im0.shape))).transpose(), bins="fd"
+                np.reshape(im0, (1, np.prod(im0.shape))).transpose(), bins="fd"
             )
             hist1 = np.histogram(
-                np.reshape(im1, (1, np.product(im1.shape))).transpose(), bins="fd"
+                np.reshape(im1, (1, np.prod(im1.shape))).transpose(), bins="fd"
             )
             hist0p = np.histogram(
-                np.reshape(im0p, (1, np.product(im0p.shape))).transpose(),
+                np.reshape(im0p, (1, np.prod(im0p.shape))).transpose(),
                 bins="fd",
             )
             hist1p = np.histogram(
-                np.reshape(im1p, (1, np.product(im1p.shape))).transpose(),
+                np.reshape(im1p, (1, np.prod(im1p.shape))).transpose(),
                 bins="fd",
             )
             incr = 1

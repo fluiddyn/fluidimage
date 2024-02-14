@@ -11,7 +11,6 @@ from fluiddyn.util.paramcontainer import ParamContainer, tidy_container
 
 
 def get_number_from_string(string):
-
     return [float(word) for word in string.split() if word]
 
 
@@ -97,7 +96,6 @@ def make_params_calibration(path_file):
     params._set_attribs({"f": f, "C": C, "kc": kc, "T": T, "R": R, "omc": omc})
 
     if calib_uvmat.nb_slice is not None:
-
         nb_slice = np.array(calib_uvmat["nb_slice"])
         zslice_coord = np.zeros([nb_slice, 3])
 

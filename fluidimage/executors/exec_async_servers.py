@@ -145,7 +145,6 @@ class ExecutorAsyncServers(ExecutorAsync):
         """
 
         while not self._has_to_stop:
-
             result = (
                 (not any([bool(queue) for queue in self.topology.queues]))
                 and all(worker.is_unoccupied for worker in self.workers)
@@ -223,7 +222,6 @@ class ExecutorAsyncServers(ExecutorAsync):
 
     def def_async_func_work_cpu(self, work):
         async def func(work=work):
-
             while True:
                 while not work.input_queue or (
                     work.output_queue is not None

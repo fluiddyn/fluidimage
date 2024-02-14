@@ -20,7 +20,6 @@ def _smooth(a, for_norm):
 
 
 def smooth_clean(xs, ys, deltaxs, deltays, iyvecs, ixvecs, threshold):
-
     nx = len(ixvecs)
     ny = len(iyvecs)
 

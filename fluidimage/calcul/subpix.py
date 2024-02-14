@@ -148,7 +148,6 @@ class SubPix:
             )
 
         if method == "2d_gaussian":
-
             correl_crop = correl[
                 iy - nsubpix : iy + nsubpix + 1, ix - nsubpix : ix + nsubpix + 1
             ]
@@ -181,7 +180,6 @@ class SubPix:
             )
 
         elif method == "centroid":
-
             correl_crop = correl[
                 iy - nsubpix : iy + nsubpix + 1, ix - nsubpix : ix + nsubpix + 1
             ]

@@ -23,7 +23,6 @@ class BaseWorkWithMask(BaseWork):
 
     @classmethod
     def _complete_params_with_default_mask(cls, params):
-
         params._set_child("mask", attribs={"strcrop": None})
 
         params.mask._set_doc(

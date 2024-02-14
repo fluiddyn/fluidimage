@@ -95,7 +95,6 @@ class ArrayCouple(DataObject):
         hdf5_parent=None,
         params_mask=None,
     ):
-
         self.params_mask = params_mask
 
         if str_path is not None:
@@ -191,7 +190,6 @@ class ArrayCouple(DataObject):
         group.create_dataset("shape_images", data=arr0.shape)
 
     def _load(self, path=None, hdf5_object=None):
-
         if path is not None:
             raise NotImplementedError
 
@@ -227,7 +225,6 @@ class ArrayCoupleBOS(ArrayCouple):
         hdf5_parent=None,
         params_mask=None,
     ):
-
         self.params_mask = params_mask
 
         if str_path is not None:
@@ -284,7 +281,6 @@ class HeavyPIVResults(DataObject):
         secondary_peaks=None,
         indices_no_displacement=None,
     ):
-
         if hdf5_object is not None:
             if couple is not None:
                 self.couple = couple
@@ -353,7 +349,6 @@ class HeavyPIVResults(DataObject):
             return get_name_bos(self.couple.name, serie)
 
     def save(self, path=None, out_format=None, kind=None):
-
         name = self._get_name(kind)
 
         if path is not None:
@@ -373,7 +368,6 @@ class HeavyPIVResults(DataObject):
         return path_file
 
     def _save_in_hdf5_object(self, file, tag="piv0"):
-
         if "class_name" not in file.attrs.keys():
             file.attrs["class_name"] = "HeavyPIVResults"
             file.attrs["module_name"] = "fluidimage.data_objects.piv"
@@ -427,13 +421,11 @@ class HeavyPIVResults(DataObject):
                 g.create_dataset(f"subdom{i}", data=arr)
 
     def _load(self, path):
-
         self.file_name = os.path.basename(path)
         with h5py.File(path, "r") as file:
             self._load_from_hdf5_object(file["piv0"])
 
     def _load_from_hdf5_object(self, g_piv):
-
         file = g_piv.parent
 
         if not hasattr(self, "params"):
@@ -553,7 +545,6 @@ class MultipassPIVResults(DataObject):
         self.__dict__[f"piv{i}"] = results
 
     def _get_name(self, kind):
-
         if hasattr(self, "file_name"):
             return self.file_name
 
@@ -561,7 +552,6 @@ class MultipassPIVResults(DataObject):
         return r._get_name(kind)
 
     def save(self, path=None, out_format=None, kind=None):
-
         name = self._get_name(kind)
 
         if path is not None:
@@ -592,7 +582,6 @@ class MultipassPIVResults(DataObject):
         return path_file
 
     def _load(self, path):
-
         self.file_name = os.path.basename(path)
         with h5py.File(path, "r") as file:
             self.params = ParamContainer(hdf5_object=file["params"])
@@ -615,11 +604,9 @@ class MultipassPIVResults(DataObject):
                 )
 
     def _save_as_uvmat(self, file):
-
         file.dimensions = {"nb_coord": 2, "nb_bounds": 2}
 
         for i, ir in enumerate(self.passes):
-
             iuvmat = i + 1
             str_i = str(iuvmat)
             str_nb_vec = "nb_vec_" + str_i
@@ -768,7 +755,6 @@ class LightPIVResults(DataObject):
         hdf5_object=None,
         file_name=None,
     ):
-
         if file_name is not None:
             self.file_name = file_name
         if hdf5_object is not None:
@@ -826,7 +812,6 @@ class LightPIVResults(DataObject):
         return self
 
     def _save_in_hdf5_object(self, file, tag="piv"):
-
         if "class_name" not in file.attrs.keys():
             file.attrs["class_name"] = "LightPIVResults"
             file.attrs["module_name"] = "fluidimage.data_objects.piv"
@@ -857,7 +842,6 @@ class LightPIVResults(DataObject):
             self._load_from_hdf5_object(file[max(keys)])
 
     def _load_from_hdf5_object(self, g_piv):
-
         file = g_piv.parent
 
         if not hasattr(self, "params"):

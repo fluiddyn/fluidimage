@@ -71,7 +71,6 @@ class ExecutorAsyncMultiproc(ExecutorAsync):
         event = Event()
 
         def run_process():
-
             # we do this complicate thing because there may be a strange bug
 
             def start_process_and_check(index_attempt):

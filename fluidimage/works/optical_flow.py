@@ -29,7 +29,6 @@ def optical_flow(
     vmin=0,
     vmax=np.inf,
 ):
-
     positions0 = cv2.goodFeaturesToTrack(im0, **feature_params)
 
     positions1, st, err = cv2.calcOpticalFlowPyrLK(
@@ -178,13 +177,11 @@ displacement_max : None
         )
 
     def __init__(self, params):
-
         self.params = params
         self.dict_params_features = dict_from_params(self.params.features)
         self.dict_params_flow = dict_from_params(self.params.optical_flow)
 
     def calcul(self, couple):
-
         if isinstance(couple, SerieOfArraysFromFiles):
             couple = ArrayCouple(serie=couple)
 

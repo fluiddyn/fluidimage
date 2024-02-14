@@ -48,7 +48,6 @@ def compute_derivatives(dx, dy, U, V, edge_order=2):
 
 
 def displayf(X, Y, U=None, V=None, background=None, *args):
-
     if background is not None:
         pylab.pcolor(X, Y, background)
     if U is not None:
@@ -127,7 +126,6 @@ class PIV_Postproc(LightPIVResults):
         return norm
 
     def compute_spatial_fft(self, parseval=False):
-
         fftU, kx, ky, psdU = compute_2dspectrum(
             self.X, self.Y, self.U, axes=(0, 1)
         )
@@ -167,7 +165,6 @@ class PIV_Postproc(LightPIVResults):
 
 class PIV_PostProc_serie(LightPIVResults):
     def __init__(self, path=None):
-
         warn(
             "The class PIV_Postproc_serie is deprecated (the code is not tested!). "
             "Please use fluidimage.postproc.vector_field.ArrayOfVectorFieldOnGrid instead.",
@@ -308,7 +305,6 @@ class PIV_PostProc_serie(LightPIVResults):
             #     print(energspectral)
 
     def compute_spatial_fft(self):
-
         fftU, kx, ky, psdU = compute_2dspectrum(
             self.X, self.Y, self.U, axes=(1, 2)
         )

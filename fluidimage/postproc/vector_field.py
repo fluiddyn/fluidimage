@@ -105,7 +105,6 @@ class VectorFieldOnGrid:
         history=["fluidimage"],
         params: Optional[ParamContainer] = None,
     ):
-
         if isinstance(z, np.ndarray) and z.ndim == 0:
             z = z.item()
 
@@ -230,7 +229,12 @@ class VectorFieldOnGrid:
                 deltays = piv["deltays_final"][...]
 
                 kwargs = {}
-                (X, Y, kwargs["vx"], kwargs["vy"],) = reshape_on_grid_final(
+                (
+                    X,
+                    Y,
+                    kwargs["vx"],
+                    kwargs["vy"],
+                ) = reshape_on_grid_final(
                     ixvecs_final, iyvecs_final, deltaxs, deltays
                 )
 

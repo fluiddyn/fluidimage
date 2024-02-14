@@ -161,7 +161,6 @@ offset: float (default 0.0)
         )
 
     def __init__(self, params):
-
         self.cpt = 0
 
         self.params = params

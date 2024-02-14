@@ -180,7 +180,6 @@ postfix : str
         return params
 
     def __init__(self, params, logging_level="info", nb_max_workers=None):
-
         self.params = params
 
         self.series = SeriesOfArrays(

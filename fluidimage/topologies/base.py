@@ -113,7 +113,6 @@ class TopologyBase:
     def __init__(
         self, path_dir_result=None, logging_level="info", nb_max_workers=None
     ):
-
         self.path_dir_result = path_dir_result
         self.logging_level = logging_level
         self.nb_max_workers = nb_max_workers

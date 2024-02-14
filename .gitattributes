@@ -1,0 +1,9 @@
+# GitHub syntax highlighting
+pixi.lock linguist-language=YAML
+
+.gitattributes export-ignore
+.hgignore export-ignore
+
+old export-ignore
+./try export-ignore
+./bench export-ignore

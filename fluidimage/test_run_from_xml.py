@@ -20,7 +20,6 @@ class TestRunFromXML(unittest.TestCase):
         os.chdir(cls.current_dir)
 
     def test_main(self):
-
         path = path_image_samples / "Karman/Images.civ/0_XML/Karman_1-4.xml"
         command = f"run {str(path)} --mode recompute"
         sys.argv = command.split()

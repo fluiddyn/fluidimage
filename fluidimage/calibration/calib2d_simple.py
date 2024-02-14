@@ -63,7 +63,6 @@ class Calibration2DSimple:
         point_origin=(0, 0),
         orig_phys=(0.0, 0.0),
     ):
-
         self.point0 = np.array(point0)
         self.point1 = np.array(point1)
         self.distance = distance

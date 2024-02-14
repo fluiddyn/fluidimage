@@ -25,11 +25,8 @@ class ExecutorSequential(ExecutorBase):
         self._finalize_compute()
 
     def _run_works(self):
-
         while not all([len(queue) == 0 for queue in self.topology.queues]):
-
             for work in self.works:
-
                 # global functions
                 if work.kind is not None and "global" in work.kind:
                     if len(work.output_queue) > self.nb_items_queue_max:

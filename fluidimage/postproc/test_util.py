@@ -22,7 +22,6 @@ def test_compute_1dspectrum():
 
 
 def _test_compute_2dspectrum(nt):
-
     nx = 10
     ny = 100
     lx = 1000
@@ -71,7 +70,6 @@ def test_compute_2dspectrum_input3d():
 
 
 def test_reshape_on_grid_final():
-
     x_increasing = np.linspace(-1, 1, 2)
     x_decreasing = np.linspace(2, 1, 2)
     y_increasing = np.linspace(0, 2, 10)

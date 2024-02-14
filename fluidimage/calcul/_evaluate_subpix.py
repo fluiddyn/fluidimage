@@ -30,7 +30,6 @@ except ImportError:
 
 
 def setUpImages(nx, ny, dx, dy, part_size):
-
     displacements = np.array([dx, dy])
 
     nb_particles = (nx // 4) ** 2

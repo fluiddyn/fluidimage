@@ -28,7 +28,6 @@ class WorkFIX(BaseWork):
 
     @classmethod
     def _complete_params_with_default(cls, params, tag="fix"):
-
         params._set_child(
             tag,
             attribs={
@@ -158,7 +157,7 @@ displacement_max : None
                 dy_approx0 = 0
 
             other_peaks_good = []
-            for (dx, dy, corr) in other_peaks:
+            for dx, dy, corr in other_peaks:
                 if (
                     corr / correl0 > ratio_correl_peaks
                     and corr > self.params_fix.correl_min

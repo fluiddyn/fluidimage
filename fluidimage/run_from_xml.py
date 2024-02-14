@@ -209,7 +209,6 @@ def modif_fluidimage_params(params, args):
 
 
 def main():
-
     reset_logger()
     config_logging("info")
 
@@ -269,5 +268,4 @@ def main():
 
 
 if __name__ == "__main__":
-
     result = main()

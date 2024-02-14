@@ -114,7 +114,6 @@ class ExecutorAsync(ExecutorBase):
 
         """
         for work in self.works:
-
             # global functions
             if work.kind is not None and "global" in work.kind:
 
@@ -308,7 +307,6 @@ class ExecutorAsync(ExecutorBase):
         """
 
         while not self._has_to_stop:
-
             result = (
                 (not any([bool(queue) for queue in self.topology.queues]))
                 and self.nb_working_workers_cpu == 0

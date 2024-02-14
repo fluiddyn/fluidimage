@@ -20,7 +20,6 @@ executors = [
 
 
 def _test(self, executor=None):
-
     params = TopologyExample.create_default_params()
     params["path_input"] = path_input
 

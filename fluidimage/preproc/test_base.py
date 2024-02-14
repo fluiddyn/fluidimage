@@ -10,7 +10,6 @@ from fluidimage.preproc.base import PreprocBase
 
 
 class TestPreprocKarman(unittest.TestCase):
-
     name = "Karman"
 
     @classmethod

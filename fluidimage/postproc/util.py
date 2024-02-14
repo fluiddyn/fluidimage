@@ -78,7 +78,6 @@ def compute_div(dUdx, dVdy):
 
 
 def compute_1dspectrum(x, signal, axis=0):
-
     """
     Computes the 1D Fourier Transform
 

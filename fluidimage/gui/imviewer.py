@@ -69,7 +69,6 @@ class ImageViewer:
     """Simple Image viewer."""
 
     def __init__(self, args):
-
         path_in = args.path
         if os.path.isdir(path_in):
             self.path_files = glob(os.path.join(path_in, "*"))
@@ -324,6 +323,6 @@ class ImageViewer:
             self._switch()
 
 
-# if debug and __name__ == '__main__':
-#     args = parse_args()
-#     self = ImageViewer(args)
+def main():
+    args = parse_args()
+    ImageViewer(args)

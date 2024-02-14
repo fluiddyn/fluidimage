@@ -108,7 +108,6 @@ threshold_tps :  float
         )
 
     def __init__(self, params=None):
-
         self.params = params
 
         self.works_piv = []

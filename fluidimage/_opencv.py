@@ -14,3 +14,5 @@ if isinstance(error_import_cv2, ModuleNotFoundError):
         "    pip install opencv-python\n"
         "    conda install -c conda-forge opencv"
     )
+
+__all__ = ["cv2"]

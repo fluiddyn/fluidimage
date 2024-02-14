@@ -159,7 +159,6 @@ class WorkerServerMultiprocessing(WorkerServer):
         log_path,
         logging_level,
     ):
-
         if in_process:
 
             def signal_handler(sig, frame):

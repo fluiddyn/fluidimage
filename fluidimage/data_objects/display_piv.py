@@ -46,7 +46,6 @@ class DisplayPIV:
         xlim=None,
         ylim=None,
     ):
-
         self.piv_results = piv_results
 
         if (
@@ -70,11 +69,11 @@ class DisplayPIV:
 
         if im0 is not None:
             p0 = np.percentile(
-                np.reshape(im0, (1, np.product(im0.shape))).transpose(),
+                np.reshape(im0, (1, np.prod(im0.shape))).transpose(),
                 pourcent_histo,
             )
             p1 = np.percentile(
-                np.reshape(im1, (1, np.product(im1.shape))).transpose(),
+                np.reshape(im1, (1, np.prod(im1.shape))).transpose(),
                 pourcent_histo,
             )
 
@@ -409,7 +408,7 @@ class DisplayPIV:
                     ax2.set_title(s)
                     print(s)
 
-                    for (dx, dy, cmax) in other_peaks:
+                    for dx, dy, cmax in other_peaks:
                         i1, i0 = compute_indices_from_displacement(
                             dx, dy, result.indices_no_displacement
                         )

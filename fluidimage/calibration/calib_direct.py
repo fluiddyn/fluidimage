@@ -10,6 +10,7 @@
    :private-members:
 
 """
+
 import glob
 import warnings
 from math import sqrt
@@ -91,7 +92,6 @@ class CalibDirect:
     """
 
     def __init__(self, glob_str_xml=None, shape_img=(None, None), path_file=None):
-
         if path_file:
             self.load(path_file)
         else:
@@ -254,23 +254,21 @@ class CalibDirect:
 
     def save(self, pth_file):
         """Save calibration"""
-        np.save(
+        np.savez(
             pth_file,
-            [
-                self.interp_lines,
-                self.paths_xml,
-                self.nb_pixels_x,
-                self.nb_pixels_y,
-            ],
+            interp_lines=self.interp_lines,
+            paths_xml=self.paths_xml,
+            nb_pixels_x=self.nb_pixels_x,
+            nb_pixels_y=self.nb_pixels_y,
         )
 
     def load(self, pth_file):
         """Load calibration"""
         tmp = np.load(pth_file, allow_pickle=True)
-        self.interp_lines = tmp[0]
-        self.paths_xml = tmp[1]
-        self.nb_pixels_x = tmp[2]
-        self.nb_pixels_y = tmp[3]
+        self.interp_lines = tmp["interp_lines"]
+        self.paths_xml = tmp["paths_xml"]
+        self.nb_pixels_x = tmp["nb_pixels_x"]
+        self.nb_pixels_y = tmp["nb_pixels_y"]
 
     def intersect_with_plane(self, indx, indy, a, b, c, d):
         """Find intersection with the line associated to the pixel  indx, indy
@@ -427,9 +425,7 @@ class CalibDirect:
         pylab.ylabel("y (pix)")
         pylab.colorbar()
         pylab.figure()
-        pylab.pcolor(
-            x, y, np.sqrt(dx**2 + dy**2 + dz**2), shading="nearest"
-        )
+        pylab.pcolor(x, y, np.sqrt(dx**2 + dy**2 + dz**2), shading="nearest")
         pylab.title("norm(d)")
         pylab.xlabel("x (pix)")
         pylab.ylabel("y (pix)")

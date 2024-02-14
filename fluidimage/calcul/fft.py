@@ -69,7 +69,6 @@ class CUFFT2DReal2Complex:
     type_complex = "complex64"
 
     def __init__(self, nx, ny):
-
         shapeX = [ny, nx]
         shapeK = [ny, nx]
 
@@ -125,7 +124,6 @@ class SKCUFFT2DReal2Complex:
     type_complex = "complex64"
 
     def __init__(self, nx, ny):
-
         shapeX = [ny, nx]
         shapeK = [ny, nx // 2 + 1]
 
@@ -173,7 +171,6 @@ class FFTW2DReal2Complex:
     type_complex = "complex64"
 
     def __init__(self, nx, ny):
-
         shapeX = [ny, nx]
         shapeK = [ny, nx // 2 + 1]
 

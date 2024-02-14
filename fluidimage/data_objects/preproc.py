@@ -92,7 +92,6 @@ class ArraySerie(ArrayCouple):
         str_path=None,
         hdf5_parent=None,
     ):
-
         if str_path is not None:
             self._load(path=str_path)
             return
@@ -133,7 +132,6 @@ class ArraySerie(ArrayCouple):
 
 class PreprocResults(LightPIVResults):
     def __init__(self, params=None, str_path=None, hdf5_object=None):
-
         self._keys_to_be_saved = ["data"]
         if hdf5_object is not None:
             if params is not None:

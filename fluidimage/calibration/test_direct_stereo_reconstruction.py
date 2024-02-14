@@ -12,7 +12,6 @@ pathbase = get_path_image_samples() / "4th_PIV-Challenge_Case_E"
 
 
 def get_piv_field(path):
-
     try:
         with h5py.File(path, "r") as file:
             keyspiv = [key for key in file.keys() if key.startswith("piv")]
@@ -33,12 +32,11 @@ class TestCalib(unittest.TestCase):
     """Test fluidimage.calibration DirectStereoReconstruction, CalibDirect."""
 
     def test(self):
-
         path_cam1 = pathbase / "E_Calibration_Images" / "Camera_01"
         path_cam3 = pathbase / "E_Calibration_Images" / "Camera_03"
 
-        path_calib1 = path_cam1 / "calib1.npy"
-        path_calib3 = path_cam3 / "calib3.npy"
+        path_calib1 = path_cam1 / "calib1.npz"
+        path_calib3 = path_cam3 / "calib3.npz"
 
         nb_pixelx, nb_pixely = 1024, 1024
         nbline_x, nbline_y = 32, 32

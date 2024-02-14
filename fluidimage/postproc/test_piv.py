@@ -28,7 +28,6 @@ class TestPIV(unittest.TestCase):
         PIV2d.from_file(self.path_piv)
 
     def test_piv_objects(self):
-
         ny, nx = 8, 12
 
         xs1d = np.linspace(-1, 1, nx)
@@ -83,7 +82,6 @@ class TestPIV(unittest.TestCase):
         assert params == piv_loaded.params
 
     def test_compute_time_average(self):
-
         ny, nx = 8, 12
 
         xs1d = np.linspace(-1, 1, nx)

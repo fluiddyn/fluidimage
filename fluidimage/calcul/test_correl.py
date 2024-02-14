@@ -74,7 +74,6 @@ class TestCorrel(unittest.TestCase):
 for k, cls in classes.items():
 
     def _test(self, cls=cls, k=k):
-
         if issubclass(cls, CorrelFFTBase):
             displacement_max = "50%"
         else:

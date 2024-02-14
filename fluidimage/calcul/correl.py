@@ -77,7 +77,6 @@ def parse_displacement_max(displ_max, im0_shape):
 
 
 def _compute_indices_max(correl, norm):
-
     iy, ix = np.unravel_index(np.nanargmax(correl), correl.shape)
 
     if norm == 0:
@@ -120,7 +119,6 @@ class CorrelBase:
         nb_peaks_to_search=1,
         mode=None,
     ):
-
         self.mode = mode
 
         self.subpix = SubPix(method=method_subpix, nsubpix=nsubpix)
@@ -316,7 +314,6 @@ class CorrelPythran(CorrelBase):
     _tag = "pythran"
 
     def _init2(self):
-
         if self.displacement_max is None:
             if self.im0_shape == self.im1_shape:
                 displacement_max = min(self.im0_shape) // 2 - 1
@@ -353,7 +350,6 @@ class CorrelPyCuda(CorrelBase):
     _tag = "pycuda"
 
     def _init2(self):
-
         if self.displacement_max is None:
             if self.im0_shape == self.im1_shape:
                 displacement_max = min(self.im0_shape) // 2
@@ -578,7 +574,6 @@ class CorrelTheano(CorrelBase):
             if (self.ny0 < 2 * self.displacement_max + self.ny1) & (
                 self.nx0 < 2 * self.displacement_max + self.nx1
             ):
-
                 im0b = np.zeros(
                     (
                         2 * self.displacement_max + self.ny1,
@@ -630,7 +625,6 @@ class CorrelFFTBase(CorrelBase):
     _tag = "fft.base"
 
     def _init2(self):
-
         if self.displacement_max is not None:
             where_large_displacement = np.zeros(self.im0_shape, dtype=bool)
 
@@ -655,7 +649,6 @@ class CorrelFFTBase(CorrelBase):
             )
 
     def compute_displacements_from_correl(self, correl, norm=1.0):
-
         """Compute the displacement (with subpix) from a correlation."""
 
         if self.displacement_max is not None:
