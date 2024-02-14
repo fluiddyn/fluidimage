@@ -86,7 +86,11 @@ doc = [
     "myst-nb",
     "sphinx-copybutton",
 ]
-test = ["pytest"]
+test = [
+    "pytest",
+    "coverage",
+    "pytest-cov",
+]
 dev = [
     "pip",
     "black",
