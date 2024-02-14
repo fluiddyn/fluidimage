@@ -26,4 +26,8 @@ py.install_sources(
   subdir: 'fluidimage/topologies'
 )
 
+run_command(['transonic', '--meson', '--backend', backend, 'example.py'], check: true)
 
+foreach be : backends
+  subdir('__' + be + '__')
+endforeach

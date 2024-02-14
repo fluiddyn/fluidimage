@@ -21,4 +21,8 @@ py.install_sources(
   subdir: 'fluidimage/calcul/interpolate'
 )
 
+run_command(['transonic', '--meson', '--backend', backend, 'thin_plate_spline.py'], check: true)
 
+foreach be : backends
+  subdir('__' + be + '__')
+endforeach

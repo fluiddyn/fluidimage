@@ -23,6 +23,8 @@ venv/*
 
 *build/*
 **/__pythran__
+**/__python__
+**/__numba__
 .tox/*
 
 *.so

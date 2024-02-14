@@ -21,3 +21,10 @@ py.install_sources(
 
 subdir('interpolate')
 subdir('plot_evaluate_subpix')
+
+run_command(['transonic', '--meson', '--backend', backend, 'correl.py', 'subpix.py'], check: true)
+
+foreach be : backends
+  subdir('__' + be + '__')
+endforeach
+
