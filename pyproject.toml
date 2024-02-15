@@ -2,7 +2,7 @@
 requires = [
     "meson-python",
     "numpy",
-    "transonic>=0.6.1",
+    "transonic>=0.6.2",
     "pythran>=0.9.7",
 ]
 build-backend = 'mesonpy'
@@ -20,7 +20,7 @@ dependencies = [
     "scipy >= 0.14.1",
     "h5py",
     "h5netcdf",
-    "transonic>=0.6.1",
+    "transonic>=0.6.2",
     "fluiddyn",
     "pyfftw >= 0.10.4",
     "imageio",
