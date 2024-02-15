@@ -30,9 +30,9 @@ image:build:
   needs: []
   tags:
     - container-registry-push
-  # rules:
-  #   - if: '$CI_PIPELINE_SOURCE == "schedule"'
-  #   - if: '$CI_BUILD_IMAGES == "1"'
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_BUILD_IMAGES == "1"'
   image:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [ "" ]
@@ -111,14 +111,13 @@ build:package:
   before_script:
     - pip install build twine
   script:
-    - cd lib
     - rm -rf dist
-    - python -m build
+    - python -m build -s
     - ls dist
     - twine check --strict dist/*
   needs: []
   artifacts:
     when: always
     paths:
-      - lib/dist
+      - dist
     expire_in: 24 hrs
