@@ -24,6 +24,7 @@ an executor compared to another.
    servers
 
 """
+
 import os
 import trio
 

@@ -8,6 +8,7 @@ To find good parameters, try the piv computation with::
   ./try_piv.py &
 
 """
+
 from glob import glob
 
 from fluidimage.topologies.piv import TopologyPIV

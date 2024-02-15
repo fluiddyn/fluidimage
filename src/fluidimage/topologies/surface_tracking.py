@@ -14,6 +14,7 @@
    - example integrated in the documentation
 
 """
+
 import json
 import sys
 from pathlib import Path

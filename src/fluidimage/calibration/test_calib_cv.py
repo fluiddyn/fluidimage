@@ -23,7 +23,9 @@ def construct_image_points(path, origin):
 
     params = SimpleCircleGrid.create_default_params()
     circle_grid = SimpleCircleGrid(params)
-    centers = circle_grid.detect_grid(image, origin, nx=7, ny=7, ds=50, debug=True)
+    centers = circle_grid.detect_grid(
+        image, origin, nx=7, ny=7, ds=50, debug=True
+    )
 
     return centers
 

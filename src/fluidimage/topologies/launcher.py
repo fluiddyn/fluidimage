@@ -15,6 +15,7 @@ Launchers for topologies used for GUI (:mod:`fluidimage.topologies.launcher`)
    :private-members:
 
 """
+
 import inspect
 import json
 
