@@ -419,7 +419,7 @@ offset: float (default 0.0)
             reduction factor for the frame array to speed up the calc
 
         Returns
-        --------
+        -------
             a: array containing phase [radians]
 
         """

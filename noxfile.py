@@ -93,7 +93,7 @@ def test_cov(session):
 def doc(session):
     """Build the documentation"""
     print_times = TimePrinter()
-    command = "pdm sync -G doc -G fft -G test --no-self"
+    command = "pdm sync -G doc -G opencv --no-self"
     session.run_always(*command.split(), external=True)
     print_times("pdm sync")
 

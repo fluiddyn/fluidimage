@@ -63,7 +63,8 @@ doc/ipynb/*.nbconvert.ipynb
 doc/ipynb/**.png
 doc/examples/oar_launcher*
 doc/examples/topo.dot
-*/.ipynb_checkpoints/*
+**/.ipynb_checkpoints/*
+doc/_jupyter_cache
 
 fluidimage/post_proc/*.h5
 

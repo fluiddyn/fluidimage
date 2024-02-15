@@ -58,7 +58,7 @@ fluidimlauncher = "fluidimage.gui.launcher.main:main"
 [project.optional-dependencies]
 pims = ["pims"]
 opencv = ["opencv-python"]
-qt = ["PySide6"]
+# qt = ["PySide6"]
 
 [tool.meson-python.args]
 setup = ['-Doptimization=3']
@@ -81,7 +81,7 @@ build = [
 ]
 doc = [
     "sphinx",
-    "sphinx_rtd_theme",
+    "pydata-sphinx-theme",
     "numpydoc",
     "jupyter",
     "pandas",
@@ -92,9 +92,10 @@ test = [
     "pytest",
     "coverage",
     "pytest-cov",
-    "pytest-qt",
     "fluidimage[opencv]"
 ]
+# test-qt = ["pytest-qt"]
+
 dev = [
     "pip",
     "black",

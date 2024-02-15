@@ -84,12 +84,7 @@ pages:
   variables:
     FLUIDFFT_TRANSONIC_BACKEND: "python"
   script:
-    - python -m venv .venv
-    - . .venv/bin/activate
-    - pip install fluidfft --no-deps
-    - pdm sync -G doc -G fft -G test --no-self
-    - pip install . --config-settings=setup-args=-Dtransonic-backend=python --no-deps
-    - pdm run xvfb-run --auto-servernum sphinx-build -W -b html -d doc/_build/doctrees doc doc/_build/html
+    - xvfb-run --auto-servernum nox -s doc
     - mkdir -p public/$CI_COMMIT_REF_NAME
     - rsync -rvc --delete doc/_build/html/* public/$CI_COMMIT_REF_NAME/
     # This directory can become too large leading to error.

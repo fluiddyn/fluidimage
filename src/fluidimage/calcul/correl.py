@@ -154,8 +154,8 @@ class CorrelBase:
 
         try:
             ix, iy, correl_max = _compute_indices_max(correl, norm)
-        except PIVError as e:
-            ix, iy, correl_max = e.results
+        except PIVError as piv_error:
+            ix, iy, correl_max = piv_error.results
             # second chance to find a better peak...
             correl[
                 iy - self.particle_radius : iy + self.particle_radius + 1,
@@ -163,10 +163,10 @@ class CorrelBase:
             ] = np.nan
             try:
                 ix2, iy2, correl_max2 = _compute_indices_max(correl, norm)
-            except PIVError as e2:
+            except PIVError as _piv_error:
                 dx, dy = self.compute_displacement_from_indices(ix, iy)
-                e.results = (dx, dy, correl_max)
-                raise e
+                _piv_error.results = (dx, dy, correl_max)
+                raise _piv_error
 
             else:
                 ix, iy, correl_max = ix2, iy2, correl_max2
@@ -221,7 +221,7 @@ def correl_numpy(im0: A, im1: A, disp_max: int):
       displacement max.
 
     Notes
-    -------
+    -----
 
     im1_shape inf to im0_shape
 

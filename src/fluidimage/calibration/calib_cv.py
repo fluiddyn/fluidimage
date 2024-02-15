@@ -60,8 +60,8 @@ class SimpleCircleGrid:
     def create_default_params():
         params_cv = cv2.SimpleBlobDetector_Params()
         # Slightly nicer defaults
-        # params_cv.filterByColor = False
-        # params_cv.minArea = 0.0
+        params_cv.filterByColor = False
+        params_cv.minArea = 0.1
         return ParamContainerCV(params_cv, "SimpleBlobDetector")
 
     def __init__(self, params: ParamContainerCV) -> None:
@@ -117,8 +117,7 @@ class SimpleCircleGrid:
             Plot the detected points and the bounding box
 
         """
-
-        keypoints = self.detect_all(image, debug=True)
+        keypoints = self.detect_all(image)
         # Add 1 so that the points at the edge of the bounding box are included
         w = (nx + 1) * ds
         h = (ny + 1) * ds

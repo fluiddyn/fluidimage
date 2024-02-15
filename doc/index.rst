@@ -1,7 +1,5 @@
 .. FluidImage documentation master file
 
-.. include:: ../README.rst
-
 User Guide
 ----------
 

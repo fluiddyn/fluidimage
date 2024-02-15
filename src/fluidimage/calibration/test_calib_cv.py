@@ -2,7 +2,6 @@ import unittest
 
 from numpy.testing import assert_almost_equal, assert_array_equal
 
-from fluiddyn.io import stdout_redirected
 from fluidimage import get_path_image_samples
 from fluidimage.calibration.calib_cv import (
     CalibCV,
@@ -36,7 +35,6 @@ class TestCalib(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         path_cache = pathbase / "cam0.h5"
-        # with stdout_redirected():
         cls.calib_cache = CalibCV(str(path_cache))
 
     def test_interpolate(self):
@@ -44,12 +42,11 @@ class TestCalib(unittest.TestCase):
         self.calib_cache.get_rotation(2)
         self.calib_cache.get_translate(-2)
 
-    @unittest.expectedFailure
+    # @unittest.expectedFailure
     def test_calibrate(self):
         """Tests construct_object_points and CalibCV methods."""
         path_input = pathbase / "cam0" / "0mm_cam0.tif"
-        with stdout_redirected():
-            calib = CalibCV("fluidimage_test_calib_cv.h5")
+        calib = CalibCV("fluidimage_test_calib_cv.h5")
 
         result_cache = self.calib_cache.params
 
@@ -65,7 +62,3 @@ class TestCalib(unittest.TestCase):
         assert_array_equal(mtx, result_cache.cam_mtx)
         assert_almost_equal(rvecs[0], result_cache.rotation[2])
         assert_almost_equal(tvecs[0], result_cache.translate[2])
-
-
-if __name__ == "__main__":
-    unittest.main()

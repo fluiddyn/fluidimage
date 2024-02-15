@@ -11,26 +11,9 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys
 import os
 
 os.environ["OMP_NUM_THREADS"] = "1"
-
-# to be able to build the doc without h5py with Read the docs
-
-import fluiddoc
-
-if fluiddoc.on_rtd:
-    print("Mock modules to build the documentation on READTHEDOCS.")
-    # this package comes from fluiddyn
-    fluiddoc.mock_modules(
-        [
-            "theano",
-            "reikna.cluda",
-            "reikna.fft",
-            "reikna.transformations",
-        ]
-    )
 
 import fluidimage
 
@@ -41,16 +24,6 @@ except Exception:
     import traceback
 
     traceback.print_exc()
-
-from fluiddoc.ipynb_maker import ipynb_to_rst
-
-ipynb_to_rst()
-
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
-sys.path.insert(0, os.path.abspath("../scripts"))
-sys.path.insert(0, os.path.abspath("./"))
 
 # -- General configuration ----------------------------------------------------
 
@@ -70,21 +43,27 @@ extensions = [
     "sphinx.ext.autosummary",
     "numpydoc",
     "fluiddoc.mathmacro",
+    "sphinx.ext.inheritance_diagram",  # requires Graphviz
+    "myst_nb",
+    "sphinx_copybutton",
 ]
 
-try:
-    import readthedocs_ext
-except ImportError:
-    pass
-else:
-    extensions.append("readthedocs_ext.readthedocs")
-
+# Execute ipynb files into with a cache ...
+nb_execution_mode = "cache"
+nb_execution_cache_path = "./_jupyter_cache"
+os.makedirs(nb_execution_cache_path, exist_ok=True)
+# ... except these ipynb files
+nb_execution_excludepatterns = ["ipynbslides/*"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
 
 # The suffix of source filenames.
-source_suffix = ".rst"
+source_suffix = {
+    ".rst": "restructuredtext",
+    ".ipynb": "myst-nb",
+    ".myst": "myst-nb",
+}
 
 # The encoding of source files.
 # source_encoding = 'utf-8-sig'
@@ -149,7 +128,7 @@ pygments_style = "sphinx"
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 # html_theme = 'default'
-html_theme = "sphinx_rtd_theme"
+html_theme = "pydata_sphinx_theme"
 
 
 # Theme options are theme-specific and customize the look and feel of a theme
@@ -312,3 +291,25 @@ autodoc_default_options = {"show-inheritance": None}
 autodoc_member_order = "bysource"
 
 todo_include_todos = True
+
+nb_execution_raise_on_error = True
+nb_execution_show_tb = True
+nb_merge_streams = True
+nb_execution_timeout = 120
+
+myst_enable_extensions = [
+    "amsmath",
+    # "attrs_inline",
+    "colon_fence",
+    # "deflist",
+    "dollarmath",
+    # "fieldlist",
+    # "linkify",
+    # "replacements",
+    # "smartquotes",
+    # "strikethrough",
+    "substitution",
+    # "tasklist",
+]
+
+suppress_warnings = ["mystnb.unknown_mime_type"]
