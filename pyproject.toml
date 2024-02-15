@@ -65,6 +65,7 @@ setup = ['-Doptimization=3']
 
 [tool.pdm]
 distribution = true
+package-dir = "src"
 ignore_package_warnings = ["ipython"]
 
 [tool.pdm.dev-dependencies]
@@ -99,9 +100,9 @@ dev = [
 ]
 
 [tool.pdm.scripts]
-black = 'black fluidsim doc'
-black_check = 'black --check fluidsim doc'
-lint = {shell="pylint -rn --rcfile=pylintrc --jobs=$(nproc) src doc tests plugins --exit-zero"}
+black = 'black src doc'
+black_check = 'black --check src doc'
+lint = {shell="pylint -rn --rcfile=pylintrc --jobs=$(nproc) src doc --exit-zero"}
 validate_code = {composite = ["black_check", "lint"]}
 
 [tool.pdm.options]
@@ -111,7 +112,7 @@ install = ["--no-isolation"]
 
 
 [tool.coverage.run]
-source = ["./fluidimage"]
+source = ["./src"]
 data_file = ".coverage/coverage"
 omit = [
     "**/__pythran__/*.py",
@@ -148,4 +149,4 @@ extend-exclude = "/(__pythran__|__python__|__numba__|build|doc/_build|\\.ipynb_c
 [tool.isort]
 profile = "black"
 line_length = 82
-src_paths = ["fluidsim", "doc"]
+src_paths = ["src", "doc"]

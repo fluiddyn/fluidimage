@@ -2,7 +2,6 @@
 python_sources = [
   '__init__.py',
   '_opencv.py',
-  '_path_image_samples.py',
   '_version.py',
   'config.py',
   'run_from_xml.py',

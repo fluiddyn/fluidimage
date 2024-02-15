@@ -65,4 +65,4 @@ if use_pythran
 
 endif
 
-subdir('fluidimage')
+subdir('src/fluidimage')
