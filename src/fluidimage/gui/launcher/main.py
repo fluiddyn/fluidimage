@@ -8,7 +8,7 @@
 
 import sys
 
-from matplotlib.backends.qt_compat import QtWidgets
+from matplotlib.backends.qt_compat import QtWidgets, QtGui
 
 from fluiddyn.util.paramcontainer import ParamContainer
 from fluiddyn.util.paramcontainer_gui import QtParamContainer
@@ -32,11 +32,12 @@ class Program(QtWidgets.QMainWindow, Ui_MainWindow):
         self.actions = {}
 
         for topo_name in topo_names:
-            action = self.actions[topo_name] = QtWidgets.QAction(self)
+            action = self.actions[topo_name] = QtGui.QAction(self)
             self.menuTopologies.addAction(action)
             action.setText(topo_name)
 
-            def func(_, topo_name=topo_name):
+            def func(_=None, topo_name=topo_name):
+                print(f"{topo_name = }")
                 self.init_topo(topo_name)
 
             action.triggered.connect(func)
@@ -50,7 +51,8 @@ class Program(QtWidgets.QMainWindow, Ui_MainWindow):
         path_file = QtWidgets.QFileDialog.getOpenFileName(
             self.centralwidget, "OpenFile"
         )
-
+        if path_file == ("", ""):
+            return
         params = ParamContainer(path_file=path_file)
         print(params)
         raise NotImplementedError
@@ -76,7 +78,11 @@ class Program(QtWidgets.QMainWindow, Ui_MainWindow):
 
 
 def main():
-    app = QtWidgets.QApplication(sys.argv)
+
+    app = QtWidgets.QApplication.instance()
+    if not app:
+        app = QtWidgets.QApplication(sys.argv)
+
     w = Program()
     w.show()
     sys.exit(app.exec_())

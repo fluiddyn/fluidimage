@@ -29,7 +29,7 @@ dependencies = [
     "dask[array]",
     "ipython",
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.9,<3.13"
 readme = "README.md"
 license = {text = "CeCILL"}
 keywords = [
@@ -58,6 +58,7 @@ fluidimlauncher = "fluidimage.gui.launcher.main:main"
 [project.optional-dependencies]
 pims = ["pims"]
 opencv = ["opencv-python"]
+qt = ["PySide6"]
 
 [tool.meson-python.args]
 setup = ['-Doptimization=3']
@@ -91,6 +92,7 @@ test = [
     "pytest",
     "coverage",
     "pytest-cov",
+    "pytest-qt",
 ]
 dev = [
     "pip",
@@ -100,8 +102,9 @@ dev = [
 ]
 
 [tool.pdm.scripts]
-black = 'black src doc'
-black_check = 'black --check src doc'
+black = "black src doc"
+isort = "isort -rc --atomic -tc src bench doc/examples"
+black_check = "black --check src doc"
 lint = {shell="pylint -rn --rcfile=pylintrc --jobs=$(nproc) src doc --exit-zero"}
 validate_code = {composite = ["black_check", "lint"]}
 
