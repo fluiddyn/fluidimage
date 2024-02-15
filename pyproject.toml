@@ -93,6 +93,7 @@ test = [
     "coverage",
     "pytest-cov",
     "pytest-qt",
+    "fluidimage[opencv]"
 ]
 dev = [
     "pip",
