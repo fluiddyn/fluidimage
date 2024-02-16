@@ -56,11 +56,7 @@ class TopologySurfaceTracking(TopologyBase):
 
     @classmethod
     def create_default_params(cls):
-        """Class method returning the default parameters.
-
-        For developers: cf. fluidsim.base.params
-
-        """
+        """Class method returning the default parameters."""
         params = ParamContainer(tag="params")
 
         params._set_child(

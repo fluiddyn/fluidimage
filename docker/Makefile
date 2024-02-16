@@ -1,4 +1,4 @@
-image := image-fluidsim
+image := image-fluidimage
 tag := $(shell date -I'date'| tr -d "[:punct:]")
 
 define STR_HELP

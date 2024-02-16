@@ -20,12 +20,10 @@ from fluidimage.topologies import image2image
 #
 #     # await loop.sock_sendall(client, response.encode('utf8'))
 #     client.close()
+
+
 def create_default_params():
-    """Class method returning the default parameters.
-
-    For developers: cf. fluidsim.base.params
-
-    """
+    """Class method returning the default parameters."""
     params = ParamContainer(tag="params")
 
     params._set_child(

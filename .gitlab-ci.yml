@@ -1,5 +1,4 @@
 stages:
-  # - image-pixi
   # - pixi
   - image
   - lint
@@ -89,10 +88,10 @@ pages:
     - rsync -rvc --delete doc/_build/html/* public/$CI_COMMIT_REF_NAME/
     # This directory can become too large leading to error.
     # It can be purged with the botton "Clear runner caches"
-    # in https://foss.heptapod.net/fluiddyn/fluidsim/-/pipelines
+    # in https://foss.heptapod.net/fluiddyn/fluidimage/-/pipelines
     - ls public
     - echo "CI_COMMIT_REF_NAME="$CI_COMMIT_REF_NAME
-    - echo See https://fluiddyn.pages.heptapod.net/fluidsim/$CI_COMMIT_REF_NAME
+    - echo See https://fluiddyn.pages.heptapod.net/fluidimage/$CI_COMMIT_REF_NAME
   artifacts:
     name: "$CI_COMMIT_REF_NAME"
     paths:
