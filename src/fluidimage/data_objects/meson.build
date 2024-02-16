@@ -12,5 +12,3 @@ py.install_sources(
   python_sources,
   subdir: 'fluidimage/data_objects'
 )
-
-

@@ -10,5 +10,3 @@ py.install_sources(
   python_sources,
   subdir: 'fluidimage/util'
 )
-
-
