@@ -5,6 +5,6 @@ pixi.lock linguist-language=YAML
 .hgignore export-ignore
 
 old export-ignore
-./try export-ignore
-./bench export-ignore
-./image_samples export-ignore
+try export-ignore
+bench export-ignore
+image_samples export-ignore

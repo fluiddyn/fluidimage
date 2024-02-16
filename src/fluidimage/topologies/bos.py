@@ -20,6 +20,11 @@ from fluidimage.works.piv import WorkPIV
 from . import image2image
 
 
+def _imread(path):
+    image = imread(path)
+    return image, Path(path).name
+
+
 class TopologyBOS(TopologyBase):
     """Topology for BOS computation.
 
@@ -196,10 +201,6 @@ postfix : str
             output_queue=queue_paths,
             kind=("global", "one shot"),
         )
-
-        def _imread(path):
-            image = imread(path)
-            return image, Path(path).name
 
         self.add_work(
             "read array",

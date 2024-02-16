@@ -62,7 +62,7 @@ class TimePrinter:
 def test(session):
     """Execute unit-tests using pytest"""
 
-    command = "pdm sync --clean -G test -G qt --no-self"
+    command = "pdm sync --clean -G test --no-self"
     session.run_always(*command.split(), external=True)
     session.install(".", "--no-deps")
 

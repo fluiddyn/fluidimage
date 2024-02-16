@@ -5,7 +5,7 @@
 groups = ["default", "build", "dev", "dev-doc", "doc", "opencv", "pims", "test"]
 strategy = ["cross_platform", "inherit_metadata"]
 lock_version = "4.4.1"
-content_hash = "sha256:24ce397680984ea6860d87bf803e1c224862fc6b8be6914d299714ccef925168"
+content_hash = "sha256:6c6b653e0d09f67da1a3f263d8e9c9080d56c487cf454f49936e253043921210"
 
 [[package]]
 name = "accessible-pygments"

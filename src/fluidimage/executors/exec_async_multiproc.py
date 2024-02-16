@@ -19,6 +19,19 @@ from fluidimage.util import cstring, log_debug, log_memory_usage, logger
 from .exec_async import ExecutorAsync
 
 
+def exec_work_and_comm(func, obj, child_conn, event):
+    # log_debug(f"process ({key}) started")
+    event.set()
+    # pylint: disable=W0703
+    try:
+        result = func(obj)
+    except Exception as error:
+        result = error
+
+    # log_debug(f"in process, send result ({key}): {result}")
+    child_conn.send(result)
+
+
 class ExecutorAsyncMultiproc(ExecutorAsync):
     """Async executor using multiprocessing to launch CPU-bounded tasks"""
 
@@ -54,18 +67,6 @@ class ExecutorAsyncMultiproc(ExecutorAsync):
             + work.name_no_space
             + f" ({key}). mem usage"
         )
-
-        def exec_work_and_comm(func, obj, child_conn, event):
-            # log_debug(f"process ({key}) started")
-            event.set()
-            # pylint: disable=W0703
-            try:
-                result = func(obj)
-            except Exception as error:
-                result = error
-
-            # log_debug(f"in process, send result ({key}): {result}")
-            child_conn.send(result)
 
         parent_conn, child_conn = Pipe()
         event = Event()
