@@ -48,11 +48,11 @@ extensions = [
     "sphinx_copybutton",
 ]
 
-# Execute ipynb files into with a cache ...
+# Execute notebooks into with a cache ...
 nb_execution_mode = "cache"
 nb_execution_cache_path = "./_jupyter_cache"
 os.makedirs(nb_execution_cache_path, exist_ok=True)
-# ... except these ipynb files
+# ... except these files
 nb_execution_excludepatterns = ["ipynbslides/*"]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -62,7 +62,7 @@ templates_path = ["_templates"]
 source_suffix = {
     ".rst": "restructuredtext",
     ".ipynb": "myst-nb",
-    ".myst": "myst-nb",
+    ".myst.md": "myst-nb",
 }
 
 # The encoding of source files.
@@ -73,7 +73,7 @@ master_doc = "index"
 
 # General information about the project.
 project = "FluidImage"
-copyright = "2016, Pierre Augier"
+copyright = "2024, Pierre Augier"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -99,7 +99,12 @@ version = "{}.{}.{}".format(version[0], version[1], version[2])
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ["_build", "**.ipynb_checkpoints"]
+exclude_patterns = [
+    "_build",
+    "**.ipynb_checkpoints",
+    "_jupyter_cache",
+    "ipynbslides",
+]
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.
@@ -219,7 +224,13 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-    ("index", "fluidfft.tex", "fluidfft Documentation", "Pierre Augier", "manual")
+    (
+        "index",
+        "fluidimage.tex",
+        "Fluidimage Documentation",
+        "Pierre Augier",
+        "manual",
+    )
 ]
 
 # The name of an image file (relative to this directory) to place at the top of

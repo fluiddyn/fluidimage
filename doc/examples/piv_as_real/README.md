@@ -1,10 +1,10 @@
-Code as for a real PIV project
-==============================
+# Code as for a real PIV project
 
 Here, we gather modules and scripts for preprocessing and PIV computation as we
 would do for a real project. This can be used as a first step when you start a
 new project of PIV computation with fluidimage.
 
+```{eval-rst}
 +---------------+------------------------------------------------------+
 | args.py       | code to define command line tools with argparse      |
 +---------------+------------------------------------------------------+
@@ -22,44 +22,44 @@ new project of PIV computation with fluidimage.
 +---------------+------------------------------------------------------+
 | submit_piv.py | submit PIV jobs on a cluster                         |
 +---------------+------------------------------------------------------+
+```
 
+## args.py
 
-args.py
--------
+```{literalinclude} args.py
+```
 
-.. literalinclude:: args.py
+## params_pre.py
 
-params_pre.py
--------------
+```{literalinclude} params_pre.py
+```
 
-.. literalinclude:: params_pre.py
+## job_pre.py
 
-job_pre.py
-----------
+```{literalinclude} job_pre.py
+```
 
-.. literalinclude:: job_pre.py
+## submit_pre.py
 
-submit_pre.py
--------------
+```{literalinclude} submit_pre.py
+```
 
-.. literalinclude:: submit_pre.py
+## params_piv.py
 
-params_piv.py
--------------
+```{literalinclude} params_piv.py
+```
 
-.. literalinclude:: params_piv.py
+## try_piv.py
 
-try_piv.py
-----------
+```{literalinclude} try_piv.py
+```
 
-.. literalinclude:: try_piv.py
+## job_piv.py
 
-job_piv.py
-----------
+```{literalinclude} job_piv.py
+```
 
-.. literalinclude:: job_piv.py
+## submit_piv.py
 
-submit_piv.py
--------------
-
-.. literalinclude:: submit_piv.py
+```{literalinclude} submit_piv.py
+```
