@@ -46,7 +46,7 @@ clean:
 	rm -rf $(BUILDDIR)/*
 
 cleanall: clean
-	rm -rf generated html.zip
+	rm -rf _generated html.zip
 
 cleancache:
 	rm -rf _jupyter_cache

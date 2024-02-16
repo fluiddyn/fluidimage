@@ -2,6 +2,21 @@
 FluidImage
 ==========
 
+.. autosummary::
+   :toctree:
+
+   fluidimage.topologies
+   fluidimage.executors
+   fluidimage.data_objects
+   fluidimage.works
+   fluidimage.calcul
+   fluidimage.preproc
+   fluidimage.calibration
+   fluidimage.reconstruct
+   fluidimage.postproc
+   fluidimage.util
+   fluidimage.gui
+
 """
 
 import sys

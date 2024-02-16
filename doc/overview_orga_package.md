@@ -1,4 +1,4 @@
-# Overview of the organization of the package
+# Overview of the package
 
 ## Data objects ({mod}`fluidimage.data_objects`)
 

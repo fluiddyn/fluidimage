@@ -55,7 +55,7 @@ image_samples/*/Images.bos*/*.h5
 fluidimage/works/piv/*.h5
 fluidimage/**.dot
 
-doc/generated/*
+doc/_generated/*
 doc/tutorials/*.rst
 doc/tutorials/*.h5
 doc/tutorials/**.png

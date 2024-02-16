@@ -1,49 +1,38 @@
 % FluidImage documentation master file
 
-# User Guide
+# Fluidimage documentation
+
+FluidImage is a libre Python framework for scientific processing of
+large series of images.
 
 ```{toctree}
 ---
+caption: User guide
 maxdepth: 1
 ---
+overview
 install
 tutorial
 examples
+build-from-source
 ```
-
-# Modules Reference
-
-Here is presented the general organization of the package (see also
-{doc}`overview_orga_package`) and the documentation of the modules, classes and
-functions.
-
-```{eval-rst}
-.. autosummary::
-   :toctree: generated/
-
-   fluidimage.topologies
-   fluidimage.executors
-   fluidimage.data_objects
-   fluidimage.works
-   fluidimage.calcul
-   fluidimage.preproc
-   fluidimage.calibration
-   fluidimage.reconstruct
-   fluidimage.postproc
-   fluidimage.util
-   fluidimage.gui
-
-```
-
-# More
 
 ```{toctree}
 ---
+caption: Python API
+maxdepth: 1
+---
+overview_orga_package
+autosum.rst
+```
+
+```{toctree}
+---
+caption: Fluidimage development
 maxdepth: 1
 ---
 FluidImage forge on Heptapod <https://foss.heptapod.net/fluiddyn/fluidimage>
-FluidImage in PyPI  <https://pypi.python.org/pypi/fluidimage/>
-to_do
+FluidImage on PyPI  <https://pypi.python.org/pypi/fluidimage/>
 changes
 authors
 for_dev

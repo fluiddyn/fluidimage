@@ -1,4 +1,4 @@
-# Installation and advice
+# Installation
 
 See our general advice
 [on using Python](https://fluiddyn.readthedocs.io/en/latest/advice_on_Python.html) and
