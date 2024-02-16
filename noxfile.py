@@ -15,90 +15,57 @@ or:
 execute ``make list-sessions```` or ``nox -l`` for a list of sessions.
 
 """
-import re
-import shlex
-from pathlib import Path
+
+import os
+
+from datetime import timedelta
 from functools import partial
+from pathlib import Path
+from time import time
 
 import nox
 
-PACKAGE = "snek5000"
-CWD = Path.cwd()
-
-if (CWD / "poetry.lock").exists():
-    BUILD_SYSTEM = "poetry"
-    PACKAGE_SPEC = "pyproject.toml"
-else:
-    BUILD_SYSTEM = "setuptools"
-    PACKAGE_SPEC = "setup.cfg"
-
 TEST_ENV_VARS = {"OMP_NUM_THREADS": "1"}
-
-EXTRA_REQUIRES = ("main", "doc", "test", "dev")
-
-
-@nox.session(name="pip-compile", reuse_venv=True)
-@nox.parametrize(
-    "extra", [nox.param(extra, id=extra) for extra in EXTRA_REQUIRES]
-)
-def pip_compile(session, extra):
-    """Pin dependencies to requirements/*.txt
-
-    How to run all::
-
-        pipx install nox
-        nox -s pip-compile
-
-    """
-    session.install("pip-tools")
-    req = Path("requirements")
-
-    if extra == "main":
-        in_extra = ""
-        in_file = ""
-    else:
-        in_extra = f"--extra {extra}"
-        in_file = req / "vcs_packages.in"
-
-    out_file = req / f"{extra}.txt"
-
-    session.run(
-        *shlex.split(
-            "python -m piptools compile --resolver backtracking --quiet "
-            f"{in_extra} {in_file} {PACKAGE_SPEC} "
-            f"-o {out_file}"
-        ),
-        *session.posargs,
-    )
-
-    session.log(f"Removing absolute paths from {out_file}")
-    packages = out_file.read_text()
-    rel_path_packages = packages.replace(
-        "file://" + str(Path.cwd().resolve()), "."
-    )
-
-    if extra == "tests":
-        tests_editable = out_file.parent / out_file.name.replace(
-            "tests", "tests-editable"
-        )
-        session.log(f"Copying {out_file} with -e flag in {tests_editable}")
-        tests_editable.write_text(rel_path_packages)
-        session.log(f"Removing -e flag in {out_file}")
-        rel_path_packages = re.sub(r"^-e\ \.", ".", rel_path_packages, flags=re.M)
-
-    session.log(f"Writing {out_file}")
-    out_file.write_text(rel_path_packages)
 
 
 no_venv_session = partial(nox.session, venv_backend="none")
-nox.options.sessions = ["tests"]
+os.environ.update({"PDM_IGNORE_SAVED_PYTHON": "1"})
+nox.options.sessions = ["test-cov"]
+nox.options.reuse_existing_virtualenvs = 1
 
 
 @nox.session
-def tests(session):
+def validate_code(session):
+    session.run_always(
+        "pdm", "sync", "--clean", "-G", "dev", "--no-self", external=True
+    )
+    session.run("pdm", "validate_code", external=True)
+
+
+class TimePrinter:
+    def __init__(self):
+        self.time_start = self.time_last = time()
+
+    def __call__(self, task: str):
+        time_now = time()
+        if self.time_start != self.time_last:
+            print(
+                f"Time for {task}: {timedelta(seconds=time_now - self.time_last)}"
+            )
+        print(
+            f"Session started since {timedelta(seconds=time_now - self.time_start)}"
+        )
+        self.time_last = time_now
+
+
+@nox.session
+def test(session):
     """Execute unit-tests using pytest"""
 
-    session.install("-r", "requirements/test.txt")
+    command = "pdm sync --clean -G test -G qt --no-self"
+    session.run_always(*command.split(), external=True)
+    session.install(".", "--no-deps")
+
     session.run(
         "python",
         "-m",
@@ -108,14 +75,13 @@ def tests(session):
     )
 
 
-@no_venv_session(name="tests-cov")
-def tests_cov(session):
+@no_venv_session(name="test-cov")
+def test_cov(session):
     """Execute unit-tests using pytest+pytest-cov"""
     session.notify(
-        "tests",
+        "test",
         [
             "--cov",
-            # "--cov-config=setup.cfg",
             "--no-cov-on-fail",
             "--cov-report=term-missing",
             *session.posargs,
@@ -123,12 +89,80 @@ def tests_cov(session):
     )
 
 
-@nox.session(name="coverage-html")
-def coverage_html(session, nox=False):
-    """Generate coverage report in HTML. Requires `tests-cov` session."""
-    report = Path.cwd() / ".coverage" / "html" / "index.html"
-    session.install("coverage[toml]")
-    session.run("coverage", "html")
+@nox.session
+def doc(session):
+    """Build the documentation"""
+    print_times = TimePrinter()
+    command = "pdm sync -G doc -G opencv --no-self"
+    session.run_always(*command.split(), external=True)
+    print_times("pdm sync")
 
-    print("Code coverage analysis complete. View detailed report:")
-    print(f"file://{report}")
+    session.install(
+        ".", "-C", "setup-args=-Dtransonic-backend=python", "--no-deps"
+    )
+    print_times("install self")
+
+    session.chdir("doc")
+    session.run("make", "cleanall", external=True)
+    session.run("make", external=True)
+    print_times("make doc")
+
+
+def _get_version_from_pyproject(path=Path.cwd()):
+    if isinstance(path, str):
+        path = Path(path)
+
+    if path.name != "pyproject.toml":
+        path /= "pyproject.toml"
+
+    in_project = False
+    version = None
+    with open(path, encoding="utf-8") as file:
+        for line in file:
+            if line.startswith("[project]"):
+                in_project = True
+            if line.startswith("version =") and in_project:
+                version = line.split("=")[1].strip()
+                version = version[1:-1]
+                break
+
+    assert version is not None
+    return version
+
+
+@nox.session(name="add-tag-for-release", venv_backend="none")
+def add_tag_for_release(session):
+    """Add a tag to the repo for a new version"""
+    session.run("hg", "pull", external=True)
+
+    result = session.run(
+        *"hg log -r default -G".split(), external=True, silent=True
+    )
+    if result[0] != "@":
+        session.run("hg", "update", "default", external=True)
+
+    version = _get_version_from_pyproject()
+    version_core = _get_version_from_pyproject("lib")
+
+    print(f"{version = }, {version_core = }")
+    if version != version_core:
+        session.error("version != version_core")
+
+    result = session.run("hg", "tags", "-T", "{tag},", external=True, silent=True)
+    last_tag = result.split(",", 2)[1]
+    print(f"{last_tag = }")
+
+    if last_tag == version:
+        session.error("last_tag == version")
+
+    answer = input(
+        f'Do you really want to add and push the new tag "{version}"? (yes/[no]) '
+    )
+
+    if answer != "yes":
+        print("Maybe next time then. Bye!")
+        return
+
+    print("Let's go!")
+    session.run("hg", "tag", version, external=True)
+    session.run("hg", "push", external=True)

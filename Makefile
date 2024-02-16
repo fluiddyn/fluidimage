@@ -1,53 +1,31 @@
 
-.PHONY: clean clean_all develop build_ext_inplace requirements
+.PHONY: clean cleanall develop
 
-develop:
-	pip install -e .[dev]
+develop: sync
 
-build_ext_inplace:
-	python setup.py build_ext --inplace
+sync:
+	pdm sync
+
+lock:
+	pdm lock
 
 clean:
 	rm -rf build
 
-cleanso:
-	find fluidimage -name "*.so" -delete
-
 cleantransonic:
 	find fluidimage -type d -name __pythran__ | xargs rm -rf
 
-cleanall: clean cleanso cleantransonic
+cleanall: clean cleantransonic
 
 black:
-	black -l 82 fluidimage try *.py doc
+	pdm run black
 
 isort:
-	isort -rc --atomic -tc fluidimage bin bench doc/examples
+	pdm run isort
 
-tests:
-	OMP_NUM_THREADS=1 pytest
-
-_tests_coverage:
-	mkdir -p .coverage
-	TRANSONIC_NO_REPLACE=1 OMP_NUM_THREADS=1 coverage run -p -m pytest
-
-_report_coverage:
-	coverage combine
-	coverage report
-	coverage html
-	coverage xml
-	@echo "Code coverage analysis complete. View detailed report:"
-	@echo "file://${PWD}/.coverage/index.html"
-
-coverage: _tests_coverage _report_coverage
+test:
+	OMP_NUM_THREADS=1 pdm run pytest src
 
 list-sessions:
 	@nox --version 2>/dev/null || pip install nox
 	@$(NOX) -l
-
-requirements: 'pip-compile(main)' 'pip-compile(doc)' 'pip-compile(test)' 'pip-compile(dev)'
-
-# Catch-all target: route all unknown targets to nox sessions
-%: Makefile
-	@nox --version 2>/dev/null || pip install nox
-	@nox -s $@

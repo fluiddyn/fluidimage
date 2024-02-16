@@ -1,12 +1,157 @@
 [build-system]
 requires = [
-    "setuptools",
-    "wheel",
-    "setuptools_scm",
-    "transonic >= 0.2.2",
-    ]
+    "meson-python",
+    "numpy",
+    "transonic>=0.6.2",
+    "pythran>=0.9.7",
+]
+build-backend = 'mesonpy'
 
-build-backend = "setuptools.build_meta"
+[project]
+name = "fluidimage"
+version = "0.1.5"
+description = "Fluid image processing with Python."
+authors = [
+    {name = "Pierre Augier", email = "pierre.augier@legi.cnrs.fr"},
+]
+dependencies = [
+    "numpy >= 1.8",
+    "matplotlib >= 3.4",
+    "scipy >= 0.14.1",
+    "h5py",
+    "h5netcdf",
+    "transonic>=0.6.2",
+    "fluiddyn",
+    "pyfftw >= 0.10.4",
+    "imageio",
+    "scikit-image >= 0.12.3",
+    "trio >=0.13",
+    "dask[array]",
+    "ipython",
+]
+requires-python = ">=3.9,<3.13"
+readme = "README.md"
+license = {text = "CeCILL"}
+keywords = [
+    "PIV",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.9",
+    "Topic :: Scientific/Engineering",
+]
 
-[tox]
-isolated_build = "True"
+[project.urls]
+Homepage = "https://foss.heptapod.net/fluiddyn/fluidimage"
+
+[project.scripts]
+fluidimviewer-pg = "fluidimage.gui.pg_main:main"
+fluidimviewer = "fluidimage.gui.imviewer:main"
+fluidimlauncher = "fluidimage.gui.launcher.main:main"
+
+[project.optional-dependencies]
+pims = ["pims"]
+opencv = ["opencv-python"]
+# qt = ["PySide6"]
+
+[tool.meson-python.args]
+setup = ['-Doptimization=3']
+
+
+[tool.pdm]
+distribution = true
+package-dir = "src"
+ignore_package_warnings = ["ipython"]
+
+[tool.pdm.dev-dependencies]
+
+# because meson-python editable build needs the build dependencies
+build = [
+    "meson-python",
+    "numpy",
+    "transonic>=0.6.1",
+    "pythran>=0.9.7",
+    "ninja",
+]
+doc = [
+    "sphinx",
+    "pydata-sphinx-theme",
+    "numpydoc",
+    "jupyter",
+    "pandas",
+    "myst-nb",
+    "sphinx-copybutton",
+]
+test = [
+    "pytest",
+    "coverage",
+    "pytest-cov",
+    "fluidimage[opencv]"
+]
+# test-qt = ["pytest-qt"]
+
+dev = [
+    "pip",
+    "black",
+    "pylint",
+    "isort",
+]
+
+[tool.pdm.scripts]
+black = "black src doc"
+isort = "isort -rc --atomic -tc src bench doc/examples"
+black_check = "black --check src doc"
+lint = {shell="pylint -rn --rcfile=pylintrc --jobs=$(nproc) src doc --exit-zero"}
+validate_code = {composite = ["black_check", "lint"]}
+
+[tool.pdm.options]
+lock = ["-G", ":all"]
+sync = ["--no-isolation"]
+install = ["--no-isolation"]
+
+
+[tool.coverage.run]
+source = ["./src"]
+data_file = ".coverage/coverage"
+omit = [
+    "**/__pythran__/*.py",
+    "**/__python__/*.py",
+    "**/__numba__/*.py",
+]
+[tool.coverage.report]
+show_missing = true
+exclude_lines = [
+    "if __name__ == .__main__.:",
+    "if \"sphinx\" in sys.modules:",
+    "raise ValueError",
+    "raise NotImplementedError",
+    "raise ImportError",
+    "except KeyError:",
+    "except ImportError:",
+    "except AttributeError:",
+    "except NotImplementedError:",
+]
+
+[tool.coverage.html]
+directory = ".coverage"
+
+[tool.coverage.xml]
+output = ".coverage/coverage.xml"
+
+
+[tool.black]
+line-length = 82
+target-version = ["py39"]
+extend-exclude = "/(__pythran__|__python__|__numba__|build|doc/_build|\\.ipynb_checkpoints/*)/"
+
+
+[tool.isort]
+profile = "black"
+line_length = 82
+src_paths = ["src", "doc"]

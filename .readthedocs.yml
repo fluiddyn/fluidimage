@@ -1,21 +1,18 @@
-# Read the Docs configuration file
-# See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
-
-# Required
 version: 2
 
 build:
   os: ubuntu-22.04
   tools:
     python: "3.11"
+  apt_packages:
+    - graphviz
+  jobs:
+    post_create_environment:
+      - pip install pdm pip -U
+    post_install:
+      - pdm use -f $READTHEDOCS_VIRTUALENV_PATH
+      - pdm sync -G doc -G opencv --no-self
+      - pip install . -C setup-args=-Dtransonic-backend=python
 
 sphinx:
   configuration: doc/conf.py
-
-python:
-  system_packages: true
-  install:
-    - method: pip
-      path: .
-      extra_requirements:
-        - doc

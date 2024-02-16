@@ -11,8 +11,10 @@ fluidimage/_hg_rev.py
 
 **/.vscode/*
 
-venv/*
-.nox/*
+.venv
+.nox
+
+.pdm-python
 
 *.swp
 *.swo
@@ -21,6 +23,8 @@ venv/*
 
 *build/*
 **/__pythran__
+**/__python__
+**/__numba__
 .tox/*
 
 *.so
@@ -59,7 +63,8 @@ doc/ipynb/*.nbconvert.ipynb
 doc/ipynb/**.png
 doc/examples/oar_launcher*
 doc/examples/topo.dot
-*/.ipynb_checkpoints/*
+**/.ipynb_checkpoints/*
+doc/_jupyter_cache
 
 fluidimage/post_proc/*.h5
 
@@ -69,7 +74,7 @@ image_samples/*/*.piv
 image_samples/*/*/log_*.txt
 image_samples/*/*/params_*.xml
 image_samples/*/Images.bench
-image_samples/4th_PIV-Challenge_Case_E/E_Calibration_Images/Camera_0*/calib*.npy
+image_samples/4th_PIV-Challenge_Case_E/E_Calibration_Images/Camera_0*/calib*.npz
 image_samples/Milestone/Images_many*
 
 image_samples/Karman/Images.civ/*

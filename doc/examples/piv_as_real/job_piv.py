@@ -18,7 +18,6 @@ from fluidimage.topologies.piv import TopologyPIV
 
 
 def main(args):
-
     params = params_piv.make_params_piv(
         args.exp,
         savinghow=args.saving_how,
@@ -31,7 +30,6 @@ def main(args):
 
 
 if __name__ == "__main__":
-
     from fluidcoriolis.milestone.args_piv import parse_args
 
     args = parse_args(doc=__doc__, postfix_in="pre", postfix_out="piv")

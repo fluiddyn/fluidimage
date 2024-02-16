@@ -8,6 +8,7 @@ To find good parameters, try the piv computation with::
   ./try_piv.py &
 
 """
+
 from glob import glob
 
 from fluidimage.topologies.piv import TopologyPIV
@@ -21,7 +22,6 @@ def get_path(iexp):
 def make_params_piv(
     iexp, savinghow="recompute", postfix_in="pre", postfix_out="piv"
 ):
-
     path = get_path(iexp)
 
     if postfix_in is not None and postfix_in != "":
