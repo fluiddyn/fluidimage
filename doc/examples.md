@@ -1,8 +1,9 @@
 # Examples
 
 ```{toctree}
-:maxdepth: 2
-
+---
+maxdepth: 2
+---
 examples/preproc
 examples/piv_try_params
 examples/piv_with_topology

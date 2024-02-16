@@ -1,12 +1,14 @@
 # Analysis of UVmat civ_series algorithm and parameters
 
-See the [UVmat documentation](http://servforge.legi.grenoble-inp.fr/projects/soft-uvmat/wiki/UvmatHelp#Civ).
+See the
+[UVmat documentation](http://servforge.legi.grenoble-inp.fr/projects/soft-uvmat/wiki/UvmatHelp#Civ).
 
 ## Description of main loop on couple of images in civ_series.m
 
 ### Step 0: Initialisation
 
-of a structure "par_civ" containing the 2 images A and B + all parameters for the computation
+of a structure "par_civ" containing the 2 images A and B + all parameters for the
+computation
 
 ### Step 2: Civ1: Call the function civ
 
@@ -18,11 +20,13 @@ Loop on every grid points:
 
 subA is centered in \[xA, yA\] and has a size \[Lx, Ly\]
 
-subB is centered in \[xA + shitfx, xB + shifty\] and has a size \[Sx, Sy\] with Sx,Sy > Lx, Ly
+subB is centered in \[xA + shitfx, xB + shifty\] and has a size \[Sx, Sy\] with Sx,Sy >
+Lx, Ly
 
 2.2: if checkmask == 1 -> application of the mask on subimages
 
-2.3: if checkdeformation == 1 -> apply deformation + interpolation (with function interp2)
+2.3: if checkdeformation == 1 -> apply deformation + interpolation (with function
+interp2)
 
 2.4.1 convolution of subA and subB with function conv2 => "conv"
 
@@ -40,7 +44,8 @@ conv(dx, dy) == corrmax
 
 2.5 subpixel determination of displacement: \[vec_x, vec_y\] = fct(conv, dx, dy)
 
-it exists 3 different fct depending on parameters:  SUBPIXGAUSS, SUBPIX2DGAUSS and quadr_fit
+it exists 3 different fct depending on parameters: SUBPIXGAUSS, SUBPIX2DGAUSS and
+quadr_fit
 
 2.6 if the position \[xA + vec_x, yA + vec_y\] is in the mask -> vec_x, vec_y is put to 0
 
@@ -58,7 +63,8 @@ detection of vectors that don't satisfy parameters given to fix
 
 ### Step 4: Patch1: Call the function filter_tps
 
-find the thin plate spline coefficients for interpolation-smoothing (See UVmat documentation)
+find the thin plate spline coefficients for interpolation-smoothing (See UVmat
+documentation)
 
 ### Step 5: Civ2: Call the function civ
 

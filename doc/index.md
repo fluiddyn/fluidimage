@@ -3,8 +3,9 @@
 # User Guide
 
 ```{toctree}
-:maxdepth: 1
-
+---
+maxdepth: 1
+---
 install
 tutorial
 examples
@@ -37,8 +38,9 @@ functions.
 # More
 
 ```{toctree}
-:maxdepth: 1
-
+---
+maxdepth: 1
+---
 FluidImage forge on Heptapod <https://foss.heptapod.net/fluiddyn/fluidimage>
 FluidImage in PyPI  <https://pypi.python.org/pypi/fluidimage/>
 to_do
