@@ -1,5 +1,4 @@
 # Makefile for Sphinx documentation
-#
 
 # You can set these variables from the command line.
 SPHINXOPTS    =
@@ -14,15 +13,10 @@ ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 # the i18n builder cannot share the environment and doctrees with the others
 I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 
-IPYNB_DIR = $(abspath ipynb)
-IPYTHON_NOTEBOOKS = $(wildcard ipynb/*.ipynb)
-IPYTHON_NOTEBOOKS_RST = $(IPYTHON_NOTEBOOKS:.ipynb=.rst)
-IPYTHON_NOTEBOOKS_DIR = $(IPYTHON_NOTEBOOKS:.ipynb=_files)
-
 .PHONY: help clean html dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest gettext
 
 html:
-	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
+	$(SPHINXBUILD) -W -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished.\nfile://"$(shell pwd)"/_build/html/index.html"
 
@@ -53,6 +47,9 @@ clean:
 
 cleanall: clean
 	rm -rf generated html.zip
+
+cleancache:
+	rm -rf _jupyter_cache
 
 dirhtml:
 	$(SPHINXBUILD) -b dirhtml $(ALLSPHINXOPTS) $(BUILDDIR)/dirhtml
@@ -163,11 +160,5 @@ doctest:
 zip: html
 	cd _build/html &&  zip -r html.zip * && mv html.zip ../../.
 
-# %.rst: %.ipynb
-# 	cd $(IPYNB_DIR) && ipython nbconvert --to rst $(notdir $<)
-
 open_html: html
 	firefox _build/html/index.html
-
-notebook:
-	python $(shell which jupyter-notebook)

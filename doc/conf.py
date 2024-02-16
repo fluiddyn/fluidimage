@@ -73,7 +73,7 @@ master_doc = "index"
 
 # General information about the project.
 project = "FluidImage"
-copyright = "2016, Pierre Augier"
+copyright = "2024, Pierre Augier"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -99,7 +99,12 @@ version = "{}.{}.{}".format(version[0], version[1], version[2])
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ["_build", "**.ipynb_checkpoints"]
+exclude_patterns = [
+    "_build",
+    "**.ipynb_checkpoints",
+    "_jupyter_cache",
+    "ipynbslides",
+]
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.

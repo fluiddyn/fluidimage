@@ -83,10 +83,15 @@ doc = [
     "sphinx",
     "pydata-sphinx-theme",
     "numpydoc",
-    "jupyter",
     "pandas",
     "myst-nb",
     "sphinx-copybutton",
+]
+dev-doc = [
+    "jupyterlab",
+    "jupyterlab-myst",
+    "jupytext",
+    "mdformat-myst"
 ]
 test = [
     "pytest",
