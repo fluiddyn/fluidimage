@@ -56,11 +56,9 @@ fluidimage/works/piv/*.h5
 fluidimage/**.dot
 
 doc/generated/*
-doc/ipynb/*.rst
-doc/ipynb/*.h5
-doc/ipynb/.ipynb_checkpoints/*
-doc/ipynb/*.nbconvert.ipynb
-doc/ipynb/**.png
+doc/tutorials/*.rst
+doc/tutorials/*.h5
+doc/tutorials/**.png
 doc/examples/oar_launcher*
 doc/examples/topo.dot
 **/.ipynb_checkpoints/*

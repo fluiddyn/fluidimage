@@ -6,7 +6,7 @@ Here is a tutorial on a very simple PIV computation:
 ---
 maxdepth: 2
 ---
-ipynb/tuto_piv
+tutorials/tuto_piv
 ```
 
 There are also tutorials on calibration and recontruction:
@@ -15,10 +15,10 @@ There are also tutorials on calibration and recontruction:
 ---
 maxdepth: 2
 ---
-ipynb/tuto_calibration2dsimple
-ipynb/tuto_direct_calibration
-ipynb/tuto_stereo_reconstruction
-ipynb/tuto_tsai_calibration
-ipynb/tuto_opencv_calibration
-ipynb/tuto_opencv_tomo_reconstruct
+tutorials/tuto_calibration2dsimple
+tutorials/tuto_direct_calibration
+tutorials/tuto_stereo_reconstruction
+tutorials/tuto_tsai_calibration
+tutorials/tuto_opencv_calibration
+tutorials/tuto_opencv_tomo_reconstruct
 ```

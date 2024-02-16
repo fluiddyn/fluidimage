@@ -48,11 +48,11 @@ extensions = [
     "sphinx_copybutton",
 ]
 
-# Execute ipynb files into with a cache ...
+# Execute notebooks into with a cache ...
 nb_execution_mode = "cache"
 nb_execution_cache_path = "./_jupyter_cache"
 os.makedirs(nb_execution_cache_path, exist_ok=True)
-# ... except these ipynb files
+# ... except these files
 nb_execution_excludepatterns = ["ipynbslides/*"]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -62,7 +62,7 @@ templates_path = ["_templates"]
 source_suffix = {
     ".rst": "restructuredtext",
     ".ipynb": "myst-nb",
-    ".myst": "myst-nb",
+    ".myst.md": "myst-nb",
 }
 
 # The encoding of source files.
