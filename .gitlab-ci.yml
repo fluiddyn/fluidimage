@@ -1,5 +1,5 @@
 stages:
-  # - pixi
+  - pixi
   - image
   - lint
   - test
@@ -20,6 +20,15 @@ workflow:
       when: never
     - if: $CI_COMMIT_BRANCH
     - if: $CI_COMMIT_TAG
+
+
+pixi-test:
+  stage: pixi
+  image: registry.heptapod.net:443/fluiddyn/fluidsim/ci/default:pixi
+  script:
+    - pixi info
+    - pixi run install-editable
+    - pixi run test
 
 
 # Build an image for the other tasks; this should be a scheduled job, as
