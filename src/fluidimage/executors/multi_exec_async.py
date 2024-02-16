@@ -275,28 +275,28 @@ class MultiExecutorAsync(ExecutorBase):
 
         self.wait_for_all_processes()
 
+    def init_and_compute(self, topology_this_process, log_path, child_conn):
+        """Create an executor and start it in a process"""
+        executor = ExecutorAsyncForMulti(
+            topology_this_process,
+            self.path_dir_result,
+            sleep_time=self.sleep_time,
+            log_path=log_path,
+            logging_level=self.logging_level,
+        )
+        executor.t_start = self.t_start
+        executor.compute()
+
+        # send the results
+        if hasattr(topology_this_process, "results"):
+            results = topology_this_process.results
+        else:
+            results = None
+
+        child_conn.send(results)
+
     def launch_process(self, topology, ind_process):
         """Launch one process"""
-
-        def init_and_compute(topology_this_process, log_path, child_conn):
-            """Create an executor and start it in a process"""
-            executor = ExecutorAsyncForMulti(
-                topology_this_process,
-                self.path_dir_result,
-                sleep_time=self.sleep_time,
-                log_path=log_path,
-                logging_level=self.logging_level,
-            )
-            executor.t_start = self.t_start
-            executor.compute()
-
-            # send the results
-            if hasattr(topology_this_process, "results"):
-                results = topology_this_process.results
-            else:
-                results = None
-
-            child_conn.send(results)
 
         log_path = Path(
             str(self._log_path).split(".txt")[0] + f"_multi{ind_process:03}.txt"
@@ -307,7 +307,7 @@ class MultiExecutorAsync(ExecutorBase):
         parent_conn, child_conn = Pipe()
 
         process = Process(
-            target=init_and_compute, args=(topology, log_path, child_conn)
+            target=self.init_and_compute, args=(topology, log_path, child_conn)
         )
         process.connection = parent_conn
         process.daemon = True
