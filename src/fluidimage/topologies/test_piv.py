@@ -22,7 +22,7 @@ class TestPivNew(unittest.TestCase):
         for path in paths:
             path_out = Path(str(path.parent) + "." + cls.postfix)
             if path_out.exists():
-                rmtree(path_out)
+                rmtree(path_out, ignore_errors=True)
 
     def test_piv_new(self):
         params = TopologyPIV.create_default_params()

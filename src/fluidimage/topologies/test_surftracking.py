@@ -39,7 +39,7 @@ class TestSurfaceTracking(unittest.TestCase):
     def tearDownClass(cls):
         # path_out = Path(str(cls.path_src) + "." + cls.postfix)
         if cls.path_out.exists():
-            rmtree(cls.path_out)
+            rmtree(cls.path_out, ignore_errors=True)
 
     def test_surftrack(self):
         params = TopologySurfaceTracking.create_default_params()

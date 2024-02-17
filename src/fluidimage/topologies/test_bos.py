@@ -17,7 +17,7 @@ class TestBOSNew(unittest.TestCase):
         path = cls.path_input_files
         path_out = Path(str(path) + "." + cls.postfix)
         if path_out.exists():
-            rmtree(path_out)
+            rmtree(path_out, ignore_errors=True)
 
     def test_bos_new_multiproc(self):
         params = TopologyBOS.create_default_params()

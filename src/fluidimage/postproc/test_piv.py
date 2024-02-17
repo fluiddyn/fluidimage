@@ -19,7 +19,7 @@ class TestPIV(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         if cls.path_tests.exists():
-            rmtree(cls.path_tests)
+            rmtree(cls.path_tests, ignore_errors=True)
 
     def test_get_grid(self):
         xs1d, ys1d = get_grid_pixel_from_piv_file(self.path_piv)

@@ -232,7 +232,7 @@ if __name__ == "__main__":
     particle_images = path_image_samples / "TomoPIV" / "particle"
     output_dir = path_image_samples / "TomoPIV" / "tomo"
     if output_dir.exists():
-        shutil.rmtree(output_dir)
+        shutil.rmtree(output_dir, ignore_errors=True)
 
     for cam in tomo.cams:
         print(f"Projecting {cam}...")

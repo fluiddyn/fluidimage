@@ -16,7 +16,7 @@ class TestPivNew(unittest.TestCase):
     def tearDownClass(cls):
         path_out = Path(str(cls.path_src) + "." + cls.postfix)
         if path_out.exists():
-            rmtree(path_out)
+            rmtree(path_out, ignore_errors=True)
 
     def test_piv_new(self):
         params = TopologyImage2Image.create_default_params()
