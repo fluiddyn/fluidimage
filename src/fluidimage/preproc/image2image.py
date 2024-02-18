@@ -17,7 +17,6 @@
 import types
 
 import numpy as np
-
 from fluiddyn.util import import_class
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
 

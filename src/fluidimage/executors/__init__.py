@@ -26,6 +26,7 @@ an executor compared to another.
 """
 
 import os
+
 import trio
 
 

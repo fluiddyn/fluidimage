@@ -10,8 +10,8 @@ else:
     try:
         import pycuda.autoinit
         import pycuda.compiler
-        import pycuda.gpuarray
         import pycuda.driver
+        import pycuda.gpuarray
     except (ImportError, pycuda._driver.RuntimeError):
         pass
 

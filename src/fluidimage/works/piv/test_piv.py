@@ -2,6 +2,7 @@ import unittest
 from shutil import rmtree
 
 from fluiddyn.io import stdout_redirected
+
 from fluidimage import SeriesOfArrays, get_path_image_samples
 from fluidimage.data_objects.display_piv import DisplayPIV
 from fluidimage.data_objects.piv import LightPIVResults, MultipassPIVResults

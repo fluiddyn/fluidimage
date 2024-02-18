@@ -12,6 +12,7 @@ import sys
 from pathlib import Path
 
 from fluiddyn.io.image import imsave
+
 from fluidimage import ParamContainer, SerieOfArraysFromFiles
 from fluidimage.preproc.image2image import (
     complete_im2im_params_with_default,

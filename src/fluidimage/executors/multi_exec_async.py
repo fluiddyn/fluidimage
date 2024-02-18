@@ -22,6 +22,7 @@ from pathlib import Path
 from time import time
 
 from fluiddyn import time_as_str
+
 from fluidimage.util import logger
 
 from .base import ExecutorBase

@@ -4,6 +4,7 @@ from fluidimage import get_path_image_samples
 
 try:
     import pyqtgraph
+
     from fluidimage.gui.pg_main import main, parse_args
 
     use_pyqtgraph = True

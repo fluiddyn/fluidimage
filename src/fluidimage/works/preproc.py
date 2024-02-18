@@ -14,7 +14,6 @@ Provides:
 import sys
 
 import numpy as np
-
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
 
 from ..data_objects.preproc import ArraySerie, PreprocResults, get_ind_middle

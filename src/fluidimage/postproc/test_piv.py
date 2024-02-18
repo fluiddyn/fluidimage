@@ -1,10 +1,10 @@
 import unittest
 from shutil import rmtree
 
-import numpy as np
 import h5py
-
+import numpy as np
 from fluiddyn.util.paramcontainer import ParamContainer
+
 from fluidimage import get_path_image_samples
 from fluidimage.postproc.piv import ArrayPIV, PIV2d, get_grid_pixel_from_piv_file
 

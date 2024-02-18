@@ -7,12 +7,7 @@ import pylab
 
 from fluidimage.data_objects.piv import LightPIVResults
 
-from .util import (
-    compute_div,
-    compute_rot,
-    compute_1dspectrum,
-    compute_2dspectrum,
-)
+from .util import compute_1dspectrum, compute_2dspectrum, compute_div, compute_rot
 
 warn(
     "Functions and classes defined in this module (fluidimage.postproc.postproc)"

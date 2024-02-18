@@ -50,7 +50,6 @@ import numpy as np
 from numpy.fft import fft2, ifft2
 from scipy.ndimage import correlate
 from scipy.signal import correlate2d
-
 from transonic import boost
 
 from .correl_pycuda import correl_pycuda

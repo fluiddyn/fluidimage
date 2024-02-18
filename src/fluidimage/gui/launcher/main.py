@@ -9,18 +9,20 @@
 import sys
 
 try:
-    from matplotlib.backends.qt_compat import QtWidgets, QtGui
+    from matplotlib.backends.qt_compat import QtGui, QtWidgets
 except ImportError:
     base_classes = []
 else:
 
-    from .mainwindow import Ui_MainWindow
     from fluiddyn.util.paramcontainer_gui import QtParamContainer
+
+    from .mainwindow import Ui_MainWindow
 
     base_classes = [QtWidgets.QMainWindow, Ui_MainWindow]
 
 
 from fluiddyn.util.paramcontainer import ParamContainer
+
 from fluidimage.topologies.launcher import (
     TopologyPIVLauncher,
     TopologyPreprocLauncher,
