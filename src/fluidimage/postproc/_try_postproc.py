@@ -1,9 +1,9 @@
 import numpy as np
 import pylab
-
 from fluiddyn.util.serieofarrays import SeriesOfArrays
-from fluidimage.works.piv import WorkPIV
 from postproc import PIV_Postproc, PIV_PostProc_serie
+
+from fluidimage.works.piv import WorkPIV
 
 # %%
 params = WorkPIV.create_default_params()

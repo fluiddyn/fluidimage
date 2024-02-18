@@ -8,13 +8,12 @@
 """
 
 import numpy as np
-
 from fluiddyn.util.paramcontainer import ParamContainer
 
-from .. import BaseWork
-from ...calcul.smooth_clean import smooth_clean
-
 from fluidimage.calcul.errors import PIVError
+
+from ...calcul.smooth_clean import smooth_clean
+from .. import BaseWork
 
 
 class WorkFIX(BaseWork):

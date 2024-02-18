@@ -2,7 +2,6 @@ import ctypes
 import time
 
 import numpy as np
-
 import pycuda.autoinit
 import pycuda.gpuarray as gpuarray
 

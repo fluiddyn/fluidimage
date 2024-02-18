@@ -1,8 +1,9 @@
 import os
 
+from path_images import get_path
+
 from fluidimage import SeriesOfArrays
 from fluidimage.works.piv import WorkPIV
-from path_images import get_path
 
 params = WorkPIV.create_default_params()
 

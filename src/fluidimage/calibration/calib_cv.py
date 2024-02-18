@@ -19,11 +19,11 @@ import os
 
 import matplotlib.pyplot as plt
 import numpy as np
+from fluiddyn.util.paramcontainer import ParamContainer
 from matplotlib.patches import Rectangle
 from matplotlib.transforms import Bbox
 from scipy.interpolate import griddata
 
-from fluiddyn.util.paramcontainer import ParamContainer
 from fluidimage._opencv import cv2
 
 

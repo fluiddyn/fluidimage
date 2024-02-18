@@ -8,7 +8,6 @@
 """
 
 import numpy as np
-
 from transonic import boost
 
 from .errors import PIVError

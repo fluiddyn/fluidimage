@@ -110,7 +110,7 @@ dev = [
 
 [tool.pdm.scripts]
 black = "black src doc"
-isort = "isort -rc --atomic -tc src bench doc/examples"
+isort = "isort --atomic --tc src bench doc/examples"
 black_check = "black --check src doc"
 lint = {shell="pylint -rn --rcfile=pylintrc --jobs=$(nproc) src doc --exit-zero"}
 validate_code = {composite = ["black_check", "lint"]}

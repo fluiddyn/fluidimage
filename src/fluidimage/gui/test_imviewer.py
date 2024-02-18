@@ -2,9 +2,9 @@ import sys
 import unittest
 
 from fluiddyn.io import stdout_redirected
+
 from fluidimage import get_path_image_samples
 from fluidimage.gui.imviewer import ImageViewer, parse_args
-
 
 path_image_samples = get_path_image_samples()
 

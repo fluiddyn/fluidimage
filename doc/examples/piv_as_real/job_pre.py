@@ -18,6 +18,7 @@ see also the help::
 """
 
 import params_pre
+
 from fluidimage.topologies.preproc import TopologyPreproc
 
 try:

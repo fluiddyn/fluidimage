@@ -16,11 +16,11 @@
 """
 
 import h5py
-
-
 from fluiddyn.util.paramcontainer import ParamContainer
+
 from fluidimage.works.piv.multipass import WorkPIV
-from .vector_field import VectorFieldOnGrid, ArrayOfVectorFieldsOnGrid
+
+from .vector_field import ArrayOfVectorFieldsOnGrid, VectorFieldOnGrid
 
 
 class PIV2d(VectorFieldOnGrid):

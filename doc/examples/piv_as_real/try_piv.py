@@ -14,6 +14,7 @@ Alternatively, run the script with::
 """
 
 import params_piv
+
 from fluidimage import SeriesOfArrays
 from fluidimage.works.piv import WorkPIV
 

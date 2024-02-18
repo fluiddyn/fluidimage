@@ -18,9 +18,9 @@ from time import time
 
 import numpy as np
 import scipy
-
 from fluiddyn.util import import_class
 from fluiddyn.util.paramcontainer import tidy_container
+
 from fluidimage.topologies.piv import TopologyPIV
 
 from . import (

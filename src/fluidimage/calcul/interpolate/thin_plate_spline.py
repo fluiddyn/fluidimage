@@ -28,7 +28,6 @@ obtained as ``dot(U_tps, EMDX)`` and ``dot(U_tps, EMDY)``, where
 """
 
 import numpy as np
-
 from transonic import Transonic, boost
 
 ts = Transonic()

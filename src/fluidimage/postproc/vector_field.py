@@ -11,24 +11,23 @@
 
 """
 
+import itertools
 from copy import deepcopy
 from numbers import Number
-import itertools
 from typing import Optional
 
+import h5py
 import matplotlib.pyplot as plt
 import numpy as np
-import h5py
+from fluiddyn.util.paramcontainer import ParamContainer
 from scipy.ndimage import gaussian_filter, median_filter
 
-from fluiddyn.util.paramcontainer import ParamContainer
-
 from .util import (
-    reshape_on_grid_final,
-    compute_rot,
-    compute_div,
     compute_1dspectrum,
     compute_2dspectrum,
+    compute_div,
+    compute_rot,
+    reshape_on_grid_final,
 )
 
 

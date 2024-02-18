@@ -27,16 +27,15 @@
 from copy import deepcopy
 
 import numpy as np
-
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
 
-from ..with_mask import BaseWorkWithMask
 from ...calcul.correl import correlation_classes
 from ...calcul.errors import PIVError
 from ...calcul.interpolate.griddata import griddata
 from ...calcul.interpolate.thin_plate_spline_subdom import ThinPlateSplineSubdom
 from ...calcul.subpix import SubPix
 from ...data_objects.piv import ArrayCouple, HeavyPIVResults
+from ..with_mask import BaseWorkWithMask
 
 
 class InterpError(ValueError):

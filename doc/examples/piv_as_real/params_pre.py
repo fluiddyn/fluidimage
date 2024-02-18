@@ -21,8 +21,9 @@ You can also try the piv computation with::
 from copy import deepcopy
 from glob import glob
 
-from fluidimage.topologies.preproc import TopologyPreproc
 from params_piv import get_path
+
+from fluidimage.topologies.preproc import TopologyPreproc
 
 
 def make_params_pre(iexp, savinghow="recompute", postfix_out="pre"):

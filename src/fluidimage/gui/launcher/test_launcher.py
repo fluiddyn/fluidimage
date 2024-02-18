@@ -1,7 +1,6 @@
-import pytest
-
 # just to be sure that matplotlib is importable
 import matplotlib
+import pytest
 
 try:
     import matplotlib.backends.qt_compat

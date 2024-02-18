@@ -5,6 +5,7 @@ from shutil import rmtree
 
 from fluiddyn.io import stdout_redirected
 from fluiddyn.io.image import imread, imsave
+
 from fluidimage import get_path_image_samples
 from fluidimage.preproc.base import PreprocBase
 

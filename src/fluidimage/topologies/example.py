@@ -14,11 +14,10 @@ import os
 
 import numpy as np
 import scipy.io
-
 from transonic import boost
 
-from . import TopologyBase
 from ..util import imread
+from . import TopologyBase
 
 A = "uint8[:,:]"
 

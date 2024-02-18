@@ -213,6 +213,7 @@ def _estimate_max_array_size(dtype=np.float64):
 
 if __name__ == "__main__":
     import shutil
+
     from fluidimage import get_path_image_samples
 
     path_image_samples = get_path_image_samples()
