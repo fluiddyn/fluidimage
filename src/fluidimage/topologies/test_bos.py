@@ -1,9 +1,12 @@
+import sys
 import unittest
 from pathlib import Path
 from shutil import rmtree
 
 from fluidimage import get_path_image_samples
 from fluidimage.topologies.bos import TopologyBOS
+
+on_linux = sys.platform == "linux"
 
 
 class TestBOSNew(unittest.TestCase):
@@ -17,8 +20,9 @@ class TestBOSNew(unittest.TestCase):
         path = cls.path_input_files
         path_out = Path(str(path) + "." + cls.postfix)
         if path_out.exists():
-            rmtree(path_out)
+            rmtree(path_out, ignore_errors=True)
 
+    @unittest.skipIf(not on_linux, "Only supported on Linux")
     def test_bos_new_multiproc(self):
         params = TopologyBOS.create_default_params()
 
@@ -51,7 +55,3 @@ class TestBOSNew(unittest.TestCase):
         params.saving.how = "complete"
         topology = TopologyBOS(params, logging_level="info")
         topology.compute()
-
-
-if __name__ == "__main__":
-    unittest.main()

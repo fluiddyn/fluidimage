@@ -1,3 +1,4 @@
+import sys
 import unittest
 from pathlib import Path
 from shutil import rmtree
@@ -8,7 +9,10 @@ from fluidimage.topologies.piv import TopologyPIV
 
 path_image_samples = get_path_image_samples()
 
+on_linux = sys.platform == "linux"
 
+
+@unittest.skipIf(not on_linux, "Only supported on Linux")
 class TestPivNew(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -22,7 +26,7 @@ class TestPivNew(unittest.TestCase):
         for path in paths:
             path_out = Path(str(path.parent) + "." + cls.postfix)
             if path_out.exists():
-                rmtree(path_out)
+                rmtree(path_out, ignore_errors=True)
 
     def test_piv_new(self):
         params = TopologyPIV.create_default_params()
@@ -80,7 +84,3 @@ class TestPivNew(unittest.TestCase):
         topology.compute("exec_sequential")
 
         assert len(topology.results) == 1
-
-
-if __name__ == "__main__":
-    unittest.main()

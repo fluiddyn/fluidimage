@@ -28,7 +28,7 @@ class TestMLOS(unittest.TestCase):
     """Test fluidimage.reconstruct.tomo.mlos module."""
 
     def tearDown(self):
-        shutil.rmtree(path_output)
+        shutil.rmtree(path_output, ignore_errors=True)
 
     def test(self):
         """Test classes TomoMLOSCV and ArrayTomoCV."""

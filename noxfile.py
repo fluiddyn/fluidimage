@@ -62,7 +62,7 @@ class TimePrinter:
 def test(session):
     """Execute unit-tests using pytest"""
 
-    command = "pdm sync --clean -G test -G qt --no-self"
+    command = "pdm sync --clean -G test --no-self"
     session.run_always(*command.split(), external=True)
     session.install(".", "--no-deps")
 
@@ -142,11 +142,7 @@ def add_tag_for_release(session):
         session.run("hg", "update", "default", external=True)
 
     version = _get_version_from_pyproject()
-    version_core = _get_version_from_pyproject("lib")
-
-    print(f"{version = }, {version_core = }")
-    if version != version_core:
-        session.error("version != version_core")
+    print(f"{version = }")
 
     result = session.run("hg", "tags", "-T", "{tag},", external=True, silent=True)
     last_tag = result.split(",", 2)[1]

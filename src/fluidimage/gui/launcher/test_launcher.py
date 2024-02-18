@@ -10,7 +10,13 @@ else:
     import_error_qt_compat = False
 
 
-# For Travis where PyQt5 can't be installed (why?)
+try:
+    import pytestqt
+except ImportError:
+    pytestqt = False
+
+
+@pytest.mark.skipif(not pytestqt, reason="ImportError pytest-qt")
 @pytest.mark.skipif(
     import_error_qt_compat, reason="ImportError matplotlib.backends.qt_compat"
 )

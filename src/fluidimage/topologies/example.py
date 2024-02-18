@@ -11,6 +11,7 @@ with C functions.
 """
 
 import os
+from functools import partial
 
 import numpy as np
 import scipy.io
@@ -44,6 +45,20 @@ def cpu2(array1: A, array2: A, nloops: int = 10):
     for _ in range(nloops):
         array1 = np.multiply(array1, array2)
     return array1
+
+
+def func1_for_partial(nloops, arrays):
+    key = arrays[0]
+    if key == "Karman_02_00":
+        raise ValueError("For testing")
+    arr0, arr1 = cpu1(arrays[1], arrays[2], nloops)
+    return key, arr0, arr1
+
+
+def func2_for_partial(nloops, arrays):
+    key = arrays[0]
+    result = cpu2(arrays[1], arrays[2], nloops)
+    return key, result
 
 
 class TopologyExample(TopologyBase):
@@ -82,18 +97,6 @@ class TopologyExample(TopologyBase):
         nloops = params["nloops"]
         self.multiplicator_nb_images = params["multiplicator_nb_images"]
 
-        def func1(arrays):
-            key = arrays[0]
-            if key == "Karman_02_00":
-                raise ValueError("For testing")
-            arr0, arr1 = cpu1(arrays[1], arrays[2], nloops)
-            return key, arr0, arr1
-
-        def func2(arrays):
-            key = arrays[0]
-            result = cpu2(arrays[1], arrays[2], nloops)
-            return key, result
-
         self.path_input = path_input
 
         super().__init__(
@@ -106,6 +109,9 @@ class TopologyExample(TopologyBase):
             self.path_dir_result.mkdir()
 
         self.img_counter = 0
+
+        func1 = partial(func1_for_partial, nloops)
+        func2 = partial(func2_for_partial, nloops)
 
         queue_names = self.add_queue("names images")
         queue_couples_names = self.add_queue("names couples")

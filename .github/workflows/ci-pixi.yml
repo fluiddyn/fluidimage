@@ -1,0 +1,29 @@
+name: CI Pixi
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  tests:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ["windows-2022", "macos-latest"]
+        python-version: ["3.9", "3.10", "3.11"]
+    defaults:
+      run:
+        shell: bash -l {0}
+    steps:
+    - uses: actions/checkout@v3
+    - uses: prefix-dev/setup-pixi@v0.4.1
+      with:
+        pixi-version: v0.11.1
+        cache: false
+    - name: Install
+      run: |
+        pixi run install-editable
+    - name: Tests
+      run: |
+        pixi run test

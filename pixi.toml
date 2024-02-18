@@ -1,0 +1,35 @@
+[project]
+name = "fluidimage"
+channels = ["conda-forge"]
+platforms = ["linux-64", "win-64", "osx-64"]
+
+[tasks]
+# use as `pixi run install-editable`
+install-dependencies = "pixi install"
+install-editable = {cmd = "pip install -e . -v --no-build-isolation --no-deps", depends_on = ["install-dependencies"]}
+test = "export OMP_NUM_THREADS=1 && pytest src -v"
+
+[dependencies]
+python = ">=3.9,<3.11"
+numpy = ">=1.26.3"
+transonic = ">=0.6.1,<0.7"
+fluiddyn = ">=0.5.4,<0.6"
+h5netcdf = ">=1.3.0"
+h5py = ">=3.10.0"
+matplotlib = ">=3.3"
+scipy = ">=1.11.4"
+# build deps
+pip = ">=23.3.2"
+pkg-config = ">=0.29.2"
+meson-python = ">=0.15.0"
+pytest = ">=8.0.0"
+pytest-cov = ">=4.1.0"
+coverage = ">=7.4.1"
+ninja = ">=1.11.1"
+meson = ">=1.3.2"
+pythran = ">=0.15.0,<0.16"
+ipython = ">=8.21.0,<8.22"
+opencv = ">=4.8.1,<4.10"
+trio = ">=0.24.0,<0.25"
+dask = ">=2024.2.0,<2024.3"
+pyfftw = ">=0.13.1,<0.14"

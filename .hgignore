@@ -13,6 +13,7 @@ fluidimage/_hg_rev.py
 
 .venv
 .nox
+.pixi
 
 .pdm-python
 

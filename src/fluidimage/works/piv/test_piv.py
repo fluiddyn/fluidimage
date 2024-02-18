@@ -28,7 +28,7 @@ class TestPIV(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         if cls.path_tmp.exists():
-            rmtree(cls.path_tmp)
+            rmtree(cls.path_tmp, ignore_errors=True)
 
     def test_minimal_piv(self):
         params = WorkPIV.create_default_params()
