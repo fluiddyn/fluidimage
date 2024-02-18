@@ -796,7 +796,7 @@ files = [
 
 [[package]]
 name = "fluiddyn"
-version = "0.5.3"
+version = "0.5.4"
 requires_python = ">=3.9"
 summary = "Framework for studying fluid dynamics."
 groups = ["default", "test"]
@@ -810,8 +810,8 @@ dependencies = [
     "qtpy",
 ]
 files = [
-    {file = "fluiddyn-0.5.3-py3-none-any.whl", hash = "sha256:f21a7563d1447102b6f6cc3f1bcf071e7bce27c7a8130e7c1ac6ba55c0620f50"},
-    {file = "fluiddyn-0.5.3.tar.gz", hash = "sha256:75a3f9640716a686a87337c615ecd6b9dc88f8dd797f407863e3a995645f0513"},
+    {file = "fluiddyn-0.5.4-py3-none-any.whl", hash = "sha256:d1e5007c3f4c1a484fdb48c6dd3eef3fb48d82b4732af021b4cb1a0fee88b1e2"},
+    {file = "fluiddyn-0.5.4.tar.gz", hash = "sha256:21009820b1f8f0a4e7caac5c515b22e746b0a758e5ddc37970d2f439941e19b9"},
 ]
 
 [[package]]
@@ -2620,7 +2620,7 @@ files = [
 
 [[package]]
 name = "pytest"
-version = "8.0.0"
+version = "8.0.1"
 requires_python = ">=3.8"
 summary = "pytest: simple powerful testing with Python"
 groups = ["test"]
@@ -2633,8 +2633,8 @@ dependencies = [
     "tomli>=1.0.0; python_version < \"3.11\"",
 ]
 files = [
-    {file = "pytest-8.0.0-py3-none-any.whl", hash = "sha256:50fb9cbe836c3f20f0dfa99c565201fb75dc54c8d76373cd1bde06b06657bdb6"},
-    {file = "pytest-8.0.0.tar.gz", hash = "sha256:249b1b0864530ba251b7438274c4d251c58d868edaaec8762893ad4a0d71c36c"},
+    {file = "pytest-8.0.1-py3-none-any.whl", hash = "sha256:3e4f16fe1c0a9dc9d9389161c127c3edc5d810c38d6793042fb81d9f48a59fca"},
+    {file = "pytest-8.0.1.tar.gz", hash = "sha256:267f6563751877d772019b13aacbe4e860d73fe8f651f28112e9ac37de7513ae"},
 ]
 
 [[package]]
@@ -3628,13 +3628,13 @@ files = [
 
 [[package]]
 name = "urllib3"
-version = "2.2.0"
+version = "2.2.1"
 requires_python = ">=3.8"
 summary = "HTTP library with thread-safe connection pooling, file post, and more."
 groups = ["dev-doc", "doc"]
 files = [
-    {file = "urllib3-2.2.0-py3-none-any.whl", hash = "sha256:ce3711610ddce217e6d113a2732fafad960a03fd0318c91faa79481e35c11224"},
-    {file = "urllib3-2.2.0.tar.gz", hash = "sha256:051d961ad0c62a94e50ecf1af379c3aba230c66c710493493560c0c223c49f20"},
+    {file = "urllib3-2.2.1-py3-none-any.whl", hash = "sha256:450b20ec296a467077128bff42b73080516e71b56ff59a60a02bef2232c4fa9d"},
+    {file = "urllib3-2.2.1.tar.gz", hash = "sha256:d0570876c61ab9e520d776c38acbbb5b05a776d3f9ff98a5c8fd5162a444cf19"},
 ]
 
 [[package]]

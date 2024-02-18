@@ -4023,7 +4023,7 @@ package:
   timestamp: 1686584753580
 - platform: linux-64
   name: fluiddyn
-  version: 0.5.3
+  version: 0.5.4
   category: main
   manager: conda
   dependencies:
@@ -4040,21 +4040,21 @@ package:
   - scikit-image
   - scipy
   - setuptools
-  url: https://conda.anaconda.org/conda-forge/noarch/fluiddyn-0.5.3-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/fluiddyn-0.5.4-pyhd8ed1ab_0.conda
   hash:
-    md5: 5ed6b4ecece99a23f75875effbc9235d
-    sha256: 816247078590c11f588371a1981ccf82c5ce97dfafbed9742970c4f76cc29a2c
+    md5: abe7291e41c2bbab06f71356024a1f66
+    sha256: 69592c073358eaa0ef184e38a424968ba75690cedfbcd4ac7927848aff645391
   build: pyhd8ed1ab_0
   arch: x86_64
   subdir: linux-64
   build_number: 0
   license: CECILL-B
   noarch: python
-  size: 120214
-  timestamp: 1705572270687
+  size: 119542
+  timestamp: 1708216691421
 - platform: osx-64
   name: fluiddyn
-  version: 0.5.3
+  version: 0.5.4
   category: main
   manager: conda
   dependencies:
@@ -4071,21 +4071,21 @@ package:
   - scikit-image
   - scipy
   - setuptools
-  url: https://conda.anaconda.org/conda-forge/noarch/fluiddyn-0.5.3-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/fluiddyn-0.5.4-pyhd8ed1ab_0.conda
   hash:
-    md5: 5ed6b4ecece99a23f75875effbc9235d
-    sha256: 816247078590c11f588371a1981ccf82c5ce97dfafbed9742970c4f76cc29a2c
+    md5: abe7291e41c2bbab06f71356024a1f66
+    sha256: 69592c073358eaa0ef184e38a424968ba75690cedfbcd4ac7927848aff645391
   build: pyhd8ed1ab_0
   arch: x86_64
   subdir: osx-64
   build_number: 0
   license: CECILL-B
   noarch: python
-  size: 120214
-  timestamp: 1705572270687
+  size: 119542
+  timestamp: 1708216691421
 - platform: win-64
   name: fluiddyn
-  version: 0.5.3
+  version: 0.5.4
   category: main
   manager: conda
   dependencies:
@@ -4102,18 +4102,18 @@ package:
   - scikit-image
   - scipy
   - setuptools
-  url: https://conda.anaconda.org/conda-forge/noarch/fluiddyn-0.5.3-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/fluiddyn-0.5.4-pyhd8ed1ab_0.conda
   hash:
-    md5: 5ed6b4ecece99a23f75875effbc9235d
-    sha256: 816247078590c11f588371a1981ccf82c5ce97dfafbed9742970c4f76cc29a2c
+    md5: abe7291e41c2bbab06f71356024a1f66
+    sha256: 69592c073358eaa0ef184e38a424968ba75690cedfbcd4ac7927848aff645391
   build: pyhd8ed1ab_0
   arch: x86_64
   subdir: win-64
   build_number: 0
   license: CECILL-B
   noarch: python
-  size: 120214
-  timestamp: 1705572270687
+  size: 119542
+  timestamp: 1708216691421
 - platform: linux-64
   name: font-ttf-dejavu-sans-mono
   version: '2.37'
