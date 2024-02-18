@@ -41,7 +41,3 @@ class TestPivNew(unittest.TestCase):
 
         topology.make_code_graphviz(topology.path_dir_result / "topo.dot")
         topology.compute("exec_sequential")
-
-
-if __name__ == "__main__":
-    unittest.main()

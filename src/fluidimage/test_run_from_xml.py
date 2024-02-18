@@ -2,12 +2,12 @@ import os
 import sys
 import unittest
 
-from fluiddyn.io import stdout_redirected
-
 from fluidimage import get_path_image_samples
 from fluidimage.run_from_xml import main
 
 path_image_samples = get_path_image_samples()
+
+on_linux = sys.platform == "linux"
 
 
 class TestRunFromXML(unittest.TestCase):
@@ -20,10 +20,10 @@ class TestRunFromXML(unittest.TestCase):
     def tearDownClass(cls):
         os.chdir(cls.current_dir)
 
+    @unittest.skipIf(not on_linux, "Only supported on Linux")
     def test_main(self):
         path = path_image_samples / "Karman/Images.civ/0_XML/Karman_1-4.xml"
         command = f"run {str(path)} --mode recompute"
         sys.argv = command.split()
 
-        with stdout_redirected():
-            main()
+        main()

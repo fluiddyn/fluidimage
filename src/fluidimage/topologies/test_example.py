@@ -1,3 +1,4 @@
+import sys
 import unittest
 from functools import partialmethod
 from shutil import rmtree
@@ -12,11 +13,13 @@ executors = [
     "exec_sequential",
     "exec_async_sequential",
     "exec_async",
-    "multi_exec_async",
     "exec_async_multi",
     "exec_async_servers",
     "exec_async_servers_threading",
 ]
+
+if sys.platform == "linux":
+    executors.append("multi_exec_async")
 
 
 def _test(self, executor=None):
@@ -51,7 +54,3 @@ for executor in executors:
         "test_" + str(executor),
         partialmethod(_test, executor=executor),
     )
-
-
-if __name__ == "__main__":
-    unittest.main()
