@@ -2,6 +2,7 @@ FluidImage
 ==========
 
 [![Latest version](https://img.shields.io/pypi/v/fluidimage.svg)](https://pypi.python.org/pypi/fluidimage/)
+![Supported Python versions](https://img.shields.io/pypi/pyversions/fluidimage.svg)
 [![Documentation status](https://readthedocs.org/projects/fluidimage/badge/?version=latest)](http://fluidimage.readthedocs.org)
 [![Code coverage](https://codecov.io/gh/fluiddyn/fluidimage/branch/branch%2Fdefault/graph/badge.svg)](https://codecov.io/gh/fluiddyn/fluidimage/branch/branch%2Fdefault/)
 [![Heptapod CI](https://foss.heptapod.net/fluiddyn/fluidimage/badges/branch/default/pipeline.svg)](https://foss.heptapod.net/fluiddyn/fluidimage/-/pipelines)
