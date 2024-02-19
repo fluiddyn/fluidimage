@@ -2,10 +2,12 @@ FluidImage
 ==========
 
 [![Latest version](https://img.shields.io/pypi/v/fluidimage.svg)](https://pypi.python.org/pypi/fluidimage/)
+![Supported Python versions](https://img.shields.io/pypi/pyversions/fluidimage.svg)
 [![Documentation status](https://readthedocs.org/projects/fluidimage/badge/?version=latest)](http://fluidimage.readthedocs.org)
 [![Code coverage](https://codecov.io/gh/fluiddyn/fluidimage/branch/branch%2Fdefault/graph/badge.svg)](https://codecov.io/gh/fluiddyn/fluidimage/branch/branch%2Fdefault/)
 [![Heptapod CI](https://foss.heptapod.net/fluiddyn/fluidimage/badges/branch/default/pipeline.svg)](https://foss.heptapod.net/fluiddyn/fluidimage/-/pipelines)
-[![Github Actions](https://github.com/fluiddyn/fluidimage/actions/workflows/ci-linux.yml/badge.svg?branch=branch/default)](https://github.com/fluiddyn/fluidimage/actions)
+[![Github Actions Linux](https://github.com/fluiddyn/fluidimage/actions/workflows/ci-linux.yml/badge.svg?branch=branch/default)](https://github.com/fluiddyn/fluidimage/actions/workflows/ci-linux.yml)
+[![Github Actions Pixi](https://github.com/fluiddyn/fluidimage/actions/workflows/ci-pixi.yml/badge.svg?branch=branch/default)](https://github.com/fluiddyn/fluidimage/actions/workflows/ci-pixi.yml)
 
 FluidImage is a libre Python framework for scientific processing of
 large series of images.
