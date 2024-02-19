@@ -195,9 +195,9 @@ Let us first present the tools used for Fluidimage development.
 - [Transonic] is a pure Python package to accelerate modern Python-Numpy code with
   different accelerators (in particular Pythran).
 
-Fluidimage is built with [Meson]. We use [PDM] for Fluidimage development. [Pytest]
-and [Nox] are used for testing. We use [Pythran] through [Transonic] to accelerate
-some numerical kernels written in Python.
+Fluidimage is built with [Meson]. We use [PDM] for Fluidimage development.
+[Pytest] and [Nox] are used for testing. We use [Pythran] through [Transonic] to
+accelerate some numerical kernels written in Python.
 
 #### Standard Python from Python.org
 
@@ -249,10 +249,8 @@ Then, `pip` is available and previous commands should work.
 
 ### Run the tests
 
-You can run some unit tests by running `make tests` (shortcut for
-`fluidsim-test -v`) or `make tests_mpi` (shortcut for
-`mpirun -np 2 fluidsim-test -v`). Alternatively, you can also run `pytest` from
-the root directory or from any of the source directories.
+You can run some unit tests by running `make tests`. Alternatively, you can also
+run `pytest` from the root directory or from any of the source directories.
 
 (pythranrc)=
 

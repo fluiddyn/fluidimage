@@ -435,7 +435,7 @@ class WorkSurfaceTracking(BaseWork):
         else:
             print("####" + path + "/" + fn)
             film = pims.open(str(path) + "/" + fn)
-        return frame
+        return film
 
     def get_file(self, path="./", fn=None):
         """read the files in path or a specified file if fn-arg is given"""
