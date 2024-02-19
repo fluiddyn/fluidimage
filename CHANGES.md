@@ -1,7 +1,14 @@
 # Release notes
 
 See also the
-[unreleased changes](https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.1.5...branch%2Fdefault).
+[unreleased changes](https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.2.0...branch%2Fdefault).
+
+## [0.2.0] (2024-02-19)
+
+- Python >=3.9,<3.12
+- Better support for Windows and MacOS
+- Fix bugs related to subpix and `nb_peaks_to_search`
+- Dev and build: PDM, Nox and Meson
 
 ## [0.1.5] (2023-02-15)
 
@@ -64,3 +71,4 @@ See also the
 [0.1.3]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.1.2...0.1.3
 [0.1.4]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.1.3...0.1.4
 [0.1.5]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.1.4...0.1.5
+[0.2.0]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.1.5...0.2.0
