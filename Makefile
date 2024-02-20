@@ -13,9 +13,7 @@ clean:
 	rm -rf build
 
 cleantransonic:
-	find src -type d -name __pythran__ | xargs rm -rf
-	find src -type d -name __python__ | xargs rm -rf
-	find src -type d -name __numba__ | xargs rm -rf
+	pdm run transonic-clean-dir src
 
 cleanall: clean cleantransonic
 
