@@ -23,9 +23,23 @@ an executor compared to another.
    exec_async_servers
    servers
 
+.. autofunction:: get_entry_points
+
+.. autofunction:: get_executor_names
+
+.. autofunction:: import_executor_class
+
 """
 
+import importlib
 import os
+import sys
+
+if sys.version_info < (3, 10):
+    from importlib_metadata import entry_points, EntryPoint
+else:
+    from importlib.metadata import entry_points, EntryPoint
+
 
 import trio
 
@@ -38,24 +52,74 @@ if hasattr(os, "register_at_fork"):
     os.register_at_fork(after_in_child=afterfork)
 
 from .base import ExecutorBase
-from .exec_async import ExecutorAsync
-from .exec_async_multiproc import ExecutorAsyncMultiproc
-from .exec_async_sequential import ExecutorAsyncSequential
-from .exec_async_servers import (
-    ExecutorAsyncServers,
-    ExecutorAsyncServersThreading,
-)
-from .exec_sequential import ExecutorSequential
-from .multi_exec_async import MultiExecutorAsync
 
-executors = {
-    "exec_sequential": ExecutorSequential,
-    "exec_async": ExecutorAsync,
-    "exec_async_sequential": ExecutorAsyncSequential,
-    "multi_exec_async": MultiExecutorAsync,
-    "exec_async_multi": ExecutorAsyncMultiproc,
-    "exec_async_servers": ExecutorAsyncServers,
-    "exec_async_servers_threading": ExecutorAsyncServersThreading,
-}
 
-__all__ = ["ExecutorBase", "executors"]
+_entry_points = None
+
+
+def get_entry_points(reload=False, ndim=None, sequential=None):
+    """Discover the executors installed"""
+    global _entry_points
+    if _entry_points is None or reload:
+        _entry_points = entry_points(group="fluidimage.executors")
+
+    if not _entry_points:
+        raise RuntimeError("No executor were found.")
+
+    return _entry_points
+
+
+def get_executor_names():
+    """Get available executor names"""
+    return set(entry_point.name for entry_point in get_entry_points())
+
+
+def _get_module_fullname_from_name(name):
+    """Get the module name from an executor name
+
+    Parameters
+    ----------
+
+    name : str
+      Name of an executor.
+
+    """
+    entry_points = get_entry_points()
+    selected_entry_points = entry_points.select(name=name)
+    if len(selected_entry_points) == 0:
+        raise ValueError(f"Cannot find an executor for {name = }. {entry_points}")
+    elif len(selected_entry_points) > 1:
+        logging.warning(
+            f"{len(selected_entry_points)} plugins were found for {name = }"
+        )
+
+    return selected_entry_points[name].value
+
+
+def import_executor_class(name):
+    """Import an executor class.
+
+    Parameters
+    ----------
+
+    name : str
+      Executor name.
+
+    Returns
+    -------
+
+    The corresponding executor class.
+
+    """
+
+    if isinstance(name, EntryPoint):
+        module_fullname = name.value
+        name = name.name
+    else:
+        module_fullname = _get_module_fullname_from_name(name)
+
+    mod = importlib.import_module(module_fullname)
+    return mod.Executor
+
+
+__all__ = ["ExecutorBase", "get_executor_names", "import_executor_class"]

@@ -33,7 +33,7 @@ files = [
 
 [[package]]
 name = "anyio"
-version = "4.2.0"
+version = "4.3.0"
 requires_python = ">=3.8"
 summary = "High level compatibility layer for multiple asynchronous event loop implementations"
 groups = ["dev-doc"]
@@ -44,8 +44,8 @@ dependencies = [
     "typing-extensions>=4.1; python_version < \"3.11\"",
 ]
 files = [
-    {file = "anyio-4.2.0-py3-none-any.whl", hash = "sha256:745843b39e829e108e518c489b31dc757de7d2131d53fac32bd8df268227bfee"},
-    {file = "anyio-4.2.0.tar.gz", hash = "sha256:e1875bb4b4e2de1669f4bc7869b6d3f54231cdced71605e6e64c9be77e3be50f"},
+    {file = "anyio-4.3.0-py3-none-any.whl", hash = "sha256:048e05d0f6caeed70d731f3db756d35dcc1f35747c8c403364a8332c630441b8"},
+    {file = "anyio-4.3.0.tar.gz", hash = "sha256:f75253795a87df48568485fd18cdd2a3fa5c4f7c5be8e5e36637733fce06fed6"},
 ]
 
 [[package]]
@@ -1211,12 +1211,13 @@ files = [
 
 [[package]]
 name = "json5"
-version = "0.9.14"
+version = "0.9.17"
+requires_python = ">=3.8"
 summary = "A Python implementation of the JSON5 data format."
 groups = ["dev-doc"]
 files = [
-    {file = "json5-0.9.14-py2.py3-none-any.whl", hash = "sha256:740c7f1b9e584a468dbb2939d8d458db3427f2c93ae2139d05f47e453eae964f"},
-    {file = "json5-0.9.14.tar.gz", hash = "sha256:9ed66c3a6ca3510a976a9ef9b8c0787de24802724ab1860bc0153c7fdd589b02"},
+    {file = "json5-0.9.17-py2.py3-none-any.whl", hash = "sha256:f8ec1ecf985951d70f780f6f877c4baca6a47b6e61e02c4cd190138d10a7805a"},
+    {file = "json5-0.9.17.tar.gz", hash = "sha256:717d99d657fa71b7094877b1d921b1cce40ab444389f6d770302563bb7dfd9ae"},
 ]
 
 [[package]]
@@ -1424,7 +1425,7 @@ files = [
 
 [[package]]
 name = "jupyterlab"
-version = "4.1.1"
+version = "4.1.2"
 requires_python = ">=3.8"
 summary = "JupyterLab computational environment"
 groups = ["dev-doc"]
@@ -1445,8 +1446,8 @@ dependencies = [
     "traitlets",
 ]
 files = [
-    {file = "jupyterlab-4.1.1-py3-none-any.whl", hash = "sha256:fa3e8c18b804eac04e51ceebd9dd3dd396e08106816f0d09cc426799d7087632"},
-    {file = "jupyterlab-4.1.1.tar.gz", hash = "sha256:8acc9f561729d8f32c14c294c397917cddfeeb13a5d46f811979b71b4911a9fd"},
+    {file = "jupyterlab-4.1.2-py3-none-any.whl", hash = "sha256:aa88193f03cf4d3555f6712f04d74112b5eb85edd7d222c588c7603a26d33c5b"},
+    {file = "jupyterlab-4.1.2.tar.gz", hash = "sha256:5d6348b3ed4085181499f621b7dfb6eb0b1f57f3586857aadfc8e3bf4c4885f9"},
 ]
 
 [[package]]
@@ -1960,9 +1961,9 @@ files = [
 
 [[package]]
 name = "nbconvert"
-version = "7.16.0"
+version = "7.16.1"
 requires_python = ">=3.8"
-summary = "Converting Jupyter Notebooks"
+summary = "Converting Jupyter Notebooks (.ipynb files) to other formats.  Output formats include asciidoc, html, latex, markdown, pdf, py, rst, script.  nbconvert can be used both as a Python library (`import nbconvert`) or as a command line tool (invoked as `jupyter nbconvert ...`)."
 groups = ["dev-doc"]
 dependencies = [
     "beautifulsoup4",
@@ -1983,8 +1984,8 @@ dependencies = [
     "traitlets>=5.1",
 ]
 files = [
-    {file = "nbconvert-7.16.0-py3-none-any.whl", hash = "sha256:ad3dc865ea6e2768d31b7eb6c7ab3be014927216a5ece3ef276748dd809054c7"},
-    {file = "nbconvert-7.16.0.tar.gz", hash = "sha256:813e6553796362489ae572e39ba1bff978536192fb518e10826b0e8cadf03ec8"},
+    {file = "nbconvert-7.16.1-py3-none-any.whl", hash = "sha256:3188727dffadfdc9c6a1c7250729063d7bc78b355ad7aa023138afa030d1cd07"},
+    {file = "nbconvert-7.16.1.tar.gz", hash = "sha256:e79e6a074f49ba3ed29428ed86487bf51509d9aab613bd8522ac08f6d28fd7fd"},
 ]
 
 [[package]]
@@ -3547,7 +3548,7 @@ files = [
 
 [[package]]
 name = "transonic"
-version = "0.6.2"
+version = "0.6.3"
 requires_python = ">=3.9"
 summary = "Make your Python code fly at transonic speeds!"
 groups = ["build", "default", "test"]
@@ -3558,8 +3559,8 @@ dependencies = [
     "numpy",
 ]
 files = [
-    {file = "transonic-0.6.2-py3-none-any.whl", hash = "sha256:07534c54354276e3d63632b075d6c275ab3a4f3b1009d7a38771e88cb988031e"},
-    {file = "transonic-0.6.2.tar.gz", hash = "sha256:74fa7acc5d819a3b8507d01600a17ab18ae7869ec59bf0ef7b1c9a8b92c58a7e"},
+    {file = "transonic-0.6.3-py3-none-any.whl", hash = "sha256:49c44686cfaf1a7a0e18f1fc9d286445b54d8b8216d0af77552f1311db99112a"},
+    {file = "transonic-0.6.3.tar.gz", hash = "sha256:993edd14b9a3dada4438167a65ff5d4cd6f904c45e4fbc66f1ba34f0fab42e05"},
 ]
 
 [[package]]

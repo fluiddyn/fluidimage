@@ -267,7 +267,4 @@ class ExecutorAsyncServers(ExecutorAsync):
         return worker
 
 
-class ExecutorAsyncServersThreading(ExecutorAsyncServers):
-    """Just used to get a better coverage"""
-
-    _type_server = "threading"
+Executor = ExecutorAsyncServers
