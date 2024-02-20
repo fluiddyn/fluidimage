@@ -335,3 +335,6 @@ class MultiExecutorAsync(ExecutorBase):
 
         for process in self.processes:
             process.join()
+
+
+Executor = MultiExecutorAsync

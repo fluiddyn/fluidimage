@@ -76,3 +76,6 @@ class ExecutorAsyncSequential(ExecutorAsync):
         if work.output_queue is not None:
             work.output_queue[key] = ret
         self.nb_working_workers_cpu -= 1
+
+
+Executor = ExecutorAsyncSequential

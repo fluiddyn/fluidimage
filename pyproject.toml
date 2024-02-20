@@ -60,6 +60,15 @@ pims = ["pims"]
 opencv = ["opencv-python"]
 # qt = ["PySide6"]
 
+[project.entry-points."fluidimage.executors"]
+exec_sequential = "fluidimage.executors.exec_sequential"
+exec_async = "fluidimage.executors.exec_async"
+exec_async_sequential =  "fluidimage.executors.exec_async_sequential"
+multi_exec_async =  "fluidimage.executors.multi_exec_async"
+exec_async_multi =  "fluidimage.executors.exec_async_multiproc"
+exec_async_servers =  "fluidimage.executors.exec_async_servers"
+exec_async_servers_threading =  "fluidimage.executors.exec_async_servers_threading"
+
 [tool.meson-python.args]
 setup = ['-Doptimization=3']
 

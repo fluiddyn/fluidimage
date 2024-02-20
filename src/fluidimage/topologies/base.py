@@ -20,7 +20,7 @@ from warnings import warn
 
 from fluidimage.util import cstring, logger
 
-from ..executors import ExecutorBase, executors
+from ..executors import ExecutorBase, import_executor_class, get_executor_names
 
 
 class Work:
@@ -195,13 +195,13 @@ class TopologyBase:
             executor = "multi_exec_async"
 
         if not isinstance(executor, ExecutorBase):
-            if executor not in executors:
+            if executor not in get_executor_names():
                 raise NotImplementedError(f"executor {executor} does not exist")
 
             if nb_max_workers is None:
                 nb_max_workers = self.nb_max_workers
 
-            exec_class = executors[executor]
+            exec_class = import_executor_class(executor)
             self.executor = exec_class(
                 self,
                 path_dir_result=self.path_dir_result,

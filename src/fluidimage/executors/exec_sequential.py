@@ -65,3 +65,6 @@ class ExecutorSequential(ExecutorBase):
 
                     if work.output_queue is not None:
                         work.output_queue[key] = ret
+
+
+Executor = ExecutorSequential

@@ -327,3 +327,6 @@ class ExecutorAsync(ExecutorBase):
                 )
 
             await trio.sleep(self.sleep_time)
+
+
+Executor = ExecutorAsync
