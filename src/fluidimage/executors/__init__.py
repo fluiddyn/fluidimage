@@ -23,6 +23,12 @@ an executor compared to another.
    exec_async_servers
    servers
 
+.. autofunction:: get_entry_points
+
+.. autofunction:: get_executor_names
+
+.. autofunction:: import_executor_class
+
 """
 
 import importlib
