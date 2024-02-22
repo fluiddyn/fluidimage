@@ -13,6 +13,7 @@ from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
 from fluidimage._opencv import cv2
 from fluidimage.data_objects.piv import ArrayCouple, HeavyPIVResults
 
+from . import BaseWorkFromSerie
 from .with_mask import BaseWorkWithMask
 
 
@@ -62,7 +63,7 @@ def optical_flow(
     return positions, displacements
 
 
-class WorkOpticalFlow(BaseWorkWithMask):
+class WorkOpticalFlow(BaseWorkWithMask, BaseWorkFromSerie):
     @classmethod
     def create_default_params(cls):
         "Create an object containing the default parameters (class method)."
@@ -72,6 +73,8 @@ class WorkOpticalFlow(BaseWorkWithMask):
 
     @classmethod
     def _complete_params_with_default(cls, params):
+        BaseWorkFromSerie._complete_params_with_default(params)
+
         params._set_child(
             "optical_flow",
             attribs=dict(
@@ -177,7 +180,7 @@ displacement_max : None
         )
 
     def __init__(self, params):
-        self.params = params
+        super().__init__(params)
         self.dict_params_features = dict_from_params(self.params.features)
         self.dict_params_flow = dict_from_params(self.params.optical_flow)
 

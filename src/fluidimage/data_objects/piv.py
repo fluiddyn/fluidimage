@@ -93,6 +93,7 @@ class ArrayCouple(DataObject):
         self,
         names=None,
         arrays=None,
+        paths=None,
         serie=None,
         str_path=None,
         hdf5_parent=None,
@@ -121,11 +122,12 @@ class ArrayCouple(DataObject):
                     + str(paths)
                 )
 
-            self.paths = tuple(os.path.abspath(p) for p in paths)
+            self.paths = paths = tuple(os.path.abspath(p) for p in paths)
 
             if arrays is None:
                 arrays = self.read_images()
 
+        self.paths = paths
         self.names = tuple(names)
         self.name = "-".join(self.names)
         self.arrays = self._mask_arrays(arrays)

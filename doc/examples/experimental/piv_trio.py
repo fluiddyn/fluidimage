@@ -2,10 +2,10 @@ import os
 
 from fluidimage.experimental.no_topology_computations.base_trio import BaseAsync
 from fluidimage.experimental.no_topology_computations.piv_trio import PivTrio
-from fluidimage.topologies.piv import TopologyPIV
+from fluidimage.piv import Topology
 from fluidimage.works.piv import multipass
 
-params = TopologyPIV.create_default_params()
+params = Topology.create_default_params()
 
 params.series.path = "../../../image_samples/Karman/Images3"
 

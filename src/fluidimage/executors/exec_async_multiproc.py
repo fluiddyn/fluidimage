@@ -1,5 +1,5 @@
-"""Executor async/await + multiprocessing (:mod:`fluidimage.executors.exec_async_multiproc`)
-============================================================================================
+"""Executor async/await + multiprocessing
+=========================================
 
 A executor using async for IO and multiprocessing for CPU bounded tasks.
 

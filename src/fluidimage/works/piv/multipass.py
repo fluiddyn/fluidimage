@@ -12,12 +12,12 @@ from copy import copy
 from fluiddyn.util.paramcontainer import ParamContainer
 
 from ...data_objects.piv import MultipassPIVResults
-from .. import BaseWork
+from .. import BaseWorkFromSerie
 from .fix import WorkFIX
 from .singlepass import FirstWorkPIV, InterpError, WorkPIVFromDisplacement
 
 
-class WorkPIV(BaseWork):
+class WorkPIV(BaseWorkFromSerie):
     """Main work for PIV with multipass.
 
     Parameters
@@ -58,6 +58,7 @@ class WorkPIV(BaseWork):
         """Complete the default parameters (class method)."""
         FirstWorkPIV._complete_params_with_default(params)
         WorkFIX._complete_params_with_default(params)
+        BaseWorkFromSerie._complete_params_with_default(params)
 
         params._set_child(
             "multipass",
@@ -86,7 +87,7 @@ coeff_zoom : integer or iterable of size `number - 1`.
 use_tps : bool or 'last'
 
     If it is True, the interpolation is done using the Thin Plate Spline method
-    (computationnally heavy but sometimes interesting). If it is 'last', the
+    (computationally heavy but sometimes interesting). If it is 'last', the
     TPS method is used only for the last pass.
 
 subdom_size : int
@@ -108,7 +109,7 @@ threshold_tps :  float
         )
 
     def __init__(self, params=None):
-        self.params = params
+        super().__init__(params)
 
         self.works_piv = []
         self.works_fix = []
@@ -205,5 +206,5 @@ threshold_tps :  float
             work_piv._prepare_with_image(imshape=imshape)
 
 
-params = WorkPIV.create_default_params()
-__doc__ += params._get_formatted_docs()
+_params = WorkPIV.create_default_params()
+__doc__ += _params._get_formatted_docs()

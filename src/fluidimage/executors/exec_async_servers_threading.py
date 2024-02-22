@@ -1,3 +1,12 @@
+"""Executor async/await using servers
+=====================================
+
+.. autoclass:: ExecutorAsyncServersThreading
+   :members:
+   :private-members:
+
+"""
+
 from .exec_async_servers import ExecutorAsyncServers
 
 

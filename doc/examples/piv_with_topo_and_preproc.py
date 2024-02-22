@@ -1,7 +1,7 @@
 from fluidimage import get_path_image_samples
-from fluidimage.topologies.piv import TopologyPIV
+from fluidimage.piv import Topology
 
-params = TopologyPIV.create_default_params()
+params = Topology.create_default_params()
 
 params.series.path = get_path_image_samples() / "Karman/Images"
 params.series.ind_start = 1
@@ -22,7 +22,7 @@ params.preproc.im2im = "my_example_im2im.im2im"
 # Here the "image to image" function will be imported with the statement
 # `from my_example_im2im import im2im`
 
-topology = TopologyPIV(params, logging_level="info")
+topology = Topology(params, logging_level="info")
 
 # To produce a graph of the topology
 topology.make_code_graphviz("topo.dot")

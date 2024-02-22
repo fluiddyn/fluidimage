@@ -4,8 +4,11 @@ python_sources = [
   '_opencv.py',
   '_version.py',
   'config.py',
+  'image2image.py',
+  'piv.py',
   'run_from_xml.py',
   'synthetic.py',
+  'test_image2image.py',
   'test_run_from_xml.py',
 ]
 

@@ -1,8 +1,7 @@
-from fluidimage import SeriesOfArrays
-from fluidimage.preproc.image2image import apply_im2im_filter
-from fluidimage.works.piv import WorkPIV
+from fluidimage.image2image import apply_im2im_filter
+from fluidimage.piv import Work
 
-params = WorkPIV.create_default_params()
+params = Work.create_default_params()
 
 params.multipass.number = 2
 params.multipass.use_tps = True
@@ -14,12 +13,14 @@ params.fix.threshold_diff_neighbour = 8
 
 params.mask.strcrop = "30:250, 100:"
 
-work = WorkPIV(params=params)
-
 path = "../../image_samples/Oseen/Images"
 # path = '../../image_samples/Karman/Images'
-series = SeriesOfArrays(path, "i+1:i+3")
-serie = series.get_serie_from_index(0)
+params.series.path = path
+params.series.str_subset = "i+1:i+3"
+
+work = Work(params=params)
+
+serie = work.get_serie()
 
 # "image to image" filter
 serie = apply_im2im_filter(serie, im2im="my_example_im2im.im2im")

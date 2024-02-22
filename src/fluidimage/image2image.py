@@ -1,5 +1,5 @@
-""""Image to image" processing (:mod:`fluidimage.preproc.image2image`)
-======================================================================
+""""Image to image" processing
+==============================
 
 .. autofunction:: init_im2im_function
 
@@ -15,12 +15,11 @@
 """
 
 import types
+from pathlib import Path
 
 import numpy as np
 from fluiddyn.util import import_class
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
-
-from ..data_objects.piv import ArrayCouple
 
 
 def im2im_func_example(tuple_image_path):
@@ -65,8 +64,7 @@ class Im2ImExample:
 def complete_im2im_params_with_default(params):
     """Complete params for image-to-image processing."""
 
-    params._set_attrib("im2im", None)
-    params._set_attrib("args_init", tuple())
+    params._set_attribs({"im2im": None, "args_init": tuple()})
 
     params._set_doc(
         """
@@ -117,12 +115,20 @@ def apply_im2im_filter(serie, im2im=None, args_init=()):
     if im2im is None:
         return serie
 
-    obj, im2im_func = init_im2im_function(im2im, args_init)
+    _, im2im_func = init_im2im_function(im2im, args_init)
 
     if not isinstance(serie, SerieOfArraysFromFiles):
         raise NotImplementedError
 
+    result = {"names": [], "arrays": [], "paths": []}
+
     arrays = serie.get_arrays()
     paths = serie.get_path_arrays()
 
-    return tuple(im2im_func(t) for t in zip(arrays, paths))
+    for arr, path in zip(arrays, paths):
+        new_arr, path = im2im_func((arr, path))
+        result["arrays"].append(new_arr)
+        result["paths"].append(path)
+        result["names"].append(Path(path).name)
+
+    return result

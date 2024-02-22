@@ -1,7 +1,7 @@
 from fluidimage import get_path_image_samples
-from fluidimage.topologies.piv import TopologyPIV
+from fluidimage.piv import Topology
 
-params = TopologyPIV.create_default_params()
+params = Topology.create_default_params()
 
 params.series.path = get_path_image_samples() / "Karman/Images"
 params.series.ind_start = 1
@@ -16,7 +16,7 @@ params.mask.strcrop = ":, 50:500"
 # params.saving.how = 'complete'
 params.saving.postfix = "piv_example"
 
-topology = TopologyPIV(params, logging_level="info")
+topology = Topology(params, logging_level="info")
 
 # To produce a graph of the topology
 # topology.make_code_graphviz('topo.dot')

@@ -1,5 +1,5 @@
-"""Executor async/await sequential (:mod:`fluidimage.executors.exec_async_sequential`)
-======================================================================================
+"""Executor async/await sequential
+==================================
 
 A executor using async for IO but launching CPU-bounded tasks sequentially.
 

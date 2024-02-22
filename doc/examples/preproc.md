@@ -26,7 +26,7 @@ To find the good parameter, you can use the class
 {class}`fluidimage.preproc.base.PreprocBase` (see also
 {mod}`fluidimage.preproc`).
 
-```{literalinclude} preproc_simple.py
+```{literalinclude} preproc_try_params.py
 ```
 
 ### Preprocessing large series of images

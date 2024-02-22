@@ -19,5 +19,5 @@ seq = False
 topology.compute(sequential=seq)
 
 # not generating plots if seq mode is false
-if seq == False:
+if not seq:
     params.saving.plot = False

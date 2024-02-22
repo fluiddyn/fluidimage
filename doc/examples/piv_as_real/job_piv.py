@@ -15,7 +15,7 @@ see also the help::
 
 import params_piv
 
-from fluidimage.topologies.piv import TopologyPIV
+from fluidimage.piv import Topology
 
 
 def main(args):
@@ -26,7 +26,7 @@ def main(args):
         postfix_out=args.postfix_out,
     )
 
-    topology = TopologyPIV(params, nb_max_workers=int(args.nb_cores))
+    topology = Topology(params, nb_max_workers=int(args.nb_cores))
     topology.compute(sequential=args.seq)
 
 

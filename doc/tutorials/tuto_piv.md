@@ -34,13 +34,13 @@ We first import the class :class:`fluidimage.topologies.piv.TopologyPIV`.
 ```
 
 ```{code-cell} ipython3
-from fluidimage.topologies.piv import TopologyPIV
+from fluidimage.piv import Topology
 ```
 
 We use a class function to create an object containing the parameters.
 
 ```{code-cell} ipython3
-params = TopologyPIV.create_default_params()
+params = Topology.create_default_params()
 ```
 
 The representation of this object is useful. In Ipython, just do:
@@ -74,7 +74,7 @@ In order to run the PIV computation, we have to instanciate an object of the cla
 ```
 
 ```{code-cell} ipython3
-topology = TopologyPIV(params)
+topology = Topology(params)
 ```
 
 We then launch the computation by running the function `topology.compute`. We use a sequential executor to get a simpler logging.

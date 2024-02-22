@@ -69,7 +69,7 @@ class TopologyBOS(TopologyBase):
         """
         params = ParamContainer(tag="params")
 
-        params._set_child("images", attribs={"path": "", "str_slice": None})
+        params._set_child("images", attribs={"path": "", "str_subset": None})
 
         params.images._set_doc(
             """
@@ -80,7 +80,7 @@ path : str, {''}
     String indicating the input images (can be a full path towards an image
     file or a string given to `glob`).
 
-str_slice : None
+str_subset : None
 
     String indicating as a Python slicing how to select images from the serie of
     images on the disk. If None, no selection so all images are going to be
@@ -102,27 +102,8 @@ reference : str or int, {0}
 """
         )
 
-        params._set_child(
-            "saving", attribs={"path": None, "how": "ask", "postfix": "bos"}
-        )
-
-        params.saving._set_doc(
-            """Saving of the results.
-
-path : None or str
-
-    Path of the directory where the data will be saved. If None, the path is
-    obtained from the input path and the parameter `postfix`.
-
-how : str {'ask'}
-
-    'ask', 'new_dir', 'complete' or 'recompute'.
-
-postfix : str
-
-    Postfix from which the output file is computed.
-"""
-        )
+        TopologyBase._add_default_params_saving(params)
+        params.saving.postfix = "bos"
 
         WorkPIV._complete_params_with_default(params)
 
@@ -146,7 +127,7 @@ postfix : str
         self.params = params
 
         self.serie = SerieOfArraysFromFiles(
-            params.images.path, params.images.str_slice
+            params.images.path, params.images.str_subset
         )
 
         path_dir = Path(self.serie.path_dir)
@@ -289,10 +270,10 @@ postfix : str
             pass
 
         nb_names = len(names)
-        logger.info(f"Add {nb_names} images to compute.")
-        logger.info(f"First files to process: {names[:4]}")
+        logger.info("Add %s images to compute.", nb_names)
+        logger.info("First files to process: %s", names[:4])
 
-        logger.debug(f"All files: {names}")
+        logger.debug("All files: %s", names)
 
     def make_text_at_exit(self, time_since_start):
         """Make a text printed at exit"""
@@ -312,25 +293,5 @@ postfix : str
 
 
 if "sphinx" in sys.modules:
-    params = TopologyBOS.create_default_params()
-
-    __doc__ += params._get_formatted_docs()
-
-if __name__ == "__main__":
-    params = TopologyBOS.create_default_params()
-    params.series.path = "../../../image_samples/Karman/Images"
-    params.series.ind_start = 1
-    params.series.ind_step = 2
-
-    params.piv0.shape_crop_im0 = 32
-    params.multipass.number = 2
-    params.multipass.use_tps = False
-
-    params.mask.strcrop = ":, 50:500"
-
-    # params.saving.how = 'complete'
-    params.saving.postfix = "bos_example2"
-
-    topo = TopologyBOS(params, logging_level="info")
-
-    topo.make_code_graphviz("tmp.dot")
+    _params = TopologyBOS.create_default_params()
+    __doc__ += _params._get_formatted_docs()

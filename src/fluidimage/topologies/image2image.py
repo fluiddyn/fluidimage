@@ -14,7 +14,7 @@ from pathlib import Path
 from fluiddyn.io.image import imsave
 
 from fluidimage import ParamContainer, SerieOfArraysFromFiles
-from fluidimage.preproc.image2image import (
+from fluidimage.image2image import (
     complete_im2im_params_with_default,
     init_im2im_function,
 )
@@ -65,9 +65,10 @@ class TopologyImage2Image(TopologyBase):
 
         """
         params = ParamContainer(tag="params")
+
         complete_im2im_params_with_default(params)
 
-        params._set_child("images", attribs={"path": "", "str_slice": None})
+        params._set_child("images", attribs={"path": "", "str_subset": None})
 
         params.images._set_doc(
             """
@@ -78,7 +79,7 @@ path : str, {''}
     String indicating the input images (can be a full path towards an image
     file or a string given to `glob`).
 
-str_slice : None
+str_subset : None
 
     String indicating as a Python slicing how to select images from the serie of
     images on the disk. If None, no selection so all images are going to be
@@ -129,7 +130,7 @@ postfix : str
             raise ValueError("params.im2im has to be set.")
 
         self.serie = SerieOfArraysFromFiles(
-            params.images.path, params.images.str_slice
+            params.images.path, params.images.str_subset
         )
 
         path_dir = self.serie.path_dir
@@ -228,13 +229,13 @@ postfix : str
 
         nb_names = len(names)
 
-        logger.info(f"Add {nb_names} images to compute.")
-        logger.info(f"First files to process: {names[:4]}")
+        logger.info("Add %s images to compute.", nb_names)
+        logger.info("First files to process: %s", names[:4])
 
-        logger.debug(f"All files: {names}")
+        logger.debug("All files: %s", names)
 
 
 if "sphinx" in sys.modules:
-    params = TopologyImage2Image.create_default_params()
+    _params = TopologyImage2Image.create_default_params()
 
-    __doc__ += params._get_formatted_docs()
+    __doc__ += _params._get_formatted_docs()

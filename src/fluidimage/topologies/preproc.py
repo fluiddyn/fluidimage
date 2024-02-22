@@ -18,6 +18,7 @@ from fluiddyn.util.paramcontainer import ParamContainer
 from fluidimage import SeriesOfArrays
 from fluidimage.data_objects.preproc import ArraySerie as ArraySubset
 from fluidimage.data_objects.preproc import get_name_preproc
+from fluidimage.image2image import complete_im2im_params_with_default
 from fluidimage.topologies import TopologyBase, prepare_path_dir_result
 from fluidimage.util import DEBUG, imread, logger
 from fluidimage.works.preproc import (
@@ -26,7 +27,6 @@ from fluidimage.works.preproc import (
 )
 
 from . import image2image
-from .piv import is_name_in_queue
 
 
 class TopologyPreproc(TopologyBase):
@@ -79,7 +79,7 @@ class TopologyPreproc(TopologyBase):
         params = WorkPreproc.create_default_params(backend)
         params.preproc.series._set_attribs(
             {
-                "strcouple": "i:i+1",
+                "str_subset": "i:i+1",
                 "ind_start": 0,
                 "ind_stop": None,
                 "ind_step": 1,
@@ -90,24 +90,20 @@ class TopologyPreproc(TopologyBase):
             """
 Parameters describing image loading prior to preprocessing.
 
-strcouple : str
+str_subset : str
     Determines the subset from the whole series of images that should be loaded
     and preprocessed together. Particularly useful when temporal filtering requires
     multiple images.
 
     For example, for a series of images with just one index,
 
-        >>> strcouple = 'i:i+1'   # load one image at a time
-        >>> strcouple = 'i-2:i+3'  # loads 5 images at a time
+        >>> str_subset = 'i:i+1'   # load one image at a time
+        >>> str_subset = 'i-2:i+3'  # loads 5 images at a time
 
     Similarly for two indices,
 
-        >>> strcouple = 'i:i+1,0'   # load one image at a time, with second index fixed
-        >>> strcouple = 'i-2:i+3,0'  # loads 5 images at a time, with second index fixed
-
-    .. todo::
-
-        Rename this parameter to strsubset / strslice
+        >>> str_subset = 'i:i+1,0'   # load one image at a time, with second index fixed
+        >>> str_subset = 'i-2:i+3,0'  # loads 5 images at a time, with second index fixed
 
 ind_start : int
     Start index for the whole series of images being loaded.
@@ -124,14 +120,12 @@ ind_step : int
 """
         )
 
-        params.preproc._set_child(
-            "saving",
-            attribs={
-                "path": None,
-                "strcouple": None,
-                "how": "ask",
+        TopologyBase._add_default_params_saving(params.preproc)
+
+        params.preproc.saving._set_attribs(
+            {
                 "format": "img",
-                "postfix": "pre",
+                "str_subset": None,
             },
         )
 
@@ -142,6 +136,15 @@ Parameters describing image saving after preprocessing.
 path : str or None
     Path to which preprocessed images are saved.
 
+how : str {'ask', 'new_dir', 'complete', 'recompute'}
+    How preprocessed images must be saved if it already exists or not.
+
+postfix : str
+    A suffix added to the new directory where preprocessed images are saved.
+
+format : str {'img', 'hdf5'}
+    Format in which preprocessed image data must be saved.
+
 str_subset : str or None
     NotImplemented! Determines the sub-subset of images must be saved from subset
     of images that were loaded and preprocessed. When set as None, saves the
@@ -150,16 +153,6 @@ str_subset : str or None
     .. todo::
 
         Implement the option params.saving.str_subset...
-
-how : str {'ask', 'new_dir', 'complete', 'recompute'}
-    How preprocessed images must be saved if it already exists or not.
-
-format : str {'img', 'hdf5'}
-    Format in which preprocessed image data must be saved.
-
-postfix : str
-    A suffix added to the new directory where preprocessed images are saved.
-
 """
         )
 
@@ -175,7 +168,8 @@ postfix : str
         )
 
         params._set_child("im2im")
-        image2image.complete_im2im_params_with_default(params.im2im)
+
+        complete_im2im_params_with_default(params.im2im)
 
         return params
 
@@ -188,10 +182,9 @@ postfix : str
         self.results = []
         self.display = self.preproc_work.display
 
-        serie_arrays = self.preproc_work.serie_arrays
         self.series = SeriesOfArrays(
-            serie_arrays,
-            params.preproc.series.strcouple,
+            params.preproc.series.path,
+            params.preproc.series.str_subset,
             ind_start=params.preproc.series.ind_start,
             ind_stop=params.preproc.series.ind_stop,
             ind_step=params.preproc.series.ind_step,
@@ -323,7 +316,7 @@ postfix : str
         else:
             plurial = "s"
 
-        logger.info(f"Add {nb_subsets} image serie{plurial} to compute.")
+        logger.info("Add %s image serie%s to compute.", nb_subsets, plurial)
 
     def fill_subsets_of_names_and_paths(
         self, input_queue: None, output_queues: Tuple[Dict]
@@ -359,7 +352,7 @@ postfix : str
 
                 key_arrays = list(queue_arrays.keys())
                 for key_array in key_arrays:
-                    if not is_name_in_queue(key_array, queue_subsets_of_names):
+                    if not queue_subsets_of_names.is_name_in_values(key_array):
                         del queue_arrays[key_array]
 
 

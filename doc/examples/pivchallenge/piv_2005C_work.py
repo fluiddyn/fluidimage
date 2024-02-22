@@ -4,7 +4,7 @@ from time import time
 from path_images import get_path
 
 from fluidimage import SeriesOfArrays
-from fluidimage.works.piv import WorkPIV
+from fluidimage.piv import WorkPIV
 
 path = os.path.join(get_path("2005C"), "c*.bmp")
 

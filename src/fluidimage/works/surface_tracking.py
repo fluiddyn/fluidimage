@@ -211,7 +211,7 @@ offset: float (default 0.0)
         self.ky = np.arange(-self.l_y / 2, self.l_y / 2) / self.l_y
 
         self.refserie = SerieOfArraysFromFiles(
-            params.images.path_ref, params.images.str_slice_ref
+            params.images.path_ref, params.images.str_subset_ref
         )
         k_x = self.compute_kx(self.refserie)
         logger.info("Value of kx computed = " + str(k_x))

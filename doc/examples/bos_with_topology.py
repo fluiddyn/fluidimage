@@ -4,7 +4,7 @@ from fluidimage.topologies.bos import TopologyBOS
 params = TopologyBOS.create_default_params()
 
 params.images.path = get_path_image_samples() / "Karman/Images"
-params.images.str_slice = "1:3"
+params.images.str_subset = "1:3"
 
 params.piv0.shape_crop_im0 = 32
 params.multipass.number = 2

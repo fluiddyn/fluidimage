@@ -16,7 +16,7 @@ params.saving.how = "recompute"
 params.saving.postfix = "await_im2im_recompute"
 
 
-params.im2im = "fluidimage.preproc.image2image.im2im_func_example"
+params.im2im = "fluidimage.image2image.im2im_func_example"
 topology = TopologyImage2Image(params, logging_level="info")
 image2image.complete_im2im_params_with_default(params)
 

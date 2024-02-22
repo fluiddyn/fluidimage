@@ -7,7 +7,7 @@ params.preproc.series.path = (
     + "Exp21_2016-06-22_N0.8_L6.0_V0.08_piv3d/PCO_top/level2.tfilter"
 )
 
-params.preproc.series.strcouple = "i:i+1"
+params.preproc.series.str_subset = "i:i+1"
 params.preproc.series.ind_start = 1200
 params.preproc.series.ind_stop = 1224
 
