@@ -15,7 +15,7 @@ from fluidimage import ParamContainer, SerieOfArraysFromFiles
 from fluidimage.data_objects.piv import ArrayCoupleBOS, get_name_bos
 from fluidimage.topologies import TopologyBase, prepare_path_dir_result
 from fluidimage.util import imread, logger
-from fluidimage.works.piv import WorkPIV
+from fluidimage.works.bos import WorkBOS
 
 from . import image2image
 
@@ -71,43 +71,8 @@ class TopologyBOS(TopologyBase):
         """
         params = ParamContainer(tag="params")
 
-        params._set_child("images", attribs={"path": "", "str_subset": None})
-
-        params.images._set_doc(
-            """
-Parameters indicating the input image set.
-
-path : str, {''}
-
-    String indicating the input images (can be a full path towards an image
-    file or a string given to `glob`).
-
-str_subset : None
-
-    String indicating as a Python slicing how to select images from the serie of
-    images on the disk. If None, no selection so all images are going to be
-    processed.
-
-"""
-        )
-
-        params._set_attrib("reference", 0)
-
-        params._set_doc(
-            """
-reference : str or int, {0}
-
-    Reference file (from which the displacements will be computed). Can be an
-    absolute file path, a file name or the index in the list of files found
-    from the parameters in ``params.images``.
-
-"""
-        )
-
         super()._add_default_params_saving(params)
-        params.saving.postfix = "bos"
-
-        WorkPIV._complete_params_with_default(params)
+        WorkBOS._complete_params_with_default(params)
 
         params._set_internal_attr(
             "_value_text",
@@ -128,9 +93,9 @@ reference : str or int, {0}
     def __init__(self, params, logging_level="info", nb_max_workers=None):
         self.params = params
 
-        self.serie = SerieOfArraysFromFiles(
-            params.images.path, params.images.str_subset
-        )
+        self.main_work = WorkBOS(params)
+        self.serie = self.main_work.serie
+        self.path_reference = self.main_work.path_reference
 
         path_dir = Path(self.serie.path_dir)
         path_dir_result, self.how_saving = prepare_path_dir_result(
@@ -139,31 +104,6 @@ reference : str or int, {0}
 
         self.path_dir_result = path_dir_result
         self.path_dir_src = Path(path_dir)
-
-        if not isinstance(params.reference, int):
-            reference = Path(params.reference).expanduser()
-        else:
-            reference = params.reference
-
-        if isinstance(reference, int):
-            names = self.serie.get_name_arrays()
-            names = sorted(names)
-            path_reference = path_dir / names[reference]
-
-        else:
-            reference = Path(reference)
-            if reference.is_file():
-                path_reference = reference
-            else:
-                path_reference = path_dir_result / reference
-                if not path_reference.is_file():
-                    raise ValueError(
-                        "Bad value of params.reference:" + path_reference
-                    )
-
-        self.name_reference = path_reference.name
-        self.path_reference = path_reference
-        self.image_reference = imread(path_reference)
 
         super().__init__(
             path_dir_result=path_dir_result,
@@ -194,8 +134,8 @@ reference : str or int, {0}
         )
 
         if params.preproc.im2im is not None:
-            im2im_func = image2image.TopologyImage2Image.init_im2im(
-                self, params.preproc
+            im2im_func = image2image.get_im2im_function_from_params(
+                params.preproc
             )
 
             self.add_work(
@@ -227,15 +167,7 @@ reference : str or int, {0}
 
     def calcul(self, tuple_image_path):
         """Compute a BOS field"""
-        image, name = tuple_image_path
-        array_couple = ArrayCoupleBOS(
-            names=(self.name_reference, name),
-            arrays=(self.image_reference, image),
-            params_mask=self.params.mask,
-            serie=self.serie,
-            paths=[self.path_reference, self.path_dir_src / name],
-        )
-        return WorkPIV(self.params).calcul(array_couple)
+        return self.main_work.calcul(tuple_image_path)
 
     def fill_queue_paths(self, input_queue, output_queue):
         """Fill the first queue (paths)"""

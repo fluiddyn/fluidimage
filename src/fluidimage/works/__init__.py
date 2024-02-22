@@ -21,7 +21,8 @@ define input/output and computational works.
 
 from copy import deepcopy
 
-from fluiddyn.util.serieofarrays import SeriesOfArrays
+from fluiddyn.util.paramcontainer import ParamContainer
+from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles, SeriesOfArrays
 
 from .. import imread
 
@@ -29,6 +30,13 @@ from .. import imread
 class BaseWork:
     def __init__(self, params=None):
         self.params = params
+
+    @classmethod
+    def create_default_params(cls):
+        "Create an object containing the default parameters (class method)."
+        params = ParamContainer(tag="params")
+        cls._complete_params_with_default(params)
+        return params
 
 
 class BaseWorkFromSerie(BaseWork):
@@ -114,6 +122,53 @@ int_stop : None
     def process_1_serie(self, index_serie: int = 0):
         """Process one serie and return the result"""
         return self.calcul(self.get_serie(index_serie))
+
+
+class BaseWorkFromImage(BaseWork):
+    """Base class for work taking as argument an image"""
+
+    serie: SerieOfArraysFromFiles
+
+    @classmethod
+    def _complete_params_with_default(cls, params):
+
+        params._set_child("images", attribs={"path": "", "str_subset": None})
+
+        params.images._set_doc(
+            """
+Parameters indicating the input image set.
+
+path : str, {''}
+
+    String indicating the input images (can be a full path towards an image
+    file or a string given to `glob`).
+
+str_subset : None
+
+    String indicating as a Python slicing how to select images from the serie of
+    images on the disk. If None, no selection so all images will be processed.
+
+"""
+        )
+
+    def _init_serie(self):
+        p_images = self.params.images
+        self.serie = SerieOfArraysFromFiles(p_images.path, p_images.str_subset)
+        return self.serie
+
+    def get_image_name(self, index_image: int = 0):
+        """Get a serie as defined by params.series"""
+        if not hasattr(self, "_serie"):
+            self._init_serie()
+
+        return (
+            self.serie.get_array_from_index(index_image),
+            self.serie.get_name_arrays()[index_image],
+        )
+
+    def process_1_image(self, index_serie: int = 0):
+        """Process one serie and return the result"""
+        return self.calcul(self.get_image_name(index_serie))
 
 
 def load_image(path):

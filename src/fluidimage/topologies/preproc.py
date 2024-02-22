@@ -170,7 +170,6 @@ str_subset : str or None
         )
 
         params._set_child("im2im")
-
         complete_im2im_params_with_default(params.im2im)
 
         return params
@@ -243,9 +242,7 @@ str_subset : str or None
         )
 
         if params.im2im.im2im is not None:
-            im2im_func = image2image.TopologyImage2Image.init_im2im(
-                self, params.im2im
-            )
+            im2im_func = image2image.get_im2im_function_from_params(params.im2im)
 
             self.add_work(
                 "image2image",

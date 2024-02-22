@@ -706,5 +706,5 @@ offset: float (default 0.0)
 
 
 if "sphinx" in sys.modules:
-    params = WorkSurfaceTracking.create_default_params()
-    __doc__ += params._get_formatted_docs()
+    _params = WorkSurfaceTracking.create_default_params()
+    __doc__ += _params._get_formatted_docs()

@@ -9,8 +9,6 @@
 
 from copy import copy
 
-from fluiddyn.util.paramcontainer import ParamContainer
-
 from ...data_objects.piv import MultipassPIVResults
 from .. import BaseWorkFromSerie
 from .fix import WorkFIX
@@ -47,18 +45,15 @@ class WorkPIV(BaseWorkFromSerie):
     """
 
     @classmethod
-    def create_default_params(cls):
-        "Create an object containing the default parameters (class method)."
-        params = ParamContainer(tag="params")
-        cls._complete_params_with_default(params)
-        return params
-
-    @classmethod
     def _complete_params_with_default(cls, params):
         """Complete the default parameters (class method)."""
+        super()._complete_params_with_default(params)
+        cls._complete_params_with_default_piv(params)
+
+    @classmethod
+    def _complete_params_with_default_piv(cls, params):
         FirstWorkPIV._complete_params_with_default(params)
         WorkFIX._complete_params_with_default(params)
-        BaseWorkFromSerie._complete_params_with_default(params)
 
         params._set_child(
             "multipass",
