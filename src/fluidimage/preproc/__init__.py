@@ -11,7 +11,9 @@ Provides:
    :toctree:
 
    toolbox
-   image2image
+   _toolbox_cv
+   _toolbox_py
+   io
 
 """
 

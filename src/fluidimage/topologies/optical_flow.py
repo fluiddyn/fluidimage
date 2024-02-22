@@ -18,6 +18,7 @@ class TopologyOpticalFlow(TopologyPIV):
     """Optical flow topology (Lukas Kanade method)"""
 
     WorkVelocimetry = WorkOpticalFlow
+    _short_name = "optflow"
 
     @classmethod
     def create_default_params(cls):
@@ -34,7 +35,6 @@ class TopologyOpticalFlow(TopologyPIV):
         """
 
         params = super().create_default_params()
-        params.saving.postfix = "optflow"
         return params
 
 

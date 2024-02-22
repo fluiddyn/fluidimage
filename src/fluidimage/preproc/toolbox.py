@@ -1,5 +1,5 @@
-"""Preprocess toolbox (:mod:`fluidimage.preproc.toolbox`)
-=========================================================
+"""Preprocess toolbox
+=====================
 
 A toolbox of filters which operate on a single image (numpy array).
 cf. http://www.scipy-lectures.org/advanced/image_processing/

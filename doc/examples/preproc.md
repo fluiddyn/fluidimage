@@ -23,7 +23,7 @@ standard preprocessing to images.
 ### Preprocessing one serie
 
 To find the good parameter, you can use the class
-{class}`fluidimage.preproc.base.PreprocBase` (see also
+{class}`fluidimage.work.preproc.Work` (see also
 {mod}`fluidimage.preproc`).
 
 ```{literalinclude} preproc_try_params.py

@@ -3,6 +3,23 @@
 See also the
 [unreleased changes](https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.2.0...branch%2Fdefault).
 
+## [0.3.9] (unpublished)
+
+This will be a big breaking release.
+
+### Removed
+
+- `strcouple` is replaced by `str_subset`.
+- `from fluidimage.preproc import PreprocBase` has to be replaced by
+  `from fluidimage.preproc import Work`.
+
+### Added
+
+- Module {mod}`fluidimage.piv` to import the PIV class `Work` and `Topology`.
+- The work classes {class}`fluidimage.piv.Work` and {class}`fluidimage.preproc.Work`
+  now have parameters in `params.series` and a method
+  {func}`fluidimage.work.BaseWorkFromSerie.process_1_serie`.
+
 ## [0.2.0] (2024-02-19)
 
 - Python >=3.9,<3.12

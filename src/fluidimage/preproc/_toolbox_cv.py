@@ -1,9 +1,10 @@
-"""Preprocess toolbox (:mod:`fluidimage.pre_proc._toolbox_cv`)
-==============================================================
+"""Preprocess toolbox
+=====================
+
 A toolbox for preprocessing images. Based on OpenCV library.
 cf. http://www.opencv.org.cn/opencvdoc/2.3.2/html/modules/imgproc/doc/filtering.html
 
-.. currentmodule:: fluidimage.pre_proc._toolbox_cv
+.. currentmodule:: fluidimage.preproc._toolbox_cv
 
 Provides:
 

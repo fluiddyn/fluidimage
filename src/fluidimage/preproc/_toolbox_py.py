@@ -1,5 +1,6 @@
-"""Preprocess toolbox (:mod:`fluidimage.preproc._toolbox_py`)
-==========================================================
+"""Preprocess toolbox
+=====================
+
 A toolbox for preprocessing images.
 Utilizes functions available from `scipy.ndimage` and `skimage` packages.
 cf. http://www.scipy-lectures.org/advanced/image_processing/

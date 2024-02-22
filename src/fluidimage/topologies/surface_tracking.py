@@ -52,6 +52,8 @@ class TopologySurfaceTracking(TopologyBase):
 
     """
 
+    _short_name = "surf"
+
     @classmethod
     def create_default_params(cls):
         """Class method returning the default parameters."""
@@ -99,7 +101,7 @@ str_subset : None
 """
         )
 
-        TopologyBase._add_default_params_saving(params)
+        super()._add_default_params_saving(params)
 
         params._set_internal_attr(
             "_value_text",

@@ -51,6 +51,8 @@ class TopologyImage2Image(TopologyBase):
 
     """
 
+    _short_name = "im2im"
+
     @classmethod
     def create_default_params(cls):
         """Class method returning the default parameters.

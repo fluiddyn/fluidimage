@@ -56,6 +56,8 @@ class TopologyPreproc(TopologyBase):
 
     """
 
+    _short_name = "pre"
+
     @classmethod
     def create_default_params(cls, backend="python"):
         """Class method returning the default parameters.
@@ -120,7 +122,7 @@ ind_step : int
 """
         )
 
-        TopologyBase._add_default_params_saving(params.preproc)
+        super()._add_default_params_saving(params.preproc)
 
         params.preproc.saving._set_attribs(
             {

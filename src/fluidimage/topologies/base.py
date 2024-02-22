@@ -118,12 +118,14 @@ class TopologyBase:
 
     """
 
+    _short_name = "base"
+
     @classmethod
     def _add_default_params_saving(cls, params):
 
         params._set_child(
             "saving",
-            attribs={"path": None, "how": "ask", "postfix": "piv"},
+            attribs={"path": None, "how": "ask", "postfix": cls._short_name},
             doc="""Saving of the results.
 
 path : None or str

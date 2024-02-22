@@ -54,6 +54,8 @@ class TopologyBOS(TopologyBase):
 
     """
 
+    _short_name = "bos"
+
     @classmethod
     def create_default_params(cls):
         """Class method returning the default parameters.
@@ -102,7 +104,7 @@ reference : str or int, {0}
 """
         )
 
-        TopologyBase._add_default_params_saving(params)
+        super()._add_default_params_saving(params)
         params.saving.postfix = "bos"
 
         WorkPIV._complete_params_with_default(params)

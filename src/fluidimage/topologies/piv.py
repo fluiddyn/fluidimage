@@ -47,6 +47,8 @@ class TopologyPIV(TopologyBase):
 
     """
 
+    _short_name = "piv"
+
     WorkVelocimetry = WorkPIV
 
     @classmethod
@@ -64,7 +66,7 @@ class TopologyPIV(TopologyBase):
         """
         params = ParamContainer(tag="params")
 
-        TopologyBase._add_default_params_saving(params)
+        super()._add_default_params_saving(params)
 
         cls.WorkVelocimetry._complete_params_with_default(params)
 
