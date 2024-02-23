@@ -6,7 +6,7 @@ cluster. We need a script for the computation and a script to submit the job.
 We call the script for the computation `piv_complete.py`. For idempotent job,
 it is important to set `params.saving.how = 'complete'`.
 
-```{literalinclude} piv_with_topo_complete.py
+```{literalinclude} piv_parallel_complete.py
 ```
 
 The submission script is quite simple:

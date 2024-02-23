@@ -1,10 +1,6 @@
 """"Image to image" processing
 ==============================
 
-.. autofunction:: init_im2im_function
-
-.. autofunction:: complete_im2im_params_with_default
-
 .. autofunction:: apply_im2im_filter
 
 .. autofunction:: im2im_func_example
@@ -12,14 +8,27 @@
 .. autoclass:: Im2ImExample
    :members:
 
+.. autoclass:: Work
+   :members:
+   :private-members:
+
+.. autoclass:: Topology
+   :members:
+   :private-members:
+
 """
 
-import types
 from pathlib import Path
 
 import numpy as np
-from fluiddyn.util import import_class
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
+
+from fluidimage.topologies.image2image import Topology, TopologyImage2Image
+from fluidimage.works.image2image import (
+    Work,
+    WorkImage2Image,
+    init_im2im_function,
+)
 
 
 def im2im_func_example(tuple_image_path):
@@ -61,44 +70,6 @@ class Im2ImExample:
         return im2im_func_example(tuple_image_path)
 
 
-def complete_im2im_params_with_default(params):
-    """Complete params for image-to-image processing."""
-
-    params._set_attribs({"im2im": None, "args_init": tuple()})
-
-    params._set_doc(
-        """
-im2im : str {None}
-
-    Function or class to be used to process the images.
-
-args_init : object {None}
-
-    An argument given to the init function of the class used to process the
-    images.
-
-"""
-    )
-
-
-def init_im2im_function(im2im=None, args_init=()):
-    """Initialize the filter function."""
-
-    if isinstance(im2im, str):
-        str_package, str_obj = im2im.rsplit(".", 1)
-        im2im = import_class(str_package, str_obj)
-
-    if isinstance(im2im, types.FunctionType):
-        obj = im2im
-        im2im_func = im2im
-    elif isinstance(im2im, type):
-        print("in init_im2im", args_init)
-        obj = im2im(*args_init)
-        im2im_func = obj.calcul
-
-    return obj, im2im_func
-
-
 def apply_im2im_filter(serie, im2im=None, args_init=()):
     """Apply an image-to-image filter to a serie of images.
 
@@ -132,3 +103,6 @@ def apply_im2im_filter(serie, im2im=None, args_init=()):
         result["names"].append(Path(path).name)
 
     return result
+
+
+__all__ = ["WorkImage2Image", "Work", "TopologyImage2Image", "Topology"]

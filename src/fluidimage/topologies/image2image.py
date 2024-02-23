@@ -14,23 +14,11 @@ from pathlib import Path
 from fluiddyn.io.image import imsave
 
 from fluidimage import ParamContainer
-from fluidimage.image2image import (
-    complete_im2im_params_with_default,
-    init_im2im_function,
-)
 from fluidimage.topologies import prepare_path_dir_result
 from fluidimage.util import imread, logger
 from fluidimage.works.image2image import WorkImage2Image
 
 from .base import TopologyBase
-
-
-def get_im2im_function_from_params(params_im2im):
-    """Helper for other topologies"""
-    _, im2im_func = init_im2im_function(
-        im2im=params_im2im.im2im, args_init=params_im2im.args_init
-    )
-    return im2im_func
 
 
 class TopologyImage2Image(TopologyBase):

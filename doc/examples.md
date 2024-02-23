@@ -6,11 +6,11 @@ maxdepth: 2
 ---
 examples/preproc
 examples/piv_try_params
-examples/piv_with_topology
+examples/piv_parallel
 examples/piv_cluster
-examples/bos_with_topology
+examples/bos_parallel
 examples/optflow_try_params
-examples/optflow_with_topology
+examples/optflow_parallel
 examples/piv_as_real/README
 examples/pivchallenge/README
 ```

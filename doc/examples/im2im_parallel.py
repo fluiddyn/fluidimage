@@ -2,15 +2,15 @@
 process an image with a fluidimage topology (which process several images).
 
 The user has to write an importable function (or class) processing one image
-(see {mod}`fluidimage.topologies.image2image`).
+(see {mod}`fluidimage.image2image`).
 
 Here, we use a class defined in fluidimage
-(`fluidimage.topologies.image2image.Im2ImExample`), but it can be any
+(`fluidimage.image2image.Im2ImExample`), but it can be any
 importable class!
 
 """
 
-from fluidimage.topologies.image2image import Topology
+from fluidimage.image2image import Topology
 
 params = Topology.create_default_params()
 

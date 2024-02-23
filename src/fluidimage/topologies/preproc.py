@@ -18,15 +18,13 @@ from fluiddyn.util.paramcontainer import ParamContainer
 from fluidimage import SeriesOfArrays
 from fluidimage.data_objects.preproc import ArraySerie as ArraySubset
 from fluidimage.data_objects.preproc import get_name_preproc
-from fluidimage.image2image import complete_im2im_params_with_default
 from fluidimage.topologies import TopologyBase, prepare_path_dir_result
 from fluidimage.util import DEBUG, imread, logger
+from fluidimage.works import image2image
 from fluidimage.works.preproc import (
     WorkPreproc,
     _make_doc_with_filtered_params_doc,
 )
-
-from . import image2image
 
 
 class TopologyPreproc(TopologyBase):
@@ -170,7 +168,7 @@ str_subset : str or None
         )
 
         params._set_child("im2im")
-        complete_im2im_params_with_default(params.im2im)
+        image2image.complete_im2im_params_with_default(params.im2im)
 
         return params
 

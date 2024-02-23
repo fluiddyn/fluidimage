@@ -15,9 +15,8 @@ from fluidimage import ParamContainer, SeriesOfArrays
 from fluidimage.data_objects.piv import ArrayCouple, get_name_piv
 from fluidimage.topologies import TopologyBase, prepare_path_dir_result
 from fluidimage.util import DEBUG, imread, logger
+from fluidimage.works import image2image
 from fluidimage.works.piv import WorkPIV
-
-from . import image2image
 
 
 class TopologyPIV(TopologyBase):

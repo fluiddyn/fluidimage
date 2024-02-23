@@ -1,4 +1,4 @@
-from fluidimage.works.image2image import Work
+from fluidimage.image2image import Work
 
 params = Work.create_default_params()
 

@@ -15,9 +15,8 @@ from fluidimage import ParamContainer
 from fluidimage.data_objects.piv import get_name_bos
 from fluidimage.topologies import TopologyBase, prepare_path_dir_result
 from fluidimage.util import imread, logger
+from fluidimage.works import image2image
 from fluidimage.works.bos import WorkBOS
-
-from . import image2image
 
 
 def _imread(path):
