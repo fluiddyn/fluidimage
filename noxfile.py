@@ -70,6 +70,8 @@ def test(session):
         "python",
         "-m",
         "pytest",
+        "--pyargs",
+        "fluidimage",
         *session.posargs,
         env=TEST_ENV_VARS,
     )

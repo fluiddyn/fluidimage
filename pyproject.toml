@@ -133,7 +133,7 @@ install = ["--no-isolation"]
 
 
 [tool.coverage.run]
-source = ["./src"]
+source = ["fluidimage"]
 data_file = ".coverage/coverage"
 omit = [
     "**/__pythran__/*.py",
