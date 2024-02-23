@@ -1,7 +1,6 @@
 
 python_sources = [
   '__init__.py',
-  '_try_postproc.py',
   'piv.py',
   'postproc.py',
   'test_piv.py',
