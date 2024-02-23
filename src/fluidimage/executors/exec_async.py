@@ -1,5 +1,5 @@
-"""Executor async/await (:mod:`fluidimage.executors.exec_async`)
-================================================================
+"""Executor async/await
+=======================
 
 This executer uses await/async with trio library to put topology tasks in
 concurrency.

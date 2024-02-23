@@ -46,8 +46,8 @@ class TestSurfaceTracking(unittest.TestCase):
 
         params.images.path = str(self.path_src)
         params.images.path_ref = str(self.path_src)
-        params.images.str_slice = ":4:2"
-        params.images.str_slice_ref = ":3"
+        params.images.str_subset = ":4:2"
+        params.images.str_subset_ref = ":3"
 
         params.surface_tracking.xmin = 200
         params.surface_tracking.xmax = 250

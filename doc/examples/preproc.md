@@ -5,14 +5,23 @@ There are two main methods to preprocess images with Fluidimage:
 1. with user-defined preprocessing functions or classes, or
 2. with pre-defined preprocessing classes.
 
+For both methods, we use a `Work` class to try parameters and a `Topology`
+class to apply this work in parallel on a large serie of images.
+See the [](../overview_orga_package.md) for an explanation about this terminology.
+
 ## 1. User-defined preprocessing
 
 Let's assume that you have a function or a class which gets an image as
 argument and returns a new image. If it is importable, you can use Fluidimage
-to process a large serie of images in parallel with the class
+to first investigate which are the better parameters for your case:
+
+```{literalinclude} im2im_try_params.py
+```
+
+and then process a large serie of images in parallel with the class
 {class}`fluidimage.topologies.image2image.TopologyImage2Image`.
 
-```{literalinclude} preproc_userdefined.py
+```{literalinclude} im2im_parallel.py
 ```
 
 ## 2. Pre-defined preprocessing classes
@@ -23,10 +32,10 @@ standard preprocessing to images.
 ### Preprocessing one serie
 
 To find the good parameter, you can use the class
-{class}`fluidimage.preproc.base.PreprocBase` (see also
+{class}`fluidimage.work.preproc.Work` (see also
 {mod}`fluidimage.preproc`).
 
-```{literalinclude} preproc_simple.py
+```{literalinclude} preproc_try_params.py
 ```
 
 ### Preprocessing large series of images
@@ -34,5 +43,5 @@ To find the good parameter, you can use the class
 To apply the preprocessing to a large serie of images in parallel, use
 {class}`fluidimage.topologies.preproc.TopologyPreproc`.
 
-```{literalinclude} preproc_with_topology.py
+```{literalinclude} preproc_parallel.py
 ```

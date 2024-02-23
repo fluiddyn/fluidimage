@@ -35,7 +35,7 @@ class TestPreprocTemporal(unittest.TestCase):
         params = TopologyPreproc.create_default_params()
 
         params.preproc.series.path = self._work_dir
-        params.preproc.series.strcouple = "i:i+2,1"
+        params.preproc.series.str_subset = "i:i+2,1"
         params.preproc.series.ind_start = 60
 
         for tool in params.preproc.tools.available_tools:

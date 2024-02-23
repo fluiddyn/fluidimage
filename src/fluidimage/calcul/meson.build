@@ -2,8 +2,6 @@
 python_sources = [
   '__init__.py',
   '_evaluate_subpix.py',
-  '_try_correl_images_diff_sizes.py',
-  '_try_correl_images_same_size.py',
   'correl.py',
   'correl_pycuda.py',
   'errors.py',

@@ -1,5 +1,5 @@
-"""Executor async/await using servers (:mod:`fluidimage.executors.exec_async_servers`)
-======================================================================================
+"""Executor async/await using servers
+=====================================
 
 A executor using async for IO and servers for CPU-bounded tasks.
 

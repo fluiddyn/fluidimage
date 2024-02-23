@@ -11,13 +11,12 @@ import json
 import sys
 from pathlib import Path
 
-from fluidimage import ParamContainer, SerieOfArraysFromFiles
-from fluidimage.data_objects.piv import ArrayCoupleBOS, get_name_bos
+from fluidimage import ParamContainer
+from fluidimage.data_objects.piv import get_name_bos
 from fluidimage.topologies import TopologyBase, prepare_path_dir_result
 from fluidimage.util import imread, logger
-from fluidimage.works.piv import WorkPIV
-
-from . import image2image
+from fluidimage.works import image2image
+from fluidimage.works.bos import WorkBOS
 
 
 def _imread(path):
@@ -54,6 +53,8 @@ class TopologyBOS(TopologyBase):
 
     """
 
+    _short_name = "bos"
+
     @classmethod
     def create_default_params(cls):
         """Class method returning the default parameters.
@@ -69,62 +70,8 @@ class TopologyBOS(TopologyBase):
         """
         params = ParamContainer(tag="params")
 
-        params._set_child("images", attribs={"path": "", "str_slice": None})
-
-        params.images._set_doc(
-            """
-Parameters indicating the input image set.
-
-path : str, {''}
-
-    String indicating the input images (can be a full path towards an image
-    file or a string given to `glob`).
-
-str_slice : None
-
-    String indicating as a Python slicing how to select images from the serie of
-    images on the disk. If None, no selection so all images are going to be
-    processed.
-
-"""
-        )
-
-        params._set_attrib("reference", 0)
-
-        params._set_doc(
-            """
-reference : str or int, {0}
-
-    Reference file (from which the displacements will be computed). Can be an
-    absolute file path, a file name or the index in the list of files found
-    from the parameters in ``params.images``.
-
-"""
-        )
-
-        params._set_child(
-            "saving", attribs={"path": None, "how": "ask", "postfix": "bos"}
-        )
-
-        params.saving._set_doc(
-            """Saving of the results.
-
-path : None or str
-
-    Path of the directory where the data will be saved. If None, the path is
-    obtained from the input path and the parameter `postfix`.
-
-how : str {'ask'}
-
-    'ask', 'new_dir', 'complete' or 'recompute'.
-
-postfix : str
-
-    Postfix from which the output file is computed.
-"""
-        )
-
-        WorkPIV._complete_params_with_default(params)
+        super()._add_default_params_saving(params)
+        WorkBOS._complete_params_with_default(params)
 
         params._set_internal_attr(
             "_value_text",
@@ -145,9 +92,9 @@ postfix : str
     def __init__(self, params, logging_level="info", nb_max_workers=None):
         self.params = params
 
-        self.serie = SerieOfArraysFromFiles(
-            params.images.path, params.images.str_slice
-        )
+        self.main_work = WorkBOS(params)
+        self.serie = self.main_work.serie
+        self.path_reference = self.main_work.path_reference
 
         path_dir = Path(self.serie.path_dir)
         path_dir_result, self.how_saving = prepare_path_dir_result(
@@ -156,31 +103,6 @@ postfix : str
 
         self.path_dir_result = path_dir_result
         self.path_dir_src = Path(path_dir)
-
-        if not isinstance(params.reference, int):
-            reference = Path(params.reference).expanduser()
-        else:
-            reference = params.reference
-
-        if isinstance(reference, int):
-            names = self.serie.get_name_arrays()
-            names = sorted(names)
-            path_reference = path_dir / names[reference]
-
-        else:
-            reference = Path(reference)
-            if reference.is_file():
-                path_reference = reference
-            else:
-                path_reference = path_dir_result / reference
-                if not path_reference.is_file():
-                    raise ValueError(
-                        "Bad value of params.reference:" + path_reference
-                    )
-
-        self.name_reference = path_reference.name
-        self.path_reference = path_reference
-        self.image_reference = imread(path_reference)
 
         super().__init__(
             path_dir_result=path_dir_result,
@@ -211,8 +133,8 @@ postfix : str
         )
 
         if params.preproc.im2im is not None:
-            im2im_func = image2image.TopologyImage2Image.init_im2im(
-                self, params.preproc
+            im2im_func = image2image.get_im2im_function_from_params(
+                params.preproc
             )
 
             self.add_work(
@@ -244,15 +166,7 @@ postfix : str
 
     def calcul(self, tuple_image_path):
         """Compute a BOS field"""
-        image, name = tuple_image_path
-        array_couple = ArrayCoupleBOS(
-            names=(self.name_reference, name),
-            arrays=(self.image_reference, image),
-            params_mask=self.params.mask,
-            serie=self.serie,
-            paths=[self.path_reference, self.path_dir_src / name],
-        )
-        return WorkPIV(self.params).calcul(array_couple)
+        return self.main_work.calcul(tuple_image_path)
 
     def fill_queue_paths(self, input_queue, output_queue):
         """Fill the first queue (paths)"""
@@ -289,10 +203,10 @@ postfix : str
             pass
 
         nb_names = len(names)
-        logger.info(f"Add {nb_names} images to compute.")
-        logger.info(f"First files to process: {names[:4]}")
+        logger.info("Add %s images to compute.", nb_names)
+        logger.info("First files to process: %s", names[:4])
 
-        logger.debug(f"All files: {names}")
+        logger.debug("All files: %s", names)
 
     def make_text_at_exit(self, time_since_start):
         """Make a text printed at exit"""
@@ -311,26 +225,9 @@ postfix : str
         return txt
 
 
+Topology = TopologyBOS
+
+
 if "sphinx" in sys.modules:
-    params = TopologyBOS.create_default_params()
-
-    __doc__ += params._get_formatted_docs()
-
-if __name__ == "__main__":
-    params = TopologyBOS.create_default_params()
-    params.series.path = "../../../image_samples/Karman/Images"
-    params.series.ind_start = 1
-    params.series.ind_step = 2
-
-    params.piv0.shape_crop_im0 = 32
-    params.multipass.number = 2
-    params.multipass.use_tps = False
-
-    params.mask.strcrop = ":, 50:500"
-
-    # params.saving.how = 'complete'
-    params.saving.postfix = "bos_example2"
-
-    topo = TopologyBOS(params, logging_level="info")
-
-    topo.make_code_graphviz("tmp.dot")
+    _params = TopologyBOS.create_default_params()
+    __doc__ += _params._get_formatted_docs()

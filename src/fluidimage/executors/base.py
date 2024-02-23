@@ -1,5 +1,5 @@
-"""Base class for executors (:mod:`fluidimage.executors.base`)
-==============================================================
+"""Base class for executors
+===========================
 
 .. autoclass:: ExecutorBase
    :members:

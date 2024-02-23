@@ -5,7 +5,6 @@
    :members:
    :private-members:
 
-
 """
 
 import sys
@@ -19,6 +18,7 @@ class TopologyOpticalFlow(TopologyPIV):
     """Optical flow topology (Lukas Kanade method)"""
 
     WorkVelocimetry = WorkOpticalFlow
+    _short_name = "optflow"
 
     @classmethod
     def create_default_params(cls):
@@ -35,34 +35,11 @@ class TopologyOpticalFlow(TopologyPIV):
         """
 
         params = super().create_default_params()
-        params.saving.postfix = "optflow"
         return params
 
 
 Topology = TopologyOpticalFlow
 
 if "sphinx" in sys.modules:
-    params = Topology.create_default_params()
-    __doc__ += params._get_formatted_docs()
-
-
-if __name__ == "__main__":
-    from fluidimage import get_path_image_samples
-
-    params = Topology.create_default_params()
-
-    params.series.path = str(get_path_image_samples() / "Karman/Images")
-    params.series.ind_start = 1
-    params.series.ind_step = 2
-
-    params.mask.strcrop = ":, 50:500"
-
-    # params.preproc.im2im = "numpy.ones_like"
-
-    # params.saving.how = 'complete'
-    params.saving.postfix = "optical_flow_example"
-
-    topo = Topology(params, logging_level="info")
-
-    # topo.make_code_graphviz("tmp.dot")
-    topo.compute()
+    _params = Topology.create_default_params()
+    __doc__ += _params._get_formatted_docs()

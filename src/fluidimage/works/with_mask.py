@@ -1,3 +1,13 @@
+"""Masking images
+
+Provides:
+
+.. autoclass:: BaseWorkWithMask
+   :members:
+   :private-members:
+
+"""
+
 from ..data_objects.piv import get_slices_from_strcrop
 from . import BaseWork
 

@@ -1,6 +1,6 @@
 """
-Multi executors async (:mod:`fluidimage.executors.multi_exec_async`)
-====================================================================
+Multi executors async
+=====================
 
 .. autoclass:: MultiExecutorAsync
    :members:
@@ -166,11 +166,11 @@ class MultiExecutorAsync(ExecutorBase):
         if hasattr(self.topology, "series"):
             self.start_multiprocess_series()
         else:
-            self.start_mutiprocess_first_queue()
+            self.start_multiprocess_first_queue()
 
         self._finalize_compute()
 
-    def start_mutiprocess_first_queue(self):
+    def start_multiprocess_first_queue(self):
         """Start the processes spitting the work with the first queue"""
         first_work = self.topology.works[0]
         if first_work.input_queue is not None:

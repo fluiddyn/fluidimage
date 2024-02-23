@@ -1,7 +1,35 @@
 # Release notes
 
 See also the
-[unreleased changes](https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.2.0...branch%2Fdefault).
+[unreleased changes](https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.3.0...branch%2Fdefault).
+
+## [0.3.0] (unpublished)
+
+This will be a big breaking release.
+
+### Removed
+
+- `strcouple` is replaced by `str_subset`.
+- `from fluidimage.preproc import PreprocBase` has to be replaced by
+  `from fluidimage.preproc import Work`.
+
+### Added
+
+- Module {mod}`fluidimage.piv` to import the PIV classes `Work` and `Topology`.
+
+- Module {mod}`fluidimage.image2image` to import classes `Work` and `Topology`
+  for user-defined preprocessing.
+
+- The work classes {class}`fluidimage.piv.Work`, {class}`fluidimage.preproc.Work` and
+  {class}`fluidimage.works.optical_flow.WorkOpticalFlow`
+  now have parameters in `params.series` and a method
+  {func}`fluidimage.works.BaseWorkFromSerie.process_1_serie` (see the examples on
+  [preprocessing](./examples/preproc.md) and [PIV](./examples/piv_try_params.md)).
+
+- The work classes {class}`fluidimage.works.image2image.WorkImage2Image` and
+  {class}`fluidimage.works.bos.WorkBOS`
+  now have a parameters in `params.images` and a method
+  {func}`fluidimage.works.BaseWorkFromImage.process_1_image`.
 
 ## [0.2.0] (2024-02-19)
 
@@ -72,3 +100,4 @@ See also the
 [0.1.4]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.1.3...0.1.4
 [0.1.5]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.1.4...0.1.5
 [0.2.0]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.1.5...0.2.0
+[0.3.0]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.2.0...0.3.0

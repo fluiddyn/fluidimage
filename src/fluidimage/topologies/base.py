@@ -20,7 +20,7 @@ from warnings import warn
 
 from fluidimage.util import cstring, logger
 
-from ..executors import ExecutorBase, import_executor_class, get_executor_names
+from ..executors import ExecutorBase, get_executor_names, import_executor_class
 
 
 class Work:
@@ -82,16 +82,24 @@ class Queue(OrderedDict):
         return f'\nqueue "{self.name}": ' + super().__repr__()
 
     def __copy__(self):
-        newone = type(self)(self.name, kind=self.kind)
-        newone.__dict__.update(self.__dict__)
+        new_one = type(self)(self.name, kind=self.kind)
+        new_one.__dict__.update(self.__dict__)
 
         for key, values in self.items():
-            newone[key] = values
+            new_one[key] = values
 
-        return newone
+        return new_one
 
     def pop_first_item(self):
+        """Pop the first item of the queue"""
         return self.popitem(last=False)
+
+    def is_name_in_values(self, image_name):
+        """Check if a name is in the queue"""
+        for names in self.values():
+            if image_name in names:
+                return True
+        return False
 
 
 class TopologyBase:
@@ -109,6 +117,31 @@ class TopologyBase:
     nb_max_workers : None, int
 
     """
+
+    _short_name = "base"
+
+    @classmethod
+    def _add_default_params_saving(cls, params):
+
+        params._set_child(
+            "saving",
+            attribs={"path": None, "how": "ask", "postfix": cls._short_name},
+            doc="""Saving of the results.
+
+path : None or str
+
+    Path of the directory where the data will be saved. If None, the path is
+    obtained from the input path and the parameter `postfix`.
+
+how : str {'ask'}
+
+    'ask', 'new_dir', 'complete' or 'recompute'.
+
+postfix : str
+
+    Postfix from which the output file is computed.
+""",
+        )
 
     def __init__(
         self, path_dir_result=None, logging_level="info", nb_max_workers=None
@@ -221,9 +254,7 @@ class TopologyBase:
         except AttributeError:
             nb_results = None
         if nb_results is not None and nb_results > 0:
-            txt += " ({} results, {:.2f} s/result).".format(
-                nb_results, time_since_start / nb_results
-            )
+            txt += f" ({nb_results} results, {time_since_start / nb_results:.2f} s/result)."
         else:
             txt += "."
 
@@ -336,7 +367,7 @@ class TopologyBase:
 
         code += "}\n"
 
-        with open(name_file + ".dot", "w") as file:
+        with open(name_file + ".dot", "w", encoding="utf-8") as file:
             file.write(code)
 
         print(

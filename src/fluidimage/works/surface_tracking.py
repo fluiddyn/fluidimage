@@ -1,5 +1,5 @@
-"""Surface tracking (:mod:`fluidimage.works.surface_tracking`)
-==============================================================
+"""Surface tracking
+===================
 
 .. autoclass:: WorkSurfaceTracking
    :members:
@@ -43,8 +43,6 @@ from fluidimage import SerieOfArraysFromFiles
 from fluidimage.util import imread, logger
 
 from . import BaseWork
-
-# import matplotlib.pyplot as plt
 
 
 class WorkSurfaceTracking(BaseWork):
@@ -211,7 +209,7 @@ offset: float (default 0.0)
         self.ky = np.arange(-self.l_y / 2, self.l_y / 2) / self.l_y
 
         self.refserie = SerieOfArraysFromFiles(
-            params.images.path_ref, params.images.str_slice_ref
+            params.images.path_ref, params.images.str_subset_ref
         )
         k_x = self.compute_kx(self.refserie)
         logger.info("Value of kx computed = " + str(k_x))
@@ -706,5 +704,5 @@ offset: float (default 0.0)
 
 
 if "sphinx" in sys.modules:
-    params = WorkSurfaceTracking.create_default_params()
-    __doc__ += params._get_formatted_docs()
+    _params = WorkSurfaceTracking.create_default_params()
+    __doc__ += _params._get_formatted_docs()

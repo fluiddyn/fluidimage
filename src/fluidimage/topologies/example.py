@@ -79,6 +79,8 @@ class TopologyExample(TopologyBase):
 
     """
 
+    _short_name = "example"
+
     @classmethod
     def create_default_params(cls):
         params = dict(

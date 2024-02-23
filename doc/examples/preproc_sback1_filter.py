@@ -1,13 +1,13 @@
-from fluidimage.topologies.preproc import TopologyPreproc
+from fluidimage.preproc import Topology
 
-params = TopologyPreproc.create_default_params()
+params = Topology.create_default_params()
 
 params.preproc.series.path = (
     "$HOME/useful/project/16MILESTONE/Data/"
     "Exp21_2016-06-22_N0.8_L6.0_V0.08_piv3d/PCO_top/level2"
 )
 
-params.preproc.series.strcouple = "i:i+23"
+params.preproc.series.str_subset = "i:i+23"
 params.preproc.series.ind_start = 1200
 params.preproc.series.ind_stop = 1202
 
@@ -29,5 +29,5 @@ params.preproc.tools.temporal_percentile.percentile = 10.0
 params.preproc.tools.temporal_minima.enable = False
 params.preproc.tools.temporal_minima.weight = 1.0
 
-topology = TopologyPreproc(params)
+topology = Topology(params)
 topology.compute(sequential=False)

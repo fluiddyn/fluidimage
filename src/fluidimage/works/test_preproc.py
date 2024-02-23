@@ -1,13 +1,12 @@
 import os
 import unittest
-from glob import glob
+from pathlib import Path
 from shutil import rmtree
 
-from fluiddyn.io import stdout_redirected
 from fluiddyn.io.image import imread, imsave
 
 from fluidimage import get_path_image_samples
-from fluidimage.preproc.base import PreprocBase
+from fluidimage.works.preproc import Work
 
 
 class TestPreprocKarman(unittest.TestCase):
@@ -15,21 +14,20 @@ class TestPreprocKarman(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        path_in = str(get_path_image_samples() / cls.name / "Images")
+        path_in = get_path_image_samples() / cls.name / "Images"
 
-        cls._work_dir = os.path.join(
-            "test_fluidimage_topo_preproc_" + cls.name, "Images"
+        cls._work_dir = (
+            Path("test_fluidimage_topo_preproc_" + cls.name) / "Images"
         )
-        if not os.path.exists(cls._work_dir):
-            os.makedirs(cls._work_dir)
 
-        paths = glob(path_in + "/*")
+        if not cls._work_dir.exists():
+            cls._work_dir.mkdir(parents=True)
 
-        for path in paths:
-            name = os.path.split(path)[-1]
+        for path in sorted(path_in.glob("*")):
+            name = path.name
             im = imread(path)
             im = im[::6, ::6]
-            imsave(os.path.join(cls._work_dir, name), im, as_int=True)
+            imsave(cls._work_dir / name, im, as_int=True)
 
     @classmethod
     def tearDownClass(cls):
@@ -37,7 +35,7 @@ class TestPreprocKarman(unittest.TestCase):
 
     def test_preproc(self):
         """Test preproc subpackage on image sample Karman with one index."""
-        params = PreprocBase.create_default_params()
+        params = Work.create_default_params()
 
         params.preproc.series.path = self._work_dir
 
@@ -46,8 +44,7 @@ class TestPreprocKarman(unittest.TestCase):
                 tool = params.preproc.tools.__getitem__(tool)
                 tool.enable = True
 
-        preproc = PreprocBase(params)
-        preproc()
+        preproc = Work(params)
         preproc.display(1, hist=True)
 
 
@@ -56,18 +53,19 @@ class TestPreprocTime(TestPreprocKarman):
 
     def test_preproc(self):
         """Test preproc subpackage on image sample Jet with two indices."""
-        params = PreprocBase.create_default_params()
+        params = Work.create_default_params()
 
         params.preproc.series.path = self._work_dir
+        params.preproc.series.str_subset = "i,0"
+        params.preproc.series.ind_start = 60
 
         for tool in params.preproc.tools.available_tools:
             if "sliding" in tool:
                 tool = params.preproc.tools.__getitem__(tool)
                 tool.enable = True
 
-        preproc = PreprocBase(params)
-        preproc()
-        preproc.display(1, hist=False)
+        preproc = Work(params)
+        preproc.display(60, hist=False)
 
 
 if __name__ == "__main__":

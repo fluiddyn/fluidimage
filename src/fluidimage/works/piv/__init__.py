@@ -1,5 +1,5 @@
-"""Particle Image Velocimetry (PIV) (:mod:`fluidimage.works.piv`)
-=================================================================
+"""Particle Image Velocimetry (PIV)
+===================================
 
 .. autosummary::
    :toctree:

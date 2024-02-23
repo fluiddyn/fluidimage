@@ -11,7 +11,7 @@ To find good parameters, try the piv computation with::
 
 from glob import glob
 
-from fluidimage.topologies.piv import TopologyPIV
+from fluidimage.piv import Topology
 
 
 def get_path(iexp):
@@ -27,7 +27,7 @@ def make_params_piv(
     if postfix_in is not None and postfix_in != "":
         path += "." + postfix_in
 
-    params = TopologyPIV.create_default_params()
+    params = Topology.create_default_params()
     params.series.path = path
 
     print("path", path)
@@ -38,9 +38,9 @@ def make_params_piv(
 
     pathim = paths[0]
     if pathim.endswith("a.png") or pathim.endswith("b.png"):
-        params.series.strcouple = "i, 0:2"
+        params.series.str_subset = "i, 0:2"
     else:
-        params.series.strcouple = "i:i+2"
+        params.series.str_subset = "i:i+2"
     params.series.ind_start = 60
     params.series.ind_stop = None
 

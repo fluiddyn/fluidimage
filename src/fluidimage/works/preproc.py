@@ -1,5 +1,5 @@
-"""Works Preprocess (:mod:`fluidimage.works.preproc`)
-=====================================================
+"""Works Preprocess
+===================
 
 To preprocess series of images using topology.
 
@@ -16,13 +16,73 @@ import sys
 import numpy as np
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
 
-from ..data_objects.preproc import ArraySerie, PreprocResults, get_ind_middle
-from ..preproc.base import PreprocBase, _make_doc_with_filtered_params_doc
-from ..util import print_memory_usage
+from fluidimage import ParamContainer
+from fluidimage.data_objects.display_pre import DisplayPreProc
+from fluidimage.data_objects.preproc import (
+    ArraySerie,
+    PreprocResults,
+    get_ind_middle,
+)
+from fluidimage.util import print_memory_usage
+
+from . import BaseWorkFromSerie
 
 
-class WorkPreproc(PreprocBase):
-    """Work for preprocessing."""
+def _make_doc_with_filtered_params_doc(cls):
+    params = cls.create_default_params()
+    strings = ("Parameters", "References", "----------")
+    return "\n".join(
+        line
+        for line in params._get_formatted_docs().split("\n")
+        if not any(line.endswith(string) for string in strings)
+    )
+
+
+class WorkPreproc(BaseWorkFromSerie):
+    """Work for preprocessing.
+
+    Preprocess series of images with various tools.
+
+    """
+
+    @classmethod
+    def create_default_params(cls, backend="python"):
+        """Class method returning the default parameters.
+
+        Parameters
+        ----------
+
+        backend: {'python', 'opencv'}
+
+            Specifies which backend to use.
+
+        """
+        params = ParamContainer(tag="params")
+        params._set_child("preproc")
+        BaseWorkFromSerie._complete_params_with_default(params.preproc)
+        params.preproc.series.str_subset = "i+1:i+2"
+
+        if backend == "python":
+            from fluidimage.preproc.toolbox import PreprocToolsPy
+
+            cls._Tools = PreprocToolsPy
+        elif backend == "opencv":
+            from fluidimage.preproc.toolbox import PreprocToolsCV
+
+            cls._Tools = PreprocToolsCV
+        else:
+            raise ImportError(f"Unknown backend: {backend}")
+
+        cls._Tools.create_default_params(params)
+        return params
+
+    def __init__(self, params=None):
+        """Set path for results and loads images as SerieOfArraysFromFiles."""
+        if params is None:
+            params = type(self).create_default_params()
+        super().__init__(params)
+        self.params = params.preproc
+        self.tools = self._Tools(params)
 
     def calcul(self, serie):
         """Apply all enabled preprocessing tools on the series of arrays
@@ -37,14 +97,11 @@ class WorkPreproc(PreprocBase):
 
         result = PreprocResults(self.params)
         images = np.array(serie.get_arrays())
-        images = self.tools(images)
+        images = self.tools.apply(images)
         serie._clear_data()
-        dico = self._make_dict_to_save(serie, images)
-        result.data.update(dico)
+        result.data.update(self._make_dict_to_save(serie, images))
         print_memory_usage(
-            "Memory usage after preprocessing {}/{} series".format(
-                serie.ind_serie + 1, serie.nb_series
-            )
+            f"Memory usage after preprocessing {serie.ind_serie + 1}/{serie.nb_series} series"
         )
         return result
 
@@ -65,16 +122,27 @@ class WorkPreproc(PreprocBase):
 
         return dict(zip(name_files[s], images[s]))
 
-    def display(self, ind=0, hist=False):
-        nb_images = 2
-        name_files = self.serie_arrays.get_name_files()[ind : ind + nb_images]
+    def display(self, ind=None, hist=False):
+        """Display figures to study the preprocessing"""
 
-        results_series = SerieOfArraysFromFiles(self.params.saving.path)
-        results = {
-            name: results_series.get_array_from_name(name) for name in name_files
-        }
+        serie0 = self.get_serie(ind)
+        serie1 = self.get_serie(ind + 1)
 
-        return super().display(ind, hist, results)
+        result0 = self.calcul(serie0)
+        result1 = self.calcul(serie1)
+
+        key0 = serie0.get_name_arrays()[0]
+        key1 = serie1.get_name_arrays()[0]
+
+        arr_input0 = serie0.get_array_from_name(key0)
+        arr_input1 = serie0.get_array_from_name(key1)
+
+        arr_output0 = result0.data[key0]
+        arr_output1 = result1.data[key1]
+
+        return DisplayPreProc(
+            arr_input0, arr_input1, arr_output0, arr_output1, hist=hist
+        )
 
 
 Work = WorkPreproc

@@ -10,12 +10,24 @@ Provides:
 .. autosummary::
    :toctree:
 
-   base
    toolbox
-   image2image
+   _toolbox_cv
+   _toolbox_py
+   io
+
+Provides
+
+.. autoclass:: Work
+   :members:
+   :private-members:
+
+.. autoclass:: Topology
+   :members:
+   :private-members:
 
 """
 
-from .base import PreprocBase
+from fluidimage.topologies.preproc import Topology, TopologyPreproc
+from fluidimage.works.preproc import Work, WorkPreproc
 
-__all__ = ["PreprocBase"]
+__all__ = ["Work", "WorkPreproc", "TopologyPreproc", "Topology"]

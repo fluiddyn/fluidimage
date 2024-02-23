@@ -1,7 +1,6 @@
 """To be run in IPython to find a good set of parameters"""
 
-from fluidimage import SeriesOfArrays
-from fluidimage.works.piv import WorkPIV
+from fluidimage.piv import WorkPIV
 
 params = WorkPIV.create_default_params()
 
@@ -15,15 +14,14 @@ params.fix.threshold_diff_neighbour = 8
 
 params.mask.strcrop = "30:250, 100:"
 
-work = WorkPIV(params=params)
-
 path = "../../image_samples/Oseen/Images"
 # path = '../../image_samples/Karman/Images'
-series = SeriesOfArrays(path, "i+1:i+3")
-# we select the serie corresponding to i = 0
-serie = series.get_serie_from_index(0)
+params.series.path = path
+params.series.str_subset = "i+1:i+3"
 
-piv = work.calcul(serie)
+work = WorkPIV(params=params)
+
+piv = work.process_1_serie()
 
 # piv.display(show_interp=True, scale=0.3, show_error=True)
 piv.display(show_interp=False, scale=1, show_error=True)

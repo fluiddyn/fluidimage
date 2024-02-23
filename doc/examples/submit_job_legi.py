@@ -10,7 +10,7 @@ cluster.commands_setting_env = [
 ]
 
 cluster.submit_script(
-    "piv_complete.py",
+    "piv_with_topo_complete.py",
     name_run="fluidimage",
     nb_cores_per_node=4,
     walltime="0:15:00",

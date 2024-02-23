@@ -1,7 +1,7 @@
-"""Uvmat interface (:mod:`fluidimage.run_from_xml`)
-===================================================
+"""Uvmat interface
+==================
 
-From matlab, something like::
+From Matlab, something like::
 
   system(['python -m fluidimage.run_from_xml ' path_to_instructions_xml])
 
@@ -65,7 +65,7 @@ def tidy_uvmat_instructions(params):
         ir._set_attrib("last_i", None)
 
     if not hasattr(ir, "first_j"):
-        strcouple = f"i:i+{ir.incr_i + 1}:{ir.incr_i}"
+        str_subset = f"i:i+{ir.incr_i + 1}:{ir.incr_i}"
         ind_start = ir.first_i
 
         if ir.last_i is None:
@@ -75,7 +75,7 @@ def tidy_uvmat_instructions(params):
     else:
         raise NotImplementedError
 
-    params._set_attrib("strcouple", strcouple)
+    params._set_attrib("str_subset", str_subset)
     params._set_attrib("ind_stop", ind_stop)
     params._set_attrib("ind_start", ind_start)
 
@@ -136,7 +136,7 @@ def params_piv_from_uvmat_xml(instructions, args):
 
     params.series.path = instructions.path_file_input
 
-    params.series.strcouple = instructions.strcouple
+    params.series.str_subset = instructions.str_subset
     params.series.ind_stop = instructions.ind_stop
     params.series.ind_start = instructions.ind_start
 

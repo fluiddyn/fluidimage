@@ -41,9 +41,9 @@ def make_params_pre(iexp, savinghow="recompute", postfix_out="pre"):
     pathim = paths[0]
     double_frame = pathim.endswith("a.png") or pathim.endswith("b.png")
     if double_frame:
-        params.preproc.series.strcouple = "i:i+1, 0"
+        params.preproc.series.str_subset = "i:i+1, 0"
     else:
-        params.preproc.series.strcouple = "i:i+1"
+        params.preproc.series.str_subset = "i:i+1"
 
     params.preproc.series.ind_start = 60
     params.preproc.series.ind_stop = 62
@@ -63,8 +63,8 @@ def make_params_pre(iexp, savinghow="recompute", postfix_out="pre"):
     if double_frame:
         # for 'b.png' images
         params2 = deepcopy(params)
-        params2.preproc.series.strcouple = (
-            params.preproc.series.strcouple[:-1] + "1"
+        params2.preproc.series.str_subset = (
+            params.preproc.series.str_subset[:-1] + "1"
         )
         return [params, params2]
     else:

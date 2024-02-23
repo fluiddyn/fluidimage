@@ -1,5 +1,5 @@
-"""Topology for image2image preprocessing (:mod:`fluidimage.topologies.image2image`)
-====================================================================================
+"""Topology for image2image preprocessing
+=========================================
 
 .. autoclass:: TopologyImage2Image
    :members:
@@ -13,13 +13,10 @@ from pathlib import Path
 
 from fluiddyn.io.image import imsave
 
-from fluidimage import ParamContainer, SerieOfArraysFromFiles
-from fluidimage.preproc.image2image import (
-    complete_im2im_params_with_default,
-    init_im2im_function,
-)
+from fluidimage import ParamContainer
 from fluidimage.topologies import prepare_path_dir_result
 from fluidimage.util import imread, logger
+from fluidimage.works.image2image import WorkImage2Image
 
 from .base import TopologyBase
 
@@ -51,6 +48,8 @@ class TopologyImage2Image(TopologyBase):
 
     """
 
+    _short_name = "im2im"
+
     @classmethod
     def create_default_params(cls):
         """Class method returning the default parameters.
@@ -65,49 +64,9 @@ class TopologyImage2Image(TopologyBase):
 
         """
         params = ParamContainer(tag="params")
-        complete_im2im_params_with_default(params)
 
-        params._set_child("images", attribs={"path": "", "str_slice": None})
-
-        params.images._set_doc(
-            """
-Parameters indicating the input image set.
-
-path : str, {''}
-
-    String indicating the input images (can be a full path towards an image
-    file or a string given to `glob`).
-
-str_slice : None
-
-    String indicating as a Python slicing how to select images from the serie of
-    images on the disk. If None, no selection so all images are going to be
-    processed.
-
-"""
-        )
-
-        params._set_child(
-            "saving", attribs={"path": None, "how": "ask", "postfix": "pre"}
-        )
-
-        params.saving._set_doc(
-            """Saving of the results.
-
-path : None or str
-
-    Path of the directory where the data will be saved. If None, the path is
-    obtained from the input path and the parameter `postfix`.
-
-how : str {'ask'}
-
-    'ask', 'new_dir', 'complete' or 'recompute'.
-
-postfix : str
-
-    Postfix from which the output file is computed.
-"""
-        )
+        super()._add_default_params_saving(params)
+        WorkImage2Image._complete_params_with_default(params)
 
         params._set_internal_attr(
             "_value_text",
@@ -128,9 +87,9 @@ postfix : str
         if params.im2im is None:
             raise ValueError("params.im2im has to be set.")
 
-        self.serie = SerieOfArraysFromFiles(
-            params.images.path, params.images.str_slice
-        )
+        self.work = WorkImage2Image(params)
+        self.serie = self.work.serie
+        im2im_func = self.work.im2im_func
 
         path_dir = self.serie.path_dir
         path_dir_result, self.how_saving = prepare_path_dir_result(
@@ -165,8 +124,6 @@ postfix : str
             kind="io",
         )
 
-        im2im_func = self.init_im2im(params)
-
         self.add_work(
             "im2im",
             im2im_func,
@@ -177,13 +134,6 @@ postfix : str
         self.add_work(
             "save", self.save_image, input_queue=self.queue_results, kind="io"
         )
-
-    def init_im2im(self, params_im2im):
-        """Initialize the im2im function"""
-        self.im2im_obj, self.im2im_func = init_im2im_function(
-            im2im=params_im2im.im2im, args_init=params_im2im.args_init
-        )
-        return self.im2im_func
 
     def imread(self, path):
         """Read an image"""
@@ -228,13 +178,16 @@ postfix : str
 
         nb_names = len(names)
 
-        logger.info(f"Add {nb_names} images to compute.")
-        logger.info(f"First files to process: {names[:4]}")
+        logger.info("Add %s images to compute.", nb_names)
+        logger.info("First files to process: %s", names[:4])
 
-        logger.debug(f"All files: {names}")
+        logger.debug("All files: %s", names)
+
+
+Topology = TopologyImage2Image
 
 
 if "sphinx" in sys.modules:
-    params = TopologyImage2Image.create_default_params()
+    _params = TopologyImage2Image.create_default_params()
 
-    __doc__ += params._get_formatted_docs()
+    __doc__ += _params._get_formatted_docs()

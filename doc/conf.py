@@ -104,6 +104,7 @@ exclude_patterns = [
     "**.ipynb_checkpoints",
     "_jupyter_cache",
     "ipynbslides",
+    "**/.pytest_cache",
 ]
 
 # The reST default role (used for this markup: `text`) to use for all
@@ -139,7 +140,7 @@ html_theme = "pydata_sphinx_theme"
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-# html_theme_options = {}
+html_theme_options = {"navigation_with_keys": False}
 
 # Add any paths that contain custom themes here, relative to this directory.
 # html_theme_path = []

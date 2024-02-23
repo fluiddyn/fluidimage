@@ -1,5 +1,5 @@
-"""Preprocess toolbox (:mod:`fluidimage.preproc.toolbox`)
-=========================================================
+"""Preprocess toolbox
+=====================
 
 A toolbox of filters which operate on a single image (numpy array).
 cf. http://www.scipy-lectures.org/advanced/image_processing/
@@ -35,9 +35,9 @@ class PreprocToolsBase:
         tools = cls._get_backend()
         available_tools = tools.__all__
 
-        params.preproc._set_child("tools")
-        params = params.preproc.tools
-        params._set_attribs({"available_tools": tools.__all__, "sequence": None})
+        params = params.preproc._set_child(
+            "tools", {"available_tools": available_tools, "sequence": None}
+        )
 
         for tool in available_tools:
             func = tools.__dict__[tool]
@@ -86,7 +86,7 @@ class PreprocToolsBase:
     def __init__(self, params):
         self.params = params.preproc.tools
 
-    def __call__(self, img):
+    def apply(self, img):
         """
         Apply all preprocessing tools for which `enable` is `True`.
         Return the preprocessed image (numpy array).
@@ -104,7 +104,7 @@ class PreprocToolsBase:
         for tool in sequence:
             tool_params = self.params[tool]
             if tool_params.enable:
-                logger.debug("Apply " + tool)
+                logger.debug("Apply %s", tool)
                 kwargs = tool_params._make_dict_attribs()
                 for k in list(kwargs.keys()):
                     if k == "enable":

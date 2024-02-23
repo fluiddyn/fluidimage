@@ -27,7 +27,7 @@ class TestImage2Image(unittest.TestCase):
 
         params.images.path = str(self.path_src)
 
-        params.im2im = "fluidimage.preproc.image2image.Im2ImExample"
+        params.im2im = "fluidimage.image2image.Im2ImExample"
         params.args_init = ((1024, 2048), "clip")
 
         params.saving.how = "recompute"

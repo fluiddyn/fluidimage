@@ -9,7 +9,7 @@ build-backend = 'mesonpy'
 
 [project]
 name = "fluidimage"
-version = "0.2.0"
+version = "0.3.0rc0"
 description = "Fluid image processing with Python."
 authors = [
     {name = "Pierre Augier", email = "pierre.augier@legi.cnrs.fr"},
@@ -58,6 +58,7 @@ fluidimlauncher = "fluidimage.gui.launcher.main:main"
 [project.optional-dependencies]
 pims = ["pims"]
 opencv = ["opencv-python"]
+graph = ["gprof2dot"]
 # qt = ["PySide6"]
 
 [project.entry-points."fluidimage.executors"]
@@ -115,13 +116,14 @@ dev = [
     "black",
     "pylint",
     "isort",
+    "ipdb>=0.13.13",
 ]
 
 [tool.pdm.scripts]
 black = "black src doc"
 isort = "isort --atomic --tc src bench doc/examples"
 black_check = "black --check src doc"
-lint = {shell="pylint -rn --rcfile=pylintrc --jobs=$(nproc) src doc --exit-zero"}
+lint = {shell="pylint -rn --rcfile=pylintrc --jobs=$(nproc) src --exit-zero"}
 validate_code = {composite = ["black_check", "lint"]}
 
 [tool.pdm.options]
@@ -131,7 +133,7 @@ install = ["--no-isolation"]
 
 
 [tool.coverage.run]
-source = ["./src"]
+source = ["fluidimage"]
 data_file = ".coverage/coverage"
 omit = [
     "**/__pythran__/*.py",

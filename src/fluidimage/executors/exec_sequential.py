@@ -1,5 +1,5 @@
-"""Execute a topology sequentially (:mod:`fluidimage.executors.exec_async_sequential`)
-======================================================================================
+"""Execute a topology sequentially
+==================================
 
 .. autoclass:: ExecutorBase
    :members:

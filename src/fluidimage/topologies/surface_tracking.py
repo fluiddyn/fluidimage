@@ -22,12 +22,10 @@ from pathlib import Path
 from fluiddyn.io.image import imsave_h5
 
 from fluidimage import ParamContainer, SerieOfArraysFromFiles, SeriesOfArrays
-from fluidimage.topologies import prepare_path_dir_result
+from fluidimage.topologies import TopologyBase, prepare_path_dir_result
 from fluidimage.util import imread, logger
+from fluidimage.works import image2image
 from fluidimage.works.surface_tracking import WorkSurfaceTracking
-
-from . import image2image
-from .base import TopologyBase
 
 
 class TopologySurfaceTracking(TopologyBase):
@@ -52,6 +50,8 @@ class TopologySurfaceTracking(TopologyBase):
 
     """
 
+    _short_name = "surf"
+
     @classmethod
     def create_default_params(cls):
         """Class method returning the default parameters."""
@@ -64,8 +64,8 @@ class TopologySurfaceTracking(TopologyBase):
             attribs={
                 "path": "",
                 "path_ref": "",
-                "str_slice_ref": None,
-                "str_slice": None,
+                "str_subset_ref": None,
+                "str_subset": None,
             },
         )
 
@@ -83,14 +83,14 @@ path_ref : str, {''}
     String indicating the reference input images (can be a full path towards
     an image file or a string given to `glob`).
 
-str_slice_ref : None
+str_subset_ref : None
 
     String indicating as a Python slicing how to select reference images
     from the serie of reference images on the disk (in order to compute
     k_x value necessary for gain and filter).
     If None, no selection so all images are going to be processed.
 
-str_slice : None
+str_subset : None
 
     String indicating as a Python slicing how to select images from the
     serie of images on the disk. If None, no selection so all images
@@ -99,27 +99,7 @@ str_slice : None
 """
         )
 
-        params._set_child(
-            "saving", attribs={"path": None, "how": "ask", "postfix": "pre"}
-        )
-
-        params.saving._set_doc(
-            """Saving of the results.
-
-path : None or str
-
-    Path of the directory where the data will be saved. If None, the path is
-    obtained from the input path and the parameter `postfix`.
-
-how : str {'ask'}
-
-    'ask', 'new_dir', 'complete' or 'recompute'.
-
-postfix : str
-
-    Postfix from which the output file is computed.
-"""
-        )
+        super()._add_default_params_saving(params)
 
         params._set_internal_attr(
             "_value_text",
@@ -144,7 +124,7 @@ postfix : str
             raise ValueError("params.surface_tracking has to be set.")
 
         self.serie = SerieOfArraysFromFiles(
-            params.images.path, params.images.str_slice
+            params.images.path, params.images.str_subset
         )
         self.series = SeriesOfArrays(
             params.images.path,
@@ -203,8 +183,8 @@ postfix : str
         )
 
         if params.preproc.im2im is not None:
-            im2im_func = image2image.TopologyImage2Image.init_im2im(
-                self, params.preproc
+            im2im_func = image2image.get_im2im_function_from_params(
+                params.preproc
             )
 
             self.add_work(
@@ -356,6 +336,8 @@ postfix : str
         for ind_serie, serie in series.items():
             queue_couples_of_names[ind_serie] = serie.get_name_arrays()
 
+
+Topology = TopologySurfaceTracking
 
 if "sphinx" in sys.modules:
     params = TopologySurfaceTracking.create_default_params()

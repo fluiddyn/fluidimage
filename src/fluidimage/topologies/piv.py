@@ -15,17 +15,8 @@ from fluidimage import ParamContainer, SeriesOfArrays
 from fluidimage.data_objects.piv import ArrayCouple, get_name_piv
 from fluidimage.topologies import TopologyBase, prepare_path_dir_result
 from fluidimage.util import DEBUG, imread, logger
+from fluidimage.works import image2image
 from fluidimage.works.piv import WorkPIV
-
-from . import image2image
-
-
-def is_name_in_queue(image_name, queue):
-    """Check if a name is in a queue of series"""
-    for names in queue.values():
-        if image_name in names:
-            return True
-    return False
 
 
 class TopologyPIV(TopologyBase):
@@ -55,6 +46,8 @@ class TopologyPIV(TopologyBase):
 
     """
 
+    _short_name = "piv"
+
     WorkVelocimetry = WorkPIV
 
     @classmethod
@@ -72,95 +65,7 @@ class TopologyPIV(TopologyBase):
         """
         params = ParamContainer(tag="params")
 
-        params._set_child(
-            "series",
-            attribs={
-                "path": "",
-                "strcouple": "i:i+2",
-                "ind_start": 0,
-                "ind_stop": None,
-                "ind_step": 1,
-            },
-        )
-
-        params.series._set_doc(
-            """
-Parameters indicating the input series of images.
-
-path : str, {''}
-
-    String indicating the input images (can be a full path towards an image
-    file or a string given to `glob`).
-
-strcouple : 'i:i+2'
-
-    String indicating as a Python slicing how couples of images are formed.
-    There is one couple per value of `i`. The values of `i` are set with the
-    other parameters `ind_start`, `ind_step` and `ind_stop` approximately with
-    the function range (`range(ind_start, ind_stop, ind_step)`).
-
-    Python slicing is a very powerful notation to define subset from a
-    (possibly multidimensional) set of images. For a user, an alternative is to
-    understand how Python slicing works. See for example this page:
-    http://stackoverflow.com/questions/509211/explain-pythons-slice-notation.
-
-    Another possibility is to follow simple examples:
-
-    For single-frame images (im0, im1, im2, im3, ...), we keep the default
-    value 'i:i+2' to form the couples (im0, im1), (im1, im2), ...
-
-    To see what it gives, one can use IPython and range:
-
-    >>> i = 0
-    >>> list(range(10))[i:i+2]
-    [0, 1]
-
-    >>> list(range(10))[i:i+4:2]
-    [0, 2]
-
-    We see that we can also use the value 'i:i+4:2' to form the couples (im0,
-    im2), (im1, im3), ...
-
-    For double-frame images (im1a, im1b, im2a, im2b, ...) you can write
-
-    >>> params.series.strcouple = 'i, 0:2'
-
-    In this case, the first couple will be (im1a, im1b).
-
-    To get the first couple (im1a, im1a), we would have to write
-
-    >>> params.series.strcouple = 'i:i+2, 0'
-
-ind_start : int, {0}
-
-ind_step : int, {1}
-
-int_stop : None
-
-"""
-        )
-
-        params._set_child(
-            "saving", attribs={"path": None, "how": "ask", "postfix": "piv"}
-        )
-
-        params.saving._set_doc(
-            """Saving of the results.
-
-path : None or str
-
-    Path of the directory where the data will be saved. If None, the path is
-    obtained from the input path and the parameter `postfix`.
-
-how : str {'ask'}
-
-    'ask', 'new_dir', 'complete' or 'recompute'.
-
-postfix : str
-
-    Postfix from which the output file is computed.
-"""
-        )
+        super()._add_default_params_saving(params)
 
         cls.WorkVelocimetry._complete_params_with_default(params)
 
@@ -185,7 +90,7 @@ postfix : str
 
         self.series = SeriesOfArrays(
             params.series.path,
-            params.series.strcouple,
+            params.series.str_subset,
             ind_start=params.series.ind_start,
             ind_stop=params.series.ind_stop,
             ind_step=params.series.ind_step,
@@ -226,8 +131,8 @@ postfix : str
         )
 
         if params.preproc.im2im is not None:
-            im2im_func = image2image.TopologyImage2Image.init_im2im(
-                self, params.preproc
+            im2im_func = image2image.get_im2im_function_from_params(
+                params.preproc
             )
 
             self.add_work(
@@ -298,14 +203,12 @@ postfix : str
                 logger.debug(repr([serie.get_name_arrays() for serie in series]))
 
         nb_series = len(series)
-        logger.info(f"Add {nb_series} PIV fields to compute.")
+        logger.info("Add %s PIV fields to compute.", nb_series)
 
         for iserie, serie in enumerate(series):
             if iserie > 1:
                 break
-            logger.info(
-                "Files of serie {}: {}".format(iserie, serie.get_name_arrays())
-            )
+            logger.info("Files of serie %s: %s", iserie, serie.get_name_arrays())
 
         for ind_serie, serie in series.items():
             queue_couples_of_names[ind_serie] = serie.get_name_arrays()
@@ -344,9 +247,9 @@ postfix : str
                 output_queue[key] = array_couple
                 del queue_couples_of_names[key]
                 # remove the image_array if it not will be used anymore
-                if not is_name_in_queue(couple[0], queue_couples_of_names):
+                if not queue_couples_of_names.is_name_in_values(couple[0]):
                     del queue_arrays[couple[0]]
-                if not is_name_in_queue(couple[1], queue_couples_of_names):
+                if not queue_couples_of_names.is_name_in_values(couple[1]):
                     del queue_arrays[couple[1]]
 
     def make_text_at_exit(self, time_since_start):
@@ -370,30 +273,5 @@ postfix : str
 Topology = TopologyPIV
 
 if "sphinx" in sys.modules:
-    params = Topology.create_default_params()
-    __doc__ += params._get_formatted_docs()
-
-
-if __name__ == "__main__":
-    from fluidimage import get_path_image_samples
-
-    params = Topology.create_default_params()
-
-    params.series.path = str(get_path_image_samples() / "Karman/Images")
-    params.series.ind_start = 1
-    params.series.ind_step = 2
-
-    params.piv0.shape_crop_im0 = 32
-    params.multipass.number = 2
-    params.multipass.use_tps = False
-
-    params.mask.strcrop = ":, 50:500"
-
-    params.preproc.im2im = "numpy.ones_like"
-
-    # params.saving.how = 'complete'
-    params.saving.postfix = "piv_example"
-
-    topo = Topology(params, logging_level="info")
-
-    topo.make_code_graphviz("tmp.dot")
+    _params = Topology.create_default_params()
+    __doc__ += _params._get_formatted_docs()

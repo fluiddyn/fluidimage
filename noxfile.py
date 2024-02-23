@@ -70,6 +70,8 @@ def test(session):
         "python",
         "-m",
         "pytest",
+        "--pyargs",
+        "fluidimage",
         *session.posargs,
         env=TEST_ENV_VARS,
     )
@@ -87,6 +89,19 @@ def test_cov(session):
             *session.posargs,
         ],
     )
+
+
+@nox.session(name="test-examples")
+def test_examples(session):
+    """Execute the examples using pytest"""
+
+    command = "pdm sync --clean -G test --no-self"
+    session.run_always(*command.split(), external=True)
+
+    session.install(".", "--no-deps")
+
+    session.chdir("doc/examples")
+    session.run("pytest", "-v")
 
 
 @nox.session

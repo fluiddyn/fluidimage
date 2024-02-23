@@ -16,7 +16,7 @@ Alternatively, run the script with::
 import params_piv
 
 from fluidimage import SeriesOfArrays
-from fluidimage.works.piv import WorkPIV
+from fluidimage.piv import WorkPIV
 
 try:
     reload
@@ -32,16 +32,8 @@ params = params_piv.make_params_piv(iexp)
 
 work = WorkPIV(params=params)
 
-pathin = params.series.path
-
-series = SeriesOfArrays(
-    pathin, params.series.strcouple, ind_start=params.series.ind_start
-)
-
 # c060a.png and c060b.png
-serie = series.get_serie_from_index(params.series.ind_start)
-
-piv = work.calcul(serie)
+piv = work.process_1_serie(params.series.ind_start)
 
 # piv.piv0.display(show_interp=True, scale=0.05, show_error=True)
 

@@ -8,10 +8,11 @@ look for the best parameters for a PIV computation. It is better to use the PIV
 ```{literalinclude} piv_try_params.py
 ```
 
-We see that we have to define an object `SeriesOfArrays` and to select one
-serie (which represents here a couple of images). It is also what is done
-internally in the PIV topology. Have a look at [our tutorial](https://fluiddyn.readthedocs.io/en/latest/ipynb/tuto_serieofarrays.html) to
-discover how to use this powerful tool!
+The parameters in `params.series` are used to define an object `SeriesOfArrays`
+and to select one serie (which represents here a couple of images). It is also
+what is done internally in the PIV topology. Have a look at
+[our tutorial](https://fluiddyn.readthedocs.io/en/latest/ipynb/tuto_serieofarrays.html)
+to discover how to use this powerful tool!
 
 This other example includes a simple image-to-image preprocessing.
 

@@ -1,7 +1,6 @@
 
 python_sources = [
   '__init__.py',
-  '_try_piv.py',
   'fix.py',
   'multipass.py',
   'singlepass.py',

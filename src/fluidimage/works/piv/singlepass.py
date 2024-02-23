@@ -152,9 +152,13 @@ class BaseWorkPIV(BaseWorkWithMask):
         """Calcul the PIV (one pass) from a couple of images."""
         if isinstance(couple, SerieOfArraysFromFiles):
             couple = ArrayCouple(serie=couple)
+        elif isinstance(couple, dict):
+            couple = ArrayCouple(**couple)
 
         if not isinstance(couple, ArrayCouple):
-            raise ValueError
+            raise ValueError(
+                f"not isinstance(couple, ArrayCouple), {type(couple) = }"
+            )
 
         couple.apply_mask(self.params.mask)
 

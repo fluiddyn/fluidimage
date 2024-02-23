@@ -36,10 +36,9 @@ import os
 import sys
 
 if sys.version_info < (3, 10):
-    from importlib_metadata import entry_points, EntryPoint
+    from importlib_metadata import EntryPoint, entry_points
 else:
-    from importlib.metadata import entry_points, EntryPoint
-
+    from importlib.metadata import EntryPoint, entry_points
 
 import trio
 
@@ -52,7 +51,6 @@ if hasattr(os, "register_at_fork"):
     os.register_at_fork(after_in_child=afterfork)
 
 from .base import ExecutorBase
-
 
 _entry_points = None
 
