@@ -57,7 +57,7 @@ class TestPreprocTime(TestPreprocKarman):
 
         params.preproc.series.path = self._work_dir
         params.preproc.series.str_subset = "i,0"
-        params.preproc.series.ind_start = "60"
+        params.preproc.series.ind_start = 60
 
         for tool in params.preproc.tools.available_tools:
             if "sliding" in tool:

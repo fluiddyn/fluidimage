@@ -1,14 +1,10 @@
-import os
-
 from path_images import get_path
 
 from fluidimage.piv import Topology
 
 params = Topology.create_default_params()
 
-path = os.path.join(get_path("2001A"), "A*")
-
-params.series.path = path
+params.series.path = str(get_path("2001A") / "A*")
 params.series.str_subset = "i, 1:3"
 params.series.ind_start = 1
 

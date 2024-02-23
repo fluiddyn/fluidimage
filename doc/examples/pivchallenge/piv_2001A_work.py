@@ -1,8 +1,5 @@
-import os
-
 from path_images import get_path
 
-from fluidimage import SeriesOfArrays
 from fluidimage.piv import WorkPIV
 
 params = WorkPIV.create_default_params()
@@ -16,13 +13,12 @@ params.multipass.use_tps = False
 params.fix.displacement_max = 15
 params.fix.correl_min = 0.1
 
+params.series.path = str(get_path("2001A") / "A*")
+params.series.str_subset = "i, 1:3"
+params.series.ind_start = 1
+
 piv = WorkPIV(params=params)
 
-path = os.path.join(get_path("2001A"), "A*")
-
-series = SeriesOfArrays(path, "i, 1:3", ind_start=1)
-serie = series.get_serie_from_index(1)
-
-result = piv.calcul(serie)
+result = piv.process_1_serie()
 
 result.display()

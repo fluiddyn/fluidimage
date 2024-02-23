@@ -58,6 +58,7 @@ fluidimlauncher = "fluidimage.gui.launcher.main:main"
 [project.optional-dependencies]
 pims = ["pims"]
 opencv = ["opencv-python"]
+graph = ["gprof2dot"]
 # qt = ["PySide6"]
 
 [project.entry-points."fluidimage.executors"]

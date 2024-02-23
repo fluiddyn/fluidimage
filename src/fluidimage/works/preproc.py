@@ -122,7 +122,7 @@ class WorkPreproc(BaseWorkFromSerie):
 
         return dict(zip(name_files[s], images[s]))
 
-    def display(self, ind=0, hist=False):
+    def display(self, ind=None, hist=False):
         """Display figures to study the preprocessing"""
 
         serie0 = self.get_serie(ind)

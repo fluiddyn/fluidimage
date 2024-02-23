@@ -1,5 +1,4 @@
 from fluidimage import get_path_image_samples
-
 from fluidimage.works.image2image import Work
 
 

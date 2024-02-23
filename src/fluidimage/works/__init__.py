@@ -37,6 +37,7 @@ Provides:
 """
 
 from copy import deepcopy
+from typing import Optional
 
 from fluiddyn.util.paramcontainer import ParamContainer
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles, SeriesOfArrays
@@ -129,14 +130,24 @@ int_stop : None
 """,
         )
 
-    def get_serie(self, index_serie: int = 0):
+    def get_serie(self, index_serie: Optional[int] = None):
         """Get a serie as defined by params.series"""
         if not hasattr(self, "_series"):
             p_series = self.params.series
-            self._series = SeriesOfArrays(p_series.path, p_series.str_subset)
+            self._series = SeriesOfArrays(
+                p_series.path,
+                p_series.str_subset,
+                ind_start=p_series.ind_start,
+                ind_stop=p_series.ind_stop,
+                ind_step=p_series.ind_step,
+            )
+
+        if index_serie is None:
+            index_serie = self._series.ind_start
+
         return deepcopy(self._series.get_serie_from_index(index_serie))
 
-    def process_1_serie(self, index_serie: int = 0):
+    def process_1_serie(self, index_serie: Optional[int] = None):
         """Process one serie and return the result"""
         return self.calcul(self.get_serie(index_serie))
 
