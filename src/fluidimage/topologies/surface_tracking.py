@@ -339,6 +339,8 @@ str_subset : None
             queue_couples_of_names[ind_serie] = serie.get_name_arrays()
 
 
+Topology = TopologySurfaceTracking
+
 if "sphinx" in sys.modules:
     params = TopologySurfaceTracking.create_default_params()
 

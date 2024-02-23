@@ -1,8 +1,14 @@
-"""Works optical flow (:mod:`fluidimage.works.optical_flow`)
-============================================================
+"""Works optical flow
+=====================
 
 See https://docs.opencv.org/4.x/d4/dee/tutorial_optical_flow.html (and
 https://github.com/groussea/opyflow by Gauthier Rousseau)
+
+Provides
+
+.. autoclass:: WorkOpticalFlow
+   :members:
+   :private-members:
 
 """
 
@@ -158,10 +164,7 @@ blockSize :
                 "displacement_min": None,
                 "displacement_max": None,
             },
-        )
-
-        params.filters._set_doc(
-            """
+            doc="""
 Parameters indicating how are detected and processed false vectors.
 
 threshold_diff_ab_ba : 1.
@@ -176,7 +179,7 @@ displacement_max : None
 
     Vectors larger than `displacement_max` are considered as false vectors.
 
-"""
+""",
         )
 
     def __init__(self, params):

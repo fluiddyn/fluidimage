@@ -1,7 +1,7 @@
-"""Uvmat interface (:mod:`fluidimage.run_from_xml`)
-===================================================
+"""Uvmat interface
+==================
 
-From matlab, something like::
+From Matlab, something like::
 
   system(['python -m fluidimage.run_from_xml ' path_to_instructions_xml])
 

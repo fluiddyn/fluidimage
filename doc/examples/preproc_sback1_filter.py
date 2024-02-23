@@ -1,6 +1,6 @@
-from fluidimage.topologies.preproc import TopologyPreproc
+from fluidimage.preproc import Topology
 
-params = TopologyPreproc.create_default_params()
+params = Topology.create_default_params()
 
 params.preproc.series.path = (
     "$HOME/useful/project/16MILESTONE/Data/"
@@ -29,5 +29,5 @@ params.preproc.tools.temporal_percentile.percentile = 10.0
 params.preproc.tools.temporal_minima.enable = False
 params.preproc.tools.temporal_minima.weight = 1.0
 
-topology = TopologyPreproc(params)
+topology = Topology(params)
 topology.compute(sequential=False)

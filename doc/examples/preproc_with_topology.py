@@ -7,24 +7,24 @@ params.preproc.series.path = get_path_image_samples() / "Jet/Images"
 params.preproc.series.str_subset = "i,:"
 params.preproc.series.ind_start = 60
 
-print("Available preprocessing tools: ", params.preproc.tools.available_tools)
-params.preproc.tools.sequence = [
-    "temporal_median",
-    "sliding_median",
-    "global_threshold",
-]
-print("Enabled preprocessing tools: ", params.preproc.tools.sequence)
+p_tools = params.preproc.tools
 
-params.preproc.tools.sliding_median.enable = True
-params.preproc.tools.sliding_median.weight = 0.5
-params.preproc.tools.sliding_median.window_size = 10
+print("Available preprocessing tools: ", p_tools.available_tools)
+p_tools.sequence = ["temporal_median", "sliding_median", "global_threshold"]
+print("Enabled preprocessing tools: ", p_tools.sequence)
 
-params.preproc.tools.temporal_median.enable = False
-params.preproc.tools.temporal_median.weight = 0.5
-params.preproc.tools.temporal_median.window_shape = (5, 2, 2)
+p_tools.sliding_median.enable = True
+p_tools.sliding_median.weight = 0.5
+p_tools.sliding_median.window_size = 10
 
-params.preproc.tools.global_threshold.enable = True
-params.preproc.tools.global_threshold.minima = 0.0
+p_tools.temporal_median.enable = False
+p_tools.temporal_median.weight = 0.5
+p_tools.temporal_median.window_shape = (5, 2, 2)
+
+p_tools.global_threshold.enable = True
+p_tools.global_threshold.minima = 0.0
+
+params.preproc.saving.postfix = "pre_example"
 
 topology = Topology(params, logging_level="info", nb_max_workers=4)
 

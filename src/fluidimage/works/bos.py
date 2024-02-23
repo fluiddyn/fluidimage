@@ -1,12 +1,29 @@
+"""Background-oriented schlieren
+
+Provides
+
+.. autoclass:: WorkBOS
+   :members:
+   :private-members:
+
+"""
+
 from pathlib import Path
 
-from fluidimage.data_objects.piv import ArrayCoupleBOS, get_name_bos
+from fluidimage.data_objects.piv import ArrayCoupleBOS
 from fluidimage.util import imread
 from fluidimage.works import BaseWorkFromImage
 from fluidimage.works.piv import WorkPIV
 
 
 class WorkBOS(BaseWorkFromImage):
+    """Work for BOS computation.
+
+    See https://en.wikipedia.org/wiki/Background-oriented_schlieren_technique
+
+    """
+
+    path_dir_src: Path
 
     @classmethod
     def _complete_params_with_default(cls, params):

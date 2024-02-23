@@ -11,8 +11,8 @@ import json
 import sys
 from pathlib import Path
 
-from fluidimage import ParamContainer, SerieOfArraysFromFiles
-from fluidimage.data_objects.piv import ArrayCoupleBOS, get_name_bos
+from fluidimage import ParamContainer
+from fluidimage.data_objects.piv import get_name_bos
 from fluidimage.topologies import TopologyBase, prepare_path_dir_result
 from fluidimage.util import imread, logger
 from fluidimage.works.bos import WorkBOS
@@ -224,6 +224,9 @@ class TopologyBOS(TopologyBase):
         txt += f"\npath results:\n{self.path_dir_result}"
 
         return txt
+
+
+Topology = TopologyBOS
 
 
 if "sphinx" in sys.modules:

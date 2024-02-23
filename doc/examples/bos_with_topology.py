@@ -1,7 +1,7 @@
 from fluidimage import get_path_image_samples
-from fluidimage.topologies.bos import TopologyBOS
+from fluidimage.topologies.bos import Topology
 
-params = TopologyBOS.create_default_params()
+params = Topology.create_default_params()
 
 params.images.path = get_path_image_samples() / "Karman/Images"
 params.images.str_subset = "1:3"
@@ -15,7 +15,7 @@ params.mask.strcrop = ":, 50:500"
 # params.saving.how = 'complete'
 params.saving.postfix = "bos_example"
 
-topology = TopologyBOS(params, logging_level="info")
+topology = Topology(params, logging_level="info")
 
 # To produce a graph of the topology
 # topology.make_code_graphviz('topo.dot')

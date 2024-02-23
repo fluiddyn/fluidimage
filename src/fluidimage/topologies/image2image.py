@@ -196,6 +196,9 @@ class TopologyImage2Image(TopologyBase):
         logger.debug("All files: %s", names)
 
 
+Topology = TopologyImage2Image
+
+
 if "sphinx" in sys.modules:
     _params = TopologyImage2Image.create_default_params()
 

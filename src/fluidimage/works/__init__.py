@@ -12,10 +12,27 @@ define input/output and computational works.
 .. autosummary::
    :toctree:
 
+   image2image
    piv
    preproc
+   bos
    surface_tracking
    optical_flow
+   with_mask
+
+Provides:
+
+.. autoclass:: BaseWork
+   :members:
+   :private-members:
+
+.. autoclass:: BaseWorkFromSerie
+   :members:
+   :private-members:
+
+.. autoclass:: BaseWorkFromImage
+   :members:
+   :private-members:
 
 """
 

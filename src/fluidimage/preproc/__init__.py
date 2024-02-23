@@ -15,6 +15,16 @@ Provides:
    _toolbox_py
    io
 
+Provides
+
+.. autoclass:: Work
+   :members:
+   :private-members:
+
+.. autoclass:: Topology
+   :members:
+   :private-members:
+
 """
 
 from fluidimage.topologies.preproc import Topology, TopologyPreproc

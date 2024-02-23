@@ -269,7 +269,8 @@ defining-attr-methods=__init__,
 # warning.
 exclude-protected=_asdict,_fields,_replace,_source,_make,os._exit,
   _complete_params_with_default,_set_internal_attr,_set_child,_set_doc,
-  _set_attrib,_set_attribs,_get_formatted_docs
+  _set_attrib,_set_attribs,_get_formatted_docs,
+  _complete_params_with_default_piv
 
 # List of valid names for the first argument in a class method.
 valid-classmethod-first-arg=cls
@@ -359,7 +360,7 @@ single-line-if-stmt=no
 
 # List of modules that can be imported at any level, not just the top level
 # one.
-allow-any-import-level=
+allow-any-import-level=matplotlib.pyplot
 
 # Allow explicit reexports by alias from a package __init__.
 allow-reexport-from-package=no

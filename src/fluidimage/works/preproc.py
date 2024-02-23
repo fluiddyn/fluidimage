@@ -1,5 +1,5 @@
-"""Works Preprocess (:mod:`fluidimage.works.preproc`)
-=====================================================
+"""Works Preprocess
+===================
 
 To preprocess series of images using topology.
 
@@ -39,9 +39,11 @@ def _make_doc_with_filtered_params_doc(cls):
 
 
 class WorkPreproc(BaseWorkFromSerie):
-    """Work for preprocessing."""
+    """Work for preprocessing.
 
-    """Preprocess series of images with various tools."""
+    Preprocess series of images with various tools.
+
+    """
 
     @classmethod
     def create_default_params(cls, backend="python"):
@@ -69,7 +71,7 @@ class WorkPreproc(BaseWorkFromSerie):
 
             cls._Tools = PreprocToolsCV
         else:
-            raise ImportError("Unknown backend: %s" % backend)
+            raise ImportError(f"Unknown backend: {backend}")
 
         cls._Tools.create_default_params(params)
         return params
@@ -99,9 +101,7 @@ class WorkPreproc(BaseWorkFromSerie):
         serie._clear_data()
         result.data.update(self._make_dict_to_save(serie, images))
         print_memory_usage(
-            "Memory usage after preprocessing {}/{} series".format(
-                serie.ind_serie + 1, serie.nb_series
-            )
+            f"Memory usage after preprocessing {serie.ind_serie + 1}/{serie.nb_series} series"
         )
         return result
 
@@ -123,6 +123,7 @@ class WorkPreproc(BaseWorkFromSerie):
         return dict(zip(name_files[s], images[s]))
 
     def display(self, ind=0, hist=False):
+        """Display figures to study the preprocessing"""
 
         serie0 = self.get_serie(ind)
         serie1 = self.get_serie(ind + 1)

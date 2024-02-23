@@ -1,5 +1,5 @@
-"""Surface tracking (:mod:`fluidimage.works.surface_tracking`)
-==============================================================
+"""Surface tracking
+===================
 
 .. autoclass:: WorkSurfaceTracking
    :members:
@@ -43,8 +43,6 @@ from fluidimage import SerieOfArraysFromFiles
 from fluidimage.util import imread, logger
 
 from . import BaseWork
-
-# import matplotlib.pyplot as plt
 
 
 class WorkSurfaceTracking(BaseWork):

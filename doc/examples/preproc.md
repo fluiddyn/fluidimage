@@ -12,7 +12,7 @@ argument and returns a new image. If it is importable, you can use Fluidimage
 to process a large serie of images in parallel with the class
 {class}`fluidimage.topologies.image2image.TopologyImage2Image`.
 
-```{literalinclude} preproc_userdefined.py
+```{literalinclude} im2im_with_topology.py
 ```
 
 ## 2. Pre-defined preprocessing classes

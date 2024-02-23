@@ -14,7 +14,7 @@ params.multipass.use_tps = False
 params.mask.strcrop = ":, 50:500"
 
 params.saving.how = "recompute"
-params.saving.postfix = "piv_example"
+params.saving.postfix = "piv_im2im_func_example"
 
 # we use the light versatile preprocessing feature:
 params.preproc.im2im = "my_example_im2im.im2im"
