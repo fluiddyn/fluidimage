@@ -5,6 +5,10 @@ There are two main methods to preprocess images with Fluidimage:
 1. with user-defined preprocessing functions or classes, or
 2. with pre-defined preprocessing classes.
 
+For both methods, we use a `Work` class to try parameters and a `Topology`
+class to apply this work in parallel on a large serie of images.
+See the [](../overview_orga_package.md) for an explanation about this terminology.
+
 ## 1. User-defined preprocessing
 
 Let's assume that you have a function or a class which gets an image as
