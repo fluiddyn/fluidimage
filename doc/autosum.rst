@@ -1,5 +1,5 @@
-Fluidimage package
-------------------
+API reference
+-------------
 
 .. autosummary::
    :toctree: _generated/

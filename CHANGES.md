@@ -1,7 +1,7 @@
 # Release notes
 
 See also the
-[unreleased changes](https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.2.0...branch%2Fdefault).
+[unreleased changes](https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.3.0...branch%2Fdefault).
 
 ## [0.3.0] (unpublished)
 
@@ -16,6 +16,10 @@ This will be a big breaking release.
 ### Added
 
 - Module {mod}`fluidimage.piv` to import the PIV classes `Work` and `Topology`.
+
+- Module {mod}`fluidimage.image2image` to import classes `Work` and `Topology`
+  for user-defined preprocessing.
+
 - The work classes {class}`fluidimage.piv.Work`, {class}`fluidimage.preproc.Work` and
   {class}`fluidimage.works.optical_flow.WorkOpticalFlow`
   now have parameters in `params.series` and a method

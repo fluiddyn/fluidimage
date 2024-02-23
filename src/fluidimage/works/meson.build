@@ -8,6 +8,7 @@ python_sources = [
   'surface_tracking.py',
   'with_mask.py',
   'test_bos.py',
+  'test_image2image.py',
   'test_preproc.py',
 ]
 

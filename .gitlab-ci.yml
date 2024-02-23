@@ -3,6 +3,7 @@ stages:
   - image
   - lint
   - test
+  - test-release
   - doc
   - build
 
@@ -82,6 +83,18 @@ tests:
       optional: true
   script:
     - xvfb-run nox -s test-cov
+
+
+test-release:examples:
+  stage: test-release
+  needs:
+    - job: "image:build"
+      optional: true
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_TEST_RELEASE == "1"'
+  script:
+    - nox -s test-examples
 
 
 pages:
