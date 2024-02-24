@@ -75,6 +75,8 @@ def test(session):
         *session.posargs,
         env=TEST_ENV_VARS,
     )
+    if "--cov" in session.posargs:
+        session.run("coverage", "xml")
 
 
 @no_venv_session(name="test-cov")

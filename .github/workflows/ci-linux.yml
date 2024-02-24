@@ -19,7 +19,7 @@ jobs:
           libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 \
           libxcb-xinerama0 libxcb-xfixes0 xdotool
 
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
@@ -42,3 +42,4 @@ jobs:
         token: ${{ secrets.CODECOV_TOKEN }}
         fail_ci_if_error: false # optional (default = false)
         verbose: true # optional (default = false)
+        files: .coverage/coverage.xml
