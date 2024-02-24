@@ -33,7 +33,7 @@ jobs:
 
     - name: Test with nox
       run: |
-        nox -s test
+        nox -s test-cov
 
     - name: Upload coverage to codecov
       if: ${{ success() }}
