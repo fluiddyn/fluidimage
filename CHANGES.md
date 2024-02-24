@@ -26,10 +26,16 @@ This will be a big breaking release.
   {func}`fluidimage.works.BaseWorkFromSerie.process_1_serie` (see the examples on
   [preprocessing](./examples/preproc.md) and [PIV](./examples/piv_try_params.md)).
 
-- The work classes {class}`fluidimage.works.image2image.WorkImage2Image` and
+- The work classes {class}`fluidimage.image2image.Work` and
   {class}`fluidimage.works.bos.WorkBOS`
   now have a parameters in `params.images` and a method
   {func}`fluidimage.works.BaseWorkFromImage.process_1_image`.
+
+- The work class {class}`fluidimage.image2image.Work` has a new method
+  {func}`fluidimage.works.image2image.WorkImage2Image.display`.
+
+- The work class {class}`fluidimage.preproc.Work` has a new method
+  {func}`fluidimage.works.preproc.WorkPreproc.display`.
 
 ## [0.2.0] (2024-02-19)
 

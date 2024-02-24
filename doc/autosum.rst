@@ -11,6 +11,7 @@ API reference
    fluidimage.calcul
    fluidimage.piv
    fluidimage.preproc
+   fluidimage.image2image
    fluidimage.calibration
    fluidimage.reconstruct
    fluidimage.postproc

@@ -41,6 +41,7 @@ extensions = [
     "sphinx.ext.mathjax",
     "sphinx.ext.viewcode",
     "sphinx.ext.autosummary",
+    "sphinx.ext.intersphinx",
     "numpydoc",
     "fluiddoc.mathmacro",
     "sphinx.ext.inheritance_diagram",  # requires Graphviz
@@ -325,3 +326,7 @@ myst_enable_extensions = [
 ]
 
 suppress_warnings = ["mystnb.unknown_mime_type"]
+
+intersphinx_mapping = {
+    "fluiddyn": ("https://fluiddyn.readthedocs.io/en/latest", None)
+}

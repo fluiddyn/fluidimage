@@ -19,7 +19,7 @@ to first investigate which are the better parameters for your case:
 ```
 
 and then process a large serie of images in parallel with the class
-{class}`fluidimage.topologies.image2image.TopologyImage2Image`.
+{class}`fluidimage.image2image.Topology`.
 
 ```{literalinclude} im2im_parallel.py
 ```
@@ -32,7 +32,7 @@ standard preprocessing to images.
 ### Preprocessing one serie
 
 To find the good parameter, you can use the class
-{class}`fluidimage.work.preproc.Work` (see also
+{class}`fluidimage.preproc.Work` (see also
 {mod}`fluidimage.preproc`).
 
 ```{literalinclude} preproc_try_params.py
@@ -41,7 +41,7 @@ To find the good parameter, you can use the class
 ### Preprocessing large series of images
 
 To apply the preprocessing to a large serie of images in parallel, use
-{class}`fluidimage.topologies.preproc.TopologyPreproc`.
+{class}`fluidimage.preproc.Topology`.
 
 ```{literalinclude} preproc_parallel.py
 ```
