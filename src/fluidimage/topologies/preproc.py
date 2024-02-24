@@ -107,15 +107,15 @@ str_subset : str
 
 ind_start : int
     Start index for the whole series of images being loaded.
-    For more details: see `class SeriesOfArrays`.
+    For more details: see {class}`fluiddyn.util.serieofarrays.SeriesOfArrays`.
 
 ind_stop : int
     Stop index for the whole series of images being loaded.
-    For more details: see `class SeriesOfArrays`.
+    For more details: see {class}`fluiddyn.util.serieofarrays.SeriesOfArrays`.
 
 ind_step : int
     Step index for the whole series of images being loaded.
-    For more details: see `class SeriesOfArrays`.
+    For more details: see {class}`fluiddyn.util.serieofarrays.SeriesOfArrays`.
 
 """
         )

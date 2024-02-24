@@ -1,8 +1,8 @@
 """To be run in IPython to find a good set of parameters"""
 
-from fluidimage.piv import WorkPIV
+from fluidimage.piv import Work
 
-params = WorkPIV.create_default_params()
+params = Work.create_default_params()
 
 params.multipass.number = 2
 params.multipass.use_tps = True
@@ -19,7 +19,7 @@ path = "../../image_samples/Oseen/Images"
 params.series.path = path
 params.series.str_subset = "i+1:i+3"
 
-work = WorkPIV(params=params)
+work = Work(params=params)
 
 piv = work.process_1_serie()
 
