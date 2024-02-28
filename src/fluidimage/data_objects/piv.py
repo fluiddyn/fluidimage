@@ -52,7 +52,7 @@ def get_str_index(serie, i, index):
 
 
 def get_name_piv(serie, prefix="piv"):
-    index_slices = serie._index_slices
+    index_slices = serie.get_index_slices()
     str_indices = ""
     for i, inds in enumerate(index_slices):
         index = inds[0]
