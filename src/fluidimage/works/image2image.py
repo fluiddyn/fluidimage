@@ -90,8 +90,8 @@ class WorkImage2Image(BaseWorkFromImage):
     def display(self, ind=0, hist=False):
         """Display figures to study the preprocessing"""
 
-        tuple_image_name0 = self.get_image_name(ind)
-        tuple_image_name1 = self.get_image_name(ind + 1)
+        tuple_image_name0 = self.get_tuple_image_name(ind)
+        tuple_image_name1 = self.get_tuple_image_name(ind + 1)
 
         result0 = self.calcul(tuple_image_name0)
         result1 = self.calcul(tuple_image_name1)

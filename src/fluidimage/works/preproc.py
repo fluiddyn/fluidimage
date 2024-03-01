@@ -98,7 +98,7 @@ class WorkPreproc(BaseWorkFromSerie):
         result = PreprocResults(self.params)
         images = np.array(serie.get_arrays())
         images = self.tools.apply(images)
-        serie._clear_data()
+        serie.clear_data()
         result.data.update(self._make_dict_to_save(serie, images))
         print_memory_usage(
             f"Memory usage after preprocessing {serie.ind_serie + 1}/{serie.nb_series} series"
