@@ -79,8 +79,8 @@ class TopologyPreproc(TopologyBase):
         params = WorkPreproc.create_default_params(backend)
         params.preproc.series._set_attribs(
             {
-                "str_subset": "i:i+1",
-                "ind_start": 0,
+                "str_subset": "all1by1",
+                "ind_start": "first",
                 "ind_stop": None,
                 "ind_step": 1,
             }

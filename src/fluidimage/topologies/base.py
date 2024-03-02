@@ -16,6 +16,7 @@
 """
 
 from collections import OrderedDict
+from pathlib import Path
 from warnings import warn
 
 from fluidimage.util import cstring, logger
@@ -259,7 +260,9 @@ postfix : str
             txt += "."
 
         if hasattr(self, "path_dir_result"):
-            txt += "\npath results:\n" + str(self.path_dir_result)
+            txt += "\npath results:\n" + str(
+                Path(self.path_dir_result).absolute()
+            )
 
         return txt
 

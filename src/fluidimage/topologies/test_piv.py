@@ -53,9 +53,6 @@ class TestPivNew(unittest.TestCase):
         params = TopologyPIV.create_default_params()
 
         params.series.path = str(self.path_Jet)
-        params.series.ind_start = 60
-        params.series.ind_step = 1
-        params.series.str_subset = "i, 0:2"
 
         params.piv0.shape_crop_im0 = 128
         params.multipass.number = 2
