@@ -53,7 +53,3 @@ class TestPreprocTemporal(unittest.TestCase):
         topology = TopologyPreproc(params, logging_level="debug")
         topology.compute("exec_async_sequential")
         assert len(topology.results) == 0
-
-
-if __name__ == "__main__":
-    unittest.main()

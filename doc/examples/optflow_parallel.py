@@ -4,7 +4,6 @@ from fluidimage.topologies.optical_flow import Topology
 params = Topology.create_default_params()
 
 params.series.path = get_path_image_samples() / "Karman/Images"
-params.series.ind_start = 1
 params.series.ind_step = 2
 
 # params.features._print_doc()

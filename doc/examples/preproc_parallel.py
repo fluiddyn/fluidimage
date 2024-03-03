@@ -5,7 +5,6 @@ params = Topology.create_default_params()
 
 params.preproc.series.path = get_path_image_samples() / "Jet/Images"
 params.preproc.series.str_subset = "i,:"
-params.preproc.series.ind_start = 60
 
 p_tools = params.preproc.tools
 

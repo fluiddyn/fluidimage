@@ -22,7 +22,6 @@ params.im2im = "fluidimage.image2image.Im2ImExample"
 params.args_init = ((1024, 2048), "clip")
 
 params.images.path = "../../image_samples/Jet/Images/c*"
-params.images.str_subset = "60:,:"
 
 params.saving.postfix = "im2im_example"
 params.saving.how = "recompute"
