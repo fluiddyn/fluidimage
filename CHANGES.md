@@ -3,15 +3,25 @@
 See also the
 [unreleased changes](https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.3.0...branch%2Fdefault).
 
-## [0.3.0] (unpublished)
+## [0.3.0] (2024-03-04)
 
-This will be a big breaking release.
+```{warning}
+
+This version contains incompatible API changes documented here.
+
+```
 
 ### Removed
 
-- `strcouple` is replaced by `str_subset`.
+- The parameter `strcouple` is replaced by `str_subset`.
 - `from fluidimage.preproc import PreprocBase` has to be replaced by
   `from fluidimage.preproc import Work`.
+
+### Changed
+
+- Better default for `params.series.str_subset` (`"pairs"` for PIV),
+  `params.series.ind_start` (`"first"`), `params.preproc.series.str_subset` (`"all1by1"`)
+  and `params.preproc.series.ind_first` (`"first"`).
 
 ### Added
 
