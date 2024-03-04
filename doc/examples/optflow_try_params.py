@@ -1,8 +1,8 @@
 """To be run in IPython to find a good set of parameters"""
 
-from fluidimage.works.optical_flow import WorkOpticalFlow
+from fluidimage.optical_flow import Work
 
-params = WorkOpticalFlow.create_default_params()
+params = Work.create_default_params()
 
 params.mask.strcrop = "30:250, 50:350"
 
@@ -20,7 +20,7 @@ path = "../../image_samples/Oseen/Images"
 params.series.path = path
 params.series.str_subset = "i+1:i+3"
 
-work = WorkOpticalFlow(params=params)
+work = Work(params=params)
 
 piv = work.process_1_serie()
 

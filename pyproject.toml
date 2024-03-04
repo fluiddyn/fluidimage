@@ -125,6 +125,7 @@ isort = "isort --atomic --tc src bench doc/examples"
 black_check = "black --check src doc"
 lint = {shell="pylint -rn --rcfile=pylintrc --jobs=$(nproc) src --exit-zero"}
 validate_code = {composite = ["black_check", "lint"]}
+format = {composite = ["black", "isort"]}
 
 [tool.pdm.options]
 lock = ["-G", ":all"]

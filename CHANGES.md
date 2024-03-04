@@ -30,14 +30,17 @@ This version contains incompatible API changes documented here.
 - Module {mod}`fluidimage.image2image` to import classes `Work` and `Topology`
   for user-defined preprocessing.
 
+- Modules {mod}`fluidimage.bos` and {mod}`fluidimage.optical_flow` to import the
+  corresponding `Work` and `Topology` classes.
+
 - The work classes {class}`fluidimage.piv.Work`, {class}`fluidimage.preproc.Work` and
-  {class}`fluidimage.works.optical_flow.WorkOpticalFlow`
+  {class}`fluidimage.optical_flow.Work`
   now have parameters in `params.series` and a method
   {func}`fluidimage.works.BaseWorkFromSerie.process_1_serie` (see the examples on
   [preprocessing](./examples/preproc.md) and [PIV](./examples/piv_try_params.md)).
 
 - The work classes {class}`fluidimage.image2image.Work` and
-  {class}`fluidimage.works.bos.WorkBOS`
+  {class}`fluidimage.bos.Work`
   now have a parameters in `params.images` and a method
   {func}`fluidimage.works.BaseWorkFromImage.process_1_image`.
 
