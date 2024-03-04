@@ -172,6 +172,7 @@ extend-exclude = "/(__pythran__|__python__|__numba__|build|doc/_build|\\.ipynb_c
 profile = "black"
 line_length = 82
 src_paths = ["src", "doc"]
+known_first_party = ["fluiddyn", "fluidimage"]
 
 
 [tool.pytest.ini_options]
