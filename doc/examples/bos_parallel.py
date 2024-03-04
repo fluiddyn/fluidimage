@@ -1,5 +1,5 @@
 from fluidimage import get_path_image_samples
-from fluidimage.topologies.bos import Topology
+from fluidimage.bos import Topology
 
 params = Topology.create_default_params()
 

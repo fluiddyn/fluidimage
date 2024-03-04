@@ -16,16 +16,20 @@ Provides:
 
 .. autofunction:: str_short
 
+.. autofunction:: safe_eval
+
 """
 
 from pathlib import Path
 
 import psutil
+from IPython.lib.pretty import pretty
+from simpleeval import EvalWithCompoundTypes
+
 from fluiddyn.io.image import imread as _imread
 from fluiddyn.io.image import imsave as _imsave
 from fluiddyn.util import get_memory_usage
 from fluiddyn.util import terminal_colors as term
-from IPython.lib.pretty import pretty
 
 color_dict = {
     "HEADER": term.HEADER,
@@ -119,3 +123,11 @@ def str_short(obj):
         return obj.__module__ + "." + obj.__name__
     except AttributeError:
         return pretty(obj)
+
+
+_evaluator = EvalWithCompoundTypes()
+
+
+def safe_eval(source):
+    """Save eval with simpleeval"""
+    return _evaluator.eval(source)

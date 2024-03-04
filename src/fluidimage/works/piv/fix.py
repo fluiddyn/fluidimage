@@ -8,8 +8,8 @@
 """
 
 import numpy as np
-from fluiddyn.util.paramcontainer import ParamContainer
 
+from fluiddyn.util.paramcontainer import ParamContainer
 from fluidimage.calcul.errors import PIVError
 
 from ...calcul.smooth_clean import smooth_clean

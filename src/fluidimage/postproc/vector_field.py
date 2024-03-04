@@ -19,8 +19,9 @@ from typing import Optional
 import h5py
 import matplotlib.pyplot as plt
 import numpy as np
-from fluiddyn.util.paramcontainer import ParamContainer
 from scipy.ndimage import gaussian_filter, median_filter
+
+from fluiddyn.util.paramcontainer import ParamContainer
 
 from .util import (
     compute_1dspectrum,

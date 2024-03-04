@@ -179,8 +179,7 @@ threshold_tps :  float
         # just for simplicity
         piv_result = couple
 
-        for i, work_piv in enumerate(self.works_piv):
-            work_fix = self.works_fix[i]
+        for work_piv, work_fix in zip(self.works_piv, self.works_fix):
             piv_result = work_piv.calcul(piv_result)
             piv_result = work_fix.calcul(piv_result)
             results.append(piv_result)

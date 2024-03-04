@@ -8,6 +8,7 @@
 """
 
 import numpy as np
+
 from fluiddyn.io.image import imread
 
 

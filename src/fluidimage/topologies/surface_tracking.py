@@ -20,7 +20,6 @@ import sys
 from pathlib import Path
 
 from fluiddyn.io.image import imsave_h5
-
 from fluidimage import ParamContainer, SerieOfArraysFromFiles, SeriesOfArrays
 from fluidimage.topologies import TopologyBase, prepare_path_dir_result
 from fluidimage.util import imread, logger

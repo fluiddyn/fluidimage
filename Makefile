@@ -23,6 +23,9 @@ black:
 isort:
 	pdm run isort
 
+format:
+	pdm run format
+
 test:
 	OMP_NUM_THREADS=1 pdm run pytest src
 

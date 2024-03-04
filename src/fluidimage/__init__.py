@@ -10,10 +10,10 @@ from pathlib import Path
 from shutil import which
 
 import numpy as np
+
 from fluiddyn.util import create_object_from_file, get_memory_usage
 from fluiddyn.util.paramcontainer import ParamContainer
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles, SeriesOfArrays
-
 from fluidimage.topologies.log import LogTopology
 
 from ._version import __version__

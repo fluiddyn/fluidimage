@@ -16,7 +16,6 @@ from time import time
 
 from fluiddyn import time_as_str
 from fluiddyn.io.tee import MultiFile
-
 from fluidimage.config import get_config
 from fluidimage.topologies.nb_cpu_cores import nb_cores
 from fluidimage.util import (
@@ -24,6 +23,7 @@ from fluidimage.util import (
     log_memory_usage,
     logger,
     reset_logger,
+    safe_eval,
     str_short,
 )
 
@@ -113,7 +113,9 @@ class ExecutorBase:
         if nb_max_workers is None:
             if config is not None:
                 try:
-                    nb_max_workers = eval(config["topology"]["nb_max_workers"])
+                    nb_max_workers = safe_eval(
+                        config["topology"]["nb_max_workers"]
+                    )
                 except KeyError:
                     pass
 

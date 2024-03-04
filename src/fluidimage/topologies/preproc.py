@@ -14,7 +14,6 @@ import sys
 from typing import Dict, List, Tuple
 
 from fluiddyn.util.paramcontainer import ParamContainer
-
 from fluidimage import SeriesOfArrays
 from fluidimage.data_objects.preproc import ArraySerie as ArraySubset
 from fluidimage.data_objects.preproc import get_name_preproc

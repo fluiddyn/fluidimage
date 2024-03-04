@@ -6,6 +6,7 @@
 from math import cos, sin
 
 import numpy as np
+
 from fluiddyn.util.paramcontainer import ParamContainer, tidy_container
 
 

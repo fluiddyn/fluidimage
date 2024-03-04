@@ -8,7 +8,6 @@ import matplotlib
 matplotlib.use("Agg")
 
 from fluiddyn.io import stdout_redirected
-
 from fluidimage import get_path_image_samples
 from fluidimage.data_objects.tomo import ArrayTomoCV
 from fluidimage.reconstruct.tomo import TomoMLOSCV

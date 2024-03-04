@@ -17,7 +17,6 @@ Provides
 import types
 
 from fluiddyn.util import import_class
-
 from fluidimage.data_objects.display_pre import DisplayPreProc
 from fluidimage.works import BaseWorkFromImage
 

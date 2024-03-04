@@ -14,8 +14,8 @@ Provides:
 import sys
 
 import numpy as np
-from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
 
+from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
 from fluidimage import ParamContainer
 from fluidimage.data_objects.display_pre import DisplayPreProc
 from fluidimage.data_objects.preproc import (
@@ -91,6 +91,8 @@ class WorkPreproc(BaseWorkFromSerie):
         """
         if isinstance(serie, SerieOfArraysFromFiles):
             serie = ArraySerie(serie=serie)
+        elif isinstance(serie, dict):
+            serie = ArraySerie(**serie)
 
         if not isinstance(serie, ArraySerie):
             raise ValueError("serie must be an instance of class ArraySerie")

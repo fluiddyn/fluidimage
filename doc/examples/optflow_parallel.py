@@ -1,5 +1,5 @@
 from fluidimage import get_path_image_samples
-from fluidimage.topologies.optical_flow import Topology
+from fluidimage.optical_flow import Topology
 
 params = Topology.create_default_params()
 

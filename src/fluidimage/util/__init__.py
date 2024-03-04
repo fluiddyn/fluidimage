@@ -20,7 +20,14 @@ from .log import (
     logger,
     reset_logger,
 )
-from .util import cstring, imread, imsave, print_memory_usage, str_short
+from .util import (
+    cstring,
+    imread,
+    imsave,
+    print_memory_usage,
+    safe_eval,
+    str_short,
+)
 
 __all__ = [
     "imread",
@@ -36,4 +43,5 @@ __all__ = [
     "log_debug",
     "log_error",
     "config_logging",
+    "safe_eval",
 ]

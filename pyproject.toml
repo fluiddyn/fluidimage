@@ -125,6 +125,7 @@ isort = "isort --atomic --tc src bench doc/examples"
 black_check = "black --check src doc"
 lint = {shell="pylint -rn --rcfile=pylintrc --jobs=$(nproc) src --exit-zero"}
 validate_code = {composite = ["black_check", "lint"]}
+format = {composite = ["black", "isort"]}
 
 [tool.pdm.options]
 lock = ["-G", ":all"]
@@ -171,6 +172,7 @@ extend-exclude = "/(__pythran__|__python__|__numba__|build|doc/_build|\\.ipynb_c
 profile = "black"
 line_length = 82
 src_paths = ["src", "doc"]
+known_first_party = ["fluiddyn", "fluidimage"]
 
 
 [tool.pytest.ini_options]

@@ -13,9 +13,9 @@ Provides
 """
 
 import numpy as np
+
 from fluiddyn.util.paramcontainer import ParamContainer
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
-
 from fluidimage._opencv import cv2
 from fluidimage.data_objects.piv import ArrayCouple, HeavyPIVResults
 
@@ -190,6 +190,8 @@ displacement_max : None
     def calcul(self, couple):
         if isinstance(couple, SerieOfArraysFromFiles):
             couple = ArrayCouple(serie=couple)
+        elif isinstance(couple, dict):
+            couple = ArrayCouple(**couple)
 
         if not isinstance(couple, ArrayCouple):
             raise ValueError

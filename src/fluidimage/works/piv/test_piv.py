@@ -62,6 +62,12 @@ class TestPIV(unittest.TestCase):
 
         LightPIVResults(str_path=str(path_file))
 
+        serie = piv.get_serie(0)
+        arrays = serie.get_arrays()
+        result = piv.calcul_from_arrays(*arrays)
+        path_file = result.save(self.path_tmp)
+        type(result)(str_path=path_file)
+
     def test_piv_list(self):
         params = WorkPIV.create_default_params()
 
