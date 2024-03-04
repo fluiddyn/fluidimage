@@ -6,7 +6,7 @@ jupytext:
     format_version: 0.13
     jupytext_version: 1.16.1
 kernelspec:
-  display_name: Python 3
+  display_name: Python 3 (ipykernel)
   language: python
   name: python3
 ---
@@ -29,9 +29,7 @@ path_src = get_path_image_samples() / "Karman/Images"
 postfix = "doc_piv_ipynb"
 ```
 
-```{raw-cell}
-We first import the class :class:`fluidimage.topologies.piv.TopologyPIV`.
-```
+We first import the class {class}`fluidimage.topologies.piv.TopologyPIV`.
 
 ```{code-cell} ipython3
 from fluidimage.piv import Topology
@@ -59,7 +57,6 @@ We can of course modify these parameters. An error will be raised if we accident
 
 ```{code-cell} ipython3
 params.series.path = str(path_src)
-params.series.ind_start = 1
 
 params.piv0.shape_crop_im0 = 64
 params.multipass.number = 2
@@ -69,9 +66,7 @@ params.saving.how = 'recompute'
 params.saving.postfix = postfix
 ```
 
-```{raw-cell}
-In order to run the PIV computation, we have to instanciate an object of the class :class:`fluidimage.topologies.piv.TopologyPIV`.
-```
+In order to run the PIV computation, we have to instanciate an object of the class {class}`fluidimage.topologies.piv.TopologyPIV`.
 
 ```{code-cell} ipython3
 topology = Topology(params)
@@ -153,7 +148,7 @@ with h5py.File("piv_01-02.h5", "r") as file:
 ```
 
 ```{raw-cell}
-Moreover, the final result of this PIV computation can also be manipulated and visualized using :class:`fluidimage.postproc.vector_field.VectorFieldOnGrid`:
+Moreover, the final result of this PIV computation can also be manipulated and visualized using {class}`fluidimage.postproc.vector_field.VectorFieldOnGrid`:
 ```
 
 ```{code-cell} ipython3
