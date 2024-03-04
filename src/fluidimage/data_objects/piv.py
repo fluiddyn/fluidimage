@@ -29,6 +29,7 @@ from fluidimage import ParamContainer
 from fluidimage import __version__ as fluidimage_version
 from fluidimage import imread
 from fluidimage._version import hg_rev
+from fluidimage.util import safe_eval
 
 from .display_piv import DisplayPIV
 
@@ -166,7 +167,6 @@ class ArrayCouple(DataObject):
         group = hdf5_parent["couple"]
 
         assert isinstance(self.names, tuple)
-        assert isinstance(self.paths, tuple)
 
         group.attrs["names"] = repr(self.names).encode()
         group.attrs["paths"] = repr(self.paths).encode()
@@ -189,11 +189,10 @@ class ArrayCouple(DataObject):
             names = names.decode()
             paths = paths.decode()
 
-        self.names = eval(names)
-        self.paths = eval(paths)
+        self.names = safe_eval(names)
+        self.paths = safe_eval(paths)
 
         assert isinstance(self.names, tuple)
-        assert isinstance(self.paths, tuple)
 
         try:
             self.shape_images = hdf5_object["shape_images"][...]
@@ -332,6 +331,8 @@ class HeavyPIVResults(DataObject):
         serie = self.couple.serie
 
         if kind is None:
+            if serie is None:
+                return self.couple.name + ".h5"
             return get_name_piv(serie, prefix="piv")
 
         elif kind == "bos":

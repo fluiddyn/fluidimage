@@ -151,6 +151,10 @@ int_stop : None
         """Process one serie and return the result"""
         return self.calcul(self.get_serie(index_serie))
 
+    def calcul_from_arrays(self, *arrays, names=None):
+        names = [f"array{i}" for i in range(len(arrays))]
+        return self.calcul({"arrays": arrays, "names": names})
+
 
 class BaseWorkFromImage(BaseWork):
     """Base class for work taking as argument an image"""

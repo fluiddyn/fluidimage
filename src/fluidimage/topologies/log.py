@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from fluiddyn.util import is_run_from_ipython
+from fluidimage.util import safe_eval
 
 if is_run_from_ipython():
     plt.ion()
@@ -99,7 +100,7 @@ class LogTopology:
                 if self.log_files is None:
                     begin = "INFO: logging files: "
                     if line.startswith(begin):
-                        self.log_files = eval(line.split(begin)[1].strip())
+                        self.log_files = safe_eval(line.split(begin)[1].strip())
 
                 if line.startswith("INFO: ") and ". mem usage: " in line:
                     line = line[11:]

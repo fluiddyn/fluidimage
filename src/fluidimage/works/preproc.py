@@ -91,6 +91,8 @@ class WorkPreproc(BaseWorkFromSerie):
         """
         if isinstance(serie, SerieOfArraysFromFiles):
             serie = ArraySerie(serie=serie)
+        elif isinstance(serie, dict):
+            serie = ArraySerie(**serie)
 
         if not isinstance(serie, ArraySerie):
             raise ValueError("serie must be an instance of class ArraySerie")

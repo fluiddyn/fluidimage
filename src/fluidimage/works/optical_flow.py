@@ -190,6 +190,8 @@ displacement_max : None
     def calcul(self, couple):
         if isinstance(couple, SerieOfArraysFromFiles):
             couple = ArrayCouple(serie=couple)
+        elif isinstance(couple, dict):
+            couple = ArrayCouple(**couple)
 
         if not isinstance(couple, ArrayCouple):
             raise ValueError

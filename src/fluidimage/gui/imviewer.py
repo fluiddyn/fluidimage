@@ -19,6 +19,7 @@ from matplotlib.widgets import Button, TextBox
 from fluiddyn.io.image import imread
 from fluiddyn.util import time_as_str
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
+from fluidimage.util import safe_eval
 
 extensions = ["png", "tif", "tiff", "jpg", "jpeg", "bmp", "cine"]
 extensions = ["." + ext for ext in extensions]
@@ -272,12 +273,12 @@ class ImageViewer:
         self.change_im()
 
     def _submit_n(self, text):
-        self._n = eval(text, {}, {})
+        self._n = safe_eval(text)
         print("n = ", self._n)
 
     def _change_cmax(self, text):
         _print_debug("_change_cmax")
-        cmax = eval(text, {}, {})
+        cmax = safe_eval(text)
         if cmax == self.clim[1]:
             return
 
@@ -286,7 +287,7 @@ class ImageViewer:
 
     def _change_cmin(self, text):
         _print_debug("_change_cmin")
-        cmin = eval(text, {}, {})
+        cmin = safe_eval(text)
 
         if cmin == self.clim[0]:
             return
