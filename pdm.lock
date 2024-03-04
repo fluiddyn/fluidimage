@@ -5,7 +5,7 @@
 groups = ["default", "build", "dev", "dev-doc", "doc", "graph", "opencv", "pims", "test"]
 strategy = ["cross_platform", "inherit_metadata"]
 lock_version = "4.4.1"
-content_hash = "sha256:5a0e70a35f150ed5a950590fa769aac2a5f2a8c4dda9cae0f759a74a2277c3e2"
+content_hash = "sha256:c31c23aff0e2a2e382884d42117ef1f3c8c59fcf2f2cf8d8f179ac62032b4f82"
 
 [[package]]
 name = "accessible-pygments"
@@ -796,7 +796,7 @@ files = [
 
 [[package]]
 name = "fluiddyn"
-version = "0.6.0rc0"
+version = "0.6.0"
 requires_python = ">=3.9"
 summary = "Framework for studying fluid dynamics."
 groups = ["default", "test"]
@@ -811,8 +811,8 @@ dependencies = [
     "simpleeval>=0.9.13",
 ]
 files = [
-    {file = "fluiddyn-0.6.0rc0-py3-none-any.whl", hash = "sha256:e0bb1130e56c9f051c52346aef0cf86f216007c0952721ae74cec563e4b1a3b2"},
-    {file = "fluiddyn-0.6.0rc0.tar.gz", hash = "sha256:9ef419eb40d92e20fbe41cfefefaabf7f7e3496918d15d22cd7ed03ad3347db4"},
+    {file = "fluiddyn-0.6.0-py3-none-any.whl", hash = "sha256:cff90a1cf4c6762f97dda88f07d1f616c2f7f08fd0a4bd6b23cf8db278d64950"},
+    {file = "fluiddyn-0.6.0.tar.gz", hash = "sha256:47ad53b3723487d3711ec4ea16bca2d7c270b5c5c5a0255f7684558d7397850e"},
 ]
 
 [[package]]
@@ -1241,13 +1241,13 @@ files = [
 
 [[package]]
 name = "json5"
-version = "0.9.18"
+version = "0.9.20"
 requires_python = ">=3.8"
 summary = "A Python implementation of the JSON5 data format."
 groups = ["dev-doc"]
 files = [
-    {file = "json5-0.9.18-py2.py3-none-any.whl", hash = "sha256:3f20193ff8dfdec6ab114b344e7ac5d76fac453c8bab9bdfe1460d1d528ec393"},
-    {file = "json5-0.9.18.tar.gz", hash = "sha256:ecb8ac357004e3522fb989da1bf08b146011edbd14fdffae6caad3bd68493467"},
+    {file = "json5-0.9.20-py3-none-any.whl", hash = "sha256:f623485b37fad95783233bad9352d21526709cbd9a2ec41ddc3e950fca85b701"},
+    {file = "json5-0.9.20.tar.gz", hash = "sha256:20a255981244081d5aaa4adc90d31cdbf05bed1863993cbf300b8e2cd2b6de88"},
 ]
 
 [[package]]
@@ -1408,7 +1408,7 @@ files = [
 
 [[package]]
 name = "jupyter-server"
-version = "2.12.5"
+version = "2.13.0"
 requires_python = ">=3.8"
 summary = "The backend—i.e. core services, APIs, and REST endpoints—to Jupyter web applications."
 groups = ["dev-doc"]
@@ -1434,8 +1434,8 @@ dependencies = [
     "websocket-client",
 ]
 files = [
-    {file = "jupyter_server-2.12.5-py3-none-any.whl", hash = "sha256:184a0f82809a8522777cfb6b760ab6f4b1bb398664c5860a27cec696cb884923"},
-    {file = "jupyter_server-2.12.5.tar.gz", hash = "sha256:0edb626c94baa22809be1323f9770cf1c00a952b17097592e40d03e6a3951689"},
+    {file = "jupyter_server-2.13.0-py3-none-any.whl", hash = "sha256:77b2b49c3831fbbfbdb5048cef4350d12946191f833a24e5f83e5f8f4803e97b"},
+    {file = "jupyter_server-2.13.0.tar.gz", hash = "sha256:c80bfb049ea20053c3d9641c2add4848b38073bf79f1729cea1faed32fc1c78e"},
 ]
 
 [[package]]
@@ -2651,7 +2651,7 @@ files = [
 
 [[package]]
 name = "pytest"
-version = "8.0.2"
+version = "8.1.0"
 requires_python = ">=3.8"
 summary = "pytest: simple powerful testing with Python"
 groups = ["test"]
@@ -2660,12 +2660,12 @@ dependencies = [
     "exceptiongroup>=1.0.0rc8; python_version < \"3.11\"",
     "iniconfig",
     "packaging",
-    "pluggy<2.0,>=1.3.0",
-    "tomli>=1.0.0; python_version < \"3.11\"",
+    "pluggy<2.0,>=1.4",
+    "tomli>=1; python_version < \"3.11\"",
 ]
 files = [
-    {file = "pytest-8.0.2-py3-none-any.whl", hash = "sha256:edfaaef32ce5172d5466b5127b42e0d6d35ebbe4453f0e3505d96afd93f6b096"},
-    {file = "pytest-8.0.2.tar.gz", hash = "sha256:d4051d623a2e0b7e51960ba963193b09ce6daeb9759a451844a21e4ddedfc1bd"},
+    {file = "pytest-8.1.0-py3-none-any.whl", hash = "sha256:ee32db7af8de4629a455806befa90559f307424c07b8413ccfc30bf5b221dd7e"},
+    {file = "pytest-8.1.0.tar.gz", hash = "sha256:f8fa04ab8f98d185113ae60ea6d79c22f8143b14bc1caeced44a0ab844928323"},
 ]
 
 [[package]]

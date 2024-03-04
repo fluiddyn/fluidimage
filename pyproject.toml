@@ -21,7 +21,7 @@ dependencies = [
     "h5py",
     "h5netcdf",
     "transonic>=0.6.2",
-    "fluiddyn >=0.6.0rc0",
+    "fluiddyn >=0.6.0",
     "pyfftw >= 0.10.4",
     "imageio",
     "scikit-image >= 0.12.3",
@@ -171,3 +171,7 @@ extend-exclude = "/(__pythran__|__python__|__numba__|build|doc/_build|\\.ipynb_c
 profile = "black"
 line_length = 82
 src_paths = ["src", "doc"]
+
+
+[tool.pytest.ini_options]
+addopts = "--pdbcls=IPython.terminal.debugger:TerminalPdb"
