@@ -48,9 +48,9 @@ class TestTopoExample(unittest.TestCase):
         rmtree(self.topology.path_dir_result, ignore_errors=True)
 
 
-for executor in executors:
+for _executor in executors:
     setattr(
         TestTopoExample,
-        "test_" + str(executor),
-        partialmethod(_test, executor=executor),
+        "test_" + str(_executor),
+        partialmethod(_test, executor=_executor),
     )

@@ -33,7 +33,7 @@ def get_Ni_Nj(serie):
         )
 
     nb_indices = serie.nb_indices
-    slices = serie.get_index_slices()
+    slices = serie.get_slicing_tuples()
     Ni = slices[0][1] - slices[0][0]
     if nb_indices == 1:
         Nj = 1
@@ -114,7 +114,7 @@ class ArraySerie(ArrayCouple):
         self.arrays = tuple(arrays)
         self.serie = serie
 
-    def _clear_data(self):
+    def clear_data(self):
         self.arrays = tuple()
 
     def save(self, path=None, hdf5_parent=None):
@@ -147,7 +147,7 @@ class PreprocResults(LightPIVResults):
         self.params = params
         self.data = {}
 
-    def _clear_data(self):
+    def clear_data(self):
         self.data = {}
 
     def save(self, path=None):
@@ -166,5 +166,5 @@ class PreprocResults(LightPIVResults):
                 # Try to save in formats supported by PIL.Image
                 imsave(path_file, v, format=out_format, as_int=True)
 
-        self._clear_data()
+        self.clear_data()
         return self

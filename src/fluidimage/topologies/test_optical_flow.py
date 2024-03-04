@@ -27,8 +27,6 @@ class TestPivNew(unittest.TestCase):
         params = TopologyOpticalFlow.create_default_params()
 
         params.series.path = str(self.path_Oseen)
-        params.series.ind_start = 1
-        params.series.ind_step = 1
 
         # params.saving.how has to be equal to 'complete' for idempotent jobs
         # (on clusters)

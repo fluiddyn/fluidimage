@@ -129,12 +129,12 @@ str_subset : None
         self.series = SeriesOfArrays(
             params.images.path,
             "i:i+"
-            + str(self.serie.get_index_slices()[0][2] + 1)
+            + str(self.serie.get_slicing_tuples()[0][2] + 1)
             + ":"
-            + str(self.serie.get_index_slices()[0][2]),
-            ind_start=self.serie.get_index_slices()[0][0],
-            ind_stop=self.serie.get_index_slices()[0][1] - 1,
-            ind_step=self.serie.get_index_slices()[0][2],
+            + str(self.serie.get_slicing_tuples()[0][2]),
+            ind_start=self.serie.get_slicing_tuples()[0][0],
+            ind_stop=self.serie.get_slicing_tuples()[0][1] - 1,
+            ind_step=self.serie.get_slicing_tuples()[0][2],
         )
         path_dir = self.serie.path_dir
         path_dir_result, self.how_saving = prepare_path_dir_result(

@@ -69,8 +69,8 @@ class BaseWorkFromSerie(BaseWork):
             "series",
             attribs={
                 "path": "",
-                "str_subset": "i:i+2",
-                "ind_start": 0,
+                "str_subset": "pairs",
+                "ind_start": "first",
                 "ind_stop": None,
                 "ind_step": 1,
             },
@@ -82,7 +82,7 @@ path : str, {''}
     String indicating the input images (can be a full path towards an image
     file or a string given to `glob`).
 
-str_subset : 'i:i+2'
+str_subset : 'pairs'
 
     String indicating as a Python slicing how couples of images are formed.
     There is one couple per value of `i`. The values of `i` are set with the
@@ -121,7 +121,7 @@ str_subset : 'i:i+2'
 
     >>> params.series.str_subset = 'i:i+2, 0'
 
-ind_start : int, {0}
+ind_start : int, {'first'}
 
 ind_step : int, {1}
 
@@ -184,19 +184,16 @@ str_subset : None
         self.serie = SerieOfArraysFromFiles(p_images.path, p_images.str_subset)
         return self.serie
 
-    def get_image_name(self, index_image: int = 0):
-        """Get a serie as defined by params.series"""
-        if not hasattr(self, "_serie"):
+    def get_tuple_image_name(self, index_image: int = 0):
+        """Get an image and its name"""
+        if not hasattr(self, "serie"):
             self._init_serie()
 
-        return (
-            self.serie.get_array_from_index(index_image),
-            self.serie.get_name_arrays()[index_image],
-        )
+        return self.serie.get_tuple_array_name_from_index(index_image)
 
     def process_1_image(self, index_serie: int = 0):
         """Process one serie and return the result"""
-        return self.calcul(self.get_image_name(index_serie))
+        return self.calcul(self.get_tuple_image_name(index_serie))
 
 
 def load_image(path):

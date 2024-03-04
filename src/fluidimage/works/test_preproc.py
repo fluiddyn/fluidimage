@@ -66,7 +66,3 @@ class TestPreprocTime(TestPreprocKarman):
 
         preproc = Work(params)
         preproc.display(60, hist=False)
-
-
-if __name__ == "__main__":
-    unittest.main()

@@ -10,6 +10,7 @@
 import copy
 import json
 import sys
+from pathlib import Path
 
 from fluidimage import ParamContainer, SeriesOfArrays
 from fluidimage.data_objects.piv import ArrayCouple, get_name_piv
@@ -265,7 +266,7 @@ class TopologyPIV(TopologyBase):
         else:
             txt += "."
 
-        txt += "\npath results:\n" + str(self.path_dir_result)
+        txt += "\npath results:\n" + str(Path(self.path_dir_result).absolute())
 
         return txt
 

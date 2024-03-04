@@ -220,7 +220,7 @@ class TopologyBOS(TopologyBase):
         else:
             txt += "."
 
-        txt += f"\npath results:\n{self.path_dir_result}"
+        txt += "\npath results:\n" + str(Path(self.path_dir_result).absolute())
 
         return txt
 

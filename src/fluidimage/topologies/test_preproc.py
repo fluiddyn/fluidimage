@@ -36,7 +36,6 @@ class TestPreprocTemporal(unittest.TestCase):
 
         params.preproc.series.path = self._work_dir
         params.preproc.series.str_subset = "i:i+2,1"
-        params.preproc.series.ind_start = 60
 
         for tool in params.preproc.tools.available_tools:
             if "temporal" in tool:
@@ -54,7 +53,3 @@ class TestPreprocTemporal(unittest.TestCase):
         topology = TopologyPreproc(params, logging_level="debug")
         topology.compute("exec_async_sequential")
         assert len(topology.results) == 0
-
-
-if __name__ == "__main__":
-    unittest.main()

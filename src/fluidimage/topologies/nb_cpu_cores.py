@@ -1,7 +1,11 @@
-import os
+"""Utility to obtain the number of cores available
+
+"""
+
 import re
 from multiprocessing import cpu_count
-from warnings import warn
+
+from simpleeval import simple_eval
 
 from fluidimage.config import get_config
 
@@ -13,13 +17,15 @@ allow_hyperthreading = False
 
 if config is not None:
     try:
-        allow_hyperthreading = eval(config["topology"]["allow_hyperthreading"])
+        allow_hyperthreading = simple_eval(
+            config["topology"]["allow_hyperthreading"]
+        )
     except KeyError:
         pass
 
 try:  # should work on UNIX
     # found in http://stackoverflow.com/questions/1006289/how-to-find-out-the-number-of-cpus-using-python # noqa
-    with open("/proc/self/status") as file:
+    with open("/proc/self/status", encoding="utf-8") as file:
         status = file.read()
     m = re.search(r"(?m)^Cpus_allowed:\s*(.*)$", status)
     if m:
@@ -28,7 +34,7 @@ try:  # should work on UNIX
     if nb_cpus_allowed > 0:
         nb_cores = nb_cpus_allowed
 
-    with open("/proc/cpuinfo") as file:
+    with open("/proc/cpuinfo", encoding="utf-8") as file:
         cpuinfo = file.read()
 
     nb_proc_tot = 0

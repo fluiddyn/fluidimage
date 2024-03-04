@@ -88,7 +88,7 @@ class ActionBase:
         logger.info("Create the serie of arrays")
         self.serie_arrays = SerieOfArraysFromFiles(
             path=instructions.path_dir_input,
-            index_slices=instructions.index_slices,
+            slicing_tuples=instructions.slicing_tuples,
         )
 
 
@@ -108,16 +108,16 @@ class ActionAverage(ActionBase):
             nb_fields += 1
         mean /= nb_fields
 
-        strindices_first_file = serie._compute_strindices_from_indices(
-            *[indices[0] for indices in instructions.index_slices]
+        strindices_first_file = serie.compute_strindices_from_indices(
+            *[indices[0] for indices in instructions.slicing_tuples]
         )
-        strindices_last_file = serie._compute_strindices_from_indices(
-            *[indices[1] - 1 for indices in instructions.index_slices]
+        strindices_last_file = serie.compute_strindices_from_indices(
+            *[indices[1] - 1 for indices in instructions.slicing_tuples]
         )
 
         name_file = (
             serie.base_name
-            + serie._separator_base_index
+            + serie.get_separator_base_index()
             + strindices_first_file
             + "-"
             + strindices_last_file

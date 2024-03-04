@@ -33,35 +33,19 @@ from fluidimage._version import hg_rev
 from .display_piv import DisplayPIV
 
 
-def get_str_index(serie, i, index):
-    if serie._from_movies and i == serie.nb_indices - 1:
-        return str(index)
-
-    if serie._index_types[i] == "digit":
-        code_format = "{:0" + str(serie._index_lens[i]) + "d}"
-        str_index = code_format.format(index)
-    elif serie._index_types[i] == "alpha":
-        if index > 25:
-            raise ValueError('"alpha" index larger than 25.')
-
-        str_index = chr(ord("a") + index)
-    else:
-        raise Exception('The type should be "digit" or "alpha".')
-
-    return str_index
-
-
 def get_name_piv(serie, prefix="piv"):
-    index_slices = serie.get_index_slices()
+    slicing_tuples = serie.get_slicing_tuples()
     str_indices = ""
-    for i, inds in enumerate(index_slices):
+    for idim, inds in enumerate(slicing_tuples):
         index = inds[0]
-        str_index = get_str_index(serie, i, index)
+        str_index = serie.get_str_for_name_from_idim_idx(idim, index)
         if len(inds) > 1:
-            str_index += "-" + get_str_index(serie, i, inds[1] - 1)
+            str_index += "-" + serie.get_str_for_name_from_idim_idx(
+                idim, inds[1] - 1
+            )
 
-        if i > 1:
-            str_indices += serie._index_separators[i - 1]
+        if idim > 1:
+            str_indices += serie.get_index_separators[idim - 1]
         str_indices += str_index
 
     name = prefix + "_" + str_indices + ".h5"
@@ -789,12 +773,12 @@ class LightPIVResults(DataObject):
 
         serie = self.couple.serie
 
-        str_ind0 = serie._compute_strindices_from_indices(
-            *[inds[0] for inds in serie.get_index_slices()]
+        str_ind0 = serie.compute_str_indices_from_indices(
+            *[inds[0] for inds in serie.get_slicing_tuples()]
         )
 
-        str_ind1 = serie._compute_strindices_from_indices(
-            *[inds[1] - 1 for inds in serie.get_index_slices()]
+        str_ind1 = serie.compute_str_indices_from_indices(
+            *[inds[1] - 1 for inds in serie.get_slicing_tuples()]
         )
 
         name = "piv_" + serie.base_name + str_ind0 + "-" + str_ind1 + "_light.h5"
