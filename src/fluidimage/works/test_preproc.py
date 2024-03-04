@@ -4,7 +4,6 @@ from pathlib import Path
 from shutil import rmtree
 
 from fluiddyn.io.image import imread, imsave
-
 from fluidimage import get_path_image_samples
 from fluidimage.works.preproc import Work
 

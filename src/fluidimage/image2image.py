@@ -21,8 +21,8 @@
 from pathlib import Path
 
 import numpy as np
-from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
 
+from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
 from fluidimage.topologies.image2image import Topology, TopologyImage2Image
 from fluidimage.works.image2image import (
     Work,

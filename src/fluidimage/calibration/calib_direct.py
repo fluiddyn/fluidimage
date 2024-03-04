@@ -18,12 +18,13 @@ from math import sqrt
 import matplotlib.pyplot as plt
 import numpy as np
 import pylab
-from fluiddyn.util.paramcontainer import ParamContainer, tidy_container
 from scipy.interpolate import (
     LinearNDInterpolator,
     RegularGridInterpolator,
     griddata,
 )
+
+from fluiddyn.util.paramcontainer import ParamContainer, tidy_container
 
 from .util import get_base_from_normal_vector, get_number_from_string
 

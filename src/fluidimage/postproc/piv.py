@@ -16,8 +16,8 @@
 """
 
 import h5py
-from fluiddyn.util.paramcontainer import ParamContainer
 
+from fluiddyn.util.paramcontainer import ParamContainer
 from fluidimage.works.piv.multipass import WorkPIV
 
 from .vector_field import ArrayOfVectorFieldsOnGrid, VectorFieldOnGrid

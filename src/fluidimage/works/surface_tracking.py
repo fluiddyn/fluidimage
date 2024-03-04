@@ -36,9 +36,9 @@ from pathlib import Path
 import numpy as np
 import scipy.interpolate
 import scipy.io
-from fluiddyn.util.paramcontainer import ParamContainer
 from skimage.transform import resize
 
+from fluiddyn.util.paramcontainer import ParamContainer
 from fluidimage import SerieOfArraysFromFiles
 from fluidimage.util import imread, logger
 

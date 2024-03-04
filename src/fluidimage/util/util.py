@@ -21,11 +21,12 @@ Provides:
 from pathlib import Path
 
 import psutil
+from IPython.lib.pretty import pretty
+
 from fluiddyn.io.image import imread as _imread
 from fluiddyn.io.image import imsave as _imsave
 from fluiddyn.util import get_memory_usage
 from fluiddyn.util import terminal_colors as term
-from IPython.lib.pretty import pretty
 
 color_dict = {
     "HEADER": term.HEADER,

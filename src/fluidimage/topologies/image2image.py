@@ -12,7 +12,6 @@ import sys
 from pathlib import Path
 
 from fluiddyn.io.image import imsave
-
 from fluidimage import ParamContainer
 from fluidimage.topologies import prepare_path_dir_result
 from fluidimage.util import imread, logger

@@ -13,6 +13,7 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
+
 from fluiddyn.util import is_run_from_ipython
 
 if is_run_from_ipython():

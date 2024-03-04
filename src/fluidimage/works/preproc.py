@@ -14,8 +14,8 @@ Provides:
 import sys
 
 import numpy as np
-from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
 
+from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
 from fluidimage import ParamContainer
 from fluidimage.data_objects.display_pre import DisplayPreProc
 from fluidimage.data_objects.preproc import (

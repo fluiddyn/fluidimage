@@ -27,6 +27,7 @@
 from copy import deepcopy
 
 import numpy as np
+
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
 
 from ...calcul.correl import correlation_classes

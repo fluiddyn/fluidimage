@@ -28,8 +28,8 @@ from multiprocessing import Event, Pipe, Process
 from threading import Thread
 
 import trio
-from fluiddyn.io.tee import MultiFile
 
+from fluiddyn.io.tee import MultiFile
 from fluidimage.util import cstring, log_debug, log_memory_usage, logger
 
 

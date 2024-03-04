@@ -16,7 +16,6 @@ from time import time
 
 from fluiddyn import time_as_str
 from fluiddyn.io.tee import MultiFile
-
 from fluidimage.config import get_config
 from fluidimage.topologies.nb_cpu_cores import nb_cores
 from fluidimage.util import (

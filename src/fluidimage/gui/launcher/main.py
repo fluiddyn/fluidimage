@@ -22,7 +22,6 @@ else:
 
 
 from fluiddyn.util.paramcontainer import ParamContainer
-
 from fluidimage.topologies.launcher import (
     TopologyPIVLauncher,
     TopologyPreprocLauncher,

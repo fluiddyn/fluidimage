@@ -13,9 +13,9 @@ Provides
 """
 
 import numpy as np
+
 from fluiddyn.util.paramcontainer import ParamContainer
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
-
 from fluidimage._opencv import cv2
 from fluidimage.data_objects.piv import ArrayCouple, HeavyPIVResults
 

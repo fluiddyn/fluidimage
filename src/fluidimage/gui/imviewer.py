@@ -14,10 +14,11 @@ import os
 from glob import glob
 
 import matplotlib.pyplot as plt
+from matplotlib.widgets import Button, TextBox
+
 from fluiddyn.io.image import imread
 from fluiddyn.util import time_as_str
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
-from matplotlib.widgets import Button, TextBox
 
 extensions = ["png", "tif", "tiff", "jpg", "jpeg", "bmp", "cine"]
 extensions = ["." + ext for ext in extensions]
