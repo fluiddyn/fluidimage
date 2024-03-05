@@ -3,7 +3,7 @@
 See also the
 [unreleased changes](https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.3.0...branch%2Fdefault).
 
-## [0.3.0] (2024-03-04)
+## [0.3.0] (2024-03-05)
 
 ```{warning}
 
