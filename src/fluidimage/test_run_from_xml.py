@@ -1,29 +1,56 @@
-import os
+import shutil
 import sys
 import unittest
 
 from fluidimage import get_path_image_samples
+from fluidimage.piv import TopologyPIV
 from fluidimage.run_from_xml import main
 
 path_image_samples = get_path_image_samples()
 
-on_linux = sys.platform == "linux"
+
+@unittest.skipIf(sys.platform != "linux", "Only supported on Linux")
+def test_main(monkeypatch):
+
+    monkeypatch.chdir(path_image_samples)
+
+    path = path_image_samples / "Karman/Images.civ/0_XML/Karman_1-4.xml"
+    command = f"run {path} --mode recompute"
+
+    with monkeypatch.context() as ctx:
+        ctx.setattr(sys, "argv", command.split())
+        main()
 
 
-class TestRunFromXML(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.current_dir = os.getcwd()
-        os.chdir(path_image_samples)
+def test_piv_sequential(tmp_path, monkeypatch):
 
-    @classmethod
-    def tearDownClass(cls):
-        os.chdir(cls.current_dir)
+    path_dir_images = tmp_path / "Images"
+    path_dir_images.mkdir()
 
-    @unittest.skipIf(not on_linux, "Only supported on Linux")
-    def test_main(self):
-        path = path_image_samples / "Karman/Images.civ/0_XML/Karman_1-4.xml"
-        command = f"run {str(path)} --mode recompute"
-        sys.argv = command.split()
+    for path_im in (path_image_samples / "Jet/Images").glob("*"):
+        shutil.copy(path_im, path_dir_images)
 
+    params = TopologyPIV.create_default_params()
+
+    params.series.path = str(path_dir_images)
+
+    params.piv0.shape_crop_im0 = 128
+    params.multipass.number = 2
+    params.multipass.use_tps = False
+
+    params.saving.how = "recompute"
+    params.saving.postfix = "test_piv_run_from_xml"
+
+    params._set_child(
+        "compute_args",
+        attribs={"executor": "exec_async_sequential", "nb_max_workers": 1},
+    )
+
+    path_params = path_dir_images.parent / "params.xml"
+
+    params._save_as_xml(path_file=path_params)
+    assert path_params.exists()
+
+    with monkeypatch.context() as ctx:
+        ctx.setattr(sys, "argv", ["run", str(path_params)])
         main()
