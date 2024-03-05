@@ -107,7 +107,7 @@ test = [
     "pytest",
     "coverage",
     "pytest-cov",
-    "fluidimage[opencv]"
+    "fluidimage"
 ]
 # test-qt = ["pytest-qt"]
 

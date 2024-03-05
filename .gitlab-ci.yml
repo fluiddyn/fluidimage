@@ -82,7 +82,15 @@ tests:
     - job: "image:build"
       optional: true
   script:
-    - xvfb-run nox -s test-cov
+    - xvfb-run nox -s "test(cov=True, with_opencv=True)"
+
+tests-no-opencv:
+  stage: test
+  needs:
+    - job: "image:build"
+      optional: true
+  script:
+    - xvfb-run nox -s "test(cov=True, with_opencv=False)"
 
 
 test-release:examples:

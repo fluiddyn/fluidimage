@@ -38,6 +38,19 @@ def _make_doc_with_filtered_params_doc(cls):
     )
 
 
+def _get_backend_class(backend):
+    if backend == "python":
+        from fluidimage.preproc.toolbox import PreprocToolsPy
+
+        return PreprocToolsPy
+    elif backend == "opencv":
+        from fluidimage.preproc.toolbox import PreprocToolsCV
+
+        return PreprocToolsCV
+
+    raise ImportError(f"Unknown backend: {backend}")
+
+
 class WorkPreproc(BaseWorkFromSerie):
     """Work for preprocessing.
 
@@ -58,22 +71,12 @@ class WorkPreproc(BaseWorkFromSerie):
 
         """
         params = ParamContainer(tag="params")
-        params._set_child("preproc")
+        params._set_child("preproc", attribs={"backend": backend})
         BaseWorkFromSerie._complete_params_with_default(params.preproc)
-        params.preproc.series.str_subset = "i+1:i+2"
+        params.preproc.series.str_subset = "all1by1"
 
-        if backend == "python":
-            from fluidimage.preproc.toolbox import PreprocToolsPy
-
-            cls._Tools = PreprocToolsPy
-        elif backend == "opencv":
-            from fluidimage.preproc.toolbox import PreprocToolsCV
-
-            cls._Tools = PreprocToolsCV
-        else:
-            raise ImportError(f"Unknown backend: {backend}")
-
-        cls._Tools.create_default_params(params)
+        Tools = _get_backend_class(backend)
+        Tools.create_default_params(params)
         return params
 
     def __init__(self, params=None):
@@ -82,7 +85,8 @@ class WorkPreproc(BaseWorkFromSerie):
             params = type(self).create_default_params()
         super().__init__(params)
         self.params = params.preproc
-        self.tools = self._Tools(params)
+        Tools = _get_backend_class(params.preproc.backend)
+        self.tools = Tools(params)
 
     def calcul(self, serie):
         """Apply all enabled preprocessing tools on the series of arrays
@@ -97,10 +101,10 @@ class WorkPreproc(BaseWorkFromSerie):
         if not isinstance(serie, ArraySerie):
             raise ValueError("serie must be an instance of class ArraySerie")
 
-        result = PreprocResults(self.params)
         images = np.array(serie.get_arrays())
         images = self.tools.apply(images)
         serie.clear_data()
+        result = PreprocResults(self.params)
         result.data.update(self._make_dict_to_save(serie, images))
         print_memory_usage(
             f"Memory usage after preprocessing {serie.ind_serie + 1}/{serie.nb_series} series"
@@ -124,7 +128,7 @@ class WorkPreproc(BaseWorkFromSerie):
 
         return dict(zip(name_files[s], images[s]))
 
-    def display(self, ind=None, hist=False):
+    def display(self, ind=0, hist=False):
         """Display figures to study the preprocessing"""
 
         serie0 = self.get_serie(ind)
