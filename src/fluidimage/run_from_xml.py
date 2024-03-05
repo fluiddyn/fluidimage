@@ -14,6 +14,7 @@ From Matlab, something like::
 
 import argparse
 import os
+from abc import ABC, abstractmethod
 from time import time
 
 import numpy as np
@@ -80,55 +81,67 @@ def tidy_uvmat_instructions(params):
     params._set_attrib("ind_start", ind_start)
 
 
-class ActionBase:
+class ActionBase(ABC):
+
+    @abstractmethod
     def __init__(self, instructions, args):
-        self.instructions = instructions
+        """Initialize the action class"""
 
-        # create the serie of arrays
-        logger.info("Create the serie of arrays")
-        self.serie_arrays = SerieOfArraysFromFiles(
-            path=instructions.path_dir_input,
-            slicing_tuples=instructions.slicing_tuples,
-        )
-
-
-class ActionAverage(ActionBase):
-    """Compute the average and save as a png file."""
-
+    @abstractmethod
     def compute(self):
-        instructions = self.instructions
-        serie = self.serie_arrays
-        # compute the average
-        logger.info("Compute the average")
-        a = serie.get_array_from_index(0)
-        mean = np.zeros_like(a, dtype=np.float32)
-        nb_fields = 0
-        for a in serie.iter_arrays():
-            mean += a
-            nb_fields += 1
-        mean /= nb_fields
+        """Perform the computation"""
 
-        strindices_first_file = serie.compute_strindices_from_indices(
-            *[indices[0] for indices in instructions.slicing_tuples]
-        )
-        strindices_last_file = serie.compute_strindices_from_indices(
-            *[indices[1] - 1 for indices in instructions.slicing_tuples]
-        )
 
-        name_file = (
-            serie.base_name
-            + serie.get_separator_base_index()
-            + strindices_first_file
-            + "-"
-            + strindices_last_file
-            + "."
-            + serie.extension_file
-        )
+# class ActionAverage(ActionBase):
+#     """Compute the average and save as a png file."""
 
-        path_save = os.path.join(instructions.path_dir_output, name_file)
-        logger.info("Save in file:\n%s", path_save)
-        scipy.misc.imsave(path_save, mean)
-        return mean
+#     def __init__(self, instructions, args):
+#         self.instructions = instructions
+
+#         # create the serie of arrays
+#         logger.info("Create the serie of arrays")
+#         self.serie_arrays = SerieOfArraysFromFiles(
+#             path=instructions.path_dir_input,
+#             slicing=instructions.slicing,
+#         )
+
+#     def compute(self):
+#         instructions = self.instructions
+#         serie = self.serie_arrays
+
+#         slicing_tuples = serie.get_slicing_tuples()
+
+#         # create output name
+#         strindices_first_file = serie.compute_str_indices_from_indices(
+#             *[indices[0] for indices in slicing_tuples]
+#         )
+#         strindices_last_file = serie.compute_str_indices_from_indices(
+#             *[indices[1] - 1 for indices in slicing_tuples]
+#         )
+#         name_file = (
+#             serie.base_name
+#             + serie.get_separator_base_index()
+#             + strindices_first_file
+#             + "-"
+#             + strindices_last_file
+#             + "."
+#             + serie.extension_file
+#         )
+#         path_save = os.path.join(instructions.path_dir_output, name_file)
+
+#         # compute the average
+#         logger.info("Compute the average")
+#         a = serie.get_array_from_index(0)
+#         mean = np.zeros_like(a, dtype=np.float32)
+#         nb_fields = 0
+#         for a in serie.iter_arrays():
+#             mean += a
+#             nb_fields += 1
+#         mean /= nb_fields
+
+#         logger.info("Save in file:\n%s", path_save)
+#         scipy.misc.imsave(path_save, mean)
+#         return mean
 
 
 def params_piv_from_uvmat_xml(instructions, args):
@@ -163,24 +176,25 @@ def params_piv_from_uvmat_xml(instructions, args):
     return params
 
 
-class ActionPIV(ActionBase):
+class ActionPIVFromUvmatXML(ActionBase):
     """Compute the average and save as a png file."""
 
     def __init__(self, instructions, args):
         self.instructions = instructions
         self.params = params_piv_from_uvmat_xml(instructions, args)
-        logger.info("Initialize fluidimage computations with parameters:")
+        logger.info("Initialize Fluidimage computations with parameters:")
         logger.info(self.params._make_xml_text())
         self.topology = TopologyPIV(self.params)
 
     def compute(self):
         t = time()
-        self.topology.compute(sequential=False)
+        self.topology.compute()
         t = time() - t
-        print(f"ellapsed time: {t}s")
+        print(f"elapsed time: {t} s")
 
 
-actions_classes = {"aver_stat": ActionAverage, "civ_series": ActionPIV}
+# actions_classes = {"aver_stat": ActionAverage, "civ_series": ActionPIVFromUvmatXML}
+actions_classes = {"civ_series": ActionPIVFromUvmatXML}
 
 programs = ["uvmat", "fluidimage"]
 
@@ -215,33 +229,29 @@ def main():
     args = parse_args()
 
     path_instructions_xml = args.path
-    logger.info(
-        "\nFrom Python, start with instructions in xml file:\n%s",
-        path_instructions_xml,
-    )
 
     params = ParamContainer(path_file=path_instructions_xml)
 
     program = None
-
     try:
         params.Action.ActionName
     except AttributeError:
-        pass
+        try:
+            program = params._value_text["program"]
+        except (AttributeError, KeyError):
+            pass
     else:
         program = "uvmat"
-
-    try:
-        program = params._value_text["program"]
-    except (AttributeError, KeyError):
-        pass
 
     if program not in programs:
         raise ValueError("Can not detect the program to launch.")
 
-    print(args)
+    logger.info(
+        "\nUsing instructions in xml file:\n%s",
+        path_instructions_xml,
+    )
 
-    print(f"using input file from {program}")
+    kwargs_compute = {}
 
     if program == "uvmat":
         tidy_uvmat_instructions(params)
@@ -264,7 +274,24 @@ def main():
         modif_fluidimage_params(params, args)
         action = cls(params)
 
-    return action.compute()
+        try:
+            compute_args = params.compute_args
+        except AttributeError:
+            pass
+        else:
+            for key in (
+                "executor",
+                "nb_max_workers",
+                "sleep_time",
+                "sequential",
+                "stop_if_error",
+            ):
+                try:
+                    kwargs_compute[key] = compute_args[key]
+                except (KeyError, AttributeError):
+                    pass
+
+    return action.compute(**kwargs_compute)
 
 
 if __name__ == "__main__":
