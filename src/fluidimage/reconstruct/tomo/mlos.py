@@ -36,7 +36,7 @@ from dask.diagnostics import ProgressBar
 from psutil import virtual_memory
 from scipy import interpolate, sparse
 
-from fluidimage._opencv import cv2
+from fluidimage._opencv import cv2, error_import_cv2
 from fluidimage.calibration.calib_cv import CalibCV
 from fluidimage.data_objects.tomo import ArrayTomoCV
 from fluidimage.util import imread
@@ -161,6 +161,8 @@ class TomoMLOSNeighbour(TomoMLOSBase):
 class TomoMLOSCV(TomoMLOSNeighbour):
     def __init__(self, *cams, **kwargs):
         super().__init__(CalibCV, ArrayTomoCV, *cams, **kwargs)
+        if error_import_cv2:
+            raise error_import_cv2
 
     def phys2pix(self, cam_name: str):
         """Tranform the 'physical' world coordinates to 'pixel' coordinates."""

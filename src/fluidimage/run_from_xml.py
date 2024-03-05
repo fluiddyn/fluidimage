@@ -193,7 +193,7 @@ def parse_args():
     parser.add_argument(
         "-m",
         "--mode",
-        help="‘ask’, ‘new_dir’, ‘complete’ or ‘recompute’.",
+        help="'ask', 'new_dir', 'complete' or 'recompute'.",
         type=str,
         default="ask",
     )

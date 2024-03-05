@@ -28,7 +28,3 @@ format:
 
 test:
 	OMP_NUM_THREADS=1 pdm run pytest src
-
-list-sessions:
-	@nox --version 2>/dev/null || pip install nox
-	@$(NOX) -l

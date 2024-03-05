@@ -4,8 +4,6 @@
 A toolbox for preprocessing images. Based on OpenCV library.
 cf. http://www.opencv.org.cn/opencvdoc/2.3.2/html/modules/imgproc/doc/filtering.html
 
-.. currentmodule:: fluidimage.preproc._toolbox_cv
-
 Provides:
 
    :members:
@@ -23,7 +21,6 @@ __all__ = [
     "global_threshold",
     "adaptive_threshold",
 ]
-
 
 # ----------------------------------------------------
 #   SPATIAL FILTERS
@@ -110,8 +107,10 @@ def global_threshold(img=None, minima=0.0, maxima=65535.0):
     """
     MAX_OPER = cv2.THRESH_TRUNC
     MIN_OPER = cv2.THRESH_TOZERO
-    img_out = cv2.threshold(img, thresh=maxima, maxval=maxima, type=MAX_OPER)
-    img_out = cv2.threshold(img_out, thresh=minima, maxval=maxima, type=MIN_OPER)
+    _, img_out = cv2.threshold(img, thresh=maxima, maxval=maxima, type=MAX_OPER)
+    _, img_out = cv2.threshold(
+        img_out, thresh=minima, maxval=maxima, type=MIN_OPER
+    )
     return img_out
 
 
@@ -134,6 +133,11 @@ def adaptive_threshold(img=None, window_size=5, offset=0):
     adaptiveMethod = cv2.ADAPTIVE_THRESH_GAUSSIAN_C
     thresholdType = cv2.THRESH_BINARY  # cv2.THRESH_BINARY_INV
     img_out = cv2.adaptiveThreshold(
-        img, img.max(), adaptiveMethod, thresholdType, window_size, offset
+        img.astype(np.uint8),
+        img.max(),
+        adaptiveMethod,
+        thresholdType,
+        window_size,
+        offset,
     )
     return img_out

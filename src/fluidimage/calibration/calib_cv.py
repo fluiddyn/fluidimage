@@ -24,7 +24,7 @@ from matplotlib.transforms import Bbox
 from scipy.interpolate import griddata
 
 from fluiddyn.util.paramcontainer import ParamContainer
-from fluidimage._opencv import cv2
+from fluidimage._opencv import cv2, error_import_cv2
 
 
 class ParamContainerCV(ParamContainer):
@@ -58,6 +58,8 @@ class SimpleCircleGrid:
 
     @staticmethod
     def create_default_params():
+        if error_import_cv2:
+            raise error_import_cv2
         params_cv = cv2.SimpleBlobDetector_Params()
         # Slightly nicer defaults
         params_cv.filterByColor = False
@@ -192,6 +194,8 @@ class CalibCV:
     """
 
     def __init__(self, path_file="cam.h5"):
+        if error_import_cv2:
+            raise error_import_cv2
         self.path_file = str(path_file)
         if os.path.exists(path_file):
             print(f"Loading {path_file}.")

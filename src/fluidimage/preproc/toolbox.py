@@ -19,6 +19,8 @@ Provides:
 
 import inspect
 
+from fluidimage._opencv import error_import_cv2
+
 from ..util import logger
 
 
@@ -84,6 +86,8 @@ class PreprocToolsBase:
             setattr(cls, tool, func)
 
     def __init__(self, params):
+        if type(self).__name__.endswith("CV") and error_import_cv2:
+            raise error_import_cv2
         self.params = params.preproc.tools
 
     def apply(self, img):

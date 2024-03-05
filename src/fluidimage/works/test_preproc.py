@@ -1,67 +1,82 @@
-import os
-import unittest
-from pathlib import Path
-from shutil import rmtree
+import pytest
 
 from fluiddyn.io.image import imread, imsave
 from fluidimage import get_path_image_samples
+from fluidimage._opencv import error_import_cv2
 from fluidimage.works.preproc import Work
 
 
-class TestPreprocKarman(unittest.TestCase):
-    name = "Karman"
-
-    @classmethod
-    def setUpClass(cls):
-        path_in = get_path_image_samples() / cls.name / "Images"
-
-        cls._work_dir = (
-            Path("test_fluidimage_topo_preproc_" + cls.name) / "Images"
-        )
-
-        if not cls._work_dir.exists():
-            cls._work_dir.mkdir(parents=True)
-
-        for path in sorted(path_in.glob("*")):
-            name = path.name
-            im = imread(path)
-            im = im[::6, ::6]
-            imsave(cls._work_dir / name, im, as_int=True)
-
-    @classmethod
-    def tearDownClass(cls):
-        rmtree(os.path.split(cls._work_dir)[0], ignore_errors=True)
-
-    def test_preproc(self):
-        """Test preproc subpackage on image sample Karman with one index."""
-        params = Work.create_default_params()
-
-        params.preproc.series.path = self._work_dir
-
-        for tool in params.preproc.tools.available_tools:
-            if "sliding" not in tool and "temporal" not in tool:
-                tool = params.preproc.tools.__getitem__(tool)
-                tool.enable = True
-
-        preproc = Work(params)
-        preproc.display(1, hist=True)
+def create_tmp_dir(tmp_path_factory, dataset: str):
+    path_in = get_path_image_samples() / dataset / "Images"
+    tmp_path = tmp_path_factory.mktemp("dir_" + dataset)
+    for path in sorted(path_in.glob("*")):
+        name = path.name
+        im = imread(path)
+        im = im[::6, ::6]
+        imsave(tmp_path / name, im, as_int=True)
+    return tmp_path
 
 
-class TestPreprocTime(TestPreprocKarman):
-    name = "Jet"
+@pytest.fixture(scope="session")
+def path_dir_karman(tmp_path_factory):
+    return create_tmp_dir(tmp_path_factory, "Karman")
 
-    def test_preproc(self):
-        """Test preproc subpackage on image sample Jet with two indices."""
-        params = Work.create_default_params()
 
-        params.preproc.series.path = self._work_dir
-        params.preproc.series.str_subset = "i,0"
-        params.preproc.series.ind_start = 60
+@pytest.fixture(scope="session")
+def path_dir_jet(tmp_path_factory):
+    return create_tmp_dir(tmp_path_factory, "Jet")
 
-        for tool in params.preproc.tools.available_tools:
-            if "sliding" in tool:
-                tool = params.preproc.tools.__getitem__(tool)
-                tool.enable = True
 
-        preproc = Work(params)
-        preproc.display(60, hist=False)
+def _test_karman(path, backend):
+    """Test preproc subpackage on image sample Karman with one index."""
+    params = Work.create_default_params(backend=backend)
+    params.preproc.series.path = path
+
+    for tool in params.preproc.tools.available_tools:
+        if "sliding" not in tool and "temporal" not in tool:
+            tool = params.preproc.tools.__getitem__(tool)
+            tool.enable = True
+
+    if error_import_cv2 and backend == "opencv":
+        with pytest.raises(ModuleNotFoundError):
+            Work(params)
+        return
+
+    preproc = Work(params)
+    preproc.display(1, hist=True)
+
+
+def test_preproc_python_karman(path_dir_karman):
+    _test_karman(path_dir_karman, "python")
+
+
+def test_preproc_opencv_karman(path_dir_karman):
+    _test_karman(path_dir_karman, "opencv")
+
+
+def _test_jet(path, backend):
+    """Test preproc subpackage on image sample Jet with two indices."""
+    params = Work.create_default_params(backend=backend)
+
+    params.preproc.series.path = path
+
+    for tool in params.preproc.tools.available_tools:
+        if "sliding" in tool:
+            tool = params.preproc.tools.__getitem__(tool)
+            tool.enable = True
+
+    if error_import_cv2 and backend == "opencv":
+        with pytest.raises(ModuleNotFoundError):
+            Work(params)
+        return
+
+    preproc = Work(params)
+    preproc.display(hist=False)
+
+
+def test_preproc_python_jet(path_dir_jet):
+    _test_jet(path_dir_jet, "python")
+
+
+def test_preproc_opencv_jet(path_dir_jet):
+    _test_jet(path_dir_jet, "opencv")

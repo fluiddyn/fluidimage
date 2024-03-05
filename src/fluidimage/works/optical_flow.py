@@ -16,7 +16,7 @@ import numpy as np
 
 from fluiddyn.util.paramcontainer import ParamContainer
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
-from fluidimage._opencv import cv2
+from fluidimage._opencv import cv2, error_import_cv2
 from fluidimage.data_objects.piv import ArrayCouple, HeavyPIVResults
 
 from . import BaseWorkFromSerie
@@ -79,6 +79,10 @@ class WorkOpticalFlow(BaseWorkWithMask, BaseWorkFromSerie):
 
     @classmethod
     def _complete_params_with_default(cls, params):
+
+        if error_import_cv2:
+            raise error_import_cv2
+
         BaseWorkFromSerie._complete_params_with_default(params)
 
         params._set_child(

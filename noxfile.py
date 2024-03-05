@@ -1,18 +1,12 @@
 """Task runner for the developer
 
-Usage
------
+# Usage
 
-   nox -l
-
-   nox -s <session>
-
-   nox -k <keyword>
-or:
-
-   make <session>
-
-execute ``make list-sessions```` or ``nox -l`` for a list of sessions.
+```
+nox -l            # list of sessions.
+nox -s <session>  # execute a session
+nox -k <keyword>  # execute some session
+```
 
 """
 
@@ -30,7 +24,7 @@ TEST_ENV_VARS = {"OMP_NUM_THREADS": "1"}
 
 no_venv_session = partial(nox.session, venv_backend="none")
 os.environ.update({"PDM_IGNORE_SAVED_PYTHON": "1"})
-nox.options.sessions = ["test-cov"]
+nox.options.sessions = ["test(cov=True, with_opencv=True)"]
 nox.options.reuse_existing_virtualenvs = 1
 
 
@@ -58,13 +52,26 @@ class TimePrinter:
         self.time_last = time_now
 
 
+@nox.parametrize("with_opencv", [True, False])
+@nox.parametrize("cov", [True, False])
 @nox.session
-def test(session):
+def test(session, cov, with_opencv):
     """Execute unit-tests using pytest"""
 
     command = "pdm sync --clean -G test --no-self"
+    if with_opencv:
+        command += " -G opencv"
+
     session.run_always(*command.split(), external=True)
     session.install(".", "--no-deps")
+
+    args_cov = []
+    if cov:
+        args_cov.extend([
+            "--cov",
+            "--no-cov-on-fail",
+            "--cov-report=term-missing",
+        ])
 
     session.run(
         "python",
@@ -72,25 +79,12 @@ def test(session):
         "pytest",
         "--pyargs",
         "fluidimage",
+        *args_cov,
         *session.posargs,
         env=TEST_ENV_VARS,
     )
-    if "--cov" in session.posargs:
+    if cov:
         session.run("coverage", "xml")
-
-
-@no_venv_session(name="test-cov")
-def test_cov(session):
-    """Execute unit-tests using pytest+pytest-cov"""
-    session.notify(
-        "test",
-        [
-            "--cov",
-            "--no-cov-on-fail",
-            "--cov-report=term-missing",
-            *session.posargs,
-        ],
-    )
 
 
 @nox.session(name="test-examples")
