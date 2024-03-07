@@ -5,6 +5,10 @@
    :members:
    :private-members:
 
+.. autoclass:: MultiExecutorBase
+   :members:
+   :private-members:
+
 """
 
 import os
@@ -215,3 +219,63 @@ class ExecutorBase:
                 f"Exception for work {work_name}, key {key}:\n"
                 + formated_exception
             )
+
+
+class MultiExecutorBase(ExecutorBase):
+    """Manage the multi-executor mode
+
+     This class is not the one whose really compute the topology. The topology is
+     split and each slice is computed with an ExecutorAsync
+
+    Parameters
+    ----------
+
+    nb_max_workers : None, int
+
+      Limits the numbers of workers working in the same time.
+
+    nb_items_queue_max : None, int
+
+      Limits the numbers of items that can be in a output_queue.
+
+    sleep_time : None, float
+
+      Defines the waiting time (from trio.sleep) of a function. Async functions
+      await `trio.sleep(sleep_time)` when they have done a work on an item, and
+      when there is nothing in their input_queue.
+
+    """
+
+    def __init__(
+        self,
+        topology,
+        path_dir_result,
+        nb_max_workers=None,
+        nb_items_queue_max=None,
+        sleep_time=0.01,
+        logging_level="info",
+        stop_if_error=False,
+    ):
+        if stop_if_error:
+            raise NotImplementedError
+
+        super().__init__(
+            topology,
+            path_dir_result,
+            nb_max_workers,
+            nb_items_queue_max,
+            logging_level=logging_level,
+        )
+
+        self.sleep_time = sleep_time
+        self.nb_processes = self.nb_max_workers
+        self.processes = []
+
+        # to avoid a pylint warning
+        self.log_paths = None
+
+    def _init_log_path(self):
+        name = "_".join(("log", time_as_str(), str(os.getpid())))
+        path_dir_log = self.path_dir_exceptions = self.path_dir_result / name
+        path_dir_log.mkdir(exist_ok=True)
+        self._log_path = path_dir_log / (name + ".txt")
