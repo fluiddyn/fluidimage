@@ -76,6 +76,7 @@ class ExecutorBase:
         logging_level="info",
         sleep_time=None,
         stop_if_error=False,
+        path_log=None,
     ):
         if not _omp_num_threads_equal_1_at_import:
             raise SystemError(
@@ -96,6 +97,8 @@ class ExecutorBase:
         self._unique_postfix = f"{time_as_str()}_{os.getpid()}"
 
         self._init_log_path()
+        if path_log is not None:
+            self._log_path = path_log
         self._log_file = open(self._log_path, "w")
 
         stdout = sys.stdout

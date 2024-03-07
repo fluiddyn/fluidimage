@@ -42,7 +42,7 @@ def test_piv_sequential(tmp_path, monkeypatch):
     params.saving.postfix = "test_piv_run_from_xml"
 
     params._set_child(
-        "compute_args",
+        "compute_kwargs",
         attribs={"executor": "exec_async_sequential", "nb_max_workers": 1},
     )
 

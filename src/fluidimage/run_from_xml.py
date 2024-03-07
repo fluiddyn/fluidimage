@@ -276,21 +276,11 @@ def main():
         action = cls(params)
 
         try:
-            compute_args = params.compute_args
+            compute_kwargs = params.compute_kwargs
         except AttributeError:
             pass
         else:
-            for key in (
-                "executor",
-                "nb_max_workers",
-                "sleep_time",
-                "sequential",
-                "stop_if_error",
-            ):
-                try:
-                    kwargs_compute[key] = compute_args[key]
-                except (KeyError, AttributeError):
-                    pass
+            kwargs_compute = compute_kwargs._make_dict_tree()
 
     return action.compute(**kwargs_compute)
 

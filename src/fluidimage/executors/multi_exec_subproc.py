@@ -48,10 +48,17 @@ class MultiExecutorSubproc(MultiExecutorBase):
                 continue
 
             params_split._set_child(
-                "compute_args",
+                "compute_kwargs",
                 attribs={
                     "executor": "exec_async_sequential",
                     "nb_max_workers": 1,
+                },
+            )
+            params_split.compute_kwargs._set_child(
+                "kwargs_executor",
+                attribs={
+                    "path_log": self._log_path.parent
+                    / f"process_{index_process:03d}.txt"
                 },
             )
 

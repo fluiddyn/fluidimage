@@ -196,6 +196,7 @@ postfix : str
         sleep_time=0.01,
         sequential=False,
         stop_if_error=False,
+        kwargs_executor=None,
     ):
         """Compute (run the works until all queues are empty).
 
@@ -235,6 +236,9 @@ postfix : str
             if nb_max_workers is None:
                 nb_max_workers = self.nb_max_workers
 
+            if kwargs_executor is None:
+                kwargs_executor = {}
+
             exec_class = import_executor_class(executor)
             self.executor = exec_class(
                 self,
@@ -243,6 +247,7 @@ postfix : str
                 sleep_time=sleep_time,
                 logging_level=self.logging_level,
                 stop_if_error=stop_if_error,
+                **kwargs_executor,
             )
 
         self.executor.compute()

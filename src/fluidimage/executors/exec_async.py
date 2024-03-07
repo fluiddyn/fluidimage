@@ -44,6 +44,7 @@ class ExecutorAsync(ExecutorBase):
         sleep_time=0.01,
         logging_level="info",
         stop_if_error=False,
+        path_log=None,
     ):
         super().__init__(
             topology,
@@ -52,6 +53,7 @@ class ExecutorAsync(ExecutorBase):
             nb_items_queue_max,
             logging_level=logging_level,
             stop_if_error=stop_if_error,
+            path_log=path_log,
         )
 
         self.nb_working_workers_cpu = 0
