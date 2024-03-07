@@ -10,6 +10,8 @@ import subprocess
 import sys
 from time import sleep
 
+from fluidimage.util import logger
+
 from .base import MultiExecutorBase
 
 
@@ -50,7 +52,7 @@ class MultiExecutorSubproc(MultiExecutorBase):
             params_split._set_child(
                 "compute_kwargs",
                 attribs={
-                    "executor": "exec_async_sequential",
+                    "executor": "exec_async_seq_for_multi",
                     "nb_max_workers": 1,
                 },
             )
@@ -58,7 +60,9 @@ class MultiExecutorSubproc(MultiExecutorBase):
                 "kwargs_executor",
                 attribs={
                     "path_log": self._log_path.parent
-                    / f"process_{index_process:03d}.txt"
+                    / f"process_{index_process:03d}.txt",
+                    "t_start": self.t_start,
+                    "index_process": index_process,
                 },
             )
 
@@ -71,7 +75,11 @@ class MultiExecutorSubproc(MultiExecutorBase):
                     "-m",
                     "fluidimage.run_from_xml",
                     str(path_params),
-                ]
+                ],
+                text=True,
+                encoding="utf-8",
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
             )
             self.processes.append(process)
 
@@ -90,10 +98,10 @@ class MultiExecutorSubproc(MultiExecutorBase):
                     running_processes_updated[idx] = process
                 else:
                     return_codes[idx] = ret_code
+                    if ret_code != 0:
+                        logger.error(process.stderr.read())
             running_processes = running_processes_updated
             sleep(0.1)
-
-        print(ret_code)
 
 
 Executor = MultiExecutorSubproc

@@ -32,11 +32,11 @@ class ExecutorAsyncSequential(ExecutorAsync):
 
         key : hashable
 
-          The key of the dictionnary item to be process
+          The key of the dictionary item to be process
 
         obj : object
 
-          The value of the dictionnary item to be process
+          The value of the dictionary item to be process
 
         """
         self.nb_working_workers_cpu += 1

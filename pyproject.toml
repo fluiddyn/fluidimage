@@ -65,6 +65,7 @@ graph = ["gprof2dot"]
 exec_sequential = "fluidimage.executors.exec_sequential"
 exec_async = "fluidimage.executors.exec_async"
 exec_async_sequential =  "fluidimage.executors.exec_async_sequential"
+exec_async_seq_for_multi = "fluidimage.executors.exec_async_seq_for_multi"
 multi_exec_async =  "fluidimage.executors.multi_exec_async"
 multi_exec_subproc = "fluidimage.executors.multi_exec_subproc"
 exec_async_multi =  "fluidimage.executors.exec_async_multiproc"

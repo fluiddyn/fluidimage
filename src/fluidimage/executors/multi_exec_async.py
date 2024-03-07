@@ -14,58 +14,19 @@ Multi executors async
 
 import copy
 import math
-import os
-import signal
-import sys
 from multiprocessing import Pipe, Process
 from pathlib import Path
-from time import time
 
 from fluidimage.util import logger
 
 from .base import MultiExecutorBase
-from .exec_async_sequential import ExecutorAsyncSequential
+from .exec_async_seq_for_multi import ExecutorAsyncSeqForMulti
+
+# from time import time
 
 
-class ExecutorAsyncForMulti(ExecutorAsyncSequential):
+class ExecutorAsyncForMulti(ExecutorAsyncSeqForMulti):
     """Slightly modified ExecutorAsync"""
-
-    def __init__(
-        self,
-        topology,
-        path_dir_result,
-        log_path,
-        sleep_time=0.01,
-        logging_level="info",
-        stop_if_error=False,
-    ):
-        if stop_if_error:
-            raise NotImplementedError(
-                "stop_if_error not implemented for ExecutorAsyncForMulti"
-            )
-
-        self._log_path = log_path
-        super().__init__(
-            topology,
-            path_dir_result,
-            nb_max_workers=1,
-            nb_items_queue_max=8,
-            sleep_time=sleep_time,
-            logging_level=logging_level,
-        )
-
-    def _init_log_path(self):
-        self.path_dir_exceptions = self._log_path.parent
-
-    def _init_compute(self):
-        self._init_compute_log()
-
-    def _finalize_compute(self):
-        self._reset_std_as_default()
-
-        txt = self.topology.make_text_at_exit(time() - self.t_start)
-        with open(self._log_file.name, "a") as file:
-            file.write(txt)
 
 
 class MultiExecutorAsync(MultiExecutorBase):
@@ -146,7 +107,7 @@ class MultiExecutorAsync(MultiExecutorBase):
         del topology.works[0]
         old_queue = topology.first_queue
 
-        for ind_process, keys_proc in enumerate(keys_for_processes):
+        for idx_process, keys_proc in enumerate(keys_for_processes):
             topology_this_process = copy.copy(self.topology)
             new_queue = copy.copy(topology.first_queue)
             topology_this_process.first_queue = new_queue
@@ -178,7 +139,7 @@ class MultiExecutorAsync(MultiExecutorBase):
 
             old_queue = new_queue
 
-            self.launch_process(topology_this_process, ind_process)
+            self.launch_process(topology_this_process, idx_process)
 
     def _start_multiprocess_series(self):
         """Start the processes spitting the work with the series object"""
@@ -192,7 +153,7 @@ class MultiExecutorAsync(MultiExecutorBase):
         remainder = nb_image_computed % self.nb_processes
         step_process = math.floor(nb_image_computed / self.nb_processes)
         # change topology
-        for ind_process in range(self.nb_processes):
+        for idx_process in range(self.nb_processes):
             new_topology = copy.copy(self.topology)
             new_topology.series.ind_start = ind_start
             add_rest = 0
@@ -213,18 +174,21 @@ class MultiExecutorAsync(MultiExecutorBase):
                 new_topology.series.ind_stop = ind_stop
             ind_start = self.topology.series.ind_stop
 
-            self.launch_process(new_topology, ind_process)
+            self.launch_process(new_topology, idx_process)
 
-    def init_and_compute(self, topology_this_process, log_path, child_conn):
+    def init_and_compute(
+        self, topology_this_process, log_path, child_conn, idx_process
+    ):
         """Create an executor and start it in a process"""
         executor = ExecutorAsyncForMulti(
             topology_this_process,
             self.path_dir_result,
             sleep_time=self.sleep_time,
-            log_path=log_path,
+            path_log=log_path,
             logging_level=self.logging_level,
+            t_start=self.t_start,
+            index_process=idx_process,
         )
-        executor.t_start = self.t_start
         executor.compute()
 
         # send the results
@@ -235,11 +199,11 @@ class MultiExecutorAsync(MultiExecutorBase):
 
         child_conn.send(results)
 
-    def launch_process(self, topology, ind_process):
+    def launch_process(self, topology, idx_process):
         """Launch one process"""
 
         log_path = Path(
-            str(self._log_path).split(".txt")[0] + f"_multi{ind_process:03}.txt"
+            str(self._log_path).split(".txt")[0] + f"_multi{idx_process:03}.txt"
         )
 
         self.log_paths.append(log_path)
@@ -247,7 +211,8 @@ class MultiExecutorAsync(MultiExecutorBase):
         parent_conn, child_conn = Pipe()
 
         process = Process(
-            target=self.init_and_compute, args=(topology, log_path, child_conn)
+            target=self.init_and_compute,
+            args=(topology, log_path, child_conn, idx_process),
         )
         process.connection = parent_conn
         process.daemon = True
