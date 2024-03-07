@@ -209,17 +209,18 @@ def parse_args():
         "--mode",
         help="'ask', 'new_dir', 'complete' or 'recompute'.",
         type=str,
-        default="ask",
+        default=None,
     )
 
     return parser.parse_args()
 
 
 def modif_fluidimage_params(params, args):
-    try:
-        params.saving.how = args.mode
-    except AttributeError:
-        pass
+    if args.mode is not None:
+        try:
+            params.saving.how = args.mode
+        except AttributeError:
+            pass
 
 
 def main():

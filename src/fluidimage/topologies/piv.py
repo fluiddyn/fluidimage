@@ -15,6 +15,7 @@ from pathlib import Path
 from fluidimage import ParamContainer, SeriesOfArrays
 from fluidimage.data_objects.piv import ArrayCouple, get_name_piv
 from fluidimage.topologies import TopologyBase, prepare_path_dir_result
+from fluidimage.topologies.splitters import SplitterFromSeries
 from fluidimage.util import DEBUG, imread, logger
 from fluidimage.works import image2image
 from fluidimage.works.piv import WorkPIV
@@ -50,6 +51,7 @@ class TopologyPIV(TopologyBase):
     _short_name = "piv"
 
     WorkVelocimetry = WorkPIV
+    Splitter = SplitterFromSeries
 
     @classmethod
     def create_default_params(cls):

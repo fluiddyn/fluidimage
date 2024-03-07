@@ -1,83 +1,89 @@
+import shutil
 import sys
 import unittest
 from pathlib import Path
-from shutil import rmtree
 from time import sleep
 
+import pytest
+
 from fluidimage import get_path_image_samples
-from fluidimage.topologies.piv import TopologyPIV
+from fluidimage.piv import TopologyPIV
 
 path_image_samples = get_path_image_samples()
 
 on_linux = sys.platform == "linux"
+postfix = "test_piv"
+
+skip_except_on_linux = unittest.skipIf(not on_linux, "Only supported on Linux")
 
 
-@unittest.skipIf(not on_linux, "Only supported on Linux")
-class TestPivNew(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.path_Oseen = path_image_samples / "Oseen/Images/Oseen*"
-        cls.path_Jet = path_image_samples / "Jet/Images/c06*"
-        cls.postfix = "test_piv"
+def create_tmp_dir_image(tmp_path, name):
 
-    @classmethod
-    def tearDownClass(cls):
-        paths = (cls.path_Oseen, cls.path_Jet)
-        for path in paths:
-            path_out = Path(str(path.parent) + "." + cls.postfix)
-            if path_out.exists():
-                rmtree(path_out, ignore_errors=True)
+    path_dir_images = tmp_path / "Images"
+    path_dir_images.mkdir()
 
-    def test_piv_new(self):
-        params = TopologyPIV.create_default_params()
+    for path_im in (path_image_samples / name).glob("Images/*"):
+        shutil.copy(path_im, path_dir_images)
 
-        params.series.path = str(self.path_Oseen)
-        params.series.ind_start = 1
-        params.series.ind_step = 1
+    return path_dir_images
 
-        params.piv0.shape_crop_im0 = 32
-        params.multipass.number = 2
-        params.multipass.use_tps = True
 
-        # params.saving.how has to be equal to 'complete' for idempotent jobs
-        # (on clusters)
-        params.saving.how = "recompute"
-        params.saving.postfix = self.postfix
+@skip_except_on_linux
+@pytest.mark.parametrize("executor", [None, "multi_exec_subproc"])
+def test_piv_oseen(tmp_path, executor):
 
-        topology = TopologyPIV(params, logging_level="info")
+    path_dir_images = create_tmp_dir_image(tmp_path, "Oseen")
 
-        topology.make_code_graphviz(topology.path_dir_result / "topo.dot")
-        topology.compute()
+    params = TopologyPIV.create_default_params()
 
-    def test_piv_new_multiproc(self):
-        params = TopologyPIV.create_default_params()
+    params.series.path = str(path_dir_images)
 
-        params.series.path = str(self.path_Jet)
+    params.piv0.shape_crop_im0 = 32
+    params.multipass.number = 2
+    params.multipass.use_tps = True
 
-        params.piv0.shape_crop_im0 = 128
-        params.multipass.number = 2
-        params.multipass.use_tps = True
+    params.saving.how = "recompute"
+    params.saving.postfix = postfix
 
-        params.saving.how = "recompute"
-        params.saving.postfix = self.postfix
+    topology = TopologyPIV(params, logging_level="info")
 
-        topology = TopologyPIV(params, logging_level="info")
-        topology.compute()
+    topology.make_code_graphviz(topology.path_dir_result / "topo.dot")
+    topology.compute(executor)
 
-        topology = TopologyPIV(params, logging_level="info")
-        topology.compute(nb_max_workers=2)
 
-        # remove one file to test params.saving.how = "complete"
+@skip_except_on_linux
+def test_piv_jet(tmp_path):
+
+    path_dir_images = create_tmp_dir_image(tmp_path, "Jet")
+
+    params = TopologyPIV.create_default_params()
+
+    params.series.path = str(path_dir_images)
+
+    params.piv0.shape_crop_im0 = 128
+    params.multipass.number = 2
+    params.multipass.use_tps = True
+
+    params.saving.how = "recompute"
+    params.saving.postfix = postfix
+
+    topology = TopologyPIV(params, logging_level="info")
+    topology.compute()
+
+    topology = TopologyPIV(params, logging_level="info")
+    topology.compute(nb_max_workers=2)
+
+    # remove one file to test params.saving.how = "complete"
+    path_files = list(Path(topology.path_dir_result).glob("piv*"))
+
+    if not path_files:
+        sleep(0.2)
         path_files = list(Path(topology.path_dir_result).glob("piv*"))
 
-        if not path_files:
-            sleep(0.2)
-            path_files = list(Path(topology.path_dir_result).glob("piv*"))
+    path_files[0].unlink()
 
-        path_files[0].unlink()
+    params.saving.how = "complete"
+    topology = TopologyPIV(params, logging_level="debug")
+    topology.compute("exec_sequential")
 
-        params.saving.how = "complete"
-        topology = TopologyPIV(params, logging_level="debug")
-        topology.compute("exec_sequential")
-
-        assert len(topology.results) == 1
+    assert len(topology.results) == 1

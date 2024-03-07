@@ -63,7 +63,7 @@ class ExecutorBase:
     """
 
     def _init_log_path(self):
-        name = "_".join(("log", time_as_str(), str(os.getpid())))
+        name = f"log_{self._unique_postfix}"
         self.path_dir_exceptions = self.path_dir_result / name
         self._log_path = self.path_dir_result / (name + ".txt")
 
@@ -92,6 +92,9 @@ class ExecutorBase:
         path_dir_result = Path(path_dir_result)
         path_dir_result.mkdir(exist_ok=True)
         self.path_dir_result = path_dir_result
+
+        self._unique_postfix = f"{time_as_str()}_{os.getpid()}"
+
         self._init_log_path()
         self._log_file = open(self._log_path, "w")
 
@@ -275,7 +278,31 @@ class MultiExecutorBase(ExecutorBase):
         self.log_paths = None
 
     def _init_log_path(self):
-        name = "_".join(("log", time_as_str(), str(os.getpid())))
+        name = f"log_{self._unique_postfix}"
         path_dir_log = self.path_dir_exceptions = self.path_dir_result / name
         path_dir_log.mkdir(exist_ok=True)
         self._log_path = path_dir_log / (name + ".txt")
+
+    def compute(self):
+        """Compute the topology."""
+
+        self._init_compute()
+        self.log_paths = []
+
+        if sys.platform != "win32":
+
+            def handler_signals(signal_number, stack):
+                del stack
+                print(
+                    f"signal {signal_number} received: set _has_to_stop to True "
+                    f"({type(self).__name__})."
+                )
+                self._has_to_stop = True
+                for process in self.processes:
+                    os.kill(process.pid, signal_number)
+
+            signal.signal(12, handler_signals)
+
+        self._start_processes()
+        self._wait_for_all_processes()
+        self._finalize_compute()

@@ -93,9 +93,8 @@ class MultiExecutorAsync(MultiExecutorBase):
 
     """
 
-    def compute(self):
-        """Compute the topology.
-
+    def _start_processes(self):
+        """
         There are two ways to split self.topology work:
 
         - If first self.topology has "series" attribute (from seriesOfArray), it
@@ -110,31 +109,12 @@ class MultiExecutorAsync(MultiExecutorBase):
           and call each Executor_await.compute in a process from multiprocessing.
 
         """
-        self._init_compute()
-        self.log_paths = []
-
-        if sys.platform != "win32":
-
-            def handler_signals(signal_number, stack):
-                del stack
-                print(
-                    f"signal {signal_number} received: set _has_to_stop to True "
-                    f"({type(self).__name__})."
-                )
-                self._has_to_stop = True
-                for process in self.processes:
-                    os.kill(process.pid, signal_number)
-
-            signal.signal(12, handler_signals)
-
         if hasattr(self.topology, "series"):
-            self.start_multiprocess_series()
+            self._start_multiprocess_series()
         else:
-            self.start_multiprocess_first_queue()
+            self._start_multiprocess_first_queue()
 
-        self._finalize_compute()
-
-    def start_multiprocess_first_queue(self):
+    def _start_multiprocess_first_queue(self):
         """Start the processes spitting the work with the first queue"""
         first_work = self.topology.works[0]
         if first_work.input_queue is not None:
@@ -200,9 +180,7 @@ class MultiExecutorAsync(MultiExecutorBase):
 
             self.launch_process(topology_this_process, ind_process)
 
-        self.wait_for_all_processes()
-
-    def start_multiprocess_series(self):
+    def _start_multiprocess_series(self):
         """Start the processes spitting the work with the series object"""
         ind_stop_limit = self.topology.series.ind_stop
         # Defining split values
@@ -236,8 +214,6 @@ class MultiExecutorAsync(MultiExecutorBase):
             ind_start = self.topology.series.ind_stop
 
             self.launch_process(new_topology, ind_process)
-
-        self.wait_for_all_processes()
 
     def init_and_compute(self, topology_this_process, log_path, child_conn):
         """Create an executor and start it in a process"""
@@ -278,7 +254,7 @@ class MultiExecutorAsync(MultiExecutorBase):
         process.start()
         self.processes.append(process)
 
-    def wait_for_all_processes(self):
+    def _wait_for_all_processes(self):
         """logging + wait for all processes to finish"""
         logger.info(
             f"logging files: {[log_path.name for log_path in self.log_paths]}"
