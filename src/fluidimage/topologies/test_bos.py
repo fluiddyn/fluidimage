@@ -1,11 +1,15 @@
 from pathlib import Path
 
+import pytest
+
 from fluidimage.bos import TopologyBOS
+from fluidimage.executors import supported_multi_executors
 
-postfix = "test_bos_new"
+postfix = "test_bos"
 
 
-def test_bos_new_multiproc(tmp_path_karman):
+@pytest.mark.parametrize("executor", supported_multi_executors)
+def test_bos_new_multiproc(tmp_path_karman, executor):
     params = TopologyBOS.create_default_params()
 
     params.images.path = str(tmp_path_karman)
@@ -36,4 +40,4 @@ def test_bos_new_multiproc(tmp_path_karman):
 
     params.saving.how = "complete"
     topology = TopologyBOS(params, logging_level="info")
-    topology.compute()
+    topology.compute(executor)

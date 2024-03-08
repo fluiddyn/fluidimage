@@ -1,32 +1,17 @@
-import shutil
 from pathlib import Path
 from time import sleep
 
 import pytest
 
-from fluidimage import get_path_image_samples
 from fluidimage.executors import supported_multi_executors
 from fluidimage.piv import TopologyPIV
 
-path_image_samples = get_path_image_samples()
 postfix = "test_piv"
 
 
-def create_tmp_dir_image(tmp_path, name):
-
-    path_dir_images = tmp_path / "Images"
-    path_dir_images.mkdir()
-
-    for path_im in (path_image_samples / name).glob("Images/*"):
-        shutil.copy(path_im, path_dir_images)
-
-    return path_dir_images
-
-
 @pytest.mark.parametrize("executor", supported_multi_executors)
-def test_piv_oseen(tmp_path, executor):
-
-    path_dir_images = create_tmp_dir_image(tmp_path, "Oseen")
+def test_piv_oseen(tmp_path_oseen, executor):
+    path_dir_images = tmp_path_oseen
 
     params = TopologyPIV.create_default_params()
 
@@ -45,9 +30,8 @@ def test_piv_oseen(tmp_path, executor):
     topology.compute(executor)
 
 
-def test_piv_jet(tmp_path):
-
-    path_dir_images = create_tmp_dir_image(tmp_path, "Jet")
+def test_piv_jet(tmp_path_jet):
+    path_dir_images = tmp_path_jet
 
     params = TopologyPIV.create_default_params()
 

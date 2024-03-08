@@ -173,11 +173,11 @@ class ExecutorBase:
 
     def _init_compute_log(self):
         log_memory_usage(time_as_str(2) + ": starting execution. mem usage")
-        logger.info(f"  topology: {str_short(type(self.topology))}")
-        logger.info(f"  executor: {str_short(type(self))}")
-        logger.info(f"  nb_cpus_allowed = {nb_cores}")
-        logger.info(f"  nb_max_workers = {self.nb_max_workers}")
-        logger.info(f"  path_dir_result = {self.path_dir_result}")
+        logger.info("  topology: %s", str_short(type(self.topology)))
+        logger.info("  executor: %s", str_short(type(self)))
+        logger.info("  nb_cpus_allowed = %s", nb_cores)
+        logger.info("  nb_max_workers = %s", self.nb_max_workers)
+        logger.info("  path_dir_result = %s", self.path_dir_result)
 
     def _reset_std_as_default(self):
         sys.stdout = sys.__stdout__

@@ -6,7 +6,7 @@
 from abc import ABC, abstractmethod
 from copy import deepcopy
 
-from fluiddyn.util.serieofarrays import SeriesOfArrays
+from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles, SeriesOfArrays
 
 
 def split_range(start0, stop0, step0, num_parts):
@@ -35,7 +35,7 @@ def split_range(start0, stop0, step0, num_parts):
 
 class Splitter(ABC):
 
-    def __init__(self, params, num_processes):
+    def __init__(self, params, num_processes, topology=None):
         """Initialize the splitter"""
         self.params = params
         self.num_processes = num_processes
@@ -47,17 +47,21 @@ class Splitter(ABC):
 
 class SplitterFromSeries(Splitter):
 
-    def __init__(self, params, num_processes):
-        super().__init__(params, num_processes)
+    def __init__(self, params, num_processes, topology=None):
+        super().__init__(params, num_processes, topology=topology)
 
-        p_series = self.get_params_series(params)
-        self.series = SeriesOfArrays(
-            p_series.path,
-            p_series.str_subset,
-            ind_start=p_series.ind_start,
-            ind_stop=p_series.ind_stop,
-            ind_step=p_series.ind_step,
-        )
+        if topology is None:
+            p_series = self.get_params_series(params)
+            self.series = SeriesOfArrays(
+                p_series.path,
+                p_series.str_subset,
+                ind_start=p_series.ind_start,
+                ind_stop=p_series.ind_stop,
+                ind_step=p_series.ind_step,
+            )
+        else:
+            self.series = topology.series
+
         self.ranges = split_range(
             self.series.ind_start,
             self.series.ind_stop,
@@ -70,7 +74,49 @@ class SplitterFromSeries(Splitter):
 
     def iter_over_new_params(self):
         for sss in self.ranges:
+            if len(range(*sss)) == 0:
+                continue
             params = deepcopy(self.params)
             p_series = self.get_params_series(params)
             p_series.ind_start, p_series.ind_stop, p_series.ind_step = sss
+            yield params
+
+
+class SplitterFromImages(Splitter):
+
+    def __init__(self, params, num_processes, topology=None):
+        super().__init__(params, num_processes, topology=topology)
+
+        if topology is None:
+            p_images = self.get_params_images(params)
+            self.serie = SerieOfArraysFromFiles(
+                p_images.path,
+                p_images.str_subset,
+            )
+        else:
+            self.serie = topology.serie
+
+        slicing_tuples = self.serie.get_slicing_tuples()
+        s0 = slicing_tuples[0]
+        self.ranges = split_range(s0[0], s0[1], s0[2], self.num_processes)
+
+        if len(slicing_tuples) == 1:
+            self.slicing_str_post = ""
+        else:
+            self.slicing_str_post = "," + ",".join(
+                ":".join(str(n) for n in sss) for sss in slicing_tuples[1:]
+            )
+
+    def get_params_images(self, params):
+        return params.images
+
+    def iter_over_new_params(self):
+        for sss in self.ranges:
+            if len(range(*sss)) == 0:
+                continue
+            params = deepcopy(self.params)
+            p_images = self.get_params_images(params)
+            p_images.str_subset = (
+                ":".join(str(n) for n in sss) + self.slicing_str_post
+            )
             yield params

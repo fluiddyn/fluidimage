@@ -25,7 +25,7 @@ A = "uint8[:,:]"
 
 @boost
 def cpu1(array1: A, array2: A, nloops: int = 10):
-    a = np.arange(10000000 // nloops)
+    a = np.arange(10_000_000 // nloops)
     result = a
     for _ in range(nloops):
         result += a**3 + a**2 + 2
@@ -37,7 +37,7 @@ def cpu1(array1: A, array2: A, nloops: int = 10):
 
 @boost
 def cpu2(array1: A, array2: A, nloops: int = 10):
-    a = np.arange(10000000 // nloops)
+    a = np.arange(10_000_000 // nloops)
     result = a
     for _ in range(nloops):
         result += a**3 + a**2 + 2

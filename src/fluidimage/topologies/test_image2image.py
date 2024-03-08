@@ -1,39 +1,33 @@
-import sys
-import unittest
-from pathlib import Path
-from shutil import rmtree
+import pytest
 
-from fluidimage import get_path_image_samples
+from fluidimage.executors import supported_multi_executors
 from fluidimage.topologies.image2image import TopologyImage2Image
 
+postfix = "test_im2im"
 
-class TestImage2Image(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.path_src = get_path_image_samples() / "Karman/Images"
-        cls.postfix = "test_im2im_new"
 
-    @classmethod
-    def tearDownClass(cls):
-        path_out = Path(str(cls.path_src) + "." + cls.postfix)
-        if path_out.exists():
-            rmtree(path_out, ignore_errors=True)
+@pytest.mark.parametrize("executor", supported_multi_executors)
+def test_im2im(tmp_path_karman, executor):
+    params = TopologyImage2Image.create_default_params()
 
-    def test_im2im(self):
-        params = TopologyImage2Image.create_default_params()
+    params.images.path = str(tmp_path_karman)
 
-        params.images.path = str(self.path_src)
+    params.im2im = "fluidimage.image2image.Im2ImExample"
+    params.args_init = ((1024, 2048), "clip")
 
-        params.im2im = "fluidimage.image2image.Im2ImExample"
-        params.args_init = ((1024, 2048), "clip")
+    params.saving.how = "recompute"
+    params.saving.postfix = postfix
 
-        params.saving.how = "recompute"
-        params.saving.postfix = self.postfix
+    topology = TopologyImage2Image(params, logging_level="info")
 
-        topology = TopologyImage2Image(params, logging_level="info")
+    if executor == "multi_exec_async":
         topology.compute("exec_async", stop_if_error=True)
 
         topology = TopologyImage2Image(params, logging_level="info")
-        topology.compute()
 
-        topology.make_code_graphviz(topology.path_dir_result / "topo.dot")
+    topology.compute(executor)
+
+    if executor != "multi_exec_async":
+        return
+
+    topology.make_code_graphviz(topology.path_dir_result / "topo.dot")

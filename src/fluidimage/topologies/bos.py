@@ -14,9 +14,16 @@ from pathlib import Path
 from fluidimage import ParamContainer
 from fluidimage.data_objects.piv import get_name_bos
 from fluidimage.topologies import TopologyBase, prepare_path_dir_result
+from fluidimage.topologies.splitters import SplitterFromImages
 from fluidimage.util import imread, logger
 from fluidimage.works import image2image
 from fluidimage.works.bos import WorkBOS
+
+
+class SplitterBos(SplitterFromImages):
+    def __init__(self, params, num_processes, topology=None):
+        super().__init__(params, num_processes, topology=topology)
+        self.params.reference = topology.path_reference
 
 
 def _imread(path):
@@ -54,6 +61,7 @@ class TopologyBOS(TopologyBase):
     """
 
     _short_name = "bos"
+    Splitter = SplitterBos
 
     @classmethod
     def create_default_params(cls):

@@ -14,6 +14,7 @@ from pathlib import Path
 from fluiddyn.io.image import imsave
 from fluidimage import ParamContainer
 from fluidimage.topologies import prepare_path_dir_result
+from fluidimage.topologies.splitters import SplitterFromImages
 from fluidimage.util import imread, logger
 from fluidimage.works.image2image import WorkImage2Image
 
@@ -48,6 +49,7 @@ class TopologyImage2Image(TopologyBase):
     """
 
     _short_name = "im2im"
+    Splitter = SplitterFromImages
 
     @classmethod
     def create_default_params(cls):

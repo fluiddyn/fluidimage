@@ -15,8 +15,11 @@ executors = [
 
 executors.extend(supported_multi_executors)
 
+# tmp: TopologyExample doesn't have a Splitter
+executors.remove("multi_exec_subproc")
 
-@pytest.mark.parametrize("executor", supported_multi_executors)
+
+@pytest.mark.parametrize("executor", executors)
 def test_topo_example(tmp_path_karman, executor):
 
     path_input = tmp_path_karman

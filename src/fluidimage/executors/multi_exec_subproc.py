@@ -10,6 +10,7 @@ import subprocess
 import sys
 from time import sleep
 
+from fluiddyn import time_as_str
 from fluidimage.util import logger
 
 from .base import MultiExecutorBase
@@ -28,7 +29,16 @@ class MultiExecutorSubproc(MultiExecutorBase):
                 "topologies with a Splitter."
             ) from error
 
-        splitter = splitter_cls(self.topology.params, self.nb_processes)
+        params = self.topology.params
+        params._set_child(
+            "compute_kwargs",
+            attribs={
+                "executor": "exec_async_seq_for_multi",
+                "nb_max_workers": 1,
+            },
+        )
+
+        splitter = splitter_cls(params, self.nb_processes, self.topology)
 
         path_dir_params = (
             self.path_dir_result / f"params_files_{self._unique_postfix}"
@@ -38,24 +48,6 @@ class MultiExecutorSubproc(MultiExecutorBase):
         for index_process, params_split in enumerate(
             splitter.iter_over_new_params()
         ):
-            p_series = splitter.get_params_series(params_split)
-            if (
-                len(
-                    range(
-                        p_series.ind_start, p_series.ind_stop, p_series.ind_step
-                    )
-                )
-                == 0
-            ):
-                continue
-
-            params_split._set_child(
-                "compute_kwargs",
-                attribs={
-                    "executor": "exec_async_seq_for_multi",
-                    "nb_max_workers": 1,
-                },
-            )
             params_split.compute_kwargs._set_child(
                 "kwargs_executor",
                 attribs={
@@ -83,15 +75,21 @@ class MultiExecutorSubproc(MultiExecutorBase):
             )
             self.processes.append(process)
 
+        logger.info(
+            "%s: %s sequential executors launched in parallel",
+            time_as_str(2),
+            len(self.processes),
+        )
+
     def _wait_for_all_processes(self):
 
         running_processes = {
             idx: process for idx, process in enumerate(self.processes)
         }
+        running_processes_updated = {}
         return_codes = {}
 
         while running_processes:
-            running_processes_updated = {}
             for idx, process in running_processes.items():
                 ret_code = process.poll()
                 if ret_code is None:
@@ -100,7 +98,11 @@ class MultiExecutorSubproc(MultiExecutorBase):
                     return_codes[idx] = ret_code
                     if ret_code != 0:
                         logger.error(process.stderr.read())
-            running_processes = running_processes_updated
+            running_processes, running_processes_updated = (
+                running_processes_updated,
+                running_processes,
+            )
+            running_processes_updated.clear()
             sleep(0.1)
 
 
