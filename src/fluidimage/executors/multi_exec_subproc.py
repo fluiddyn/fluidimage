@@ -30,13 +30,30 @@ class MultiExecutorSubproc(MultiExecutorBase):
             ) from error
 
         params = self.topology.params
-        params._set_child(
-            "compute_kwargs",
-            attribs={
-                "executor": "exec_async_seq_for_multi",
-                "nb_max_workers": 1,
-            },
-        )
+
+        try:
+            params._set_child(
+                "compute_kwargs",
+                attribs={
+                    "executor": "exec_async_seq_for_multi",
+                    "nb_max_workers": 1,
+                },
+            )
+        except ValueError:
+            params.compute_kwargs.executor = "exec_async_seq_for_multi"
+            params.compute_kwargs.nb_max_workers = 1
+
+        try:
+            params.compute_kwargs._set_child(
+                "kwargs_executor",
+                attribs={
+                    "path_log": None,
+                    "t_start": self.t_start,
+                    "index_process": None,
+                },
+            )
+        except ValueError:
+            params.compute_kwargs.kwargs_executor.t_start = self.t_start
 
         splitter = splitter_cls(params, self.nb_processes, self.topology)
 
@@ -47,15 +64,11 @@ class MultiExecutorSubproc(MultiExecutorBase):
         for index_process, params_split in enumerate(
             splitter.iter_over_new_params()
         ):
-            params_split.compute_kwargs._set_child(
-                "kwargs_executor",
-                attribs={
-                    "path_log": self._log_path.parent
-                    / f"process_{index_process:03d}.txt",
-                    "t_start": self.t_start,
-                    "index_process": index_process,
-                },
+            kwargs_executor = params_split.compute_kwargs.kwargs_executor
+            kwargs_executor.path_log = (
+                self._log_path.parent / f"process_{index_process:03d}.txt"
             )
+            kwargs_executor.index_process = index_process
 
             path_params = path_dir_params / f"params{index_process:00d}.xml"
             params_split._save_as_xml(path_params)

@@ -25,9 +25,10 @@ def test_piv_oseen(tmp_path_oseen, executor):
     params.saving.postfix = postfix
 
     topology = TopologyPIV(params, logging_level="info")
+    topology.compute(executor)
+    topology.compute(executor, nb_max_workers=2)
 
     topology.make_code_graphviz(topology.path_dir_result / "topo.dot")
-    topology.compute(executor)
 
 
 def test_piv_jet(tmp_path_jet):
