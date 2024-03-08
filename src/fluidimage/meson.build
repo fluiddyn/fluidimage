@@ -5,6 +5,7 @@ python_sources = [
   '_version.py',
   'bos.py',
   'config.py',
+  'conftest.py',
   'image2image.py',
   'optical_flow.py',
   'piv.py',

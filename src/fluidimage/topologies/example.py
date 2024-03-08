@@ -1,5 +1,5 @@
-"""Topology example (:mod:`fluidimage.topologies.example`)
-==========================================================
+"""Topology example
+===================
 
 This topology has two pythran cpu bounded tasks. It helps see executors behavior
 with C functions.

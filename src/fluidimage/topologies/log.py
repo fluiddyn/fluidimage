@@ -46,9 +46,9 @@ class LogTopology:
             if path.is_dir():
                 path = Path(
                     next(
-                        path
-                        for path in glob(str(path / "log*"))
-                        if "_multi" not in path
+                        _path
+                        for _path in path.glob("log*")
+                        if "_multi" not in _path.name
                     )
                 )
 
