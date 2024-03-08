@@ -15,6 +15,7 @@
 
 """
 
+import json
 from collections import OrderedDict
 from pathlib import Path
 from warnings import warn
@@ -147,6 +148,17 @@ postfix : str
 
     Postfix from which the output file is computed.
 """,
+        )
+
+        params._set_internal_attr(
+            "_value_text",
+            json.dumps(
+                {
+                    "program": "fluidimage",
+                    "module": cls.__module__,
+                    "class": cls.__name__,
+                }
+            ),
         )
 
     def __init__(

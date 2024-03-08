@@ -37,7 +37,7 @@ class PreprocToolsBase:
         tools = cls._get_backend()
         available_tools = tools.__all__
 
-        params = params.preproc._set_child(
+        params = params._set_child(
             "tools", {"available_tools": available_tools, "sequence": None}
         )
 
@@ -88,7 +88,7 @@ class PreprocToolsBase:
     def __init__(self, params):
         if type(self).__name__.endswith("CV") and error_import_cv2:
             raise error_import_cv2
-        self.params = params.preproc.tools
+        self.params = params.tools
 
     def apply(self, img):
         """

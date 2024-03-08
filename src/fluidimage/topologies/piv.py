@@ -8,7 +8,6 @@
 """
 
 import copy
-import json
 import sys
 from pathlib import Path
 
@@ -71,17 +70,6 @@ class TopologyPIV(TopologyBase):
         super()._add_default_params_saving(params)
 
         cls.WorkVelocimetry._complete_params_with_default(params)
-
-        params._set_internal_attr(
-            "_value_text",
-            json.dumps(
-                {
-                    "program": "fluidimage",
-                    "module": "fluidimage.topologies.piv",
-                    "class": "TopologyPIV",
-                }
-            ),
-        )
 
         params._set_child("preproc")
         image2image.complete_im2im_params_with_default(params.preproc)

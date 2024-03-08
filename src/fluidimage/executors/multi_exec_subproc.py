@@ -44,7 +44,6 @@ class MultiExecutorSubproc(MultiExecutorBase):
             self.path_dir_result / f"params_files_{self._unique_postfix}"
         )
         path_dir_params.mkdir(exist_ok=True)
-
         for index_process, params_split in enumerate(
             splitter.iter_over_new_params()
         ):
@@ -88,6 +87,7 @@ class MultiExecutorSubproc(MultiExecutorBase):
         }
         running_processes_updated = {}
         return_codes = {}
+        errors = {}
 
         while running_processes:
             for idx, process in running_processes.items():
@@ -97,13 +97,28 @@ class MultiExecutorSubproc(MultiExecutorBase):
                 else:
                     return_codes[idx] = ret_code
                     if ret_code != 0:
-                        logger.error(process.stderr.read())
+                        error = process.stderr.read()
+                        errors[idx] = error
+                        logger.error(error)
             running_processes, running_processes_updated = (
                 running_processes_updated,
                 running_processes,
             )
             running_processes_updated.clear()
             sleep(0.1)
+
+        if errors:
+            raise RuntimeError(
+                f"{len(errors)} sub-executors failed (over {len(self.processes)} processes)."
+            )
+
+    def _finalize_compute(self):
+        self.topology.results = results = []
+        for path in self._log_path.parent.glob("results_*.txt"):
+            with open(path, encoding="utf-8") as file:
+                results.extend(file.readlines())
+
+        super()._finalize_compute()
 
 
 Executor = MultiExecutorSubproc

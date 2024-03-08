@@ -1,49 +1,34 @@
-import unittest
-from pathlib import Path
-from shutil import rmtree
-
 import pytest
 
-from fluidimage import get_path_image_samples
 from fluidimage._opencv import error_import_cv2
-from fluidimage.topologies.optical_flow import Topology
+from fluidimage.executors import supported_multi_executors
+from fluidimage.optical_flow import Topology
 
-path_image_samples = get_path_image_samples()
+postfix = "test_optical_flow"
 
 
-class TestPivNew(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.path_Oseen = path_image_samples / "Oseen/Images/Oseen*"
-        cls.postfix = "test_optical_flow"
+@pytest.mark.parametrize("executor", supported_multi_executors)
+def test_optical_flow(tmp_path_oseen, executor):
 
-    @classmethod
-    def tearDownClass(cls):
-        paths = (cls.path_Oseen,)
-        for path in paths:
-            path_out = Path(str(path.parent) + "." + cls.postfix)
-            if path_out.exists():
-                rmtree(path_out, ignore_errors=True)
+    if error_import_cv2:
+        with pytest.raises(ModuleNotFoundError):
+            Topology.create_default_params()
+        return
 
-    def test_optical_flow(self):
+    params = Topology.create_default_params()
 
-        if error_import_cv2:
-            with pytest.raises(ModuleNotFoundError):
-                Topology.create_default_params()
-            return
+    params.series.path = str(tmp_path_oseen)
 
-        params = Topology.create_default_params()
+    params.saving.how = "recompute"
+    params.saving.postfix = postfix
 
-        params.series.path = str(self.path_Oseen)
+    params.filters.displacement_max = 10.0
 
-        # params.saving.how has to be equal to 'complete' for idempotent jobs
-        # (on clusters)
-        params.saving.how = "recompute"
-        params.saving.postfix = self.postfix
+    topology = Topology(params, logging_level="info")
 
-        params.filters.displacement_max = 10.0
+    topology.compute(executor)
 
-        topology = Topology(params, logging_level="info")
+    if executor != "multi_exec_async":
+        return
 
-        topology.make_code_graphviz(topology.path_dir_result / "topo.dot")
-        topology.compute("exec_sequential")
+    topology.make_code_graphviz(topology.path_dir_result / "topo.dot")

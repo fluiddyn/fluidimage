@@ -56,10 +56,18 @@ class ExecutorAsyncSeqForMulti(ExecutorAsyncSequential):
                 Path(self._log_path).parent
                 / f"results_{self.index_process:03}.txt"
             )
-            results = (
-                "\n".join([Path(path).name for path in self.topology.results])
-                + "\n"
-            )
+
+            results = self.topology.results
+            if results:
+                if isinstance(results[0], str):
+                    results = [Path(path).name for path in results]
+                elif hasattr(results[0], "name"):
+                    results = [_r.name for _r in results]
+                else:
+                    results = [str(_r) for _r in results]
+                results = "\n".join(results) + "\n"
+            else:
+                results = ""
             with open(path_results, "w", encoding="utf-8") as file:
                 file.write(results)
 

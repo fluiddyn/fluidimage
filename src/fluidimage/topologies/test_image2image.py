@@ -1,7 +1,7 @@
 import pytest
 
 from fluidimage.executors import supported_multi_executors
-from fluidimage.topologies.image2image import TopologyImage2Image
+from fluidimage.image2image import TopologyImage2Image
 
 postfix = "test_im2im"
 

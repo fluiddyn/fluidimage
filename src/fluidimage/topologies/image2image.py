@@ -7,7 +7,6 @@
 
 """
 
-import json
 import sys
 from pathlib import Path
 
@@ -68,17 +67,6 @@ class TopologyImage2Image(TopologyBase):
 
         super()._add_default_params_saving(params)
         WorkImage2Image._complete_params_with_default(params)
-
-        params._set_internal_attr(
-            "_value_text",
-            json.dumps(
-                {
-                    "program": "fluidimage",
-                    "module": "fluidimage.topologies.image2image",
-                    "class": "TopologyImage2Image",
-                }
-            ),
-        )
 
         return params
 

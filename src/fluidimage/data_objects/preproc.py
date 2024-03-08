@@ -131,8 +131,9 @@ class ArraySerie(ArrayCouple):
 
 
 class PreprocResults(LightPIVResults):
+    _keys_to_be_saved = ["data"]
+
     def __init__(self, params=None, str_path=None, hdf5_object=None):
-        self._keys_to_be_saved = ["data"]
         if hdf5_object is not None:
             if params is not None:
                 self.params = params
@@ -167,4 +168,4 @@ class PreprocResults(LightPIVResults):
                 imsave(path_file, v, format=out_format, as_int=True)
 
         self.clear_data()
-        return self
+        return path_file
