@@ -21,7 +21,12 @@ from warnings import warn
 
 from fluidimage.util import cstring, logger
 
-from ..executors import ExecutorBase, get_executor_names, import_executor_class
+from ..executors import (
+    ExecutorBase,
+    get_executor_names,
+    import_executor_class,
+    supported_multi_executors,
+)
 
 
 class Work:
@@ -227,7 +232,9 @@ postfix : str
 
         if executor is None:
             # fastest and safest executor for most cases
-            executor = "multi_exec_async"
+            # "multi_exec_async" on Linux
+            # "multi_exec_subproc" elsewhere
+            executor = supported_multi_executors[0]
 
         if not isinstance(executor, ExecutorBase):
             if executor not in get_executor_names():

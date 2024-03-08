@@ -1,20 +1,15 @@
 import shutil
-import sys
-import unittest
 from pathlib import Path
 from time import sleep
 
 import pytest
 
 from fluidimage import get_path_image_samples
+from fluidimage.executors import supported_multi_executors
 from fluidimage.piv import TopologyPIV
 
 path_image_samples = get_path_image_samples()
-
-on_linux = sys.platform == "linux"
 postfix = "test_piv"
-
-skip_except_on_linux = unittest.skipIf(not on_linux, "Only supported on Linux")
 
 
 def create_tmp_dir_image(tmp_path, name):
@@ -28,8 +23,7 @@ def create_tmp_dir_image(tmp_path, name):
     return path_dir_images
 
 
-@skip_except_on_linux
-@pytest.mark.parametrize("executor", [None, "multi_exec_subproc"])
+@pytest.mark.parametrize("executor", supported_multi_executors)
 def test_piv_oseen(tmp_path, executor):
 
     path_dir_images = create_tmp_dir_image(tmp_path, "Oseen")
@@ -51,7 +45,6 @@ def test_piv_oseen(tmp_path, executor):
     topology.compute(executor)
 
 
-@skip_except_on_linux
 def test_piv_jet(tmp_path):
 
     path_dir_images = create_tmp_dir_image(tmp_path, "Jet")

@@ -6,10 +6,7 @@ from shutil import rmtree
 from fluidimage import get_path_image_samples
 from fluidimage.topologies.image2image import TopologyImage2Image
 
-on_linux = sys.platform == "linux"
 
-
-@unittest.skipIf(not on_linux, "Only supported on Linux")
 class TestImage2Image(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

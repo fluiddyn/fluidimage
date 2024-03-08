@@ -52,6 +52,15 @@ if hasattr(os, "register_at_fork"):
 
 from .base import ExecutorBase
 
+# on Windows (and MacOS), one cannot use "multi_exec_async"
+# because the OS does not support forks (or not fully) and
+# multiprocessing works differently than on Linux
+# see https://docs.python.org/3/library/multiprocessing.html#contexts-and-start-methods
+supported_multi_executors = ["multi_exec_subproc"]
+if sys.platform == "linux":
+    supported_multi_executors.insert(0, "multi_exec_async")
+
+
 _entry_points = None
 
 
