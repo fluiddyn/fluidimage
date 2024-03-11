@@ -17,8 +17,10 @@ import os
 from abc import ABC, abstractmethod
 from time import time
 
-import numpy as np
-import scipy
+# import numpy as np
+# import scipy
+
+from fluiddyn import time_as_str
 
 from fluiddyn.util import import_class
 from fluiddyn.util.paramcontainer import tidy_container
@@ -26,7 +28,7 @@ from fluidimage.topologies.piv import TopologyPIV
 
 from . import (
     ParamContainer,
-    SerieOfArraysFromFiles,
+    # SerieOfArraysFromFiles,
     config_logging,
     logger,
     reset_logger,
@@ -248,7 +250,8 @@ def main():
         raise ValueError("Can not detect the program to launch.")
 
     logger.info(
-        "\nUsing instructions in xml file:\n%s",
+        "\n%s: using instructions in xml file:\n%s",
+        time_as_str(2),
         path_instructions_xml,
     )
 

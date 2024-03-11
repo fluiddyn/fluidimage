@@ -97,6 +97,8 @@ class MultiExecutorSubproc(MultiExecutorBase):
                 stderr=subprocess.PIPE,
             )
             self.processes.append(process)
+            # shift a bit the imports
+            sleep(0.2)
 
         logger.info(
             "%s: %s sequential executors launched in parallel",
