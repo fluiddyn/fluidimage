@@ -64,14 +64,16 @@ if sys.platform == "linux":
 _entry_points = None
 
 
-def get_entry_points(reload=False, ndim=None, sequential=None):
+def get_entry_points(reload=False):
     """Discover the executors installed"""
     global _entry_points
     if _entry_points is None or reload:
         _entry_points = entry_points(group="fluidimage.executors")
 
     if not _entry_points:
-        raise RuntimeError("No executor were found.")
+        raise RuntimeError(
+            "No executor entry point were found, which indicates an installation issue."
+        )
 
     return _entry_points
 
