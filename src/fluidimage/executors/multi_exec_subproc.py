@@ -66,6 +66,7 @@ class MultiExecutorSubproc(MultiExecutorBase):
             params.saving.path = self.topology.path_dir_result
 
         splitter = splitter_cls(params, self.nb_processes, self.topology)
+        self.num_expected_results = splitter.num_expected_results
 
         path_dir_params = (
             self.path_dir_result / f"params_files_{self._unique_postfix}"
@@ -112,34 +113,52 @@ class MultiExecutorSubproc(MultiExecutorBase):
         return_codes = {}
         errors = {}
 
+        num_results_vs_idx_process = [0 for idx in range(len(self.processes))]
+        paths_len_results = [
+            self._log_path.parent / f"len_results_{idx:03}.txt"
+            for idx in range(len(self.processes))
+        ]
+        num_results = num_results_previous = 0
+
         console = Console(file=sys.__stdout__)
 
         with Progress(console=console) as progress:
 
-            task_main = progress.add_task(
-                "[green]Full...", total=len(self.processes)
+            progress_task = progress.add_task(
+                "[green]Computation", total=self.num_expected_results
             )
 
             while running_processes:
+                sleep(0.2)
                 for idx, process in running_processes.items():
                     ret_code = process.poll()
                     if ret_code is None:
                         running_processes_updated[idx] = process
+                        if paths_len_results[idx].exists():
+                            with open(
+                                paths_len_results[idx], encoding="utf-8"
+                            ) as file:
+                                content = file.readline()
+                                if content:
+                                    num_results_vs_idx_process[idx] = int(content)
                     else:
                         return_codes[idx] = ret_code
                         if ret_code != 0:
                             error = process.stderr.read()
                             errors[idx] = error
                             logger.error(error)
-                        progress.update(task_main, advance=1)
+
+                num_results = sum(num_results_vs_idx_process)
+                if num_results != num_results_previous:
+                    if num_results_previous == 0:
+                        print(f"{time_as_str(2)}: first result detected")
+                    num_results_previous = num_results
+                    progress.update(progress_task, completed=num_results)
                 running_processes, running_processes_updated = (
                     running_processes_updated,
                     running_processes,
                 )
                 running_processes_updated.clear()
-                sleep(0.1)
-
-            progress.update(task_main, completed=len(self.processes))
 
         if errors:
             raise RuntimeError(

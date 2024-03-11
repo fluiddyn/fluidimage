@@ -23,7 +23,7 @@ from collections import OrderedDict
 
 import trio
 
-from fluidimage.util import cstring, log_debug, log_memory_usage, logger
+from fluidimage.util import log_debug, log_memory_usage, logger
 
 from .base import ExecutorBase
 

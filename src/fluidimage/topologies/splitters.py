@@ -62,6 +62,12 @@ class SplitterFromSeries(Splitter):
         else:
             self.series = topology.series
 
+        self.num_expected_results = len(
+            range(
+                self.series.ind_start, self.series.ind_stop, self.series.ind_step
+            )
+        )
+
         self.ranges = split_range(
             self.series.ind_start,
             self.series.ind_stop,
@@ -95,6 +101,8 @@ class SplitterFromImages(Splitter):
             )
         else:
             self.serie = topology.serie
+
+        self.num_expected_results = len(self.serie)
 
         slicing_tuples = self.serie.get_slicing_tuples()
         s0 = slicing_tuples[0]

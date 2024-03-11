@@ -1,6 +1,8 @@
 from pathlib import Path
 from time import time
 
+import trio
+
 from .exec_async_sequential import ExecutorAsyncSequential
 
 
@@ -38,6 +40,25 @@ class ExecutorAsyncSeqForMulti(ExecutorAsyncSequential):
         self.t_start = t_start
         self.index_process = index_process
 
+        if hasattr(self.topology, "results"):
+            self.async_funcs["_save_topology_results"] = (
+                self._save_topology_results
+            )
+            self._path_results = (
+                Path(self._log_path).parent
+                / f"results_{self.index_process:03}.txt"
+            )
+            self._path_results.touch()
+
+            self._path_num_results = (
+                self._path_results.parent
+                / f"len_results_{self.index_process:03}.txt"
+            )
+            with open(self._path_num_results, "w", encoding="utf-8") as file:
+                file.write("0\n")
+
+            self._len_saved_results = 0
+
     def _init_log_path(self):
         self.path_dir_exceptions = Path(self._log_path).parent
 
@@ -52,24 +73,32 @@ class ExecutorAsyncSeqForMulti(ExecutorAsyncSequential):
             file.write(txt)
 
         if hasattr(self.topology, "results"):
-            path_results = (
-                Path(self._log_path).parent
-                / f"results_{self.index_process:03}.txt"
-            )
+            self._save_results_names()
 
-            results = self.topology.results
-            if results:
-                if isinstance(results[0], str):
-                    results = [Path(path).name for path in results]
-                elif hasattr(results[0], "name"):
-                    results = [_r.name for _r in results]
-                else:
-                    results = [str(_r) for _r in results]
-                results = "\n".join(results) + "\n"
+    def _save_results_names(self):
+
+        new_results = self.topology.results[self._len_saved_results :]
+        self._len_saved_results = len(self.topology.results)
+
+        with open(self._path_num_results, "w", encoding="utf-8") as file:
+            file.write(f"{self._len_saved_results}\n")
+
+        if new_results:
+            if isinstance(new_results[0], str):
+                new_results = [Path(path).name for path in new_results]
+            elif hasattr(new_results[0], "name"):
+                new_results = [_r.name for _r in new_results]
             else:
-                results = ""
-            with open(path_results, "w", encoding="utf-8") as file:
-                file.write(results)
+                new_results = [str(_r) for _r in new_results]
+            new_results = "\n".join(new_results) + "\n"
+
+            with open(self._path_results, "a", encoding="utf-8") as file:
+                file.write(new_results)
+
+    async def _save_topology_results(self):
+        while not self._has_to_stop:
+            self._save_results_names()
+            await trio.sleep(1.0)
 
 
 Executor = ExecutorAsyncSeqForMulti
