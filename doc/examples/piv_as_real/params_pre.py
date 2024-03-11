@@ -30,7 +30,7 @@ def make_params_pre(iexp, savinghow="recompute", postfix_out="pre"):
     path = get_path(iexp)
 
     params = TopologyPreproc.create_default_params()
-    params.preproc.series.path = path
+    params.series.path = path
 
     print("path", path)
     str_glob = path + "/c*.png"
@@ -41,31 +41,29 @@ def make_params_pre(iexp, savinghow="recompute", postfix_out="pre"):
     pathim = paths[0]
     double_frame = pathim.endswith("a.png") or pathim.endswith("b.png")
     if double_frame:
-        params.preproc.series.str_subset = "i:i+1, 0"
+        params.series.str_subset = "i:i+1, 0"
     else:
-        params.preproc.series.str_subset = "i:i+1"
+        params.series.str_subset = "i:i+1"
 
-    params.preproc.series.ind_start = 60
-    params.preproc.series.ind_stop = 62
+    params.series.ind_start = 60
+    params.series.ind_stop = 62
 
-    params.preproc.tools.sequence = ["rescale_intensity_tanh", "sliding_median"]
+    params.tools.sequence = ["rescale_intensity_tanh", "sliding_median"]
 
-    params.preproc.tools.rescale_intensity_tanh.enable = False
-    params.preproc.tools.rescale_intensity_tanh.threshold = None
+    params.tools.rescale_intensity_tanh.enable = False
+    params.tools.rescale_intensity_tanh.threshold = None
 
-    params.preproc.tools.sliding_median.enable = True
-    params.preproc.tools.sliding_median.window_size = 10
-    params.preproc.tools.sliding_median.weight = 0.8
+    params.tools.sliding_median.enable = True
+    params.tools.sliding_median.window_size = 10
+    params.tools.sliding_median.weight = 0.8
 
-    params.preproc.saving.how = savinghow
-    params.preproc.saving.postfix = postfix_out
+    params.saving.how = savinghow
+    params.saving.postfix = postfix_out
 
     if double_frame:
         # for 'b.png' images
         params2 = deepcopy(params)
-        params2.preproc.series.str_subset = (
-            params.preproc.series.str_subset[:-1] + "1"
-        )
+        params2.preproc.series.str_subset = params.series.str_subset[:-1] + "1"
         return [params, params2]
     else:
         return [params]
