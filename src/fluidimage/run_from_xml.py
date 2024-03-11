@@ -17,22 +17,20 @@ import os
 from abc import ABC, abstractmethod
 from time import time
 
-# import numpy as np
-# import scipy
-
 from fluiddyn import time_as_str
-
 from fluiddyn.util import import_class
 from fluiddyn.util.paramcontainer import tidy_container
 from fluidimage.topologies.piv import TopologyPIV
 
-from . import (
+from . import (  # SerieOfArraysFromFiles,
     ParamContainer,
-    # SerieOfArraysFromFiles,
     config_logging,
     logger,
     reset_logger,
 )
+
+# import numpy as np
+# import scipy
 
 
 def tidy_uvmat_instructions(params):

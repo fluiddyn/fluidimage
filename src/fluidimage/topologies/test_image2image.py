@@ -25,7 +25,7 @@ def test_im2im(tmp_path_karman, executor):
 
         topology = TopologyImage2Image(params, logging_level="info")
 
-    topology.compute(executor)
+    topology.compute(executor, nb_max_workers=2)
 
     if executor != "multi_exec_async":
         return

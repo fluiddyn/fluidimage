@@ -40,4 +40,4 @@ def test_bos_new_multiproc(tmp_path_karman, executor):
 
     params.saving.how = "complete"
     topology = TopologyBOS(params, logging_level="info")
-    topology.compute(executor)
+    topology.compute(executor, nb_max_workers=2)

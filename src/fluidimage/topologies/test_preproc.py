@@ -40,5 +40,5 @@ def test_preproc_multi_exec(tmp_path_jet_small, executor):
     params.saving.postfix = "preproc_test_" + executor
 
     topology = TopologyPreproc(params, logging_level="debug")
-    topology.compute(executor)
+    topology.compute(executor, nb_max_workers=2)
     assert len(topology.results) == 4

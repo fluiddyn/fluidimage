@@ -26,7 +26,7 @@ def test_optical_flow(tmp_path_oseen, executor):
 
     topology = Topology(params, logging_level="info")
 
-    topology.compute(executor)
+    topology.compute(executor, nb_max_workers=2)
 
     if executor != "multi_exec_async":
         return
