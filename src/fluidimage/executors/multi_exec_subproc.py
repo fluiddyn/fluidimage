@@ -8,7 +8,11 @@
 
 import subprocess
 import sys
+from copy import deepcopy
 from time import sleep
+
+from rich.console import Console
+from rich.progress import Progress
 
 from fluiddyn import time_as_str
 from fluidimage.util import logger
@@ -29,7 +33,7 @@ class MultiExecutorSubproc(MultiExecutorBase):
                 "topologies with a Splitter."
             ) from error
 
-        params = self.topology.params
+        params = deepcopy(self.topology.params)
 
         try:
             params._set_child(
@@ -54,6 +58,12 @@ class MultiExecutorSubproc(MultiExecutorBase):
             )
         except ValueError:
             params.compute_kwargs.kwargs_executor.t_start = self.t_start
+
+        if hasattr(self.topology, "how_saving"):
+            params.saving.how = self.topology.how_saving
+
+        if hasattr(self.topology, ""):
+            params.saving.path = self.topology.path_dir_result
 
         splitter = splitter_cls(params, self.nb_processes, self.topology)
 
@@ -102,23 +112,34 @@ class MultiExecutorSubproc(MultiExecutorBase):
         return_codes = {}
         errors = {}
 
-        while running_processes:
-            for idx, process in running_processes.items():
-                ret_code = process.poll()
-                if ret_code is None:
-                    running_processes_updated[idx] = process
-                else:
-                    return_codes[idx] = ret_code
-                    if ret_code != 0:
-                        error = process.stderr.read()
-                        errors[idx] = error
-                        logger.error(error)
-            running_processes, running_processes_updated = (
-                running_processes_updated,
-                running_processes,
+        console = Console(file=sys.__stdout__)
+
+        with Progress(console=console) as progress:
+
+            task_main = progress.add_task(
+                "[green]Full...", total=len(self.processes)
             )
-            running_processes_updated.clear()
-            sleep(0.1)
+
+            while running_processes:
+                for idx, process in running_processes.items():
+                    ret_code = process.poll()
+                    if ret_code is None:
+                        running_processes_updated[idx] = process
+                    else:
+                        return_codes[idx] = ret_code
+                        if ret_code != 0:
+                            error = process.stderr.read()
+                            errors[idx] = error
+                            logger.error(error)
+                        progress.update(task_main, advance=1)
+                running_processes, running_processes_updated = (
+                    running_processes_updated,
+                    running_processes,
+                )
+                running_processes_updated.clear()
+                sleep(0.1)
+
+            progress.update(task_main, completed=len(self.processes))
 
         if errors:
             raise RuntimeError(
