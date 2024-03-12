@@ -1,23 +1,35 @@
 from fluiddyn.util.serieofarrays import SeriesOfArrays
 from fluidimage import get_path_image_samples
 from fluidimage.topologies.piv import TopologyPIV
-from fluidimage.topologies.splitters import SplitterFromSeries, split_range
+from fluidimage.topologies.splitters import (
+    SplitterFromSeries,
+    split_list,
+    split_range,
+)
 
 path_image_samples = get_path_image_samples()
 
 
 def test_split_range():
-
     for start, stop, step, num_parts in ((1, 55, 2, 9), (0, 10, 1, 3)):
         num_elems = len(range(start, stop, step))
         ranges = split_range(start, stop, step, num_parts)
-
         indices = []
         for _r in ranges:
             indices.extend(range(*_r))
         assert len(set(indices)) == num_elems
-
         assert sum(len(range(*sss)) for sss in ranges) == num_elems
+
+
+def test_split_list():
+    num_processes = 4
+    for seq in ([5, 1, 3], list(range(10))):
+        lists = split_list(seq, num_processes)
+        assert len(lists) == min([num_processes, len(seq)])
+        indices = []
+        for _l in lists:
+            indices.extend(_l)
+        assert indices == seq
 
 
 def test_splitter_from_serie():

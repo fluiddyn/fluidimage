@@ -165,6 +165,14 @@ class TopologyPIV(TopologyBase):
         ret = obj.save(self.path_dir_result)
         self.results.append(ret)
 
+    def compute_indices_to_be_computed(self):
+        index_series = []
+        for ind_serie, serie in self.series.items():
+            name_piv = get_name_piv(serie, prefix="piv")
+            if not (self.path_dir_result / name_piv).exists():
+                index_series.append(ind_serie)
+        return index_series
+
     def fill_couples_of_names_and_paths(self, input_queue, output_queues):
         """Fill the two first queues"""
         assert input_queue is None
@@ -175,21 +183,22 @@ class TopologyPIV(TopologyBase):
         if not series:
             logger.warning("add 0 couple. No PIV to compute.")
             return
-        if self.how_saving == "complete":
-            index_series = []
-            for ind_serie, serie in self.series.items():
-                name_piv = get_name_piv(serie, prefix="piv")
-                if not (self.path_dir_result / name_piv).exists():
-                    index_series.append(ind_serie)
 
-            if not index_series:
-                logger.warning(
-                    'topology in mode "complete" and work already done.'
-                )
-                return
+        if self.how_saving in ("complete", "from_path_indices"):
+            if self.how_saving == "complete":
+                index_series = self.compute_indices_to_be_computed()
+                if not index_series:
+                    logger.warning(
+                        'topology in mode "complete" and work already done.'
+                    )
+                    return
+            elif self.how_saving == "from_path_indices":
+                path_indices = self.params.series.path_indices_file
+                index_series = [
+                    int(line) for line in open(path_indices, encoding="utf-8")
+                ]
 
             series.set_index_series(index_series)
-
             if logger.isEnabledFor(DEBUG):
                 logger.debug(repr([serie.get_name_arrays() for serie in series]))
 

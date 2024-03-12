@@ -72,6 +72,14 @@ class MultiExecutorSubproc(MultiExecutorBase):
             self.path_dir_result / f"params_files_{self._unique_postfix}"
         )
         path_dir_params.mkdir(exist_ok=True)
+
+        if (
+            hasattr(self.topology, "how_saving")
+            and self.topology.how_saving == "complete"
+            and hasattr(splitter, "save_indices_files")
+        ):
+            splitter.save_indices_files(path_dir_params)
+
         for index_process, params_split in enumerate(
             splitter.iter_over_new_params()
         ):

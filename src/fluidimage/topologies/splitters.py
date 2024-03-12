@@ -33,6 +33,15 @@ def split_range(start0, stop0, step0, num_parts):
     return ranges
 
 
+def split_list(sequence, num_parts):
+    num_parts = min(num_parts, len(sequence))
+    k, m = divmod(len(sequence), num_parts)
+    return [
+        sequence[i * k + min(i, m) : (i + 1) * k + min(i + 1, m)]
+        for i in range(num_parts)
+    ]
+
+
 class Splitter(ABC):
 
     def __init__(self, params, num_processes, topology=None):
@@ -68,24 +77,72 @@ class SplitterFromSeries(Splitter):
             )
         )
 
-        self.ranges = split_range(
-            self.series.ind_start,
-            self.series.ind_stop,
-            self.series.ind_step,
-            self.num_processes,
-        )
+        self.indices_lists = None
+        self.ranges = None
+        self._indices_files_saved = False
+        self._path_dir_indices = None
+
+        if (
+            topology is not None
+            and topology.how_saving == "complete"
+            and hasattr(topology, "compute_indices_to_be_computed")
+        ):
+            indices = topology.compute_indices_to_be_computed()
+            self.indices_lists = split_list(indices, self.num_processes)
+        else:
+            self.ranges = split_range(
+                self.series.ind_start,
+                self.series.ind_stop,
+                self.series.ind_step,
+                self.num_processes,
+            )
 
     def get_params_series(self, params):
         return params.series
 
-    def iter_over_new_params(self):
-        for sss in self.ranges:
-            if len(range(*sss)) == 0:
+    def save_indices_files(self, path_dir):
+        self._path_dir_indices = path_dir
+
+        for idx_process, indices in enumerate(self.indices_lists):
+            if not indices:
                 continue
-            params = deepcopy(self.params)
-            p_series = self.get_params_series(params)
-            p_series.ind_start, p_series.ind_stop, p_series.ind_step = sss
-            yield params
+            path = path_dir / f"indices{idx_process:03}.txt"
+            path.write_text("\n".join(str(index) for index in indices) + "\n")
+
+        self._indices_files_saved = True
+
+    def iter_over_new_params(self):
+
+        if self.ranges is not None:
+            for sss in self.ranges:
+                if len(range(*sss)) == 0:
+                    continue
+                params = deepcopy(self.params)
+                p_series = self.get_params_series(params)
+                p_series.ind_start, p_series.ind_stop, p_series.ind_step = sss
+                yield params
+
+        elif self.indices_lists is not None:
+
+            if not self._indices_files_saved:
+                raise RuntimeError("First call save_indices_files.")
+            path_dir = self._path_dir_indices
+
+            params0 = deepcopy(self.params)
+            params0.saving.how = "from_path_indices"
+
+            p_series = self.get_params_series(params0)
+            p_series._set_attrib("path_indices_file", None)
+
+            for idx_process, indices in enumerate(self.indices_lists):
+                if not indices:
+                    continue
+                params = deepcopy(params0)
+                p_series = self.get_params_series(params)
+                p_series.path_indices_file = (
+                    path_dir / f"indices{idx_process:03}.txt"
+                )
+                yield params
 
 
 class SplitterFromImages(Splitter):

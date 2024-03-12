@@ -44,7 +44,7 @@ from .log import LogTopology
 
 __all__ = ["LogTopology", "TopologyBase"]
 
-how_values = ("ask", "new_dir", "complete", "recompute")
+how_values = ("ask", "new_dir", "complete", "recompute", "from_path_indices")
 
 
 def prepare_path_dir_result(
