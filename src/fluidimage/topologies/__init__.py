@@ -39,7 +39,7 @@ from pathlib import Path
 
 from fluiddyn.io.query import query
 
-from .base import TopologyBase
+from .base import TopologyBase, TopologyBaseFromSeries
 from .log import LogTopology
 
 __all__ = ["LogTopology", "TopologyBase"]

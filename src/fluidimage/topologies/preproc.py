@@ -10,15 +10,15 @@
 import copy
 import os
 import sys
-from typing import Dict, List, Tuple
+from typing import Dict, Tuple
 
 from fluiddyn.util.paramcontainer import ParamContainer
 from fluidimage import SeriesOfArrays
 from fluidimage.data_objects.preproc import ArraySerie as ArraySubset
 from fluidimage.data_objects.preproc import PreprocResults, get_name_preproc
-from fluidimage.topologies import TopologyBase, prepare_path_dir_result
+from fluidimage.topologies import TopologyBaseFromSeries, prepare_path_dir_result
 from fluidimage.topologies.splitters import SplitterFromSeries
-from fluidimage.util import DEBUG, imread, logger
+from fluidimage.util import imread, logger
 from fluidimage.works import image2image
 from fluidimage.works.preproc import (
     WorkPreproc,
@@ -26,7 +26,7 @@ from fluidimage.works.preproc import (
 )
 
 
-class TopologyPreproc(TopologyBase):
+class TopologyPreproc(TopologyBaseFromSeries):
     """Preprocess series of images.
 
     The most useful methods for the user (in particular :func:`compute`) are
@@ -266,43 +266,21 @@ str_subset : str or None
         ret = obj.save(path=self.path_dir_result)
         self.results.append(ret)
 
-    def init_series(self) -> List[str]:
-        """Initializes the SeriesOfArrays object `self.series` based on input
-        parameters."""
-        series = self.series
-        if not series:
-            logger.warning("encountered empty series. No images to preprocess.")
-            return
-
-        if self.how_saving == "complete":
-            index_subsets = []
-            for ind_subset, subset in self.series.items():
-                names_serie = subset.get_name_arrays()
-                name_preproc = get_name_preproc(
-                    subset,
-                    names_serie,
-                    ind_subset,
-                    series.nb_series,
-                    self.params.saving.format,
-                )
-                if not (self.path_dir_result / name_preproc).exists():
-                    index_subsets.append(ind_subset)
-            series.set_index_series(index_subsets)
-            if logger.isEnabledFor(DEBUG):
-                logger.debug(
-                    repr([subset.get_name_arrays() for subset in series])
-                )
-
-        nb_subsets = len(series)
-        if nb_subsets == 0:
-            logger.warning('topology in mode "complete" and work already done.')
-            return
-        elif nb_subsets == 1:
-            plurial = ""
-        else:
-            plurial = "s"
-
-        logger.info("Add %s image serie%s to compute.", nb_subsets, plurial)
+    def compute_indices_to_be_computed(self):
+        """Compute the indices corresponding to the series to be computed"""
+        index_subsets = []
+        for ind_subset, subset in self.series.items():
+            names_serie = subset.get_name_arrays()
+            name_preproc = get_name_preproc(
+                subset,
+                names_serie,
+                ind_subset,
+                self.series.nb_series,
+                self.params.saving.format,
+            )
+            if not (self.path_dir_result / name_preproc).exists():
+                index_subsets.append(ind_subset)
+        return index_subsets
 
     def fill_subsets_of_names_and_paths(
         self, input_queue: None, output_queues: Tuple[Dict]

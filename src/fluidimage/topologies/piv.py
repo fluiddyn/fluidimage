@@ -13,14 +13,14 @@ from pathlib import Path
 
 from fluidimage import ParamContainer, SeriesOfArrays
 from fluidimage.data_objects.piv import ArrayCouple, get_name_piv
-from fluidimage.topologies import TopologyBase, prepare_path_dir_result
+from fluidimage.topologies import TopologyBaseFromSeries, prepare_path_dir_result
 from fluidimage.topologies.splitters import SplitterFromSeries
-from fluidimage.util import DEBUG, imread, logger
+from fluidimage.util import imread, logger
 from fluidimage.works import image2image
 from fluidimage.works.piv import WorkPIV
 
 
-class TopologyPIV(TopologyBase):
+class TopologyPIV(TopologyBaseFromSeries):
     """Topology for PIV computation.
 
     The most useful methods for the user (in particular :func:`compute`) are
@@ -166,6 +166,7 @@ class TopologyPIV(TopologyBase):
         self.results.append(ret)
 
     def compute_indices_to_be_computed(self):
+        """Compute the indices corresponding to the series to be computed"""
         index_series = []
         for ind_serie, serie in self.series.items():
             name_piv = get_name_piv(serie, prefix="piv")
@@ -173,44 +174,22 @@ class TopologyPIV(TopologyBase):
                 index_series.append(ind_serie)
         return index_series
 
+    _message_empty_series = "add 0 couple. No PIV to compute."
+
     def fill_couples_of_names_and_paths(self, input_queue, output_queues):
         """Fill the two first queues"""
         assert input_queue is None
         queue_couples_of_names = output_queues[0]
         queue_paths = output_queues[1]
 
-        series = self.series
-        if not series:
-            logger.warning("add 0 couple. No PIV to compute.")
-            return
+        self.init_series()
 
-        if self.how_saving in ("complete", "from_path_indices"):
-            if self.how_saving == "complete":
-                index_series = self.compute_indices_to_be_computed()
-                if not index_series:
-                    logger.warning(
-                        'topology in mode "complete" and work already done.'
-                    )
-                    return
-            elif self.how_saving == "from_path_indices":
-                path_indices = self.params.series.path_indices_file
-                index_series = [
-                    int(line) for line in open(path_indices, encoding="utf-8")
-                ]
-
-            series.set_index_series(index_series)
-            if logger.isEnabledFor(DEBUG):
-                logger.debug(repr([serie.get_name_arrays() for serie in series]))
-
-        nb_series = len(series)
-        logger.info("Add %s PIV fields to compute.", nb_series)
-
-        for iserie, serie in enumerate(series):
+        for iserie, serie in enumerate(self.series):
             if iserie > 1:
                 break
             logger.info("Files of serie %s: %s", iserie, serie.get_name_arrays())
 
-        for ind_serie, serie in series.items():
+        for ind_serie, serie in self.series.items():
             queue_couples_of_names[ind_serie] = serie.get_name_arrays()
             for name, path in serie.get_name_path_arrays():
                 queue_paths[name] = path

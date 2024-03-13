@@ -16,11 +16,13 @@
 """
 
 import json
+from abc import ABC, abstractmethod
 from collections import OrderedDict
 from pathlib import Path
 from warnings import warn
 
-from fluidimage.util import cstring, logger
+from fluidimage import ParamContainer, SeriesOfArrays
+from fluidimage.util import DEBUG, cstring, logger
 
 from ..executors import (
     ExecutorBase,
@@ -402,3 +404,49 @@ postfix : str
             f"dot {name_file}.dot -Tpng -o {name_file}.png && eog {name_file}.png\n"
             f"dot {name_file}.dot -Tx11"
         )
+
+
+class TopologyBaseFromSeries(TopologyBase, ABC):
+
+    series: SeriesOfArrays
+    how_saving: str
+    params: ParamContainer
+
+    _message_empty_series = "encountered empty series. No images to preprocess."
+
+    @abstractmethod
+    def compute_indices_to_be_computed(self):
+        """Compute the indices corresponding to the series to be computed"""
+
+    def init_series(self):
+        """Initializes the SeriesOfArrays object `self.series` based on input
+        parameters."""
+        series = self.series
+        if not series:
+            logger.warning(self._message_empty_series)
+            return
+
+        if self.how_saving in ("complete", "from_path_indices"):
+            if self.how_saving == "complete":
+                index_series = self.compute_indices_to_be_computed()
+            elif self.how_saving == "from_path_indices":
+                path_indices = self.params.series.path_indices_file
+                index_series = [
+                    int(line) for line in open(path_indices, encoding="utf-8")
+                ]
+            series.set_index_series(index_series)
+            if self.how_saving == "complete" and not index_series:
+                logger.warning(
+                    'topology in mode "complete" and work already done.'
+                )
+                return
+            if logger.isEnabledFor(DEBUG):
+                logger.debug(repr([serie.get_name_arrays() for serie in series]))
+
+        nb_series = len(series)
+        if nb_series == 1:
+            plural = ""
+        else:
+            plural = "s"
+
+        logger.info("Add %s image serie%s to compute.", nb_series, plural)
