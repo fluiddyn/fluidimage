@@ -5,6 +5,7 @@
 
 from abc import ABC, abstractmethod
 from copy import deepcopy
+from pathlib import Path
 
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles, SeriesOfArrays
 
@@ -54,7 +55,47 @@ class Splitter(ABC):
         """Split the work in approximately equal subworks"""
 
 
-class SplitterFromSeries(Splitter):
+class SplitterCompleteAware(Splitter):
+    _path_dir_indices: Path
+    indices_lists: list
+    _indices_files_saved: bool
+
+    @abstractmethod
+    def _get_params_things(self, params):
+        """Get the Parameters object corresponding to the series or the images"""
+
+    def save_indices_files(self, path_dir):
+        self._path_dir_indices = path_dir
+
+        for idx_process, indices in enumerate(self.indices_lists):
+            if not indices:
+                continue
+            path = path_dir / f"indices{idx_process:03}.txt"
+            path.write_text("\n".join(str(index) for index in indices) + "\n")
+
+        self._indices_files_saved = True
+
+    def _iter_over_new_params_from_indices_lists(self):
+        if not self._indices_files_saved:
+            raise RuntimeError("First call save_indices_files.")
+        path_dir = self._path_dir_indices
+
+        params0 = deepcopy(self.params)
+        params0.saving.how = "from_path_indices"
+
+        p_series = self._get_params_things(params0)
+        p_series._set_attrib("path_indices_file", None)
+
+        for idx_process, indices in enumerate(self.indices_lists):
+            if not indices:
+                continue
+            params = deepcopy(params0)
+            p_series = self._get_params_things(params)
+            p_series.path_indices_file = path_dir / f"indices{idx_process:03}.txt"
+            yield params
+
+
+class SplitterFromSeries(SplitterCompleteAware):
 
     def __init__(self, params, num_processes, topology=None):
         super().__init__(params, num_processes, topology=topology)
@@ -100,19 +141,10 @@ class SplitterFromSeries(Splitter):
     def get_params_series(self, params):
         return params.series
 
-    def save_indices_files(self, path_dir):
-        self._path_dir_indices = path_dir
-
-        for idx_process, indices in enumerate(self.indices_lists):
-            if not indices:
-                continue
-            path = path_dir / f"indices{idx_process:03}.txt"
-            path.write_text("\n".join(str(index) for index in indices) + "\n")
-
-        self._indices_files_saved = True
+    def _get_params_things(self, params):
+        return self.get_params_series(params)
 
     def iter_over_new_params(self):
-
         if self.ranges is not None:
             for sss in self.ranges:
                 if len(range(*sss)) == 0:
@@ -121,28 +153,10 @@ class SplitterFromSeries(Splitter):
                 p_series = self.get_params_series(params)
                 p_series.ind_start, p_series.ind_stop, p_series.ind_step = sss
                 yield params
-
         elif self.indices_lists is not None:
-
-            if not self._indices_files_saved:
-                raise RuntimeError("First call save_indices_files.")
-            path_dir = self._path_dir_indices
-
-            params0 = deepcopy(self.params)
-            params0.saving.how = "from_path_indices"
-
-            p_series = self.get_params_series(params0)
-            p_series._set_attrib("path_indices_file", None)
-
-            for idx_process, indices in enumerate(self.indices_lists):
-                if not indices:
-                    continue
-                params = deepcopy(params0)
-                p_series = self.get_params_series(params)
-                p_series.path_indices_file = (
-                    path_dir / f"indices{idx_process:03}.txt"
-                )
-                yield params
+            yield from self._iter_over_new_params_from_indices_lists()
+        else:
+            assert False
 
 
 class SplitterFromImages(Splitter):
