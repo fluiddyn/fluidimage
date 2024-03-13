@@ -112,12 +112,6 @@ class SplitterFromSeries(SplitterCompleteAware):
         else:
             self.series = topology.series
 
-        self.num_expected_results = len(
-            range(
-                self.series.ind_start, self.series.ind_stop, self.series.ind_step
-            )
-        )
-
         self.indices_lists = None
         self.ranges = None
         self._indices_files_saved = False
@@ -130,7 +124,15 @@ class SplitterFromSeries(SplitterCompleteAware):
         ):
             indices = topology.compute_indices_to_be_computed()
             self.indices_lists = split_list(indices, self.num_processes)
+            self.num_expected_results = len(indices)
         else:
+            self.num_expected_results = len(
+                range(
+                    self.series.ind_start,
+                    self.series.ind_stop,
+                    self.series.ind_step,
+                )
+            )
             self.ranges = split_range(
                 self.series.ind_start,
                 self.series.ind_stop,
@@ -159,7 +161,7 @@ class SplitterFromSeries(SplitterCompleteAware):
             assert False
 
 
-class SplitterFromImages(Splitter):
+class SplitterFromImages(SplitterCompleteAware):
 
     def __init__(self, params, num_processes, topology=None):
         super().__init__(params, num_processes, topology=topology)
@@ -173,29 +175,50 @@ class SplitterFromImages(Splitter):
         else:
             self.serie = topology.serie
 
-        self.num_expected_results = len(self.serie)
+        self.indices_lists = None
+        self.ranges = None
+        self._indices_files_saved = False
+        self._path_dir_indices = None
 
-        slicing_tuples = self.serie.get_slicing_tuples()
-        s0 = slicing_tuples[0]
-        self.ranges = split_range(s0[0], s0[1], s0[2], self.num_processes)
-
-        if len(slicing_tuples) == 1:
-            self.slicing_str_post = ""
+        if (
+            topology is not None
+            and topology.how_saving == "complete"
+            and hasattr(topology, "compute_indices_to_be_computed")
+        ):
+            indices = topology.compute_indices_to_be_computed()
+            self.indices_lists = split_list(indices, self.num_processes)
+            self.num_expected_results = len(indices)
         else:
-            self.slicing_str_post = "," + ",".join(
-                ":".join(str(n) for n in sss) for sss in slicing_tuples[1:]
-            )
+            self.num_expected_results = len(self.serie)
+            slicing_tuples = self.serie.get_slicing_tuples()
+            s0 = slicing_tuples[0]
+            self.ranges = split_range(s0[0], s0[1], s0[2], self.num_processes)
+
+            if len(slicing_tuples) == 1:
+                self.slicing_str_post = ""
+            else:
+                self.slicing_str_post = "," + ",".join(
+                    ":".join(str(n) for n in sss) for sss in slicing_tuples[1:]
+                )
 
     def get_params_images(self, params):
         return params.images
 
+    def _get_params_things(self, params):
+        return self.get_params_images(params)
+
     def iter_over_new_params(self):
-        for sss in self.ranges:
-            if len(range(*sss)) == 0:
-                continue
-            params = deepcopy(self.params)
-            p_images = self.get_params_images(params)
-            p_images.str_subset = (
-                ":".join(str(n) for n in sss) + self.slicing_str_post
-            )
-            yield params
+        if self.ranges is not None:
+            for sss in self.ranges:
+                if len(range(*sss)) == 0:
+                    continue
+                params = deepcopy(self.params)
+                p_images = self.get_params_images(params)
+                p_images.str_subset = (
+                    ":".join(str(n) for n in sss) + self.slicing_str_post
+                )
+                yield params
+        elif self.indices_lists is not None:
+            yield from self._iter_over_new_params_from_indices_lists()
+        else:
+            assert False

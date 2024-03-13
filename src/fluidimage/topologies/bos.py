@@ -12,9 +12,10 @@ from pathlib import Path
 
 from fluidimage import ParamContainer
 from fluidimage.data_objects.piv import get_name_bos
-from fluidimage.topologies import TopologyBase, prepare_path_dir_result
+from fluidimage.topologies import prepare_path_dir_result
+from fluidimage.topologies.base import TopologyBaseFromImages
 from fluidimage.topologies.splitters import SplitterFromImages
-from fluidimage.util import imread, logger
+from fluidimage.util import imread
 from fluidimage.works import image2image
 from fluidimage.works.bos import WorkBOS
 
@@ -30,7 +31,7 @@ def _imread(path):
     return image, Path(path).name
 
 
-class TopologyBOS(TopologyBase):
+class TopologyBOS(TopologyBaseFromImages):
     """Topology for BOS computation.
 
     See https://en.wikipedia.org/wiki/Background-oriented_schlieren_technique
@@ -154,55 +155,40 @@ class TopologyBOS(TopologyBase):
             input_queue=queue_bos,
             kind="io",
         )
+        self.results = []
 
     def save_bos_object(self, obj):
         """Save a BOS object"""
         ret = obj.save(self.path_dir_result, kind="bos")
-        return ret
+        self.results.append(ret)
 
     def calcul(self, tuple_image_path):
         """Compute a BOS field"""
         return self.main_work.calcul(tuple_image_path)
 
-    def fill_queue_paths(self, input_queue, output_queue):
-        """Fill the first queue (paths)"""
-        assert input_queue is None
+    def _get_name_result_from_name(self, name):
+        return get_name_bos(name, self.serie)
 
-        serie = self.serie
-        if not serie:
-            logger.warning("add 0 image. No image to process.")
+    def _fix_indices_images(self, indices_images):
+        """Fix the indices images in fill_queue_paths"""
+
+        if not self.path_reference.is_relative_to(self.serie.path_dir):
             return
 
-        names = serie.get_name_arrays()
-
-        for name in names:
-            path_im_output = self.path_dir_result / get_name_bos(name, serie)
-            path_im_input = str(self.path_dir_src / name)
-            if self.how_saving == "complete":
-                if not path_im_output.exists():
-                    output_queue[name] = path_im_input
-            else:
-                output_queue[name] = path_im_input
-
-        if not names:
-            if self.how_saving == "complete":
-                logger.warning(
-                    'topology in mode "complete" and work already done.'
-                )
-            else:
-                logger.warning("Nothing to do")
+        if not self.path_reference.name.startswith(self.serie.base_name):
             return
 
         try:
-            del output_queue[self.path_reference]
-        except KeyError:
+            indices_ref = tuple(
+                self.serie.compute_indices_from_name(self.path_reference.name)
+            )
+        except ValueError:
+            return
+
+        try:
+            indices_images.remove(indices_ref)
+        except ValueError:
             pass
-
-        nb_names = len(names)
-        logger.info("Add %s images to compute.", nb_names)
-        logger.info("First files to process: %s", names[:4])
-
-        logger.debug("All files: %s", names)
 
     def make_text_at_exit(self, time_since_start):
         """Make a text printed at exit"""

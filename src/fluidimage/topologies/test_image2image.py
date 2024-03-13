@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 
 from fluidimage.executors import supported_multi_executors
@@ -18,14 +20,32 @@ def test_im2im(tmp_path_karman, executor):
     params.saving.how = "recompute"
     params.saving.postfix = postfix
 
-    topology = TopologyImage2Image(params, logging_level="info")
-
     if executor == "multi_exec_async":
+        topology = TopologyImage2Image(params, logging_level="info")
         topology.compute("exec_async", stop_if_error=True)
 
-        topology = TopologyImage2Image(params, logging_level="info")
+        # remove files
+        path_files = list(Path(topology.path_dir_result).glob("*.bmp"))
+        assert len(path_files) == 4
+        for path in path_files:
+            path.unlink()
 
+    topology = TopologyImage2Image(params, logging_level="info")
+    topology.compute(executor)
+    assert len(topology.results) == 4
+
+    # remove one file
+    path_files = list(Path(topology.path_dir_result).glob("*.bmp"))
+    assert len(path_files) == 4
+    path_files[0].unlink()
+
+    params.saving.how = "complete"
+    topology = TopologyImage2Image(params, logging_level="info")
     topology.compute(executor, nb_max_workers=2)
+    assert len(topology.results) == 1
+
+    path_files = list(Path(topology.path_dir_result).glob("*.bmp"))
+    assert len(path_files) == 4
 
     if executor != "multi_exec_async":
         return

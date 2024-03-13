@@ -9,11 +9,10 @@ postfix = "test_bos"
 
 
 @pytest.mark.parametrize("executor", supported_multi_executors)
-def test_bos_new_multiproc(tmp_path_karman, executor):
+def test_bos(tmp_path_karman, executor):
     params = TopologyBOS.create_default_params()
 
     params.images.path = str(tmp_path_karman)
-    params.images.str_subset = "1:3"
 
     params.piv0.shape_crop_im0 = 32
     params.multipass.number = 2
@@ -33,11 +32,17 @@ def test_bos_new_multiproc(tmp_path_karman, executor):
 
     topology = TopologyBOS(params, logging_level="info")
     topology.compute("exec_async", stop_if_error=True)
+    assert len(topology.results) == 3
 
     # remove one file
     path_files = list(Path(topology.path_dir_result).glob("bos*"))
+    assert len(path_files) == 3
     path_files[0].unlink()
 
     params.saving.how = "complete"
     topology = TopologyBOS(params, logging_level="info")
     topology.compute(executor, nb_max_workers=2)
+    assert len(topology.results) == 1
+
+    path_files = list(Path(topology.path_dir_result).glob("bos*"))
+    assert len(path_files) == 3
