@@ -59,6 +59,7 @@ class SplitterCompleteAware(Splitter):
     _path_dir_indices: Path
     indices_lists: list
     _indices_files_saved: bool
+    ranges: list
 
     @abstractmethod
     def _get_params_things(self, params):
@@ -93,6 +94,18 @@ class SplitterCompleteAware(Splitter):
             p_series = self._get_params_things(params)
             p_series.path_indices_file = path_dir / f"indices{idx_process:03}.txt"
             yield params
+
+    @abstractmethod
+    def _iter_over_new_params_from_ranges(self):
+        """Iter from self.ranges"""
+
+    def iter_over_new_params(self):
+        if self.ranges is not None:
+            yield from self._iter_over_new_params_from_ranges()
+        elif self.indices_lists is not None:
+            yield from self._iter_over_new_params_from_indices_lists()
+        else:
+            assert False
 
 
 class SplitterFromSeries(SplitterCompleteAware):
@@ -146,19 +159,14 @@ class SplitterFromSeries(SplitterCompleteAware):
     def _get_params_things(self, params):
         return self.get_params_series(params)
 
-    def iter_over_new_params(self):
-        if self.ranges is not None:
-            for sss in self.ranges:
-                if len(range(*sss)) == 0:
-                    continue
-                params = deepcopy(self.params)
-                p_series = self.get_params_series(params)
-                p_series.ind_start, p_series.ind_stop, p_series.ind_step = sss
-                yield params
-        elif self.indices_lists is not None:
-            yield from self._iter_over_new_params_from_indices_lists()
-        else:
-            assert False
+    def _iter_over_new_params_from_ranges(self):
+        for sss in self.ranges:
+            if len(range(*sss)) == 0:
+                continue
+            params = deepcopy(self.params)
+            p_series = self.get_params_series(params)
+            p_series.ind_start, p_series.ind_stop, p_series.ind_step = sss
+            yield params
 
 
 class SplitterFromImages(SplitterCompleteAware):
@@ -207,18 +215,13 @@ class SplitterFromImages(SplitterCompleteAware):
     def _get_params_things(self, params):
         return self.get_params_images(params)
 
-    def iter_over_new_params(self):
-        if self.ranges is not None:
-            for sss in self.ranges:
-                if len(range(*sss)) == 0:
-                    continue
-                params = deepcopy(self.params)
-                p_images = self.get_params_images(params)
-                p_images.str_subset = (
-                    ":".join(str(n) for n in sss) + self.slicing_str_post
-                )
-                yield params
-        elif self.indices_lists is not None:
-            yield from self._iter_over_new_params_from_indices_lists()
-        else:
-            assert False
+    def _iter_over_new_params_from_ranges(self):
+        for sss in self.ranges:
+            if len(range(*sss)) == 0:
+                continue
+            params = deepcopy(self.params)
+            p_images = self.get_params_images(params)
+            p_images.str_subset = (
+                ":".join(str(n) for n in sss) + self.slicing_str_post
+            )
+            yield params
