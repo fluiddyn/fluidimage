@@ -28,12 +28,13 @@ def test_piv_oseen(tmp_path_oseen, executor):
     topology.compute(executor, nb_max_workers=2)
 
     path_files = list(Path(topology.path_dir_result).glob("piv*"))
-    path_files[0].unlink()
-    path_files[1].unlink()
+    for i in range(2):
+        path_files[i].unlink()
 
     params.saving.how = "complete"
     topology = TopologyPIV(params, logging_level="info")
     topology.compute(executor, nb_max_workers=2)
+    assert len(topology.results) == 2
 
     topology.make_code_graphviz(topology.path_dir_result / "topo.dot")
 

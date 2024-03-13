@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 
 from fluidimage._opencv import error_import_cv2
@@ -25,8 +27,16 @@ def test_optical_flow(tmp_path_oseen, executor):
     params.filters.displacement_max = 10.0
 
     topology = Topology(params, logging_level="info")
-
     topology.compute(executor, nb_max_workers=2)
+
+    path_files = sorted(Path(topology.path_dir_result).glob("piv_*.h5"))
+    for i in range(2):
+        path_files[i].unlink()
+
+    params.saving.how = "complete"
+    topology = Topology(params, logging_level="info")
+    topology.compute(executor, nb_max_workers=2)
+    assert len(topology.results) == 2
 
     if executor != "multi_exec_async":
         return

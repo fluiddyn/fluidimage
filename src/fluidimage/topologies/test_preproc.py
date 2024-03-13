@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 
 from fluidimage.executors import supported_multi_executors
@@ -42,3 +44,12 @@ def test_preproc_multi_exec(tmp_path_jet_small, executor):
     topology = TopologyPreproc(params, logging_level="debug")
     topology.compute(executor, nb_max_workers=2)
     assert len(topology.results) == 4
+
+    path_files = sorted(Path(topology.path_dir_result).glob("*.png"))
+    for i in range(2):
+        path_files[i].unlink()
+
+    params.saving.how = "complete"
+    topology = TopologyPreproc(params, logging_level="info")
+    topology.compute(executor, nb_max_workers=2)
+    assert len(topology.results) == 2
