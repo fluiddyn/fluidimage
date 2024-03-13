@@ -1,3 +1,11 @@
+"""Sequential executor for multi executor
+
+.. autoclass:: ExecutorAsyncSeqForMulti
+   :members:
+   :private-members:
+
+"""
+
 from pathlib import Path
 from time import time
 
@@ -7,7 +15,7 @@ from .exec_async_sequential import ExecutorAsyncSequential
 
 
 class ExecutorAsyncSeqForMulti(ExecutorAsyncSequential):
-    """Slightly modified ExecutorAsync"""
+    """Slightly modified ExecutorAsyncSequential"""
 
     def __init__(
         self,

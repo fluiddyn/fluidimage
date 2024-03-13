@@ -29,10 +29,6 @@ from .util import (
 )
 
 if any("pytest" in part for part in sys.argv):
-    import pytest
-
-    pytest.register_assert_rewrite("fluidimage.testing")
-
     print(
         "Fluidimage guesses that it is tested so it"
         " loads the Agg Matplotlib backend."

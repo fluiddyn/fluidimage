@@ -22,8 +22,6 @@ from fluidimage.util import logger
 from .base import MultiExecutorBase
 from .exec_async_seq_for_multi import ExecutorAsyncSeqForMulti
 
-# from time import time
-
 
 class ExecutorAsyncForMulti(ExecutorAsyncSeqForMulti):
     """Slightly modified ExecutorAsync"""

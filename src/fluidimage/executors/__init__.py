@@ -19,6 +19,8 @@ an executor compared to another.
    exec_async
    exec_async_sequential
    multi_exec_async
+   multi_exec_subproc
+   exec_async_seq_for_multi
    exec_async_multiproc
    exec_async_servers
    servers

@@ -13,6 +13,14 @@
    :members:
    :private-members:
 
+.. autoclass:: TopologyBaseFromSeries
+   :members:
+   :private-members:
+
+.. autoclass:: TopologyBaseFromImages
+   :members:
+   :private-members:
+
 """
 
 import json

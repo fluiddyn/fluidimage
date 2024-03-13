@@ -1,5 +1,22 @@
 """Splitters to split a topology task
 
+Splitters are used for :class:`fluidimage.executors.multi_exec_subproc.MultiExecutorSubproc`.
+
+.. autoclass:: Splitter
+   :members:
+   :private-members:
+
+.. autoclass:: SplitterCompleteAware
+   :members:
+   :private-members:
+
+.. autoclass:: SplitterFromSeries
+   :members:
+   :private-members:
+
+.. autoclass:: SplitterFromImages
+   :members:
+   :private-members:
 
 """
 

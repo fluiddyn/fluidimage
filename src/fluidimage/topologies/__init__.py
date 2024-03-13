@@ -30,6 +30,7 @@ These others modules defined classes and functions useful for developers.
    base
    log
    launcher
+   splitters
 
 """
 

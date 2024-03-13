@@ -3,6 +3,27 @@
 See also the
 [unreleased changes](https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.3.0...branch%2Fdefault).
 
+## [0.4.0] (2024-03-1?)
+
+```{warning}
+
+This version contains incompatible API changes documented here.
+
+```
+
+### Changed
+
+- Parameters for {class}`fluidimage.preproc.Topology` are now directly in `params`
+  and no longer in `params.preproc`.
+
+### Added
+
+- [#74](https://foss.heptapod.net/fluiddyn/fluidimage/-/merge_requests/74):
+  New executor `multi_exec_subproc` defined in
+  {class}`fluidimage.executors.multi_exec_subproc.Executor` based on
+  {class}`fluidimage.topologies.splitters.Splitter`. Useful for operative systems
+  that do not support forks (in particular Windows).
+
 ## [0.3.0] (2024-03-05)
 
 ```{warning}
