@@ -100,17 +100,6 @@ str_subset : None
 
         super()._add_default_params_saving(params)
 
-        params._set_internal_attr(
-            "_value_text",
-            json.dumps(
-                {
-                    "program": "fluidimage",
-                    "module": "fluidimage.topologies.surface_tracking",
-                    "class": "TopologySurfaceTracking",
-                }
-            ),
-        )
-
         params._set_child("preproc")
         image2image.complete_im2im_params_with_default(params.preproc)
 

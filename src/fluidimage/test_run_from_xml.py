@@ -1,6 +1,5 @@
 import shutil
 import sys
-import unittest
 
 from fluidimage import get_path_image_samples
 from fluidimage.piv import TopologyPIV
@@ -9,7 +8,6 @@ from fluidimage.run_from_xml import main
 path_image_samples = get_path_image_samples()
 
 
-@unittest.skipIf(sys.platform != "linux", "Only supported on Linux")
 def test_main(monkeypatch):
 
     monkeypatch.chdir(path_image_samples)
@@ -42,7 +40,7 @@ def test_piv_sequential(tmp_path, monkeypatch):
     params.saving.postfix = "test_piv_run_from_xml"
 
     params._set_child(
-        "compute_args",
+        "compute_kwargs",
         attribs={"executor": "exec_async_sequential", "nb_max_workers": 1},
     )
 

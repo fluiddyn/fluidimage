@@ -1,42 +1,53 @@
-import sys
-import unittest
 from pathlib import Path
-from shutil import rmtree
 
-from fluidimage import get_path_image_samples
-from fluidimage.topologies.image2image import TopologyImage2Image
+import pytest
 
-on_linux = sys.platform == "linux"
+from fluidimage.executors import supported_multi_executors
+from fluidimage.image2image import TopologyImage2Image
+
+postfix = "test_im2im"
 
 
-@unittest.skipIf(not on_linux, "Only supported on Linux")
-class TestImage2Image(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.path_src = get_path_image_samples() / "Karman/Images"
-        cls.postfix = "test_im2im_new"
+@pytest.mark.parametrize("executor", supported_multi_executors)
+def test_im2im(tmp_path_karman, executor):
+    params = TopologyImage2Image.create_default_params()
 
-    @classmethod
-    def tearDownClass(cls):
-        path_out = Path(str(cls.path_src) + "." + cls.postfix)
-        if path_out.exists():
-            rmtree(path_out, ignore_errors=True)
+    params.images.path = str(tmp_path_karman)
 
-    def test_im2im(self):
-        params = TopologyImage2Image.create_default_params()
+    params.im2im = "fluidimage.image2image.Im2ImExample"
+    params.args_init = ((1024, 2048), "clip")
 
-        params.images.path = str(self.path_src)
+    params.saving.how = "recompute"
+    params.saving.postfix = postfix
 
-        params.im2im = "fluidimage.image2image.Im2ImExample"
-        params.args_init = ((1024, 2048), "clip")
-
-        params.saving.how = "recompute"
-        params.saving.postfix = self.postfix
-
+    if executor == "multi_exec_async":
         topology = TopologyImage2Image(params, logging_level="info")
         topology.compute("exec_async", stop_if_error=True)
 
-        topology = TopologyImage2Image(params, logging_level="info")
-        topology.compute()
+        # remove files
+        path_files = list(Path(topology.path_dir_result).glob("*.bmp"))
+        assert len(path_files) == 4
+        for path in path_files:
+            path.unlink()
 
-        topology.make_code_graphviz(topology.path_dir_result / "topo.dot")
+    topology = TopologyImage2Image(params, logging_level="info")
+    topology.compute(executor)
+    assert len(topology.results) == 4
+
+    # remove one file
+    path_files = list(Path(topology.path_dir_result).glob("*.bmp"))
+    assert len(path_files) == 4
+    path_files[0].unlink()
+
+    params.saving.how = "complete"
+    topology = TopologyImage2Image(params, logging_level="info")
+    topology.compute(executor, nb_max_workers=2)
+    assert len(topology.results) == 1
+
+    path_files = list(Path(topology.path_dir_result).glob("*.bmp"))
+    assert len(path_files) == 4
+
+    if executor != "multi_exec_async":
+        return
+
+    topology.make_code_graphviz(topology.path_dir_result / "topo.dot")

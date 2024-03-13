@@ -17,20 +17,20 @@ import os
 from abc import ABC, abstractmethod
 from time import time
 
-import numpy as np
-import scipy
-
+from fluiddyn import time_as_str
 from fluiddyn.util import import_class
 from fluiddyn.util.paramcontainer import tidy_container
 from fluidimage.topologies.piv import TopologyPIV
 
-from . import (
+from . import (  # SerieOfArraysFromFiles,
     ParamContainer,
-    SerieOfArraysFromFiles,
     config_logging,
     logger,
     reset_logger,
 )
+
+# import numpy as np
+# import scipy
 
 
 def tidy_uvmat_instructions(params):
@@ -209,17 +209,18 @@ def parse_args():
         "--mode",
         help="'ask', 'new_dir', 'complete' or 'recompute'.",
         type=str,
-        default="ask",
+        default=None,
     )
 
     return parser.parse_args()
 
 
 def modif_fluidimage_params(params, args):
-    try:
-        params.saving.how = args.mode
-    except AttributeError:
-        pass
+    if args.mode is not None:
+        try:
+            params.saving.how = args.mode
+        except AttributeError:
+            pass
 
 
 def main():
@@ -247,7 +248,8 @@ def main():
         raise ValueError("Can not detect the program to launch.")
 
     logger.info(
-        "\nUsing instructions in xml file:\n%s",
+        "\n%s: using instructions in xml file:\n%s",
+        time_as_str(2),
         path_instructions_xml,
     )
 
@@ -275,21 +277,11 @@ def main():
         action = cls(params)
 
         try:
-            compute_args = params.compute_args
+            compute_kwargs = params.compute_kwargs
         except AttributeError:
             pass
         else:
-            for key in (
-                "executor",
-                "nb_max_workers",
-                "sleep_time",
-                "sequential",
-                "stop_if_error",
-            ):
-                try:
-                    kwargs_compute[key] = compute_args[key]
-                except (KeyError, AttributeError):
-                    pass
+            kwargs_compute = compute_kwargs._make_dict_tree()
 
     return action.compute(**kwargs_compute)
 

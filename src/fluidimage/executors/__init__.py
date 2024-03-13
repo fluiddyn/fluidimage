@@ -19,6 +19,8 @@ an executor compared to another.
    exec_async
    exec_async_sequential
    multi_exec_async
+   multi_exec_subproc
+   exec_async_seq_for_multi
    exec_async_multiproc
    exec_async_servers
    servers
@@ -52,17 +54,28 @@ if hasattr(os, "register_at_fork"):
 
 from .base import ExecutorBase
 
+# on Windows (and MacOS), one cannot use "multi_exec_async"
+# because the OS does not support forks (or not fully) and
+# multiprocessing works differently than on Linux
+# see https://docs.python.org/3/library/multiprocessing.html#contexts-and-start-methods
+supported_multi_executors = ["multi_exec_subproc"]
+if sys.platform == "linux":
+    supported_multi_executors.insert(0, "multi_exec_async")
+
+
 _entry_points = None
 
 
-def get_entry_points(reload=False, ndim=None, sequential=None):
+def get_entry_points(reload=False):
     """Discover the executors installed"""
     global _entry_points
     if _entry_points is None or reload:
         _entry_points = entry_points(group="fluidimage.executors")
 
     if not _entry_points:
-        raise RuntimeError("No executor were found.")
+        raise RuntimeError(
+            "No executor entry point were found, which indicates an installation issue."
+        )
 
     return _entry_points
 

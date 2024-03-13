@@ -11,6 +11,7 @@ python_sources = [
   'optical_flow.py',
   'piv.py',
   'preproc.py',
+  'splitters.py',
   'surface_tracking.py',
   'test_bos.py',
   'test_example.py',
@@ -18,6 +19,7 @@ python_sources = [
   'test_optical_flow.py',
   'test_piv.py',
   'test_preproc.py',
+  'test_splitters.py',
   'test_surftracking.py',
 ]
 

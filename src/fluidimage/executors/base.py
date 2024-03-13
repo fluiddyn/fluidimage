@@ -5,6 +5,10 @@
    :members:
    :private-members:
 
+.. autoclass:: MultiExecutorBase
+   :members:
+   :private-members:
+
 """
 
 import os
@@ -59,7 +63,7 @@ class ExecutorBase:
     """
 
     def _init_log_path(self):
-        name = "_".join(("log", time_as_str(), str(os.getpid())))
+        name = f"log_{self._unique_postfix}"
         self.path_dir_exceptions = self.path_dir_result / name
         self._log_path = self.path_dir_result / (name + ".txt")
 
@@ -72,6 +76,7 @@ class ExecutorBase:
         logging_level="info",
         sleep_time=None,
         stop_if_error=False,
+        path_log=None,
     ):
         if not _omp_num_threads_equal_1_at_import:
             raise SystemError(
@@ -88,7 +93,12 @@ class ExecutorBase:
         path_dir_result = Path(path_dir_result)
         path_dir_result.mkdir(exist_ok=True)
         self.path_dir_result = path_dir_result
+
+        self._unique_postfix = f"{time_as_str()}_{os.getpid()}"
+
         self._init_log_path()
+        if path_log is not None:
+            self._log_path = path_log
         self._log_file = open(self._log_path, "w")
 
         stdout = sys.stdout
@@ -163,11 +173,11 @@ class ExecutorBase:
 
     def _init_compute_log(self):
         log_memory_usage(time_as_str(2) + ": starting execution. mem usage")
-        logger.info(f"  topology: {str_short(type(self.topology))}")
-        logger.info(f"  executor: {str_short(type(self))}")
-        logger.info(f"  nb_cpus_allowed = {nb_cores}")
-        logger.info(f"  nb_max_workers = {self.nb_max_workers}")
-        logger.info(f"  path_dir_result = {self.path_dir_result}")
+        logger.info("  topology: %s", str_short(type(self.topology)))
+        logger.info("  executor: %s", str_short(type(self)))
+        logger.info("  nb_cpus_allowed = %s", nb_cores)
+        logger.info("  nb_max_workers = %s", self.nb_max_workers)
+        logger.info("  path_dir_result = %s", self.path_dir_result)
 
     def _reset_std_as_default(self):
         sys.stdout = sys.__stdout__
@@ -215,3 +225,87 @@ class ExecutorBase:
                 f"Exception for work {work_name}, key {key}:\n"
                 + formated_exception
             )
+
+
+class MultiExecutorBase(ExecutorBase):
+    """Manage the multi-executor mode
+
+     This class is not the one whose really compute the topology. The topology is
+     split and each slice is computed with an ExecutorAsync
+
+    Parameters
+    ----------
+
+    nb_max_workers : None, int
+
+      Limits the numbers of workers working in the same time.
+
+    nb_items_queue_max : None, int
+
+      Limits the numbers of items that can be in a output_queue.
+
+    sleep_time : None, float
+
+      Defines the waiting time (from trio.sleep) of a function. Async functions
+      await `trio.sleep(sleep_time)` when they have done a work on an item, and
+      when there is nothing in their input_queue.
+
+    """
+
+    def __init__(
+        self,
+        topology,
+        path_dir_result,
+        nb_max_workers=None,
+        nb_items_queue_max=None,
+        sleep_time=0.01,
+        logging_level="info",
+        stop_if_error=False,
+    ):
+        if stop_if_error:
+            raise NotImplementedError
+
+        super().__init__(
+            topology,
+            path_dir_result,
+            nb_max_workers,
+            nb_items_queue_max,
+            logging_level=logging_level,
+        )
+
+        self.sleep_time = sleep_time
+        self.nb_processes = self.nb_max_workers
+        self.processes = []
+
+        # to avoid a pylint warning
+        self.log_paths = None
+
+    def _init_log_path(self):
+        name = f"log_{self._unique_postfix}"
+        path_dir_log = self.path_dir_exceptions = self.path_dir_result / name
+        path_dir_log.mkdir(exist_ok=True)
+        self._log_path = path_dir_log / (name + ".txt")
+
+    def compute(self):
+        """Compute the topology."""
+
+        self._init_compute()
+        self.log_paths = []
+
+        if sys.platform != "win32":
+
+            def handler_signals(signal_number, stack):
+                del stack
+                print(
+                    f"signal {signal_number} received: set _has_to_stop to True "
+                    f"({type(self).__name__})."
+                )
+                self._has_to_stop = True
+                for process in self.processes:
+                    os.kill(process.pid, signal_number)
+
+            signal.signal(12, handler_signals)
+
+        self._start_processes()
+        self._wait_for_all_processes()
+        self._finalize_compute()

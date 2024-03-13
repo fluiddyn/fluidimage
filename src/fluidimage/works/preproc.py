@@ -71,9 +71,9 @@ class WorkPreproc(BaseWorkFromSerie):
 
         """
         params = ParamContainer(tag="params")
-        params._set_child("preproc", attribs={"backend": backend})
-        BaseWorkFromSerie._complete_params_with_default(params.preproc)
-        params.preproc.series.str_subset = "all1by1"
+        params._set_attrib("backend", backend)
+        BaseWorkFromSerie._complete_params_with_default(params)
+        params.series.str_subset = "all1by1"
 
         Tools = _get_backend_class(backend)
         Tools.create_default_params(params)
@@ -84,8 +84,8 @@ class WorkPreproc(BaseWorkFromSerie):
         if params is None:
             params = type(self).create_default_params()
         super().__init__(params)
-        self.params = params.preproc
-        Tools = _get_backend_class(params.preproc.backend)
+        self.params = params
+        Tools = _get_backend_class(params.backend)
         self.tools = Tools(params)
 
     def calcul(self, serie):

@@ -14,62 +14,20 @@ Multi executors async
 
 import copy
 import math
-import os
-import signal
-import sys
 from multiprocessing import Pipe, Process
 from pathlib import Path
-from time import time
 
-from fluiddyn import time_as_str
 from fluidimage.util import logger
 
-from .base import ExecutorBase
-from .exec_async_sequential import ExecutorAsyncSequential
+from .base import MultiExecutorBase
+from .exec_async_seq_for_multi import ExecutorAsyncSeqForMulti
 
 
-class ExecutorAsyncForMulti(ExecutorAsyncSequential):
+class ExecutorAsyncForMulti(ExecutorAsyncSeqForMulti):
     """Slightly modified ExecutorAsync"""
 
-    def __init__(
-        self,
-        topology,
-        path_dir_result,
-        log_path,
-        sleep_time=0.01,
-        logging_level="info",
-        stop_if_error=False,
-    ):
-        if stop_if_error:
-            raise NotImplementedError(
-                "stop_if_error not implemented for ExecutorAsyncForMulti"
-            )
 
-        self._log_path = log_path
-        super().__init__(
-            topology,
-            path_dir_result,
-            nb_max_workers=1,
-            nb_items_queue_max=8,
-            sleep_time=sleep_time,
-            logging_level=logging_level,
-        )
-
-    def _init_log_path(self):
-        self.path_dir_exceptions = self._log_path.parent
-
-    def _init_compute(self):
-        self._init_compute_log()
-
-    def _finalize_compute(self):
-        self._reset_std_as_default()
-
-        txt = self.topology.make_text_at_exit(time() - self.t_start)
-        with open(self._log_file.name, "a") as file:
-            file.write(txt)
-
-
-class MultiExecutorAsync(ExecutorBase):
+class MultiExecutorAsync(MultiExecutorBase):
     """Manage the multi-executor mode
 
      This class is not the one whose really compute the topology. The topology is
@@ -88,49 +46,14 @@ class MultiExecutorAsync(ExecutorBase):
 
     sleep_time : None, float
 
-      defines the waiting time (from trio.sleep) of a function. Async functions
-      await "trio.sleep(sleep_time)" when they have done a work on an item, and
-      when there is nothing in there input_queue.
+      Defines the waiting time (from trio.sleep) of a function. Async functions
+      await `trio.sleep(sleep_time)` when they have done a work on an item, and
+      when there is nothing in their input_queue.
 
     """
 
-    def __init__(
-        self,
-        topology,
-        path_dir_result,
-        nb_max_workers=None,
-        nb_items_queue_max=None,
-        sleep_time=0.01,
-        logging_level="info",
-        stop_if_error=False,
-    ):
-        if stop_if_error:
-            raise NotImplementedError
-
-        super().__init__(
-            topology,
-            path_dir_result,
-            nb_max_workers,
-            nb_items_queue_max,
-            logging_level=logging_level,
-        )
-
-        self.sleep_time = sleep_time
-        self.nb_processes = self.nb_max_workers
-        self.processes = []
-
-        # to avoid a pylint warning
-        self.log_paths = None
-
-    def _init_log_path(self):
-        name = "_".join(("log", time_as_str(), str(os.getpid())))
-        path_dir_log = self.path_dir_exceptions = self.path_dir_result / name
-        path_dir_log.mkdir(exist_ok=True)
-        self._log_path = path_dir_log / (name + ".txt")
-
-    def compute(self):
-        """Compute the topology.
-
+    def _start_processes(self):
+        """
         There are two ways to split self.topology work:
 
         - If first self.topology has "series" attribute (from seriesOfArray), it
@@ -145,31 +68,12 @@ class MultiExecutorAsync(ExecutorBase):
           and call each Executor_await.compute in a process from multiprocessing.
 
         """
-        self._init_compute()
-        self.log_paths = []
-
-        if sys.platform != "win32":
-
-            def handler_signals(signal_number, stack):
-                del stack
-                print(
-                    f"signal {signal_number} received: set _has_to_stop to True "
-                    f"({type(self).__name__})."
-                )
-                self._has_to_stop = True
-                for process in self.processes:
-                    os.kill(process.pid, signal_number)
-
-            signal.signal(12, handler_signals)
-
         if hasattr(self.topology, "series"):
-            self.start_multiprocess_series()
+            self._start_multiprocess_series()
         else:
-            self.start_multiprocess_first_queue()
+            self._start_multiprocess_first_queue()
 
-        self._finalize_compute()
-
-    def start_multiprocess_first_queue(self):
+    def _start_multiprocess_first_queue(self):
         """Start the processes spitting the work with the first queue"""
         first_work = self.topology.works[0]
         if first_work.input_queue is not None:
@@ -201,7 +105,7 @@ class MultiExecutorAsync(ExecutorBase):
         del topology.works[0]
         old_queue = topology.first_queue
 
-        for ind_process, keys_proc in enumerate(keys_for_processes):
+        for idx_process, keys_proc in enumerate(keys_for_processes):
             topology_this_process = copy.copy(self.topology)
             new_queue = copy.copy(topology.first_queue)
             topology_this_process.first_queue = new_queue
@@ -233,11 +137,9 @@ class MultiExecutorAsync(ExecutorBase):
 
             old_queue = new_queue
 
-            self.launch_process(topology_this_process, ind_process)
+            self.launch_process(topology_this_process, idx_process)
 
-        self.wait_for_all_processes()
-
-    def start_multiprocess_series(self):
+    def _start_multiprocess_series(self):
         """Start the processes spitting the work with the series object"""
         ind_stop_limit = self.topology.series.ind_stop
         # Defining split values
@@ -249,7 +151,7 @@ class MultiExecutorAsync(ExecutorBase):
         remainder = nb_image_computed % self.nb_processes
         step_process = math.floor(nb_image_computed / self.nb_processes)
         # change topology
-        for ind_process in range(self.nb_processes):
+        for idx_process in range(self.nb_processes):
             new_topology = copy.copy(self.topology)
             new_topology.series.ind_start = ind_start
             add_rest = 0
@@ -270,20 +172,21 @@ class MultiExecutorAsync(ExecutorBase):
                 new_topology.series.ind_stop = ind_stop
             ind_start = self.topology.series.ind_stop
 
-            self.launch_process(new_topology, ind_process)
+            self.launch_process(new_topology, idx_process)
 
-        self.wait_for_all_processes()
-
-    def init_and_compute(self, topology_this_process, log_path, child_conn):
+    def init_and_compute(
+        self, topology_this_process, log_path, child_conn, idx_process
+    ):
         """Create an executor and start it in a process"""
         executor = ExecutorAsyncForMulti(
             topology_this_process,
             self.path_dir_result,
             sleep_time=self.sleep_time,
-            log_path=log_path,
+            path_log=log_path,
             logging_level=self.logging_level,
+            t_start=self.t_start,
+            index_process=idx_process,
         )
-        executor.t_start = self.t_start
         executor.compute()
 
         # send the results
@@ -294,11 +197,11 @@ class MultiExecutorAsync(ExecutorBase):
 
         child_conn.send(results)
 
-    def launch_process(self, topology, ind_process):
+    def launch_process(self, topology, idx_process):
         """Launch one process"""
 
         log_path = Path(
-            str(self._log_path).split(".txt")[0] + f"_multi{ind_process:03}.txt"
+            str(self._log_path).split(".txt")[0] + f"_multi{idx_process:03}.txt"
         )
 
         self.log_paths.append(log_path)
@@ -306,14 +209,15 @@ class MultiExecutorAsync(ExecutorBase):
         parent_conn, child_conn = Pipe()
 
         process = Process(
-            target=self.init_and_compute, args=(topology, log_path, child_conn)
+            target=self.init_and_compute,
+            args=(topology, log_path, child_conn, idx_process),
         )
         process.connection = parent_conn
         process.daemon = True
         process.start()
         self.processes.append(process)
 
-    def wait_for_all_processes(self):
+    def _wait_for_all_processes(self):
         """logging + wait for all processes to finish"""
         logger.info(
             f"logging files: {[log_path.name for log_path in self.log_paths]}"

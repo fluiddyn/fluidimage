@@ -2,19 +2,19 @@ from fluidimage.preproc import Topology
 
 params = Topology.create_default_params()
 
-params.preproc.series.path = (
+params.series.path = (
     "$HOME/useful/project/16MILESTONE/Data/"
     + "Exp21_2016-06-22_N0.8_L6.0_V0.08_piv3d/PCO_top/level2.tfilter"
 )
 
-params.preproc.series.str_subset = "i:i+1"
-params.preproc.series.ind_start = 1200
-params.preproc.series.ind_stop = 1224
+params.series.str_subset = "i:i+1"
+params.series.ind_start = 1200
+params.series.ind_stop = 1224
 
-params.preproc.saving.postfix = "rescale"
-params.preproc.saving.format = "img"
+params.saving.postfix = "rescale"
+params.saving.format = "img"
 
-p_tools = params.preproc.tools
+p_tools = params.tools
 
 p_tools.sequence = [
     "equalize_hist_global",

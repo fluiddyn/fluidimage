@@ -30,6 +30,7 @@ These others modules defined classes and functions useful for developers.
    base
    log
    launcher
+   splitters
 
 """
 
@@ -39,12 +40,12 @@ from pathlib import Path
 
 from fluiddyn.io.query import query
 
-from .base import TopologyBase
+from .base import TopologyBase, TopologyBaseFromSeries
 from .log import LogTopology
 
 __all__ = ["LogTopology", "TopologyBase"]
 
-how_values = ("ask", "new_dir", "complete", "recompute")
+how_values = ("ask", "new_dir", "complete", "recompute", "from_path_indices")
 
 
 def prepare_path_dir_result(

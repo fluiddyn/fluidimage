@@ -8,17 +8,17 @@
 """
 
 import copy
-import json
 import os
 import sys
-from typing import Dict, List, Tuple
+from typing import Dict, Tuple
 
 from fluiddyn.util.paramcontainer import ParamContainer
 from fluidimage import SeriesOfArrays
 from fluidimage.data_objects.preproc import ArraySerie as ArraySubset
-from fluidimage.data_objects.preproc import get_name_preproc
-from fluidimage.topologies import TopologyBase, prepare_path_dir_result
-from fluidimage.util import DEBUG, imread, logger
+from fluidimage.data_objects.preproc import PreprocResults, get_name_preproc
+from fluidimage.topologies import TopologyBaseFromSeries, prepare_path_dir_result
+from fluidimage.topologies.splitters import SplitterFromSeries
+from fluidimage.util import imread, logger
 from fluidimage.works import image2image
 from fluidimage.works.preproc import (
     WorkPreproc,
@@ -26,7 +26,7 @@ from fluidimage.works.preproc import (
 )
 
 
-class TopologyPreproc(TopologyBase):
+class TopologyPreproc(TopologyBaseFromSeries):
     """Preprocess series of images.
 
     The most useful methods for the user (in particular :func:`compute`) are
@@ -54,6 +54,7 @@ class TopologyPreproc(TopologyBase):
     """
 
     _short_name = "pre"
+    Splitter = SplitterFromSeries
 
     @classmethod
     def create_default_params(cls, backend="python"):
@@ -76,7 +77,7 @@ class TopologyPreproc(TopologyBase):
 
         """
         params = WorkPreproc.create_default_params(backend)
-        params.preproc.series._set_attribs(
+        params.series._set_attribs(
             {
                 "str_subset": "all1by1",
                 "ind_start": "first",
@@ -85,7 +86,7 @@ class TopologyPreproc(TopologyBase):
             }
         )
 
-        params.preproc.series._set_doc(
+        params.series._set_doc(
             """
 Parameters describing image loading prior to preprocessing.
 
@@ -119,16 +120,16 @@ ind_step : int
 """
         )
 
-        super()._add_default_params_saving(params.preproc)
+        super()._add_default_params_saving(params)
 
-        params.preproc.saving._set_attribs(
+        params.saving._set_attribs(
             {
                 "format": "img",
                 "str_subset": None,
             },
         )
 
-        params.preproc.saving._set_doc(
+        params.saving._set_doc(
             """
 Parameters describing image saving after preprocessing.
 
@@ -155,17 +156,6 @@ str_subset : str or None
 """
         )
 
-        params._set_internal_attr(
-            "_value_text",
-            json.dumps(
-                {
-                    "program": "fluidimage",
-                    "module": "fluidimage.topologies.preproc",
-                    "class": "TopologyPreproc",
-                }
-            ),
-        )
-
         params._set_child("im2im")
         image2image.complete_im2im_params_with_default(params.im2im)
 
@@ -174,34 +164,34 @@ str_subset : str or None
     def __init__(
         self, params: ParamContainer, logging_level="info", nb_max_workers=None
     ):
-        self.params = params.preproc
+        self.params = params
 
         self.preproc_work = WorkPreproc(params)
         self.results = []
         self.display = self.preproc_work.display
 
         self.series = SeriesOfArrays(
-            params.preproc.series.path,
-            params.preproc.series.str_subset,
-            ind_start=params.preproc.series.ind_start,
-            ind_stop=params.preproc.series.ind_stop,
-            ind_step=params.preproc.series.ind_step,
+            params.series.path,
+            params.series.str_subset,
+            ind_start=params.series.ind_start,
+            ind_stop=params.series.ind_stop,
+            ind_step=params.series.ind_step,
         )
 
         subset = self.series.get_serie_from_index(0)
         self.nb_items_per_serie = subset.get_nb_arrays()
 
-        if os.path.isdir(params.preproc.series.path):
-            path_dir = params.preproc.series.path
+        if os.path.isdir(params.series.path):
+            path_dir = params.series.path
         else:
-            path_dir = os.path.dirname(params.preproc.series.path)
+            path_dir = os.path.dirname(params.series.path)
         self.path_dir_input = path_dir
 
         path_dir_result, self.how_saving = prepare_path_dir_result(
             path_dir,
-            params.preproc.saving.path,
-            params.preproc.saving.postfix,
-            params.preproc.saving.how,
+            params.saving.path,
+            params.saving.postfix,
+            params.saving.how,
         )
 
         super().__init__(
@@ -271,48 +261,26 @@ str_subset : str or None
             kind="io",
         )
 
-    def save_preproc_object(self, obj: ArraySubset):
+    def save_preproc_object(self, obj: PreprocResults):
         """Save a preprocessing object"""
         ret = obj.save(path=self.path_dir_result)
         self.results.append(ret)
 
-    def init_series(self) -> List[str]:
-        """Initializes the SeriesOfArrays object `self.series` based on input
-        parameters."""
-        series = self.series
-        if not series:
-            logger.warning("encountered empty series. No images to preprocess.")
-            return
-
-        if self.how_saving == "complete":
-            index_subsets = []
-            for ind_subset, subset in self.series.items():
-                names_serie = subset.get_name_arrays()
-                name_preproc = get_name_preproc(
-                    subset,
-                    names_serie,
-                    ind_subset,
-                    series.nb_series,
-                    self.params.saving.format,
-                )
-                if not (self.path_dir_result / name_preproc).exists():
-                    index_subsets.append(ind_subset)
-            series.set_index_series(index_subsets)
-            if logger.isEnabledFor(DEBUG):
-                logger.debug(
-                    repr([subset.get_name_arrays() for subset in series])
-                )
-
-        nb_subsets = len(series)
-        if nb_subsets == 0:
-            logger.warning('topology in mode "complete" and work already done.')
-            return
-        elif nb_subsets == 1:
-            plurial = ""
-        else:
-            plurial = "s"
-
-        logger.info("Add %s image serie%s to compute.", nb_subsets, plurial)
+    def compute_indices_to_be_computed(self):
+        """Compute the indices corresponding to the series to be computed"""
+        index_subsets = []
+        for ind_subset, subset in self.series.items():
+            names_serie = subset.get_name_arrays()
+            name_preproc = get_name_preproc(
+                subset,
+                names_serie,
+                ind_subset,
+                self.series.nb_series,
+                self.params.saving.format,
+            )
+            if not (self.path_dir_result / name_preproc).exists():
+                index_subsets.append(ind_subset)
+        return index_subsets
 
     def fill_subsets_of_names_and_paths(
         self, input_queue: None, output_queues: Tuple[Dict]

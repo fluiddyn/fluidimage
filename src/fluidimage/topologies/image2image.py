@@ -7,20 +7,20 @@
 
 """
 
-import json
 import sys
 from pathlib import Path
 
 from fluiddyn.io.image import imsave
 from fluidimage import ParamContainer
 from fluidimage.topologies import prepare_path_dir_result
-from fluidimage.util import imread, logger
+from fluidimage.topologies.splitters import SplitterFromImages
+from fluidimage.util import imread
 from fluidimage.works.image2image import WorkImage2Image
 
-from .base import TopologyBase
+from .base import TopologyBaseFromImages
 
 
-class TopologyImage2Image(TopologyBase):
+class TopologyImage2Image(TopologyBaseFromImages):
     """Topology for images processing with a user-defined function
 
     The most useful methods for the user (in particular :func:`compute`) are
@@ -48,6 +48,7 @@ class TopologyImage2Image(TopologyBase):
     """
 
     _short_name = "im2im"
+    Splitter = SplitterFromImages
 
     @classmethod
     def create_default_params(cls):
@@ -66,17 +67,6 @@ class TopologyImage2Image(TopologyBase):
 
         super()._add_default_params_saving(params)
         WorkImage2Image._complete_params_with_default(params)
-
-        params._set_internal_attr(
-            "_value_text",
-            json.dumps(
-                {
-                    "program": "fluidimage",
-                    "module": "fluidimage.topologies.image2image",
-                    "class": "TopologyImage2Image",
-                }
-            ),
-        )
 
         return params
 
@@ -133,6 +123,7 @@ class TopologyImage2Image(TopologyBase):
         self.add_work(
             "save", self.save_image, input_queue=self.queue_results, kind="io"
         )
+        self.results = []
 
     def imread(self, path):
         """Read an image"""
@@ -145,42 +136,7 @@ class TopologyImage2Image(TopologyBase):
         name_file = Path(path).name
         path_out = self.path_dir_result / name_file
         imsave(path_out, image)
-
-    def fill_queue_paths(self, input_queue, output_queue):
-        """Fill the first queue (paths)"""
-        assert input_queue is None
-
-        serie = self.serie
-        if not serie:
-            logger.warning("add 0 image. No image to process.")
-            return
-
-        names = serie.get_name_arrays()
-
-        for name in names:
-            path_im_output = self.path_dir_result / name
-            path_im_input = str(self.path_dir_src / name)
-            if self.how_saving == "complete":
-                if not path_im_output.exists():
-                    output_queue[name] = path_im_input
-            else:
-                output_queue[name] = path_im_input
-
-        if not names:
-            if self.how_saving == "complete":
-                logger.warning(
-                    'topology in mode "complete" and work already done.'
-                )
-            else:
-                logger.warning("Nothing to do")
-            return
-
-        nb_names = len(names)
-
-        logger.info("Add %s images to compute.", nb_names)
-        logger.info("First files to process: %s", names[:4])
-
-        logger.debug("All files: %s", names)
+        self.results.append(name_file)
 
 
 Topology = TopologyImage2Image

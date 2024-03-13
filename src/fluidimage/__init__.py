@@ -4,6 +4,7 @@ FluidImage
 
 """
 
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -27,10 +28,7 @@ from .util import (
     reset_logger,
 )
 
-if any(
-    any(test_tool in arg for arg in sys.argv)
-    for test_tool in ("pytest", "unittest")
-):
+if any("pytest" in part for part in sys.argv):
     print(
         "Fluidimage guesses that it is tested so it"
         " loads the Agg Matplotlib backend."
@@ -43,10 +41,42 @@ if any(
     plt.show = lambda: None
 
 
+def _get_user_data_dir(appname: str) -> Path:
+    if sys.platform == "win32":
+        import winreg
+
+        key = winreg.OpenKey(
+            winreg.HKEY_CURRENT_USER,
+            r"Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders",
+        )
+        dir_, _ = winreg.QueryValueEx(key, "Local AppData")
+        ans = Path(dir_).resolve(strict=False)
+    elif sys.platform == "darwin":
+        ans = Path("~/Library/Application Support/").expanduser()
+    else:
+        ans = Path(os.getenv("XDG_DATA_HOME", "~/.local/share")).expanduser()
+    return ans.joinpath(appname)
+
+
 def get_path_image_samples():
+
+    # First try next to this file in case of editable install
+    path_image_samples = Path(__file__).absolute().parent / "../../image_samples"
+    if path_image_samples.exists():
+        return path_image_samples.resolve()
+
+    # Gitlab and Github CI
+    for name_env_var_project_dir in ("CI_PROJECT_DIR", "GITHUB_WORKSPACE"):
+        ci_project_dir = os.getenv(name_env_var_project_dir)
+        if ci_project_dir is not None:
+            path_image_samples = Path(ci_project_dir) / "image_samples"
+            if path_image_samples.exists():
+                return path_image_samples
+
     path_image_samples = (
-        Path.home() / ".local/fluidimage/repository/image_samples"
+        _get_user_data_dir("fluidimage") / "repository/image_samples"
     )
+
     path_repo = path_image_samples.parent
     path_repo.mkdir(parents=True, exist_ok=True)
     if not path_image_samples.exists():

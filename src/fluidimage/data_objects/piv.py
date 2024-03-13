@@ -732,6 +732,9 @@ class LightPIVResults(DataObject):
         "deltays_final",
     ]
 
+    def __repr__(self):
+        return f"{type(self).__name__}()"
+
     def __init__(
         self,
         deltaxs_approx=None,

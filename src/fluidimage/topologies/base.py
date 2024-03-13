@@ -13,15 +13,31 @@
    :members:
    :private-members:
 
+.. autoclass:: TopologyBaseFromSeries
+   :members:
+   :private-members:
+
+.. autoclass:: TopologyBaseFromImages
+   :members:
+   :private-members:
+
 """
 
+import json
+from abc import ABC, abstractmethod
 from collections import OrderedDict
 from pathlib import Path
 from warnings import warn
 
-from fluidimage.util import cstring, logger
+from fluidimage import ParamContainer, SerieOfArraysFromFiles, SeriesOfArrays
+from fluidimage.util import DEBUG, cstring, logger
 
-from ..executors import ExecutorBase, get_executor_names, import_executor_class
+from ..executors import (
+    ExecutorBase,
+    get_executor_names,
+    import_executor_class,
+    supported_multi_executors,
+)
 
 
 class Work:
@@ -144,6 +160,17 @@ postfix : str
 """,
         )
 
+        params._set_internal_attr(
+            "_value_text",
+            json.dumps(
+                {
+                    "program": "fluidimage",
+                    "module": cls.__module__,
+                    "class": cls.__name__,
+                }
+            ),
+        )
+
     def __init__(
         self, path_dir_result=None, logging_level="info", nb_max_workers=None
     ):
@@ -196,6 +223,7 @@ postfix : str
         sleep_time=0.01,
         sequential=False,
         stop_if_error=False,
+        kwargs_executor=None,
     ):
         """Compute (run the works until all queues are empty).
 
@@ -226,7 +254,9 @@ postfix : str
 
         if executor is None:
             # fastest and safest executor for most cases
-            executor = "multi_exec_async"
+            # "multi_exec_async" on Linux
+            # "multi_exec_subproc" elsewhere
+            executor = supported_multi_executors[0]
 
         if not isinstance(executor, ExecutorBase):
             if executor not in get_executor_names():
@@ -234,6 +264,9 @@ postfix : str
 
             if nb_max_workers is None:
                 nb_max_workers = self.nb_max_workers
+
+            if kwargs_executor is None:
+                kwargs_executor = {}
 
             exec_class = import_executor_class(executor)
             self.executor = exec_class(
@@ -243,6 +276,7 @@ postfix : str
                 sleep_time=sleep_time,
                 logging_level=self.logging_level,
                 stop_if_error=stop_if_error,
+                **kwargs_executor,
             )
 
         self.executor.compute()
@@ -378,3 +412,124 @@ postfix : str
             f"dot {name_file}.dot -Tpng -o {name_file}.png && eog {name_file}.png\n"
             f"dot {name_file}.dot -Tx11"
         )
+
+
+class TopologyBaseFromSeries(TopologyBase, ABC):
+
+    series: SeriesOfArrays
+    how_saving: str
+    params: ParamContainer
+
+    _message_empty_series = "encountered empty series. No images to preprocess."
+
+    @abstractmethod
+    def compute_indices_to_be_computed(self):
+        """Compute the indices corresponding to the series to be computed"""
+
+    def init_series(self):
+        """Initializes the SeriesOfArrays object `self.series` based on input
+        parameters."""
+        series = self.series
+        if not series:
+            logger.warning(self._message_empty_series)
+            return
+
+        if self.how_saving in ("complete", "from_path_indices"):
+            if self.how_saving == "complete":
+                index_series = self.compute_indices_to_be_computed()
+            elif self.how_saving == "from_path_indices":
+                path_indices = self.params.series.path_indices_file
+                index_series = [
+                    int(line) for line in open(path_indices, encoding="utf-8")
+                ]
+            series.set_index_series(index_series)
+            if self.how_saving == "complete" and not index_series:
+                logger.warning(
+                    'topology in mode "complete" and work already done.'
+                )
+                return
+            if logger.isEnabledFor(DEBUG):
+                logger.debug(repr([serie.get_name_arrays() for serie in series]))
+
+        nb_series = len(series)
+        if nb_series == 1:
+            plural = ""
+        else:
+            plural = "s"
+
+        logger.info("Add %s image serie%s to compute.", nb_series, plural)
+
+
+def _tuple_ints_from_str(line):
+    return tuple(int(c.strip()) for c in line.strip()[1:-1].split(",") if c)
+
+
+class TopologyBaseFromImages(TopologyBase):
+
+    serie: SerieOfArraysFromFiles
+    how_saving: str
+    path_dir_src: Path
+    params: ParamContainer
+
+    def _get_name_result_from_name(self, name):
+        return name
+
+    def compute_indices_to_be_computed(self):
+        """Compute the indices corresponding to the images to be computed"""
+        indices_images = []
+        for indices in self.serie.iter_indices():
+            name = self.serie.compute_name_from_indices(*indices)
+            path_im_output = (
+                self.path_dir_result / self._get_name_result_from_name(name)
+            )
+            if path_im_output.exists():
+                continue
+            indices_images.append(indices)
+        self._fix_indices_images(indices_images)
+        return indices_images
+
+    def _fix_indices_images(self, indices_images):
+        """Fix the indices images in fill_queue_paths"""
+
+    def fill_queue_paths(self, input_queue, output_queue):
+        """Fill the first queue (paths)"""
+        assert input_queue is None
+
+        serie = self.serie
+        if not serie:
+            logger.warning("add 0 image. No image to process.")
+            return
+
+        if self.how_saving == "complete":
+            indices_images = self.compute_indices_to_be_computed()
+        elif self.how_saving == "from_path_indices":
+            path_indices = self.params.images.path_indices_file
+            indices_images = [
+                _tuple_ints_from_str(line)
+                for line in open(path_indices, encoding="utf-8")
+            ]
+        else:
+            indices_images = list(serie.iter_indices())
+            self._fix_indices_images(indices_images)
+
+        if not indices_images:
+            if self.how_saving == "complete":
+                logger.warning(
+                    'topology in mode "complete" and work already done.'
+                )
+            else:
+                logger.warning("Nothing to do")
+            return
+
+        names = []
+        for indices in indices_images:
+            name = serie.compute_name_from_indices(*indices)
+            names.append(name)
+            path_im_input = str(self.path_dir_src / name)
+            output_queue[name] = path_im_input
+
+        nb_names = len(names)
+        logger.info("Add %s images to compute.", nb_names)
+        logger.info("First files to process: %s", names[:4])
+
+        logger.debug("All files: %s", names)

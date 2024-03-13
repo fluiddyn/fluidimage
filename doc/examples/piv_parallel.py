@@ -4,7 +4,6 @@ from fluidimage.piv import Topology
 params = Topology.create_default_params()
 
 params.series.path = get_path_image_samples() / "Karman/Images"
-params.series.ind_step = 2
 
 params.piv0.shape_crop_im0 = 32
 params.multipass.number = 2
@@ -22,6 +21,7 @@ topology = Topology(params, logging_level="info")
 
 # Compute in parallel
 topology.compute()
+# topology.compute("multi_exec_subproc")
 
 # Compute in sequential (for debugging)
 # topology.compute(sequential=True)
