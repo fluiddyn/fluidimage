@@ -44,7 +44,7 @@ class ExecutorSequential(ExecutorBase):
                         continue
 
                     t_start = time.time()
-                    log_memory_usage(
+                    self.log_in_file_memory_usage(
                         f"{time.time() - self.t_start:.2f} s. Launch work "
                         + work.name_no_space
                         + f" ({key}). mem usage"
@@ -58,7 +58,7 @@ class ExecutorSequential(ExecutorBase):
                             raise
                         ret = error
                     else:
-                        logger.info(
+                        self.log_in_file(
                             f"work {work.name_no_space} ({key}) "
                             f"done in {time.time() - t_start:.3f} s"
                         )

@@ -15,9 +15,6 @@ Multi executors async
 import copy
 import math
 from multiprocessing import Pipe, Process
-from pathlib import Path
-
-from fluidimage.util import logger
 
 from .base import MultiExecutorBase
 from .exec_async_seq_for_multi import ExecutorAsyncSeqForMulti
@@ -90,6 +87,7 @@ class MultiExecutorAsync(MultiExecutorBase):
 
         # split the first queue
         keys = list(first_queue.keys())
+        self.num_expected_results = len(keys)
 
         nb_keys_per_process = max(1, int(len(keys) / self.nb_processes))
 
@@ -148,6 +146,9 @@ class MultiExecutorAsync(MultiExecutorBase):
             (self.topology.series.ind_stop - self.topology.series.ind_start)
             / self.topology.series.ind_step
         )
+
+        self.num_expected_results = nb_image_computed
+
         remainder = nb_image_computed % self.nb_processes
         step_process = math.floor(nb_image_computed / self.nb_processes)
         # change topology
@@ -170,9 +171,15 @@ class MultiExecutorAsync(MultiExecutorBase):
                 new_topology.series.ind_stop = ind_stop_limit
             else:
                 new_topology.series.ind_stop = ind_stop
-            ind_start = self.topology.series.ind_stop
 
-            self.launch_process(new_topology, idx_process)
+            if range(
+                ind_start,
+                new_topology.series.ind_stop,
+                new_topology.series.ind_step,
+            ):
+                self.launch_process(new_topology, idx_process)
+
+            ind_start = self.topology.series.ind_stop
 
     def init_and_compute(
         self, topology_this_process, log_path, child_conn, idx_process
@@ -200,10 +207,7 @@ class MultiExecutorAsync(MultiExecutorBase):
     def launch_process(self, topology, idx_process):
         """Launch one process"""
 
-        log_path = Path(
-            str(self._log_path).split(".txt")[0] + f"_multi{idx_process:03}.txt"
-        )
-
+        log_path = self._log_path.parent / f"process_{idx_process:03d}.txt"
         self.log_paths.append(log_path)
 
         parent_conn, child_conn = Pipe()
@@ -217,25 +221,11 @@ class MultiExecutorAsync(MultiExecutorBase):
         process.start()
         self.processes.append(process)
 
-    def _wait_for_all_processes(self):
-        """logging + wait for all processes to finish"""
-        logger.info(
-            f"logging files: {[log_path.name for log_path in self.log_paths]}"
-        )
+    def _poll_return_code(self, process):
+        return process.exitcode
 
-        # wait until end of all processes
-
-        self.topology.results = results_all = []
-        for index, process in enumerate(self.processes):
-            try:
-                results = process.connection.recv()
-            except EOFError:
-                logger.error(f"EOFError for process {index} ({process})")
-                results = None
-
-            if results is not None:
-                results_all.extend(results)
-
+    def _join_processes(self):
+        """Join the processes"""
         for process in self.processes:
             process.join()
 

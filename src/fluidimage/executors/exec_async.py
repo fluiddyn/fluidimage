@@ -23,7 +23,7 @@ from collections import OrderedDict
 
 import trio
 
-from fluidimage.util import log_debug, log_memory_usage, logger
+from fluidimage.util import log_debug, logger
 
 from .base import ExecutorBase
 
@@ -129,18 +129,18 @@ class ExecutorAsync(ExecutorBase):
                             if self._has_to_stop:
                                 return
                         t_start = time.time()
-                        log_memory_usage(
+                        self.log_in_file_memory_usage(
                             f"{time.time() - self.t_start:.2f} s. Launch work "
                             + work.name_no_space
-                            + f" (?). mem usage"
+                            + " (kind='global'). mem usage"
                         )
                         work.func_or_cls(work.input_queue, work.output_queue)
                         if self._has_to_stop:
                             return
                         await trio.sleep(self.sleep_time)
 
-                        logger.info(
-                            f"work {work.name_no_space} "
+                        self.log_in_file(
+                            f"work {work.name_no_space} (kind='global') "
                             f"done in {time.time() - t_start:.3f} s"
                         )
 
@@ -227,7 +227,7 @@ class ExecutorAsync(ExecutorBase):
             return
 
         t_start = time.time()
-        log_memory_usage(
+        self.log_in_file_memory_usage(
             f"{time.time() - self.t_start:.2f} s. Launch work "
             + work.name_no_space
             + f" ({key}). mem usage"
@@ -241,7 +241,7 @@ class ExecutorAsync(ExecutorBase):
                 raise
             ret = error
         else:
-            logger.info(
+            self.log_in_file(
                 f"work {work.name_no_space} ({key}) "
                 f"done in {time.time() - t_start:.3f} s"
             )
@@ -277,7 +277,7 @@ class ExecutorAsync(ExecutorBase):
             return
 
         t_start = time.time()
-        log_memory_usage(
+        self.log_in_file_memory_usage(
             f"{time.time() - self.t_start:.2f} s. Launch work "
             + work.name_no_space
             + f" ({key}). mem usage"
@@ -291,7 +291,7 @@ class ExecutorAsync(ExecutorBase):
                 raise
             ret = error
         else:
-            logger.info(
+            self.log_in_file(
                 f"work {work.name_no_space} ({key}) "
                 f"done in {time.time() - t_start:.3f} s"
             )

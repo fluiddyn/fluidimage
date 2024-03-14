@@ -30,7 +30,7 @@ from threading import Thread
 import trio
 
 from fluiddyn.io.tee import MultiFile
-from fluidimage.util import cstring, log_debug, log_memory_usage, logger
+from fluidimage.util import cstring, get_txt_memory_usage, log_debug, logger
 
 
 def launch_server(
@@ -175,7 +175,7 @@ class WorkerServerMultiprocessing(WorkerServer):
         self.event_has_to_stop = event_has_to_stop
         self.topology = topology_cls(params)
 
-        self._log_file = open(log_path, "w")
+        self._log_file = open(log_path, "w", encoding="utf-8")
 
         stdout = sys.stdout
         if isinstance(stdout, MultiFile):
@@ -196,7 +196,18 @@ class WorkerServerMultiprocessing(WorkerServer):
 
             config_logging(logging_level, file=sys.stdout)
 
+        # blocking
         super().__init__(sleep_time=sleep_time)
+
+    def log_in_file(self, *args, sep=" ", end="\n"):
+        """Simple write in the log file (without print)"""
+        self._log_file.write(sep.join(str(arg) for arg in args) + end)
+        self._log_file.flush()
+
+    def log_in_file_memory_usage(self, txt, color="OKGREEN", end="\n"):
+        """Write the memory usage in the log file"""
+        self._log_file.write(get_txt_memory_usage(txt, color) + end)
+        self._log_file.flush()
 
     async def check_event_has_to_stop(self):
         while self._has_to_continue:
@@ -227,7 +238,7 @@ class WorkerServerMultiprocessing(WorkerServer):
 
             t_start = time.time()
 
-            log_memory_usage(
+            self.log_in_file_memory_usage(
                 f"{time.time() - self.t_start:.2f} s. Launch work "
                 + work.name_no_space
                 + f" ({key}). mem usage"
@@ -244,7 +255,7 @@ class WorkerServerMultiprocessing(WorkerServer):
                 )
                 result = error
             else:
-                logger.info(
+                self.log_in_file(
                     f"work {work.name_no_space} ({key}) "
                     f"done in {time.time() - t_start:.3f} s"
                 )

@@ -22,6 +22,7 @@ from .log import (
 )
 from .util import (
     cstring,
+    get_txt_memory_usage,
     imread,
     imsave,
     print_memory_usage,
@@ -34,6 +35,7 @@ __all__ = [
     "imsave",
     "imsave_h5",
     "print_memory_usage",
+    "get_txt_memory_usage",
     "logger",
     "reset_logger",
     "log_memory_usage",

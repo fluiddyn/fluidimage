@@ -11,8 +11,6 @@ A executor using async for IO but launching CPU-bounded tasks sequentially.
 
 import time
 
-from fluidimage.util import log_memory_usage, logger
-
 from .exec_async import ExecutorAsync
 
 
@@ -52,7 +50,7 @@ class ExecutorAsyncSequential(ExecutorAsync):
             return
 
         t_start = time.time()
-        log_memory_usage(
+        self.log_in_file_memory_usage(
             f"{time.time() - self.t_start:.2f} s. Launch work "
             + work.name_no_space
             + f" ({key}). mem usage"
@@ -68,7 +66,7 @@ class ExecutorAsyncSequential(ExecutorAsync):
                 raise
             ret = error
         else:
-            logger.info(
+            self.log_in_file(
                 f"work {work.name_no_space} ({key}) "
                 f"done in {time.time() - t_start:.3f} s"
             )

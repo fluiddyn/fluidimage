@@ -81,10 +81,7 @@ class ExecutorAsyncServers(ExecutorAsync):
         self.workers = []
 
         for ind_worker in range(self.nb_max_workers):
-            log_path = Path(
-                str(self._log_path).split(".txt")[0]
-                + f"_multi{ind_worker:03}.txt"
-            )
+            log_path = self._log_path.parent / f"process_{ind_worker:03d}.txt"
             self.workers.append(
                 launch_server(
                     topology,
@@ -153,7 +150,7 @@ class ExecutorAsyncServers(ExecutorAsync):
 
             if result:
                 self._has_to_stop = True
-                log_debug(f"has_to_stop!")
+                log_debug("has_to_stop!")
 
             if self.logging_level == "debug":
                 log_debug(f"self.topology.queues: {self.topology.queues}")

@@ -62,7 +62,7 @@ class ExecutorAsyncMultiproc(ExecutorAsync):
             return
 
         t_start = time.time()
-        log_memory_usage(
+        self.log_in_file_memory_usage(
             f"{time.time() - self.t_start:.2f} s. Launch work "
             + work.name_no_space
             + f" ({key}). mem usage"
@@ -99,7 +99,7 @@ class ExecutorAsyncMultiproc(ExecutorAsync):
                     break
 
             if not really_started:
-                raise Exception(
+                raise RuntimeError(
                     f"A process {work.name_no_space} ({key}) "
                     "has not started after 10 attempts"
                 )
@@ -124,7 +124,7 @@ class ExecutorAsyncMultiproc(ExecutorAsync):
             if self.stop_if_error:
                 raise ret
         else:
-            logger.info(
+            self.log_in_file(
                 f"work {work.name_no_space} ({key}) "
                 f"done in {time.time() - t_start:.3f} s"
             )

@@ -16,13 +16,17 @@ import signal
 import sys
 import traceback
 from pathlib import Path
-from time import time
+from time import sleep, time
+
+from rich.console import Console
+from rich.progress import Progress
 
 from fluiddyn import time_as_str
 from fluiddyn.io.tee import MultiFile
 from fluidimage.config import get_config
 from fluidimage.topologies.nb_cpu_cores import nb_cores
 from fluidimage.util import (
+    get_txt_memory_usage,
     log_error,
     log_memory_usage,
     logger,
@@ -118,7 +122,7 @@ class ExecutorBase:
 
             from fluidimage import config_logging
 
-            config_logging(logging_level, file=sys.stdout)
+            config_logging(logging_level, file=self._get_buffer_log())
 
         if nb_max_workers is None:
             if config is not None:
@@ -167,17 +171,20 @@ class ExecutorBase:
         # to avoid a pylint warning
         self.t_start = None
 
+    def _get_buffer_log(self):
+        return sys.stdout
+
     def _init_compute(self):
         self.t_start = time()
         self._init_compute_log()
 
     def _init_compute_log(self):
         log_memory_usage(time_as_str(2) + ": starting execution. mem usage")
-        logger.info("  topology: %s", str_short(type(self.topology)))
-        logger.info("  executor: %s", str_short(type(self)))
-        logger.info("  nb_cpus_allowed = %s", nb_cores)
-        logger.info("  nb_max_workers = %s", self.nb_max_workers)
-        logger.info("  path_dir_result = %s", self.path_dir_result)
+        print("  topology:", str_short(type(self.topology)))
+        print("  executor:", str_short(type(self)))
+        print("  nb_cpus_allowed =", nb_cores)
+        print("  nb_max_workers =", self.nb_max_workers)
+        print("  path_dir_result =", self.path_dir_result)
 
     def _reset_std_as_default(self):
         sys.stdout = sys.__stdout__
@@ -190,6 +197,14 @@ class ExecutorBase:
         self.topology.print_at_exit(time() - self.t_start)
         self._reset_std_as_default()
 
+    def log_in_file(self, *args, sep=" ", end="\n"):
+        """Simple write in the log file (without print)"""
+        self._log_file.write(sep.join(str(arg) for arg in args) + end)
+
+    def log_in_file_memory_usage(self, txt, color="OKGREEN", end="\n"):
+        """Write the memory usage in the log file"""
+        self._log_file.write(get_txt_memory_usage(txt, color) + end)
+
     def exec_one_shot_works(self):
         """
         Execute all "one shot" functions.
@@ -198,7 +213,7 @@ class ExecutorBase:
         for work in self.topology.works:
             if work.kind is not None and "one shot" in work.kind:
                 pretty = str_short(work.func_or_cls.__func__)
-                logger.info(f'Running "one_shot" job "{work.name}" ({pretty})')
+                print(f'Running "one_shot" job "{work.name}" ({pretty})')
                 work.func_or_cls(work.input_queue, work.output_queue)
 
     def log_exception(self, exception, work_name, key):
@@ -220,7 +235,7 @@ class ExecutorBase:
             parts = traceback.format_exception(exception)
         formated_exception = "".join(parts)
 
-        with open(path_log, "w") as file:
+        with open(path_log, "w", encoding="utf-8") as file:
             file.write(
                 f"Exception for work {work_name}, key {key}:\n"
                 + formated_exception
@@ -251,6 +266,8 @@ class MultiExecutorBase(ExecutorBase):
       when there is nothing in their input_queue.
 
     """
+
+    num_expected_results: int
 
     def __init__(
         self,
@@ -309,3 +326,80 @@ class MultiExecutorBase(ExecutorBase):
         self._start_processes()
         self._wait_for_all_processes()
         self._finalize_compute()
+
+    def _poll_return_code(self, process):
+        return process.poll()
+
+    def _join_processes(self):
+        """Join the processes"""
+
+    def _wait_for_all_processes(self):
+
+        running_processes = {
+            idx: process for idx, process in enumerate(self.processes)
+        }
+        running_processes_updated = {}
+        return_codes = {}
+        errors = {}
+
+        num_results_vs_idx_process = [0 for idx in range(len(self.processes))]
+        paths_len_results = [
+            self._log_path.parent / f"len_results_{idx:03}.txt"
+            for idx in range(len(self.processes))
+        ]
+        num_results = num_results_previous = 0
+
+        console = Console(file=sys.__stdout__)
+
+        with Progress(console=console) as progress:
+
+            progress_task = progress.add_task(
+                "[green]Computation", total=self.num_expected_results
+            )
+
+            while running_processes:
+                sleep(0.2)
+                for idx, process in running_processes.items():
+                    ret_code = self._poll_return_code(process)
+                    if ret_code is None:
+                        running_processes_updated[idx] = process
+                        if paths_len_results[idx].exists():
+                            with open(
+                                paths_len_results[idx], encoding="utf-8"
+                            ) as file:
+                                content = file.readline()
+                                if content:
+                                    num_results_vs_idx_process[idx] = int(content)
+                    else:
+                        return_codes[idx] = ret_code
+                        if ret_code != 0:
+                            error = process.stderr.read()
+                            errors[idx] = error
+                            logger.error(error)
+
+                num_results = sum(num_results_vs_idx_process)
+                if num_results != num_results_previous:
+                    if num_results_previous == 0:
+                        print(f"{time_as_str(2)}: first result detected")
+                    num_results_previous = num_results
+                    progress.update(progress_task, completed=num_results)
+                running_processes, running_processes_updated = (
+                    running_processes_updated,
+                    running_processes,
+                )
+                running_processes_updated.clear()
+
+        self._join_processes()
+
+        if errors:
+            raise RuntimeError(
+                f"{len(errors)} sub-executors failed (over {len(self.processes)} processes)."
+            )
+
+    def _finalize_compute(self):
+        self.topology.results = results = []
+        for path in self._log_path.parent.glob("results_*.txt"):
+            with open(path, encoding="utf-8") as file:
+                results.extend(file.readlines())
+
+        super()._finalize_compute()
