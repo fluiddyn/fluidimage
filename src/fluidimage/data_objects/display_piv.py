@@ -229,7 +229,7 @@ class DisplayPIV:
             ax4.hist(piv_results.correls_max, "fd", color="g")
             ax4.set_xlabel("Maximum pixel correlation")
             ax4.set_ylabel("histogram")
-            fig2.show()
+            plt.show()
 
         self.ind = 0
         fig.canvas.mpl_connect("pick_event", self.onpick)

@@ -108,7 +108,7 @@ class DisplayPreProc:
             ax4.set_xlim(-10, max([p1, p1p]))
             ax3.set_ylim(0, max(hist0[0]))
             ax4.set_ylim(0, max(hist1[0]))
-            fig2.show()
+            plt.show()
 
         (l,) = ax1.plot(0, 0, "oy")
         l.set_visible(False)
