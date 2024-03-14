@@ -23,10 +23,12 @@ def _test_karman(path, backend):
     preproc.display(1, hist=True)
 
 
+@pytest.mark.usefixtures("close_plt_figs")
 def test_preproc_python_karman(tmp_path_karman_small):
     _test_karman(tmp_path_karman_small, "python")
 
 
+@pytest.mark.usefixtures("close_plt_figs")
 def test_preproc_opencv_karman(tmp_path_karman_small):
     _test_karman(tmp_path_karman_small, "opencv")
 
@@ -51,9 +53,11 @@ def _test_jet(path, backend):
     preproc.display(hist=False)
 
 
+@pytest.mark.usefixtures("close_plt_figs")
 def test_preproc_python_jet(tmp_path_jet_small):
     _test_jet(tmp_path_jet_small, "python")
 
 
+@pytest.mark.usefixtures("close_plt_figs")
 def test_preproc_opencv_jet(tmp_path_jet_small):
     _test_jet(tmp_path_jet_small, "opencv")

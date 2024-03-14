@@ -2,6 +2,7 @@
 
 import shutil
 
+import matplotlib.pyplot as plt
 from pytest import fixture
 
 from fluiddyn.io.image import imread, imsave
@@ -52,3 +53,10 @@ def tmp_path_karman_small(tmp_path_factory):
 @fixture(scope="session")
 def tmp_path_jet_small(tmp_path_factory):
     return _create_dir_small(tmp_path_factory, "Jet")
+
+
+@fixture
+def close_plt_figs():
+    plt.close("all")
+    yield
+    plt.close("all")

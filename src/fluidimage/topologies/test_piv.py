@@ -8,6 +8,7 @@ from fluidimage.piv import TopologyPIV
 postfix = "test_piv"
 
 
+@pytest.mark.usefixtures("close_plt_figs")
 @pytest.mark.parametrize("executor", supported_multi_executors)
 def test_piv_oseen(tmp_path_oseen, executor):
     path_dir_images = tmp_path_oseen

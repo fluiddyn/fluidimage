@@ -19,6 +19,7 @@ from .io import iterate_multiple_imgs, multiple_imgs_as_ndarray
 try:
     import skimage
     from skimage import exposure, filters, morphology
+    from skimage.util import img_as_ubyte
 
     if skimage.__version__ < "0.13.0":
         print(
@@ -422,7 +423,8 @@ def equalize_hist_local(img=None, radius=10):
     minimum = img.min()
     maximum = img.max()
     img = rescale_intensity(img, 0, 1)
-    img = filters.rank.equalize(img, selem, mask=None)
+    # img_as_ubyte to avoid a warning
+    img = filters.rank.equalize(img_as_ubyte(img), selem, mask=None)
     img_out = rescale_intensity(img, minimum, maximum)
     return img_out
 
