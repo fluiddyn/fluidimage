@@ -1,7 +1,10 @@
+import pytest
+
 from fluidimage import get_path_image_samples
 from fluidimage.works.image2image import Work
 
 
+@pytest.mark.usefixtures("close_plt_figs")
 def test_work_image2image():
 
     params = Work.create_default_params()
