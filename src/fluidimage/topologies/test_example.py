@@ -30,7 +30,7 @@ def test_topo_example(tmp_path_karman, executor):
     path_dir_result = path_input.parent / f"Images.{executor}"
     params["path_dir_result"] = path_dir_result
 
-    topology = TopologyExample(params, logging_level="info")
+    topology = TopologyExample(params, logging_level="debug")
     topology.compute(executor, nb_max_workers=2)
 
     # there is a logging problem with this class but we don't mind.
