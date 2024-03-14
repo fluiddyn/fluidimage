@@ -21,5 +21,5 @@ params.saving.how = "complete"
 
 topology = Topology(params)
 
-# topology.compute()
-topology.compute("multi_exec_subproc")
+topology.compute()
+# topology.compute("multi_exec_subproc")

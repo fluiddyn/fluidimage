@@ -6,6 +6,7 @@
 
 """
 
+import sys
 from pathlib import Path
 from time import time
 
@@ -66,6 +67,11 @@ class ExecutorAsyncSeqForMulti(ExecutorAsyncSequential):
                 file.write("0\n")
 
             self._len_saved_results = 0
+
+            sys.stdout = self._log_file
+
+    def _get_file_object_for_logger(self):
+        return self._log_file
 
     def _init_log_path(self):
         self.path_dir_exceptions = Path(self._log_path).parent

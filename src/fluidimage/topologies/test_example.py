@@ -1,7 +1,6 @@
 import pytest
 
 from fluidimage.executors import supported_multi_executors
-from fluidimage.topologies import LogTopology
 from fluidimage.topologies.example import TopologyExample
 
 executors = [
@@ -30,13 +29,32 @@ def test_topo_example(tmp_path_karman, executor):
     path_dir_result = path_input.parent / f"Images.{executor}"
     params["path_dir_result"] = path_dir_result
 
-    topology = TopologyExample(params, logging_level="debug")
+    topology = TopologyExample(params, logging_level="info")
     topology.compute(executor, nb_max_workers=2)
 
+    # there is a logging problem with this class but we don't mind.
     if executor != "exec_async_servers_threading":
-        # there is a logging problem with this class but we don't mind.
-        log = LogTopology(path_dir_result)
-        assert log.topology_name is not None
+        log = topology.read_log_data()
+        assert (
+            log.topology_name == "fluidimage.topologies.example.TopologyExample"
+        )
+        assert log.nb_max_workers == 2
+
+        if [
+            len(log.durations[key])
+            for key in ("read_array", "cpu1", "cpu2", "save")
+        ] != [4, 3, 2, 2]:
+            print("Issue with this log file:")
+            print(log.path_log_file.read_text())
+
+        assert len(log.durations["read_array"]) == 4
+        assert len(log.durations["cpu1"]) == 3
+        assert len(log.durations["cpu2"]) == 2
+        assert len(log.durations["save"]) == 2
+
+        log.plot_durations()
+        log.plot_memory()
+        log.plot_nb_workers()
 
     path_files = tuple(path_dir_result.glob("Karman*"))
 

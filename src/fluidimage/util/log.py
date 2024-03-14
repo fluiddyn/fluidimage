@@ -15,7 +15,7 @@ from logging import DEBUG, getLogger
 
 from fluiddyn.util import config_logging as _cl_fluiddyn
 
-from .util import _get_txt_memory_usage, cstring
+from .util import cstring, get_txt_memory_usage
 
 __all__ = ["logger", "DEBUG", "reset_logger", "log_memory_usage"]
 
@@ -32,17 +32,19 @@ def reset_logger():
         logger.removeHandler(handler)
 
 
-def log_memory_usage(string="Memory usage", color="OKGREEN", mode="info"):
+def log_memory_usage(string="Memory usage", color="OKGREEN", mode=None):
     """Log the memory usage."""
 
-    if mode == "debug":
+    if mode is None:
+        log = print
+    elif mode == "debug":
         log = logger.debug
     elif mode == "error":
         log = logger.error
     else:
         log = logger.info
 
-    log(_get_txt_memory_usage(string, color))
+    log(get_txt_memory_usage(string, color))
 
 
 def log_debug(string):
