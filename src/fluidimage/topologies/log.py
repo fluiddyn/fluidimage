@@ -151,6 +151,7 @@ class LogTopology:
                 raise ValueError(f"No log files found in {path_log_dir}.")
             path_log_file = paths[-1]
 
+        self.path_log_file = path_log_file
         self.path_log_dir = path_log_dir
         self._title = str(path_log_file.name)
 

@@ -41,6 +41,13 @@ def test_topo_example(tmp_path_karman, executor):
         )
         assert log.nb_max_workers == 2
 
+        if [
+            len(log.durations[key])
+            for key in ("read_array", "cpu1", "cpu2", "save")
+        ] == [4, 3, 2, 2]:
+            print("Issue with this log file:")
+            print(log.path_log_file.read_text())
+
         assert len(log.durations["read_array"]) == 4
         assert len(log.durations["cpu1"]) == 3
         assert len(log.durations["cpu2"]) == 2
