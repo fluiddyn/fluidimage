@@ -413,6 +413,14 @@ postfix : str
             f"dot {name_file}.dot -Tx11"
         )
 
+    def read_log_data(self, path=None):
+        from fluidimage.topologies.log import LogTopology
+
+        if path is None:
+            path = self.path_dir_result
+
+        return LogTopology(path)
+
 
 class TopologyBaseFromSeries(TopologyBase, ABC):
 

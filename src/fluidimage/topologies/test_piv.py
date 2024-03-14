@@ -4,7 +4,6 @@ import pytest
 
 from fluidimage.executors import supported_multi_executors
 from fluidimage.piv import TopologyPIV
-from fluidimage.topologies import LogTopology
 
 postfix = "test_piv"
 
@@ -27,11 +26,11 @@ def test_piv_oseen(tmp_path_oseen, executor):
     topology = TopologyPIV(params, logging_level="info")
     topology.compute(executor, nb_max_workers=2)
 
-    log = LogTopology(topology.path_dir_result)
+    log = topology.read_log_data()
     assert log.topology_name == "fluidimage.topologies.piv.TopologyPIV"
     assert log.nb_max_workers == 2
 
-    if [len(log.durations[key]) for key in ("compute_piv", "save_piv")] == [3, 3]:
+    if [len(log.durations[key]) for key in ("compute_piv", "save_piv")] != [3, 3]:
         print("Issue with this log file:")
         print(log.path_log_file.read_text())
 
