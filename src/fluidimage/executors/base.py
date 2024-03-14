@@ -122,7 +122,7 @@ class ExecutorBase:
 
             from fluidimage import config_logging
 
-            config_logging(logging_level, file=self._get_buffer_log())
+            config_logging(logging_level, file=self._get_file_object_for_logger())
 
         if nb_max_workers is None:
             if config is not None:
@@ -171,7 +171,7 @@ class ExecutorBase:
         # to avoid a pylint warning
         self.t_start = None
 
-    def _get_buffer_log(self):
+    def _get_file_object_for_logger(self):
         return sys.stdout
 
     def _init_compute(self):

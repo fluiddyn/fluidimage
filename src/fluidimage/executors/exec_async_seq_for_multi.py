@@ -70,7 +70,7 @@ class ExecutorAsyncSeqForMulti(ExecutorAsyncSequential):
 
             sys.stdout = self._log_file
 
-    def _get_buffer_log(self):
+    def _get_file_object_for_logger(self):
         return self._log_file
 
     def _init_log_path(self):

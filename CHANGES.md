@@ -16,13 +16,19 @@ This version contains incompatible API changes documented here.
 - Parameters for {class}`fluidimage.preproc.Topology` are now directly in `params`
   and no longer in `params.preproc`.
 
+- Change topology logs.
+
 ### Added
 
 - [#74](https://foss.heptapod.net/fluiddyn/fluidimage/-/merge_requests/74):
   New executor `multi_exec_subproc` defined in
-  {class}`fluidimage.executors.multi_exec_subproc.Executor` based on
+  {class}`fluidimage.executors.multi_exec_subproc.MultiExecutorSubproc` based on
   {class}`fluidimage.topologies.splitters.Splitter`. Useful for operative systems
   that do not support forks (in particular Windows).
+
+- New method
+  {func}`fluidimage.topologies.base.TopologyBase.read_log_data`.
+
 
 ## [0.3.0] (2024-03-05)
 
@@ -141,3 +147,4 @@ This version contains incompatible API changes documented here.
 [0.1.5]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.1.4...0.1.5
 [0.2.0]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.1.5...0.2.0
 [0.3.0]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.2.0...0.3.0
+[0.4.0]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.3.0...0.4.0

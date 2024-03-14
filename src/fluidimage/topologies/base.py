@@ -414,6 +414,7 @@ postfix : str
         )
 
     def read_log_data(self, path=None):
+        """Create and return an object containing the data from the log file(s)"""
         from fluidimage.topologies.log import LogTopology
 
         if path is None:
