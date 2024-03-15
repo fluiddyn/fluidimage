@@ -16,9 +16,9 @@ kernelspec:
 In this tutorial, we will see how to compute PIV (Particle Image Velocimetry) fields and
 how to load the results. In Fluidimage, we have the concept of "works" and "topologies"
 of works. Computing the PIV from 2 images is a "work" (defined in
-{class}`fluidimage.piv.Work`). We will use the topology {class}`fluidimage.piv.Topology`,
-which uses in the background the PIV work and also take care of reading the images,
-creating the couples of images and saving the results.
+{class}`fluidimage.piv.Work`). The PIV topology ({class}`fluidimage.piv.Topology`) uses
+in the background the PIV work and also takes care of reading the images, creating the
+couples of images and saving the results.
 
 A Fluidimage topology can be executed with different executors, which usually runs the
 different tasks in parallel.
@@ -27,8 +27,8 @@ different tasks in parallel.
 
 ## Finding good parameters
 
-To find the correct parameters, we will first compute few PIV fields with the PIV work
-{class}`fluidimage.piv.Work`.
+In order to look for good parameters, we usually compute only PIV fields just with the
+PIV work {class}`fluidimage.piv.Work` (i.e. without topology).
 
 ```{code-cell} ipython3
 ---
@@ -45,7 +45,7 @@ parameters.
 params = Work.create_default_params()
 ```
 
-The representation of this object is useful. In Ipython, just do:
+The representation of this object is useful. In Ipython, just write:
 
 ```{code-cell} ipython3
 params
@@ -71,9 +71,14 @@ params.multipass.number = 2
 params.multipass.use_tps = False
 ```
 
+After instantiating the `Work` class,
+
 ```{code-cell} ipython3
 work = Work(params)
 ```
+
+we can use it to compute one PIV field with the function
+{func}`fluidimage.works.BaseWorkFromSerie.process_1_serie`:
 
 ```{code-cell} ipython3
 result = work.process_1_serie()
