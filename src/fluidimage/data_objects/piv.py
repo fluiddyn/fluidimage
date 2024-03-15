@@ -233,7 +233,41 @@ class ArrayCoupleBOS(ArrayCouple):
 
 
 class HeavyPIVResults(DataObject):
-    """Heavy PIV results containing displacements and correlation."""
+    """Heavy PIV results containing displacements and correlation.
+
+    Attributes
+    ----------
+
+    xs, ys: 1d array of size `num_vectors`
+
+      Positions of the vectors in pixels. Depend on the images.
+
+    deltaxs, deltays: 1d array of size `num_vectors`
+
+      Raw PIV results.
+
+    correls: list of `num_vectors` 2d arrays
+
+      Correlation matrices for each vector.
+
+    correls_max: 1d array of size `num_vectors`
+
+      Maximum correlation for each vector.
+
+    deltaxs_approx, deltays_approx: 1d array of size `num_vectors_next_pass`
+
+      Displacements interpolated on a grid that do not depend on the images.
+
+    ixvecs_approx, iyvecs_approx: 1d array of size `num_vectors_next_pass`
+
+      Positions in pixels of the vectors in ``deltaxs_approx``, ``deltays_approx``.
+
+    deltaxs_final, deltays_final, ixvecs_final, iyvecs_final:
+
+      Equivalent to the `_approx` variables but for the last pass
+      and of size ``num_vectors``.
+
+    """
 
     _keys_to_be_saved = [
         "xs",

@@ -13,28 +13,33 @@ kernelspec:
 
 # PIV computation
 
-In this tutorial, we will see how to compute PIV (Particle Image Velocimetry) fields and how to load the results.
-In Fluidimage, we have the concept of "works" and "topologies" of works. Computing the PIV from 2 images is a "work"
-(defined in {class}`fluidimage.piv.Work`). We will use the topology {class}`fluidimage.piv.Topology`,
-which uses in the background the PIV work and also take care of reading the images, creating the couples of images
-and saving the results.
+In this tutorial, we will see how to compute PIV (Particle Image Velocimetry) fields and
+how to load the results. In Fluidimage, we have the concept of "works" and "topologies"
+of works. Computing the PIV from 2 images is a "work" (defined in
+{class}`fluidimage.piv.Work`). We will use the topology {class}`fluidimage.piv.Topology`,
+which uses in the background the PIV work and also take care of reading the images,
+creating the couples of images and saving the results.
 
-A Fluidimage topology can be executed with different executors, which usually runs the differents tasks in parallel.
+A Fluidimage topology can be executed with different executors, which usually runs the
+different tasks in parallel.
 
 +++
 
 ## Finding good parameters
 
-To find the correct parameters, we will first compute few PIV fields with the PIV work {class}`fluidimage.piv.Work`.
+To find the correct parameters, we will first compute few PIV fields with the PIV work
+{class}`fluidimage.piv.Work`.
 
 ```{code-cell} ipython3
-:tags: [remove-output]
-
+---
+tags: [remove-output]
+---
 from fluidimage import get_path_image_samples
 from fluidimage.piv import Work
 ```
 
-We use the class function `create_default_params` to create an object containing the parameters.
+We use the class function `create_default_params` to create an object containing the
+parameters.
 
 ```{code-cell} ipython3
 params = Work.create_default_params()
@@ -46,13 +51,16 @@ The representation of this object is useful. In Ipython, just do:
 params
 ```
 
-We see a representation of the default parameters. The documention can be printed with `_print_doc`, for example for `params.multipass`:
+We see a representation of the default parameters. The documention can be printed with
+`_print_doc`, for example for `params.multipass`:
 
 ```{code-cell} ipython3
 params.multipass._print_doc()
 ```
 
-We can of course modify these parameters. An error will be raised if we accidentally try to modify a non existing parameter. We at least need to give information about where are the input images:
+We can of course modify these parameters. An error will be raised if we accidentally try
+to modify a non existing parameter. We at least need to give information about where are
+the input images:
 
 ```{code-cell} ipython3
 path_src = get_path_image_samples() / "Karman/Images"
@@ -75,9 +83,11 @@ result = work.process_1_serie()
 type(result)
 ```
 
-This object of the class {class}`fluidimage.data_objects.piv.MultipassPIVResults` contains all the final and intermediate results of the PIV computation.
+This object of the class {class}`fluidimage.data_objects.piv.MultipassPIVResults`
+contains all the final and intermediate results of the PIV computation.
 
-A PIV computation is usally made in different passes (most of the times, 2 or 3). The pass `n` uses the results of the pass `n-1`.
+A PIV computation is usually made in different passes (most of the times, 2 or 3). The
+pass `n` uses the results of the pass `n-1`.
 
 ```{code-cell} ipython3
 [s for s in dir(result) if not s.startswith('_')]
@@ -90,7 +100,8 @@ assert piv1 is result.piv1
 type(piv1)
 ```
 
-Let's see what are the attributes for one pass. First the first pass:
+Let's see what are the attributes for one pass (see
+{class}`fluidimage.data_objects.piv.HeavyPIVResults`). First the first pass:
 
 ```{code-cell} ipython3
 [s for s in dir(piv0) if not s.startswith('_')]
@@ -102,7 +113,8 @@ and the second pass:
 [s for s in dir(piv1) if not s.startswith('_')]
 ```
 
-The main raw results of a pass are `deltaxs`, `deltays` (the displacements) and `xs` and `yx` (the locations of the vectors, which depend of the images).
+The main raw results of a pass are `deltaxs`, `deltays` (the displacements) and `xs` and
+`yx` (the locations of the vectors, which depend of the images).
 
 ```{code-cell} ipython3
 assert piv0.deltaxs.shape == piv0.deltays.shape == piv0.xs.shape == piv0.ys.shape
@@ -114,7 +126,8 @@ assert piv1.deltaxs.shape == piv1.deltays.shape == piv1.xs.shape == piv1.ys.shap
 piv1.xs.shape
 ```
 
-`piv0.deltaxs_approx` is an interpolation on a grid used for the next pass (saved in `piv0.ixvecs_approx`)
+`piv0.deltaxs_approx` is an interpolation on a grid used for the next pass (saved in
+`piv0.ixvecs_approx`)
 
 ```{code-cell} ipython3
 assert piv0.deltaxs_approx.shape == piv0.ixvecs_approx.shape == piv0.deltays_approx.shape == piv0.iyvecs_approx.shape
@@ -126,7 +139,9 @@ assert np.allclose(
 )
 ```
 
-For the last pass, there is also the corresponding `piv1.deltaxs_final` and  `piv1.deltays_final`, which are computed on the final grid (`piv1.ixvecs_final` and `piv1.iyvecs_final`).
+For the last pass, there is also the corresponding `piv1.deltaxs_final` and
+`piv1.deltays_final`, which are computed on the final grid (`piv1.ixvecs_final` and
+`piv1.iyvecs_final`).
 
 ```{code-cell} ipython3
 assert piv1.deltaxs_final.shape == piv1.ixvecs_final.shape == piv1.deltays_final.shape == piv1.iyvecs_final.shape
@@ -144,13 +159,15 @@ result.display(show_correl=False, hist=True);
 result.display(show_interp=True, show_correl=False, show_error=False);
 ```
 
-We could improve the results, but at least they seem coherent, so we can use these simple parameters with the PIV topology (usually to compute a lot of PIV fields).
+We could improve the results, but at least they seem coherent, so we can use these simple
+parameters with the PIV topology (usually to compute a lot of PIV fields).
 
 +++
 
 ## Instantiate the topology and launch the computation
 
-Let's first import what will be useful for the computation, in particular the class {class}`fluidimage.piv.Topology`.
+Let's first import what will be useful for the computation, in particular the class
+{class}`fluidimage.piv.Topology`.
 
 ```{code-cell} ipython3
 import os
@@ -158,15 +175,17 @@ import os
 from fluidimage.piv import Topology
 ```
 
-We use the class function `create_default_params` to create an object containing the parameters.
+We use the class function `create_default_params` to create an object containing the
+parameters.
 
 ```{code-cell} ipython3
 params = Topology.create_default_params()
 ```
 
-The parameters for the PIV topology are nearly the same than those of the PIV work. 
-One noticable difference is the addition of `params.saving`, because a topology saves its results.
-One can use `_print_as_code` to print parameters as in Python code (useful for copy/pasting).
+The parameters for the PIV topology are nearly the same than those of the PIV work. One
+noticable difference is the addition of `params.saving`, because a topology saves its
+results. One can use `_print_as_code` to print parameters as in Python code (useful for
+copy/pasting).
 
 ```{code-cell} ipython3
 params.saving._print_as_code()
@@ -188,15 +207,18 @@ params.saving.how = 'recompute'
 params.saving.postfix = "doc_piv_ipynb"
 ```
 
-In order to run the PIV computation, we have to instanciate an object of the class {class}`fluidimage.piv.Topology`.
+In order to run the PIV computation, we have to instanciate an object of the class
+{class}`fluidimage.piv.Topology`.
 
 ```{code-cell} ipython3
 topology = Topology(params)
 ```
 
-We will then launch the computation by running the function `topology.compute`. For this tutorial, we use a sequential executor to get a simpler logging. 
+We will then launch the computation by running the function `topology.compute`. For this
+tutorial, we use a sequential executor to get a simpler logging.
 
-However, other Fluidimage topologies usually launch computations in parallel so that it is mandatory to set the environment variable `OMP_NUM_THREADS` to `"1"`.
+However, other Fluidimage topologies usually launch computations in parallel so that it
+is mandatory to set the environment variable `OMP_NUM_THREADS` to `"1"`.
 
 ```{code-cell} ipython3
 os.environ["OMP_NUM_THREADS"] = "1"
@@ -271,7 +293,8 @@ o.piv0.display(
 );
 ```
 
-The output PIV files are just hdf5 files. If you just want to load the final velocity field, do it manually with h5py.
+The output PIV files are just hdf5 files. If you just want to load the final velocity
+field, do it manually with h5py.
 
 ```{code-cell} ipython3
 import h5py
