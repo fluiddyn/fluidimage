@@ -148,12 +148,12 @@ displacement_max : None
             correl0 = piv_results.correls_max[ivec]
 
             try:
-                dx_approx0 = piv_results.deltaxs_approx0[ivec]
-                dy_approx0 = piv_results.deltays_approx0[ivec]
+                dx_input = piv_results.deltaxs_input[ivec]
+                dy_input = piv_results.deltays_input[ivec]
             except AttributeError:
                 # first pass
-                dx_approx0 = 0
-                dy_approx0 = 0
+                dx_input = 0
+                dy_input = 0
 
             other_peaks_good = []
             for dx, dy, corr in other_peaks:
@@ -161,8 +161,8 @@ displacement_max : None
                     corr / correl0 > ratio_correl_peaks
                     and corr > self.params_fix.correl_min
                 ):
-                    dx += dx_approx0
-                    dy += dy_approx0
+                    dx += dx_input
+                    dy += dy_input
                     other_peaks_good.append((dx, dy, corr))
 
             if len(other_peaks_good) == 0:
@@ -196,14 +196,14 @@ displacement_max : None
 
                 # try to apply subpix
                 correl = piv_results.correls[ivec]
-                dx -= dx_approx0
-                dy -= dy_approx0
+                dx -= dx_input
+                dy -= dy_input
                 try:
                     dx, dy = self.piv_work.correl.apply_subpix(dx, dy, correl)
                 except PIVError:
                     continue
-                dx += dx_approx0
-                dy += dy_approx0
+                dx += dx_input
+                dy += dy_input
                 nb_bad_peaks_replaced += 1
                 # saved the replaced vector
                 try:

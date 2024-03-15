@@ -350,8 +350,8 @@ class DisplayPIV:
             )
 
             try:
-                deltax -= result.deltaxs_approx0[ind_all]
-                deltay -= result.deltays_approx0[ind_all]
+                deltax -= result.deltaxs_input[ind_all]
+                deltay -= result.deltays_input[ind_all]
             except AttributeError:
                 pass
 
@@ -366,8 +366,8 @@ class DisplayPIV:
                 deltay = result.deltays_final[ind_all]
 
                 try:
-                    deltax -= result.deltaxs_approx0[ind_all]
-                    deltay -= result.deltays_approx0[ind_all]
+                    deltax -= result.deltaxs_input[ind_all]
+                    deltay -= result.deltays_input[ind_all]
                 except AttributeError:
                     pass
 
@@ -384,8 +384,8 @@ class DisplayPIV:
                     pass
                 else:
                     try:
-                        dx_bad -= result.deltaxs_approx0[ind_all]
-                        dy_bad -= result.deltays_approx0[ind_all]
+                        dx_bad -= result.deltaxs_input[ind_all]
+                        dy_bad -= result.deltays_input[ind_all]
                     except AttributeError:
                         pass
                     i1_bad, i0_bad = compute_indices_from_displacement(

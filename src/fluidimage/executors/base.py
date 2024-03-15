@@ -113,6 +113,9 @@ class ExecutorBase:
         if isinstance(stderr, MultiFile):
             stderr = sys.__stderr__
 
+        self._old_stdout = sys.stdout
+        self._old_stderr = sys.stderr
+
         sys.stdout = MultiFile([stdout, self._log_file])
         sys.stderr = MultiFile([stderr, self._log_file])
 
@@ -187,8 +190,8 @@ class ExecutorBase:
         print("  path_dir_result =", self.path_dir_result)
 
     def _reset_std_as_default(self):
-        sys.stdout = sys.__stdout__
-        sys.stderr = sys.__stderr__
+        sys.stdout = self._old_stdout
+        sys.stderr = self._old_stderr
         reset_logger()
         self._log_file.close()
 

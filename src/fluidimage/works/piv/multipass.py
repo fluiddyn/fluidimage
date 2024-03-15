@@ -106,12 +106,9 @@ threshold_tps :  float
     def __init__(self, params=None):
         super().__init__(params)
 
-        self.works_piv = []
-        self.works_fix = []
-
         work_piv = FirstWorkPIV(params)
-        self.works_piv.append(work_piv)
-        self.works_fix.append(WorkFIX(params.fix, work_piv))
+        self.works_piv = [work_piv]
+        self.works_fix = [WorkFIX(params.fix, work_piv)]
 
         coeff_zoom = params.multipass.coeff_zoom
 
@@ -176,7 +173,7 @@ threshold_tps :  float
 
         results = MultipassPIVResults()
 
-        # just for simplicity
+        # the first work is a FirstWorkPIV and uses a couple
         piv_result = couple
 
         for work_piv, work_fix in zip(self.works_piv, self.works_fix):
