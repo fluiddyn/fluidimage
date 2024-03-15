@@ -1,15 +1,6 @@
 """Piv work and subworks
 ========================
 
-.. todo::
-
-   - fix using secondary peak in correlation
-
-   - displacement_max
-
-   - displacement_mean
-
-
 .. autoclass:: BaseWorkPIV
    :members:
    :private-members:
@@ -214,7 +205,9 @@ class BaseWorkPIV(BaseWorkWithMask):
         im1pad = np.pad(im1 - im1.min(), tmp, "constant")
         return im0pad, im1pad
 
-    def _calcul_indices_vec(self, deltaxs_approx=None, deltays_approx=None):
+    def _calcul_positions_vectors_subimages(
+        self, deltaxs_input=None, deltays_input=None
+    ):
         """Calcul the indices corresponding to the vectors and cropped windows.
 
         Returns
@@ -247,6 +240,9 @@ class BaseWorkPIV(BaseWorkWithMask):
           y index of the center of the crop image 1 in the padded image 1.
 
         """
+        # not used in this method
+        del deltaxs_input, deltays_input
+
         ixs0_pad = self.ixvecs_grid + self.npad
         iys0_pad = self.iyvecs_grid + self.npad
         ixs1_pad = ixs0_pad
@@ -261,13 +257,13 @@ class BaseWorkPIV(BaseWorkWithMask):
             iys1_pad,
         )
 
-    def _loop_vectors(self, im0, im1, deltaxs_approx=None, deltays_approx=None):
+    def _loop_vectors(self, im0, im1, deltaxs_input=None, deltays_input=None):
         """Loop over the vectors to compute them."""
 
         im0pad, im1pad = self._pad_images(im0, im1)
 
-        xs, ys, ixs0_pad, iys0_pad, ixs1_pad, iys1_pad = self._calcul_indices_vec(
-            deltaxs_approx=deltaxs_approx, deltays_approx=deltays_approx
+        xs, ys, ixs0_pad, iys0_pad, ixs1_pad, iys1_pad = (
+            self._calcul_positions_vectors_subimages(deltaxs_input, deltays_input)
         )
 
         nb_vec = len(xs)
@@ -361,9 +357,9 @@ class BaseWorkPIV(BaseWorkWithMask):
 
             secondary_peaks[ivec] = other_peaks
 
-        if deltaxs_approx is not None:
-            deltaxs += deltaxs_approx
-            deltays += deltays_approx
+        if deltaxs_input is not None:
+            deltaxs += deltaxs_input
+            deltays += deltays_input
 
         return (
             deltaxs,
@@ -440,7 +436,7 @@ class BaseWorkPIV(BaseWorkWithMask):
         -----
 
         Depending on the value of `params.multipass.use_tps`, the interpolation
-        is done with an interative method based on the Thin Plate Spline method
+        is done with an iterative method based on the Thin Plate Spline method
         (:class:`fluidimage.calcul.interpolate.thin_plate_spline_subdom.ThinPlateSplineSubdom`)
         or done with a simple griddata method (much faster).
 
@@ -748,11 +744,8 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
 
         self.apply_interp(piv_results)
 
-        deltaxs_approx = piv_results.deltaxs_approx
-        deltays_approx = piv_results.deltays_approx
-
-        deltaxs_approx = np.round(deltaxs_approx).astype("int32")
-        deltays_approx = np.round(deltays_approx).astype("int32")
+        deltaxs_input = np.round(piv_results.deltaxs_approx).astype("int32")
+        deltays_input = np.round(piv_results.deltays_approx).astype("int32")
 
         (
             deltaxs,
@@ -763,9 +756,7 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
             correls,
             errors,
             secondary_peaks,
-        ) = self._loop_vectors(
-            im0, im1, deltaxs_approx=deltaxs_approx, deltays_approx=deltays_approx
-        )
+        ) = self._loop_vectors(im0, im1, deltaxs_input, deltays_input)
 
         xs, ys = self._xyoriginalimage_from_xymasked(xs, ys)
 
@@ -783,12 +774,12 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
         )
 
         self._complete_result(result)
-        result.deltaxs_approx0 = deltaxs_approx
-        result.deltays_approx0 = deltays_approx
+        result.deltaxs_input = deltaxs_input
+        result.deltays_input = deltays_input
 
         return result
 
-    def _calcul_indices_vec(self, deltaxs_approx=None, deltays_approx=None):
+    def _calcul_indices_vec(self, deltaxs_input=None, deltays_input=None):
         """Calcul the indices corresponding to the vectors and cropped windows.
 
         Returns
@@ -821,10 +812,10 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
           y index of the center of the crop image 1 in the padded image 1.
 
         """
-        ixs0 = self.ixvecs_grid - deltaxs_approx // 2
-        iys0 = self.iyvecs_grid - deltays_approx // 2
-        ixs1 = ixs0 + deltaxs_approx
-        iys1 = iys0 + deltays_approx
+        ixs0 = self.ixvecs_grid - deltaxs_input // 2
+        iys0 = self.iyvecs_grid - deltays_input // 2
+        ixs1 = ixs0 + deltaxs_input
+        iys1 = iys0 + deltays_input
 
         # if a point is outside an image => shift of subimages used
         # for correlation
@@ -846,8 +837,8 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
                 or (ixs1[ind] < 0)
                 or (iys1[ind] < 0)
             ):
-                ixs0[ind] = self.ixvecs_grid[ind] - deltaxs_approx[ind]
-                iys0[ind] = self.iyvecs_grid[ind] - deltays_approx[ind]
+                ixs0[ind] = self.ixvecs_grid[ind] - deltaxs_input[ind]
+                iys0[ind] = self.iyvecs_grid[ind] - deltays_input[ind]
                 ixs1[ind] = self.ixvecs_grid[ind]
                 iys1[ind] = self.iyvecs_grid[ind]
             elif (
@@ -858,8 +849,8 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
             ):
                 ixs0[ind] = self.ixvecs_grid[ind]
                 iys0[ind] = self.iyvecs_grid[ind]
-                ixs1[ind] = self.ixvecs_grid[ind] + deltaxs_approx[ind]
-                iys1[ind] = self.iyvecs_grid[ind] + deltays_approx[ind]
+                ixs1[ind] = self.ixvecs_grid[ind] + deltaxs_input[ind]
+                iys1[ind] = self.iyvecs_grid[ind] + deltays_input[ind]
 
         xs = (ixs0 + ixs1) / 2.0
         ys = (iys0 + iys1) / 2.0
