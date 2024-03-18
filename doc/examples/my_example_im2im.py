@@ -4,7 +4,7 @@
 """
 
 
-def im2im(im_path):
-    im, path = im_path
+def im2im(tuple_name_image):
+    _, im = tuple_name_image
     print("in the function im2im...")
-    return 2 * im, path
+    return 2 * im

@@ -147,6 +147,10 @@ class WorkerServer:
         raise NotImplementedError
 
 
+def _do_the_job(_work, _arg):
+    return _work.func_or_cls(_arg)
+
+
 class WorkerServerMultiprocessing(WorkerServer):
     def __init__(
         self,
@@ -233,9 +237,6 @@ class WorkerServerMultiprocessing(WorkerServer):
             work_name, key, obj, child_conn = self.to_be_processed.pop(0)
             work = self.topology.works_dict[work_name]
 
-            def do_the_job(work, obj):
-                return work.func_or_cls(obj)
-
             t_start = time.time()
 
             self.log_in_file_memory_usage(
@@ -243,9 +244,12 @@ class WorkerServerMultiprocessing(WorkerServer):
                 + work.name_no_space
                 + f" ({key}). mem usage"
             )
+
+            arg = work.prepare_argument(key, obj)
+
             # pylint: disable=W0703
             try:
-                result = await trio.to_thread.run_sync(do_the_job, work, obj)
+                result = await trio.to_thread.run_sync(_do_the_job, work, arg)
             except Exception as error:
                 logger.error(
                     cstring(

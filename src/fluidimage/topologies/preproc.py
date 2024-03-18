@@ -236,6 +236,7 @@ str_subset : str or None
                 func_or_cls=im2im_func,
                 input_queue=queue_arrays,
                 output_queue=queue_arrays1,
+                kind="eat key value",
             )
 
         self.add_work(

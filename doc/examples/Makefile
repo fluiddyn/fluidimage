@@ -1,3 +1,3 @@
 
 test:
-	OMP_NUM_THREADS=1 pytest
+	OMP_NUM_THREADS=1 pytest -v

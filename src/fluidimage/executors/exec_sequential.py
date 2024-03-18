@@ -49,9 +49,12 @@ class ExecutorSequential(ExecutorBase):
                         + work.name_no_space
                         + f" ({key}). mem usage"
                     )
+
+                    arg = work.prepare_argument(key, obj)
+
                     # pylint: disable=W0703
                     try:
-                        ret = work.func_or_cls(obj)
+                        ret = work.func_or_cls(arg)
                     except Exception as error:
                         self.log_exception(error, work.name_no_space, key)
                         if self.stop_if_error:

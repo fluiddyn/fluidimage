@@ -39,11 +39,11 @@ def im2im_func_example(tuple_image_path):
     :class:`fluidimage.topologies.image2image.TopologyImage2Image`.
 
     """
-    image, path = tuple_image_path
+    path, image = tuple_image_path
     # the processing can be adjusted depending on the value of the path.
     print("process file:\n" + path)
     image_out = np.round(image * (255 / image.max())).astype(np.uint8)
-    return image_out, path
+    return image_out
 
 
 class Im2ImExample:
@@ -97,7 +97,7 @@ def apply_im2im_filter(serie, im2im=None, args_init=()):
     paths = serie.get_path_arrays()
 
     for arr, path in zip(arrays, paths):
-        new_arr, path = im2im_func((arr, path))
+        new_arr = im2im_func((path, arr))
         result["arrays"].append(new_arr)
         result["paths"].append(path)
         result["names"].append(Path(path).name)

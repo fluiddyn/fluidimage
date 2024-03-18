@@ -155,14 +155,12 @@ class TopologyExample(TopologyBase):
             func_or_cls=func1,
             input_queue=queue_couples_arrays,
             output_queue=queue_cpu1,
-            kind="cpu",
         )
         self.add_work(
             "cpu2",
             func_or_cls=func2,
             input_queue=queue_cpu1,
             output_queue=queue_cpu2,
-            kind="cpu",
         )
         self.add_work(
             "save", func_or_cls=self.save, input_queue=queue_cpu2, kind="io"

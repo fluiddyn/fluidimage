@@ -1,34 +1,39 @@
 # Release notes
 
 See also the
-[unreleased changes](https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.3.0...branch%2Fdefault).
+[unreleased changes](https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.4.0...branch%2Fdefault).
 
-## [0.4.0] (2024-03-1?)
+## [0.4.0] (2024-03-18)
 
 ```{warning}
 
-This version contains incompatible API changes documented here.
+This version contains incompatible API changes documented below. It is particularly
+interesting because it introduces a new executor (called "multi_exec_subproc") which
+should work fine on operative systems like Windows and macOS. Since this is now the
+default executor for these OSs, users should be able to use it without noticing.
 
 ```
 
 ### Changed
 
-- Parameters for {class}`fluidimage.preproc.Topology` are now directly in `params`
-  and no longer in `params.preproc`.
+- Parameters for {class}`fluidimage.preproc.Topology` are now directly in `params` and no
+  longer in `params.preproc`.
 
-- Change topology logs.
+- Change topology logs, progress bars using [Rich](https://rich.readthedocs.io).
+
+- Image to image functions take a tuple `(key, image)`
+
+- `kind` can be `"eat key value"` (see {class}`fluidimage.topologies.base.Work`).
 
 ### Added
 
-- [#74](https://foss.heptapod.net/fluiddyn/fluidimage/-/merge_requests/74):
-  New executor `multi_exec_subproc` defined in
+- [#74](https://foss.heptapod.net/fluiddyn/fluidimage/-/merge_requests/74): New executor
+  `multi_exec_subproc` defined in
   {class}`fluidimage.executors.multi_exec_subproc.MultiExecutorSubproc` based on
-  {class}`fluidimage.topologies.splitters.Splitter`. Useful for operative systems
-  that do not support forks (in particular Windows).
+  {class}`fluidimage.topologies.splitters.Splitter`. Useful for operative systems that do
+  not support forks (in particular Windows).
 
-- New method
-  {func}`fluidimage.topologies.base.TopologyBase.read_log_data`.
-
+- New method {func}`fluidimage.topologies.base.TopologyBase.read_log_data`.
 
 ## [0.3.0] (2024-03-05)
 
@@ -54,20 +59,18 @@ This version contains incompatible API changes documented here.
 
 - Module {mod}`fluidimage.piv` to import the PIV classes `Work` and `Topology`.
 
-- Module {mod}`fluidimage.image2image` to import classes `Work` and `Topology`
-  for user-defined preprocessing.
+- Module {mod}`fluidimage.image2image` to import classes `Work` and `Topology` for
+  user-defined preprocessing.
 
 - Modules {mod}`fluidimage.bos` and {mod}`fluidimage.optical_flow` to import the
   corresponding `Work` and `Topology` classes.
 
 - The work classes {class}`fluidimage.piv.Work`, {class}`fluidimage.preproc.Work` and
-  {class}`fluidimage.optical_flow.Work`
-  now have parameters in `params.series` and a method
-  {func}`fluidimage.works.BaseWorkFromSerie.process_1_serie` (see the examples on
+  {class}`fluidimage.optical_flow.Work` now have parameters in `params.series` and a
+  method {func}`fluidimage.works.BaseWorkFromSerie.process_1_serie` (see the examples on
   [preprocessing](./examples/preproc.md) and [PIV](./examples/piv_try_params.md)).
 
-- The work classes {class}`fluidimage.image2image.Work` and
-  {class}`fluidimage.bos.Work`
+- The work classes {class}`fluidimage.image2image.Work` and {class}`fluidimage.bos.Work`
   now have a parameters in `params.images` and a method
   {func}`fluidimage.works.BaseWorkFromImage.process_1_image`.
 
@@ -79,7 +82,7 @@ This version contains incompatible API changes documented here.
 
 ## [0.2.0] (2024-02-19)
 
-- Python >=3.9,<3.12
+- Python >=3.9,\<3.12
 - Better support for Windows and MacOS
 - Fix bugs related to subpix and `nb_peaks_to_search`
 - Dev and build: PDM, Nox and Meson

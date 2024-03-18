@@ -55,11 +55,14 @@ class ExecutorAsyncSequential(ExecutorAsync):
             + work.name_no_space
             + f" ({key}). mem usage"
         )
+
+        arg = work.prepare_argument(key, obj)
+
         # pylint: disable=W0703
         try:
             # here we do something very bad from the async point of view:
             # we launch a potentially long blocking function:
-            ret = work.func_or_cls(obj)
+            ret = work.func_or_cls(arg)
         except Exception as error:
             self.log_exception(error, work.name_no_space, key)
             if self.stop_if_error:

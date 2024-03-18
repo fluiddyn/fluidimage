@@ -9,7 +9,7 @@ build-backend = 'mesonpy'
 
 [project]
 name = "fluidimage"
-version = "0.3.0"
+version = "0.4.0"
 description = "Fluid image processing with Python."
 authors = [
     {name = "Pierre Augier", email = "pierre.augier@legi.cnrs.fr"},

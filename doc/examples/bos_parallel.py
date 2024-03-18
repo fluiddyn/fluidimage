@@ -12,7 +12,7 @@ params.multipass.use_tps = False
 
 params.mask.strcrop = ":, 50:500"
 
-# params.saving.how = 'complete'
+params.saving.how = "recompute"
 params.saving.postfix = "bos_example"
 
 topology = Topology(params, logging_level="info")
@@ -25,3 +25,5 @@ topology.compute()
 
 # Compute in sequential (for debugging)
 # topology.compute(sequential=True)
+
+assert len(topology.results) == 1

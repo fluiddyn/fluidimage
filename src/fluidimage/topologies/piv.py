@@ -131,6 +131,7 @@ class TopologyPIV(TopologyBaseFromSeries):
                 func_or_cls=im2im_func,
                 input_queue=queue_arrays,
                 output_queue=queue_arrays1,
+                kind="eat key value",
             )
 
         self.add_work(
@@ -210,19 +211,22 @@ class TopologyPIV(TopologyBaseFromSeries):
                 couple[0] in queue_arrays.keys()
                 and couple[1] in queue_arrays.keys()
             ):
+                serie = copy.copy(self.series.get_serie_from_index(key))
                 array1 = queue_arrays[couple[0]]
                 array2 = queue_arrays[couple[1]]
-                serie = copy.copy(self.series.get_serie_from_index(key))
 
-                # logger.debug(
-                #     f"create couple {key}: {couple}, ({array1}, {array2})"
-                # )
-                array_couple = ArrayCouple(
-                    names=(couple[0], couple[1]),
-                    arrays=(array1, array2),
-                    params_mask=params_mask,
-                    serie=serie,
-                )
+                if isinstance(array1, Exception):
+                    array_couple = array1
+                elif isinstance(array2, Exception):
+                    array_couple = array2
+                else:
+                    array_couple = ArrayCouple(
+                        names=(couple[0], couple[1]),
+                        arrays=(array1, array2),
+                        params_mask=params_mask,
+                        serie=serie,
+                    )
+
                 output_queue[key] = array_couple
                 del queue_couples_of_names[key]
                 # remove the image_array if it not will be used anymore

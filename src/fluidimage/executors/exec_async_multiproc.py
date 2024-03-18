@@ -61,6 +61,8 @@ class ExecutorAsyncMultiproc(ExecutorAsync):
             self.nb_working_workers_cpu -= 1
             return
 
+        arg = work.prepare_argument(key, obj)
+
         t_start = time.time()
         self.log_in_file_memory_usage(
             f"{time.time() - self.t_start:.2f} s. Launch work "
@@ -77,7 +79,7 @@ class ExecutorAsyncMultiproc(ExecutorAsync):
             def start_process_and_check(index_attempt):
                 process = Process(
                     target=exec_work_and_comm,
-                    args=(work.func_or_cls, obj, child_conn, event),
+                    args=(work.func_or_cls, arg, child_conn, event),
                 )
                 process.daemon = True
                 process.start()
@@ -112,7 +114,7 @@ class ExecutorAsyncMultiproc(ExecutorAsync):
 
             process.join(10 * self.sleep_time)
             if process.exitcode != 0:
-                logger.info(f"process.exitcode: {process.exitcode}")
+                logger.error("process.exitcode: %s", process.exitcode)
                 process.terminate()
 
             return result

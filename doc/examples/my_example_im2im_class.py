@@ -9,7 +9,7 @@ class Im2Im:
         self.arg0 = arg0
         self.arg1 = arg1
 
-    def calcul(self, image_path):
-        image, path = image_path
+    def calcul(self, tuple_name_image):
+        _, image = tuple_name_image
         print(f"in the function Im2Im.calcul (arg0={self.arg0})...")
-        return 2 * image, path
+        return 2 * image
