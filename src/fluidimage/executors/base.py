@@ -376,7 +376,10 @@ class MultiExecutorBase(ExecutorBase):
                     else:
                         return_codes[idx] = ret_code
                         if ret_code != 0:
-                            error = process.stderr.read()
+                            try:
+                                error = process.stderr.read()
+                            except AttributeError:
+                                error = f"{ret_code = }"
                             errors[idx] = error
                             logger.error(error)
 
