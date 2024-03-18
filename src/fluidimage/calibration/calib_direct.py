@@ -17,7 +17,6 @@ from math import sqrt
 
 import matplotlib.pyplot as plt
 import numpy as np
-import pylab
 from scipy.interpolate import (
     LinearNDInterpolator,
     RegularGridInterpolator,
@@ -185,24 +184,24 @@ class CalibDirect:
         if test:
             titles = ["X0", "Y0", "Z0", "dx", "dy", "dz"]
             for j in range(6):
-                pylab.figure()
-                pylab.pcolor(x, y, V[:, :, j], shading="nearest")
-                pylab.title(titles[j])
-                pylab.xlabel("x (pix)")
-                pylab.ylabel("y (pix)")
-                pylab.colorbar()
+                fig, ax = plt.subplots()
+                quad_mesh = ax.pcolormesh(x, y, V[:, :, j], shading="nearest")
+                fig.suptitle(titles[j])
+                ax.set_xlabel("x (pix)")
+                ax.set_ylabel("y (pix)")
+                fig.colorbar(quad_mesh)
 
-            pylab.figure()
-            pylab.pcolor(
+            fig, ax = plt.subplots()
+            c = ax.pcolormesh(
                 x,
                 y,
                 np.sqrt(V[:, :, 3] ** 2 + V[:, :, 4] ** 2 + V[:, :, 5] ** 2),
                 shading="nearest",
             )
-            pylab.title("norm(d)")
-            pylab.xlabel("x (pix)")
-            pylab.ylabel("y (pix)")
-            pylab.colorbar()
+            fig.suptitle("norm(d)")
+            ax.set_xlabel("x (pix)")
+            ax.set_ylabel("y (pix)")
+            fig.colorbar(quad_mesh)
             plt.show()
 
         vtrue = np.array(vtrue)
@@ -319,25 +318,25 @@ class CalibDirect:
         for i in range(len(Z)):
             X = interp.indices_pixel2xphys[i]((indx, indy))
             Y = interp.indices_pixel2yphys[i]((indx, indy))
-            pylab.figure()
-            pylab.pcolor(indx, indy, X, shading="nearest")
-            pylab.title(f"Level {i}, X")
-            pylab.xlabel("x (pix)")
-            pylab.ylabel("y (pix)")
-            pylab.colorbar()
+            fig, ax = plt.subplots()
+            quad_mesh = ax.pcolormesh(indx, indy, X, shading="nearest")
+            fig.suptitle(f"Level {i}, X")
+            ax.set_xlabel("x (pix)")
+            ax.set_ylabel("y (pix)")
+            fig.colorbar(quad_mesh)
 
-            pylab.figure()
-            pylab.pcolor(indx, indy, Y, shading="nearest")
-            pylab.title(f"Level {i}, Y")
-            pylab.xlabel("x (pix)")
-            pylab.ylabel("y (pix)")
-            pylab.colorbar()
+            fig, ax = plt.subplots()
+            quad_mesh = ax.pcolormesh(indx, indy, Y, shading="nearest")
+            fig.suptitle(f"Level {i}, Y")
+            ax.set_xlabel("x (pix)")
+            ax.set_ylabel("y (pix)")
+            fig.colorbar(quad_mesh)
 
         plt.show()
 
     def check_interp_lines(self, number=10):
         """Plot to check interp_lines"""
-        fig = pylab.figure()
+        fig = fig, ax = plt.subplots()
         ax = Axes3D(fig, auto_add_to_figure=False)
         fig.add_axes(ax)
 
@@ -388,48 +387,17 @@ class CalibDirect:
                 dy[i, j] = self.interp_lines[4]((x[i, j], y[i, j]))
                 dz[i, j] = self.interp_lines[5]((x[i, j], y[i, j]))
 
-        pylab.figure()
-        pylab.pcolor(x, y, X0, shading="nearest")
-        pylab.title("X0")
-        pylab.xlabel("x (pix)")
-        pylab.ylabel("y (pix)")
-        pylab.colorbar()
-        pylab.figure()
-        pylab.pcolor(x, y, Y0, shading="nearest")
-        pylab.title("Y0")
-        pylab.xlabel("x (pix)")
-        pylab.ylabel("y (pix)")
-        pylab.colorbar()
-        pylab.figure()
-        pylab.pcolor(x, y, Z0, shading="nearest")
-        pylab.title("Z0")
-        pylab.xlabel("x (pix)")
-        pylab.ylabel("y (pix)")
-        pylab.colorbar()
-        pylab.figure()
-        pylab.pcolor(x, y, dx, shading="nearest")
-        pylab.title("dx")
-        pylab.xlabel("x (pix)")
-        pylab.ylabel("y (pix)")
-        pylab.colorbar()
-        pylab.figure()
-        pylab.pcolor(x, y, dy, shading="nearest")
-        pylab.title("dy")
-        pylab.xlabel("x (pix)")
-        pylab.ylabel("y (pix)")
-        pylab.colorbar()
-        pylab.figure()
-        pylab.pcolor(x, y, dz, shading="nearest")
-        pylab.title("dz")
-        pylab.xlabel("x (pix)")
-        pylab.ylabel("y (pix)")
-        pylab.colorbar()
-        pylab.figure()
-        pylab.pcolor(x, y, np.sqrt(dx**2 + dy**2 + dz**2), shading="nearest")
-        pylab.title("norm(d)")
-        pylab.xlabel("x (pix)")
-        pylab.ylabel("y (pix)")
-        pylab.colorbar()
+        to_be_plotted = {"X0": X0, "Y0": Y0, "Z0": Z0}
+        to_be_plotted.update({"dx": dx, "dy": dy, "dz": dz})
+        to_be_plotted["norm(d)"] = np.sqrt(dx**2 + dy**2 + dz**2)
+
+        for title, quantity in to_be_plotted.items():
+            fig, ax = plt.subplots()
+            quad_mesh = ax.pcolormesh(x, y, quantity, shading="nearest")
+            fig.suptitle(title)
+            ax.set_xlabel("x (pix)")
+            ax.set_ylabel("y (pix)")
+            fig.colorbar(quad_mesh)
 
         plt.show()
 
@@ -501,25 +469,25 @@ class DirectStereoReconstruction:
             plt.figure()
             plt.quiver(indx0, indy0, dx0, dy0)
             plt.axis("equal")
-            pylab.xlabel("x (pix)")
-            pylab.ylabel("y (pix)")
+            ax.set_xlabel("x (pix)")
+            ax.set_ylabel("y (pix)")
             plt.title("Cam 0 in pixel")
             plt.figure()
             plt.quiver(X0[:, 0], X0[:, 1], dX0[:, 0], dX0[:, 1])
-            pylab.xlabel("x (pix)")
-            pylab.ylabel("y (pix)")
+            ax.set_xlabel("x (pix)")
+            ax.set_ylabel("y (pix)")
             plt.axis("equal")
             plt.title("Cam 0 in m")
             plt.figure()
             plt.quiver(indx1, indy1, dx1, dy1)
-            pylab.xlabel("x (pix)")
-            pylab.ylabel("y (pix)")
+            ax.set_xlabel("x (pix)")
+            ax.set_ylabel("y (pix)")
             plt.axis("equal")
             plt.title("Cam 1 in pixel")
             plt.figure()
             plt.quiver(X1[:, 0], X1[:, 1], dX1[:, 0], dX1[:, 1])
-            pylab.xlabel("x (pix)")
-            pylab.ylabel("y (pix)")
+            ax.set_xlabel("x (pix)")
+            ax.set_ylabel("y (pix)")
             plt.axis("equal")
             plt.title("Cam 1 in m")
             plt.show()
@@ -651,7 +619,8 @@ class DirectStereoReconstruction:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=RuntimeWarning)
             tmp_mean = np.nanmean(tmp, 0)
-        tmp_std = np.nanstd(tmp, 0)
+            tmp_std = np.nanstd(tmp, 0)
+
         dX, dY, dZ = tmp_mean
         Errorx, Errory, Errorz = tmp_std
 
@@ -692,20 +661,20 @@ class DirectStereoReconstruction:
         if check:
             plt.figure()
             plt.quiver(self.grid_x, self.grid_y, d0xcam, d0ycam)
-            pylab.xlabel("X")
-            pylab.ylabel("Y")
+            ax.set_xlabel("X")
+            ax.set_ylabel("Y")
             plt.axis("equal")
             plt.title("Cam 0 plane projection")
             plt.figure()
             plt.quiver(self.grid_x, self.grid_y, d1xcam, d1ycam)
-            pylab.xlabel("X")
-            pylab.ylabel("Y")
+            ax.set_xlabel("X")
+            ax.set_ylabel("Y")
             plt.axis("equal")
             plt.title("Cam 1 plane projection")
             plt.figure()
             plt.quiver(self.grid_x, self.grid_y, dX, dY)
-            pylab.xlabel("X")
-            pylab.ylabel("Y")
+            ax.set_xlabel("X")
+            ax.set_ylabel("Y")
             plt.axis("equal")
             plt.title("Reconstruction on laser plane")
             plt.show()
