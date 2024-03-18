@@ -1,5 +1,3 @@
-import os
-
 from fluidimage.piv import Topology
 
 params = Topology.create_default_params()

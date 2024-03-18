@@ -29,3 +29,5 @@ params.saving.how = "recompute"
 topo = Topology(params)
 
 topo.compute()
+
+assert len(topo.results) == 4

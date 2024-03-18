@@ -28,7 +28,7 @@ def clean_example_data():
     ):
         assert path_samples.exists(), path_samples
         for path in path_samples.rglob("*_example"):
-            print(f"delete", path)
+            print("delete", path)
             shutil.rmtree(path, ignore_errors=True)
 
 

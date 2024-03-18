@@ -23,6 +23,7 @@ p_tools.temporal_median.window_shape = (5, 2, 2)
 p_tools.global_threshold.enable = True
 p_tools.global_threshold.minima = 0.0
 
+params.saving.how = "recompute"
 params.saving.postfix = "pre_example"
 
 topology = Topology(params, logging_level="info", nb_max_workers=4)
@@ -32,3 +33,5 @@ topology.compute()
 
 # Compute in sequential (for debugging)
 # topology.compute(sequential=True)
+
+assert len(topology.results) == 2
