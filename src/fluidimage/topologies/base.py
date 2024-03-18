@@ -27,6 +27,7 @@ import json
 from abc import ABC, abstractmethod
 from collections import OrderedDict
 from pathlib import Path
+from typing import Sequence, Union
 from warnings import warn
 
 from fluidimage import ParamContainer, SerieOfArraysFromFiles, SeriesOfArrays
@@ -41,7 +42,20 @@ from ..executors import (
 
 
 class Work:
-    """Represent a work"""
+    """Represent a work
+
+    Work are treated differently by executors depending of the ``kind``
+    argument. Work can be:
+
+    - "global": the work acts globally on its input and output queues.
+
+    - "one shot": the work has to be called only once per execution.
+
+    - "io": the work involves input/output and is not computationally heavy.
+
+    - "eat key value": the work takes as argument a tuple ``(key, value)``.
+
+    """
 
     def __init__(
         self,
@@ -50,7 +64,7 @@ class Work:
         params_cls=None,
         input_queue=None,
         output_queue=None,
-        kind: str = None,
+        kind: Union[str, Sequence[str]] = None,
     ):
         self._kwargs = dict(
             name=name,
@@ -65,6 +79,13 @@ class Work:
 
         self.__dict__.update(self._kwargs)
         self.name_no_space = self.name.replace(" ", "_")
+
+        if kind is None:
+            self._eat_key_value = False
+        elif isinstance(kind, str):
+            self._eat_key_value = kind == "eat key value"
+        else:
+            self._eat_key_value = "eat key value" in kind
 
     def __repr__(self):
         return super().__repr__() + f"\n{self._kwargs}"
@@ -85,6 +106,12 @@ class Work:
                 )
             return True
         return False
+
+    def prepare_argument(self, key, obj):
+        if self._eat_key_value:
+            return (key, obj)
+        else:
+            return obj
 
 
 class Queue(OrderedDict):

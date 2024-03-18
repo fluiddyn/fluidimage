@@ -15,7 +15,6 @@
 
 """
 
-import json
 import sys
 from pathlib import Path
 
@@ -147,8 +146,8 @@ str_subset : None
         queue_couples_of_arrays = self.add_queue(
             "couples of corrected angles and angles"
         )
-        queuemod0_angles = self.add_queue("corrected angles copy")
-        queuemod_angles = self.add_queue("corrected angles")
+        queue_mod0_angles = self.add_queue("corrected angles copy")
+        queue_mod_angles = self.add_queue("corrected angles")
         queue_heights_and_shapes = self.add_queue("heights and shapes")
         queue_heights = self.add_queue("heights")
 
@@ -164,7 +163,7 @@ str_subset : None
 
         self.add_work(
             "read_array",
-            self.imread,
+            imread,
             input_queue=queue_paths,
             output_queue=queue_arrays,
             kind="io",
@@ -180,6 +179,7 @@ str_subset : None
                 func_or_cls=im2im_func,
                 input_queue=queue_arrays,
                 output_queue=queue_arrays1,
+                kind="eat key value",
             )
 
         self.add_work(
@@ -192,8 +192,8 @@ str_subset : None
         self.add_work(
             "create_couple",
             self.make_couples,
-            input_queue=(queuemod0_angles, queue_angles, queue_couples_of_names),
-            output_queue=(queuemod_angles, queue_couples_of_arrays),
+            input_queue=(queue_mod0_angles, queue_angles, queue_couples_of_names),
+            output_queue=(queue_mod_angles, queue_couples_of_arrays),
             kind="global",
         )
 
@@ -201,13 +201,13 @@ str_subset : None
             "correct_couple_of_phases",
             self.surface_tracking_work.correctcouple,
             input_queue=queue_couples_of_arrays,
-            output_queue=queuemod0_angles,
+            output_queue=queue_mod0_angles,
         )
 
         self.add_work(
             "calcul_height",
             self.surface_tracking_work.calculheight_func,
-            input_queue=queuemod_angles,
+            input_queue=queue_mod_angles,
             output_queue=queue_heights_and_shapes,
         )
 
@@ -219,19 +219,22 @@ str_subset : None
         )
 
         self.add_work(
-            "save", self.save_image, input_queue=queue_heights, kind="io"
+            "save",
+            self.save_image,
+            input_queue=queue_heights,
+            kind=("io", "eat key value"),
         )
 
     def make_couples(self, input_queues, output_queues):
         """correctphase"""
         queue_couples_of_names = input_queues[2]
         queue_angles = input_queues[1]
-        queuemod0_angles = input_queues[0]
+        queue_mod0_angles = input_queues[0]
         queue_couple = output_queues[1]
         if not (queue_couples_of_names):
-            for key in tuple(queuemod0_angles):
-                output_queues[0][key] = queuemod0_angles[key]
-                del queuemod0_angles[key]
+            for key in tuple(queue_mod0_angles):
+                output_queues[0][key] = queue_mod0_angles[key]
+                del queue_mod0_angles[key]
         if not (queue_angles):
             print("no queue")
             return
@@ -246,24 +249,20 @@ str_subset : None
                     del queue_angles[couple[0]]
                     del queue_couples_of_names[key]
             elif (
-                couple[0] in queuemod0_angles.keys()
+                couple[0] in queue_mod0_angles.keys()
                 and couple[1] in queue_angles.keys()
             ):
-                array1 = queuemod0_angles[couple[0]]
+                array1 = queue_mod0_angles[couple[0]]
                 array2 = queue_angles[couple[1]]
 
                 queue_couple[couple[1]] = (array1, array2)
                 del queue_angles[couple[1]]
                 del queue_couples_of_names[key]
-                output_queues[0][couple[0]] = queuemod0_angles[couple[0]]
-                del queuemod0_angles[couple[0]]
+                output_queues[0][couple[0]] = queue_mod0_angles[couple[0]]
+                del queue_mod0_angles[couple[0]]
 
-    def imread(self, path):
-        array = imread(path)
-        return (array, path)
-
-    def save_image(self, tuple_image_path):
-        image, path = tuple_image_path
+    def save_image(self, tuple_path_image):
+        path, image = tuple_path_image
         name_file = Path(path).name
         path_out = self.path_dir_result / name_file
         imsave_h5(path_out, image, splitext=False)
@@ -301,7 +300,7 @@ str_subset : None
         logger.info(f"Add {nb_names} images to compute.")
         logger.info("First files to process: " + str(names[:4]))
 
-        logger.debug("All files: " + str(names))
+        logger.debug("All files: %s", names)
 
         series = self.series
         if not series:

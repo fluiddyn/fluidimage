@@ -107,7 +107,7 @@ class TopologyImage2Image(TopologyBaseFromImages):
 
         self.add_work(
             "read_array",
-            self.imread,
+            imread,
             input_queue=self.queue_paths,
             output_queue=self.queue_arrays,
             kind="io",
@@ -118,21 +118,20 @@ class TopologyImage2Image(TopologyBaseFromImages):
             im2im_func,
             input_queue=self.queue_arrays,
             output_queue=self.queue_results,
+            kind="eat key value",
         )
 
         self.add_work(
-            "save", self.save_image, input_queue=self.queue_results, kind="io"
+            "save",
+            self.save_image,
+            input_queue=self.queue_results,
+            kind=("io", "eat key value"),
         )
         self.results = []
 
-    def imread(self, path):
-        """Read an image"""
-        array = imread(path)
-        return (array, path)
-
-    def save_image(self, tuple_image_path):
+    def save_image(self, tuple_path_image):
         """Save an image"""
-        image, path = tuple_image_path
+        path, image = tuple_path_image
         name_file = Path(path).name
         path_out = self.path_dir_result / name_file
         imsave(path_out, image)

@@ -92,14 +92,11 @@ class WorkImage2Image(BaseWorkFromImage):
         tuple_image_name0 = self.get_tuple_image_name(ind)
         tuple_image_name1 = self.get_tuple_image_name(ind + 1)
 
-        result0 = self.calcul(tuple_image_name0)
-        result1 = self.calcul(tuple_image_name1)
-
         arr_input0, _ = tuple_image_name0
         arr_input1, _ = tuple_image_name1
 
-        arr_output0, _ = result0
-        arr_output1, _ = result1
+        arr_output0 = self.calcul(tuple_image_name0[::-1])
+        arr_output1 = self.calcul(tuple_image_name1[::-1])
 
         return DisplayPreProc(
             arr_input0, arr_input1, arr_output0, arr_output1, hist=hist

@@ -428,10 +428,10 @@ offset: float (default 0.0)
         inversed_filt = np.fft.ifft2(frame_filtered)
         inversed_filt = inversed_filt[::red_factor, ::red_factor]
         a = np.unwrap(np.angle(inversed_filt), axis=1)  # by lines
-        a = np.unwrap(a, axis=0)  # by colums
+        a = np.unwrap(a, axis=0)  # by columns
         return a
 
-    def process_frame_func(self, array_and_path):
+    def process_frame_func(self, array):
         """call process_frame function with surface_tracking parameters
 
         Parameters
@@ -446,8 +446,6 @@ offset: float (default 0.0)
         and path
 
         """
-        array, path = array_and_path
-
         x_min = self.xmin
         x_max = self.xmax
         if self.crop_edge:
@@ -466,10 +464,9 @@ offset: float (default 0.0)
                 self.red_factor,
             ),
             shape,
-            path,
         )
 
-    def calculheight_func(self, array_and_path):
+    def calculheight_func(self, array_and_shape):
         """call convphase function with surface_tracking parameters
 
         Parameters
@@ -485,7 +482,7 @@ offset: float (default 0.0)
         and path
 
         """
-        array, shape, path = array_and_path
+        array, shape = array_and_shape
         array_ = []
         for a in array:
             jumps = [
@@ -550,10 +547,9 @@ offset: float (default 0.0)
                 self.red_factor,
             ),
             shape,
-            path,
         )
 
-    def set_borders_zero_func(self, array_and_path):
+    def set_borders_zero_func(self, array_and_shape):
         """call convphase function with surface_tracking parameters
 
         Parameters
@@ -568,7 +564,7 @@ offset: float (default 0.0)
         height_and_path : tuple containing array/height [m] and path
 
         """
-        array, shape, path = array_and_path
+        array, shape = array_and_shape
         (x_min, x_max) = shape
         if x_max >= self.xmax:
             x_max = self.xmax - 1
@@ -583,7 +579,7 @@ offset: float (default 0.0)
             ],
             (self.ref.shape[0], self.xmax - 2 * self.borders - self.xmin),
         )
-        return (newarray, path)
+        return newarray
 
     def convphase(self, phase, pix_size, dist, dist_p_c, wave_len, red_factor):
         """converts phase array into array of the height [m]
@@ -654,10 +650,7 @@ offset: float (default 0.0)
 
     def correctcouple(self, queue_couple):
         """correct phase in order to avoid jump phase"""
-        (
-            (anglemod, shapemod, path_anglemod),
-            (angle, shape, path_angle),
-        ) = queue_couple
+        ((anglemod, shapemod), (angle, shape)) = queue_couple
         fix_y = int(np.fix(self.l_y / 20 / self.red_factor))
         fix_x = int(np.fix(self.l_x / 2 / self.red_factor))
         correct_angle = angle
@@ -666,7 +659,7 @@ offset: float (default 0.0)
             correct_angle = correct_angle - np.sign(jump) * 2 * math.pi
             jump = correct_angle[fix_y, fix_x] - anglemod[fix_y, fix_x]
             print("angle corrected")
-        return (correct_angle, shape, path_angle)
+        return (correct_angle, shape)
 
     def wave_vector(self, ref, ymin, ymax, xmin, xmax, sur):
         """compute k_x value with mean reference frame
@@ -698,8 +691,7 @@ offset: float (default 0.0)
         ref_angle = np.unwrap(ref_angle, axis=0)  # by columsref
         self.ref_height = np.zeros(ref_angle.shape)
         return (
-            self.calculheight_func((ref_angle, ref_angle.shape, self.path_ref))[0]
-            - self.offset
+            self.calculheight_func((ref_angle, ref_angle.shape))[0] - self.offset
         )
 
 

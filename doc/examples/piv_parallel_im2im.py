@@ -32,3 +32,5 @@ topology.compute()
 
 # Compute in sequential (for debugging)
 # topology.compute(sequential=True)
+
+assert len(topology.results) == 1
