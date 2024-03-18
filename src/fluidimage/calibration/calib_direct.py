@@ -619,7 +619,8 @@ class DirectStereoReconstruction:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=RuntimeWarning)
             tmp_mean = np.nanmean(tmp, 0)
-        tmp_std = np.nanstd(tmp, 0)
+            tmp_std = np.nanstd(tmp, 0)
+
         dX, dY, dZ = tmp_mean
         Errorx, Errory, Errorz = tmp_std
 
