@@ -152,6 +152,7 @@ int_stop : None
         return self.calcul(self.get_serie(index_serie))
 
     def calcul_from_arrays(self, *arrays, names=None):
+        """Calcul from images"""
         names = [f"array{i}" for i in range(len(arrays))]
         return self.calcul({"arrays": arrays, "names": names})
 
