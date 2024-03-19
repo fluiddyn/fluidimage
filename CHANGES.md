@@ -1,9 +1,19 @@
 # Release notes
 
 See also the
-[unreleased changes](https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.4.0...branch%2Fdefault).
+[unreleased changes](https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.4.1...branch%2Fdefault).
+
+## [0.4.1] (2024-03-20)
+
+- Fix a bug affecting PIV results (forget to rename a private method)!
 
 ## [0.4.0] (2024-03-18)
+
+```{danger}
+
+[0.4.0] should not be used because it contains a bug leading to wrong PIV results!
+
+```
 
 ```{warning}
 
@@ -151,3 +161,4 @@ This version contains incompatible API changes documented here.
 [0.2.0]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.1.5...0.2.0
 [0.3.0]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.2.0...0.3.0
 [0.4.0]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.3.0...0.4.0
+[0.4.1]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.4.0...0.4.1

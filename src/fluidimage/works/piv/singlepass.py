@@ -779,7 +779,9 @@ class WorkPIVFromDisplacement(BaseWorkPIV):
 
         return result
 
-    def _calcul_indices_vec(self, deltaxs_input=None, deltays_input=None):
+    def _calcul_positions_vectors_subimages(
+        self, deltaxs_input=None, deltays_input=None
+    ):
         """Calcul the indices corresponding to the vectors and cropped windows.
 
         Returns
