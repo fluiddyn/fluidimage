@@ -1,7 +1,12 @@
 # Release notes
 
 See also the
-[unreleased changes](https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.4.1...branch%2Fdefault).
+[unreleased changes](https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.4.2...branch%2Fdefault).
+
+## [0.4.2] (2024-03-20)
+
+- Fix 2 bugs affecting PIV computations (`nb_peaks_to_search` and interpolation
+  close to the borders of the image).
 
 ## [0.4.1] (2024-03-20)
 
@@ -162,3 +167,4 @@ This version contains incompatible API changes documented here.
 [0.3.0]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.2.0...0.3.0
 [0.4.0]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.3.0...0.4.0
 [0.4.1]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.4.0...0.4.1
+[0.4.2]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.4.1...0.4.2
