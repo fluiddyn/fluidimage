@@ -29,7 +29,7 @@ def griddata(centers, values, new_positions, using="scipy"):
 
     inds = np.where(np.isnan(values_new))
     values_nearest = interpolate.griddata(
-        centers.T, values, (grid_y, grid_x), "nearest"
+        centers.T, values, (grid_x, grid_y), "nearest"
     )
     values_new[inds] = values_nearest[inds]
 

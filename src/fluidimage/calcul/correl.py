@@ -175,6 +175,7 @@ class CorrelBase:
         if self.nb_peaks_to_search == 1:
             other_peaks = None
         elif self.nb_peaks_to_search >= 1:
+            correl = correl.copy()
             other_peaks = []
             for ip in range(0, self.nb_peaks_to_search - 1):
                 correl[
