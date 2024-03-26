@@ -6,6 +6,7 @@ python_sources = [
   'piv.py',
   'preproc.py',
   'tomo.py',
+  'test_piv.py',
 ]
 
 py.install_sources(
