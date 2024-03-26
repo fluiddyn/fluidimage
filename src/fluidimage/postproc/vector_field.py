@@ -131,13 +131,6 @@ class VectorFieldOnGrid:
         self.history = history
         self.params = params
 
-        self.is_grid_regular = _is_regular(x) and _is_regular(y)
-
-        if z is not None and self.is_grid_regular:
-            self.is_grid_regular = (
-                isinstance(z, Number) or z.shape == vx.shape or _is_regular(z)
-            )
-
         # data orientation for proper quiver
         flipx = self.x[1] - self.x[0] < 0
         flipy = self.y[1] - self.y[0] < 0
@@ -162,6 +155,16 @@ class VectorFieldOnGrid:
             ):
                 self.z = np.flipud(self.z)
 
+        self._init_is_grid_regular()
+
+    def _init_is_grid_regular(self):
+        self.is_grid_regular = _is_regular(self.x) and _is_regular(self.y)
+        if self.z is not None and self.is_grid_regular:
+            self.is_grid_regular = (
+                isinstance(self.z, Number)
+                or self.z.shape == self.vx.shape
+                or _is_regular(self.z)
+            )
         if self.is_grid_regular:
             self.dx = self.x[1] - self.x[0]
             self.dy = self.y[1] - self.y[0]
@@ -323,10 +326,31 @@ class VectorFieldOnGrid:
     def __truediv__(self, other):
         return self.__div__(other)
 
-    def display(
-        self, scale=1, background=None, ax=None, skip=(slice(None), slice(None))
-    ):
-        """Display the vector field"""
+    def display(self, scale=1, background=None, ax=None, step=None, skip=None):
+        """Display the vector field
+
+        Parameters
+        ----------
+
+        scale : number, default=1
+
+        background : unused
+
+        ax : Matplotlib axes
+
+        step : int, optional
+
+        skip : tuple of 2 slices, optional
+
+        """
+
+        if skip is None:
+            if step is None:
+                step = max(len(self.y) // 25, 1)
+            skip = (slice(None, None, step), slice(None, None, step))
+        else:
+            if step is not None:
+                raise ValueError
 
         if background is not None:
             raise NotImplementedError
@@ -553,6 +577,31 @@ class VectorFieldOnGrid:
         dvy_dy = np.gradient(self.vy, self.dy, axis=0, edge_order=edge_order)
         return compute_div(dvx_dx, dvy_dy)
 
+    def regularize_grid(self):
+        """Try to regularize the grid (inplace)"""
+        if self.is_grid_regular:
+            return
+
+        if not isinstance(self.vz, Number):
+            raise NotImplementedError
+
+        if self.z is not None and not isinstance(self.z, Number):
+            raise NotImplementedError
+
+        if not _is_regular(self.x) and _is_regular(self.x[:-1]):
+            self.x = self.x[:-1]
+            self.vx = self.vx[:, :-1]
+            self.vy = self.vy[:, :-1]
+
+        if not _is_regular(self.y) and _is_regular(self.y[:-1]):
+            self.y = self.y[:-1]
+            self.vx = self.vx[:-1, :]
+            self.vy = self.vy[:-1, :]
+
+        self._init_is_grid_regular()
+        if not self.is_grid_regular:
+            raise NotImplementedError
+
 
 class ArrayOfVectorFieldsOnGrid:
     def __init__(self, fields=None):
@@ -756,3 +805,8 @@ class ArrayOfVectorFieldsOnGrid:
 
         fig.canvas.mpl_connect("scroll_event", onscroll)
         return ax
+
+    def regularize_grid(self):
+        """Try to regularize the grid (inplace)"""
+        for piv in self:
+            piv.regularize_grid()
