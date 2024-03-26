@@ -13,7 +13,7 @@ Multi executors async
 """
 
 import copy
-from multiprocessing import Pipe, Process
+from multiprocessing import Process
 
 from .base import MultiExecutorBase
 from .exec_async_seq_for_multi import ExecutorAsyncSeqForMulti
@@ -180,9 +180,7 @@ class MultiExecutorAsync(MultiExecutorBase):
                 )
                 self.launch_process(new_topology, idx_process)
 
-    def init_and_compute(
-        self, topology_this_process, log_path, child_conn, idx_process
-    ):
+    def init_and_compute(self, topology_this_process, log_path, idx_process):
         """Create an executor and start it in a process"""
         executor = ExecutorAsyncForMulti(
             topology_this_process,
@@ -195,27 +193,16 @@ class MultiExecutorAsync(MultiExecutorBase):
         )
         executor.compute()
 
-        # send the results
-        if hasattr(topology_this_process, "results"):
-            results = topology_this_process.results
-        else:
-            results = None
-
-        child_conn.send(results)
-
     def launch_process(self, topology, idx_process):
         """Launch one process"""
 
         log_path = self._log_path.parent / f"process_{idx_process:03d}.txt"
         self.log_paths.append(log_path)
 
-        parent_conn, child_conn = Pipe()
-
         process = Process(
             target=self.init_and_compute,
-            args=(topology, log_path, child_conn, idx_process),
+            args=(topology, log_path, idx_process),
         )
-        process.connection = parent_conn
         process.daemon = True
         process.start()
         self.processes.append(process)
