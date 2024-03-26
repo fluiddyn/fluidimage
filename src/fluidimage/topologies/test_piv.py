@@ -70,9 +70,11 @@ def test_piv_jet(tmp_path_jet):
 
     topology = TopologyPIV(params, logging_level="info")
     topology.compute()
+    assert len(topology.results) == 2, topology.results
 
     topology = TopologyPIV(params, logging_level="info")
     topology.compute(nb_max_workers=2)
+    assert len(topology.results) == 2, topology.results
 
     # remove one file to test params.saving.how = "complete"
     path_files = list(Path(topology.path_dir_result).glob("piv*"))
@@ -82,4 +84,4 @@ def test_piv_jet(tmp_path_jet):
     topology = TopologyPIV(params, logging_level="debug")
     topology.compute("exec_sequential")
 
-    assert len(topology.results) == 1
+    assert len(topology.results) == 1, topology.results

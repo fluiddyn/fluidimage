@@ -366,13 +366,6 @@ class MultiExecutorBase(ExecutorBase):
                     ret_code = self._poll_return_code(process)
                     if ret_code is None:
                         running_processes_updated[idx] = process
-                        if paths_len_results[idx].exists():
-                            with open(
-                                paths_len_results[idx], encoding="utf-8"
-                            ) as file:
-                                content = file.readline()
-                                if content:
-                                    num_results_vs_idx_process[idx] = int(content)
                     else:
                         return_codes[idx] = ret_code
                         if ret_code != 0:
@@ -382,6 +375,14 @@ class MultiExecutorBase(ExecutorBase):
                                 error = f"{ret_code = }"
                             errors[idx] = error
                             logger.error(error)
+
+                    if paths_len_results[idx].exists():
+                        with open(
+                            paths_len_results[idx], encoding="utf-8"
+                        ) as file:
+                            content = file.read()
+                            if content:
+                                num_results_vs_idx_process[idx] = int(content)
 
                 num_results = sum(num_results_vs_idx_process)
                 if num_results != num_results_previous:
@@ -406,6 +407,6 @@ class MultiExecutorBase(ExecutorBase):
         self.topology.results = results = []
         for path in self._log_path.parent.glob("results_*.txt"):
             with open(path, encoding="utf-8") as file:
-                results.extend(file.readlines())
+                results.extend(line.strip() for line in file.readlines())
 
         super()._finalize_compute()

@@ -13,8 +13,7 @@ Multi executors async
 """
 
 import copy
-import math
-from multiprocessing import Pipe, Process
+from multiprocessing import Process
 
 from .base import MultiExecutorBase
 from .exec_async_seq_for_multi import ExecutorAsyncSeqForMulti
@@ -139,51 +138,49 @@ class MultiExecutorAsync(MultiExecutorBase):
 
     def _start_multiprocess_series(self):
         """Start the processes spitting the work with the series object"""
-        ind_stop_limit = self.topology.series.ind_stop
-        # Defining split values
-        ind_start = self.topology.series.ind_start
-        nb_image_computed = math.floor(
-            (self.topology.series.ind_stop - self.topology.series.ind_start)
-            / self.topology.series.ind_step
-        )
 
-        self.num_expected_results = nb_image_computed
+        try:
+            splitter_cls = self.topology.Splitter
+        except AttributeError as error:
+            raise ValueError(
+                "MultiExecutorAsync can only execute "
+                "topologies with a Splitter."
+            ) from error
 
-        remainder = nb_image_computed % self.nb_processes
-        step_process = math.floor(nb_image_computed / self.nb_processes)
-        # change topology
-        for idx_process in range(self.nb_processes):
-            new_topology = copy.copy(self.topology)
-            new_topology.series.ind_start = ind_start
-            add_rest = 0
-            # To add forgotten images
-            if remainder > 0:
-                add_rest = 1
-                remainder -= 1
-            # defining ind_stop
-            ind_stop = (
-                self.topology.series.ind_start
-                + step_process * self.topology.series.ind_step
-                + add_rest * self.topology.series.ind_step
+        params = copy.deepcopy(self.topology.params)
+        splitter = splitter_cls(params, self.nb_processes, self.topology)
+        self.num_expected_results = splitter.num_expected_results
+
+        if (
+            hasattr(self.topology, "how_saving")
+            and self.topology.how_saving == "complete"
+            and hasattr(splitter, "save_indices_files")
+        ):
+            path_dir_indices = (
+                self.path_dir_result / f"indices_files_{self._unique_postfix}"
             )
-            # To make sure images exist
-            if ind_stop > ind_stop_limit:
-                new_topology.series.ind_stop = ind_stop_limit
-            else:
-                new_topology.series.ind_stop = ind_stop
+            path_dir_indices.mkdir(exist_ok=True)
+            splitter.save_indices_files(path_dir_indices)
 
-            if range(
-                ind_start,
-                new_topology.series.ind_stop,
-                new_topology.series.ind_step,
-            ):
+            for idx_process, index_series in enumerate(splitter.indices_lists):
+                if not index_series:
+                    continue
+                new_topology = copy.copy(self.topology)
+                new_topology.series.set_index_series(index_series)
                 self.launch_process(new_topology, idx_process)
 
-            ind_start = self.topology.series.ind_stop
+        else:
+            for idx_process, start_stop_step in enumerate(splitter.ranges):
+                if len(range(*start_stop_step)) == 0:
+                    continue
+                new_topology = copy.copy(self.topology)
+                series = new_topology.series
+                series.ind_start, series.ind_stop, series.ind_step = (
+                    start_stop_step
+                )
+                self.launch_process(new_topology, idx_process)
 
-    def init_and_compute(
-        self, topology_this_process, log_path, child_conn, idx_process
-    ):
+    def init_and_compute(self, topology_this_process, log_path, idx_process):
         """Create an executor and start it in a process"""
         executor = ExecutorAsyncForMulti(
             topology_this_process,
@@ -196,27 +193,16 @@ class MultiExecutorAsync(MultiExecutorBase):
         )
         executor.compute()
 
-        # send the results
-        if hasattr(topology_this_process, "results"):
-            results = topology_this_process.results
-        else:
-            results = None
-
-        child_conn.send(results)
-
     def launch_process(self, topology, idx_process):
         """Launch one process"""
 
         log_path = self._log_path.parent / f"process_{idx_process:03d}.txt"
         self.log_paths.append(log_path)
 
-        parent_conn, child_conn = Pipe()
-
         process = Process(
             target=self.init_and_compute,
-            args=(topology, log_path, child_conn, idx_process),
+            args=(topology, log_path, idx_process),
         )
-        process.connection = parent_conn
         process.daemon = True
         process.start()
         self.processes.append(process)
