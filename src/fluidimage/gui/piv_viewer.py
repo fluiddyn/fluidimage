@@ -88,6 +88,8 @@ class VectorFieldsViewer(AppMatplotlibWidgets):
         return parser.parse_args()
 
     def __init__(self, args):
+        super().__init__()
+
         path = Path(args.path).absolute()
 
         if path.is_file():
@@ -109,20 +111,12 @@ class VectorFieldsViewer(AppMatplotlibWidgets):
             sys.exit(1)
 
         self.path_dir = Path(serie.path_dir)
-        self.name_files = sorted(
-            p.name
-            for p in self.path_dir.glob(
-                serie.base_name + "*" + serie.extension_file
-            )
-        )
-
-        super().__init__()
 
         # initialize the figure
-
         fig = self.fig = plt.figure()
-        fig.canvas.manager.set_window_title(f"PIV files in {self.path_dir}")
         self.ax = fig.add_axes([0.07, 0.15, 0.9, 0.78])
+
+        self._init_name_files()
 
         if path_file_init is None:
             path_file_init = self.path_dir / self.name_files[0]
@@ -133,6 +127,19 @@ class VectorFieldsViewer(AppMatplotlibWidgets):
         self._init_figure(path_file_init)
 
         plt.show()
+
+    def _init_name_files(self):
+
+        self.name_files = sorted(
+            p.name
+            for p in self.path_dir.glob(
+                self.serie.base_name + "*" + self.serie.extension_file
+            )
+        )
+        self.num_files = len(self.name_files)
+        self.fig.canvas.manager.set_window_title(
+            f"{self.num_files} PIV files in {self.path_dir}"
+        )
 
     def _init_figure(self, path_file_init):
 
@@ -174,8 +181,8 @@ class VectorFieldsViewer(AppMatplotlibWidgets):
         except ValueError:
             self._set_textbox_value(self.index_file)
             return
-        if index >= len(self.name_files):
-            index = len(self.name_files) - 1
+        if index >= self.num_files:
+            index = self.num_files - 1
         elif index < 0:
             index = 0
         self._set_textbox_value(index)
@@ -188,10 +195,17 @@ class VectorFieldsViewer(AppMatplotlibWidgets):
     def _set_index(self, index):
         if index == self.index_file:
             return
-        self.index_file = index % len(self.name_files)
+        self.index_file = index % self.num_files
         self._set_textbox_value(self.index_file)
+        self._update_fig()
+
+    def _update_fig(self):
+        path_file = self.path_dir / self.name_files[self.index_file]
+        deltaxs, deltays, ixvecs, iyvecs = get_piv_data_from_path(path_file)
+        self.ax.set_title(path_file.name)
+        self._quiver.set_UVC(deltaxs, deltays)
 
 
 def main():
     args = VectorFieldsViewer.parse_args()
-    VectorFieldsViewer(args)
+    return VectorFieldsViewer(args)

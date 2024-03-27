@@ -65,6 +65,10 @@ def get_path_image_samples():
     if path_image_samples.exists():
         return path_image_samples.resolve()
 
+    path_image_samples = Path.home() / "dev/fluidimage/image_samples"
+    if path_image_samples.exists():
+        return path_image_samples
+
     # Gitlab and Github CI
     for name_env_var_project_dir in ("CI_PROJECT_DIR", "GITHUB_WORKSPACE"):
         ci_project_dir = os.getenv(name_env_var_project_dir)
