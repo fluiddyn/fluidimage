@@ -1,6 +1,7 @@
 
 python_sources = [
   '__init__.py',
+  'base_matplotlib.py',
   'imviewer.py',
   'pg_main.py',
   'pg_wrapper.py',

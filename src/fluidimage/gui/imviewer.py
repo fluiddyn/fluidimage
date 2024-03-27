@@ -14,11 +14,11 @@ import os
 from glob import glob
 
 import matplotlib.pyplot as plt
-from matplotlib.widgets import Button, TextBox
 
 from fluiddyn.io.image import imread
 from fluiddyn.util import time_as_str
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
+from fluidimage.gui.base_matplotlib import AppMatplotlibWidgets
 from fluidimage.util import safe_eval
 
 extensions = ["png", "tif", "tiff", "jpg", "jpeg", "bmp", "cine"]
@@ -66,7 +66,7 @@ def parse_args():
     return parser.parse_args()
 
 
-class ImageViewer:
+class ImageViewer(AppMatplotlibWidgets):
     """Simple Image viewer."""
 
     def __init__(self, args):
@@ -98,8 +98,7 @@ class ImageViewer:
         self.nb_images = len(self.path_files)
         print(f"Will use {self.nb_images} images in the dir {path_dir}")
 
-        self._buttons = {}
-        self._textboxes = {}
+        super().__init__()
 
         fig = self.fig = plt.figure()
         fig.canvas.manager.set_window_title(
@@ -133,14 +132,12 @@ class ImageViewer:
         function_buttons[3] = self._increase_ifile_n
 
         y = size_button / 3.0
-        for i, x in enumerate(x_buttons):
-            name = name_buttons[i]
-            func = function_buttons[i]
+        for x, name, func in zip(x_buttons, name_buttons, function_buttons):
             self._create_button(fig, [x, y, size_button, size_button], name, func)
 
         self._n = 1
 
-        self._create_text(
+        self._create_text_box(
             fig,
             [0.1, y, 2 * size_button, size_button],
             "n = ",
@@ -148,7 +145,7 @@ class ImageViewer:
             "1",
         )
 
-        self._create_text(
+        self._create_text_box(
             fig,
             [0.87, 0.92, 1.5 * size_button, size_button],
             "cmax = ",
@@ -156,7 +153,7 @@ class ImageViewer:
             "{:.2f}".format(self.clim[1]),
         )
 
-        self._create_text(
+        self._create_text_box(
             fig,
             [0.87, 0.1, 1.5 * size_button, size_button],
             "cmin = ",
@@ -234,20 +231,6 @@ class ImageViewer:
         _print_debug("")
         print("\rchanged to file " + name_file + " " * 20)
         self._image_changing = False
-
-    def _create_button(self, fig, rect, text, func):
-        ax = fig.add_axes(rect)
-        button = Button(ax, text)
-        button.on_clicked(func)
-        self._buttons[text] = button
-        return button
-
-    def _create_text(self, fig, rect, name, func, initial):
-        ax = fig.add_axes(rect)
-        textbox = TextBox(ax, name, initial=initial)
-        textbox.on_submit(func)
-        self._textboxes[name] = textbox
-        return textbox
 
     def _switch(self):
         if self._last_was_increase:
