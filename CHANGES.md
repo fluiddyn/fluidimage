@@ -1,7 +1,15 @@
 # Release notes
 
 See also the
-[unreleased changes](https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.4.2...branch%2Fdefault).
+[unreleased changes](https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.4.3...branch%2Fdefault).
+
+## [0.4.3] (2024-03-27)
+
+- [!85](https://foss.heptapod.net/fluiddyn/fluidimage/-/merge_requests/85): `fluidpivviewer`.
+- [!84](https://foss.heptapod.net/fluiddyn/fluidimage/-/merge_requests/84): `multi_exec_async`
+  using {class}`fluidimage.topologies.splitters.Splitter`.
+- Other bugfixes and improvements (name PIV files and
+  {class}`fluidimage.postproc.vector_field.VectorFieldOnGrid`).
 
 ## [0.4.2] (2024-03-20)
 
@@ -168,3 +176,4 @@ This version contains incompatible API changes documented here.
 [0.4.0]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.3.0...0.4.0
 [0.4.1]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.4.0...0.4.1
 [0.4.2]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.4.1...0.4.2
+[0.4.3]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.4.2...0.4.3

@@ -5,16 +5,6 @@ Images acquired from experiments can suffer from noise, reflection and other
 undesirable effects. Preprocessing images by careful use of thresholds and
 filters can significantly improve the quality of PIV.
 
-Provides:
-
-.. autosummary::
-   :toctree:
-
-   toolbox
-   _toolbox_cv
-   _toolbox_py
-   io
-
 Provides
 
 .. autoclass:: Work

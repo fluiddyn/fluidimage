@@ -9,8 +9,10 @@ This sub-package contains the code for the fluidimage GUI:
 .. autosummary::
    :toctree:
 
+   base_matplotlib
    imviewer
    launcher
    pg_main
+   piv_viewer
 
 """

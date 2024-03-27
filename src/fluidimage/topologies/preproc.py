@@ -18,7 +18,7 @@ from fluidimage.data_objects.preproc import ArraySerie as ArraySubset
 from fluidimage.data_objects.preproc import PreprocResults, get_name_preproc
 from fluidimage.topologies import TopologyBaseFromSeries, prepare_path_dir_result
 from fluidimage.topologies.splitters import SplitterFromSeries
-from fluidimage.util import imread, logger
+from fluidimage.util import imread
 from fluidimage.works import image2image
 from fluidimage.works.preproc import (
     WorkPreproc,
