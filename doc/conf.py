@@ -13,18 +13,13 @@
 
 import os
 
-os.environ["OMP_NUM_THREADS"] = "1"
-
 import fluidimage
 
-# we want this module to be importable.
-try:
-    import fluidimage.topologies.optical_flow
-except Exception:
-    import traceback
+# we want these modules to be importable.
+import fluidimage.topologies.preproc
+import fluidimage.topologies.optical_flow
 
-    traceback.print_exc()
-
+os.environ["OMP_NUM_THREADS"] = "1"
 # -- General configuration ----------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.

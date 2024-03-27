@@ -5,6 +5,16 @@ To preprocess series of images using topology.
 
 Provides:
 
+.. autosummary::
+   :toctree:
+
+   toolbox
+   _toolbox_cv
+   _toolbox_py
+   io
+
+Provides:
+
 .. autoclass:: WorkPreproc
    :members:
    :private-members:
@@ -24,8 +34,7 @@ from fluidimage.data_objects.preproc import (
     get_ind_middle,
 )
 from fluidimage.util import print_memory_usage
-
-from . import BaseWorkFromSerie
+from fluidimage.works import BaseWorkFromSerie
 
 
 def _make_doc_with_filtered_params_doc(cls):
@@ -40,11 +49,11 @@ def _make_doc_with_filtered_params_doc(cls):
 
 def _get_backend_class(backend):
     if backend == "python":
-        from fluidimage.preproc.toolbox import PreprocToolsPy
+        from fluidimage.works.preproc.toolbox import PreprocToolsPy
 
         return PreprocToolsPy
     elif backend == "opencv":
-        from fluidimage.preproc.toolbox import PreprocToolsCV
+        from fluidimage.works.preproc.toolbox import PreprocToolsCV
 
         return PreprocToolsCV
 

@@ -4,7 +4,6 @@ python_sources = [
   'bos.py',
   'image2image.py',
   'optical_flow.py',
-  'preproc.py',
   'surface_tracking.py',
   'with_mask.py',
   'test_bos.py',
@@ -18,3 +17,4 @@ py.install_sources(
 )
 
 subdir('piv')
+subdir('preproc')

@@ -9,7 +9,7 @@ build-backend = 'mesonpy'
 
 [project]
 name = "fluidimage"
-version = "0.4.2"
+version = "0.4.3"
 description = "Fluid image processing with Python."
 authors = [
     {name = "Pierre Augier", email = "pierre.augier@legi.cnrs.fr"},
@@ -55,6 +55,7 @@ Homepage = "https://foss.heptapod.net/fluiddyn/fluidimage"
 fluidimviewer-pg = "fluidimage.gui.pg_main:main"
 fluidimviewer = "fluidimage.gui.imviewer:main"
 fluidimlauncher = "fluidimage.gui.launcher.main:main"
+fluidpivviewer = "fluidimage.gui.piv_viewer:main"
 
 [project.optional-dependencies]
 pims = ["pims"]

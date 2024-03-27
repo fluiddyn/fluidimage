@@ -66,9 +66,17 @@ the input images:
 path_src = get_path_image_samples() / "Karman/Images"
 params.series.path = str(path_src)
 
-params.piv0.shape_crop_im0 = 64
+params.mask.strcrop = "50:350, 0:400"
+
+params.piv0.shape_crop_im0 = 48
+params.piv0.displacement_max = 5
+params.piv0.nb_peaks_to_search = 2
+
+params.fix.correl_min = 0.4
+params.fix.threshold_diff_neighbour = 2.0
+
 params.multipass.number = 2
-params.multipass.use_tps = False
+params.multipass.use_tps = "last"
 ```
 
 After instantiating the `Work` class,
@@ -204,15 +212,23 @@ params.saving._print_doc()
 path_src = get_path_image_samples() / "Karman/Images"
 params.series.path = str(path_src)
 
-params.piv0.shape_crop_im0 = 64
+params.mask.strcrop = "50:350, 0:400"
+
+params.piv0.shape_crop_im0 = 48
+params.piv0.displacement_max = 5
+params.piv0.nb_peaks_to_search = 2
+
+params.fix.correl_min = 0.4
+params.fix.threshold_diff_neighbour = 2.0
+
 params.multipass.number = 2
-params.multipass.use_tps = False
+params.multipass.use_tps = "last"
 
 params.saving.how = 'recompute'
 params.saving.postfix = "doc_piv_ipynb"
 ```
 
-In order to run the PIV computation, we have to instanciate an object of the class
+In order to run the PIV computation, we have to instantiate an object of the class
 {class}`fluidimage.piv.Topology`.
 
 ```{code-cell} ipython3
@@ -242,6 +258,13 @@ path_src
 ```{code-cell} ipython3
 topology.path_dir_result
 ```
+
+```{code-cell} ipython3
+sorted(path.name for path in topology.path_dir_result.glob("*"))
+```
+
+Fluidimage provides the command `fluidpivviewer`, which starts a very simple GUI to
+visualize the PIV results.
 
 ## Analyzing the computation
 

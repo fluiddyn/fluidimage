@@ -20,8 +20,7 @@ Provides:
 import inspect
 
 from fluidimage._opencv import error_import_cv2
-
-from ..util import logger
+from fluidimage.util import logger
 
 
 class PreprocToolsBase:

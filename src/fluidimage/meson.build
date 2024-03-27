@@ -9,6 +9,7 @@ python_sources = [
   'image2image.py',
   'optical_flow.py',
   'piv.py',
+  'preproc.py',
   'run_from_xml.py',
   'synthetic.py',
   'test_image2image.py',
@@ -26,7 +27,6 @@ subdir('data_objects')
 subdir('executors')
 subdir('gui')
 subdir('postproc')
-subdir('preproc')
 subdir('reconstruct')
 subdir('topologies')
 subdir('util')
