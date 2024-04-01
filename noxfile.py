@@ -67,11 +67,13 @@ def test(session, cov, with_opencv):
 
     args_cov = []
     if cov:
-        args_cov.extend([
-            "--cov",
-            "--no-cov-on-fail",
-            "--cov-report=term-missing",
-        ])
+        args_cov.extend(
+            [
+                "--cov",
+                "--no-cov-on-fail",
+                "--cov-report=term-missing",
+            ]
+        )
 
     session.run(
         "python",
@@ -173,3 +175,18 @@ def add_tag_for_release(session):
     print("Let's go!")
     session.run("hg", "tag", version, external=True)
     session.run("hg", "push", external=True)
+
+
+@nox.session(python=False)
+def detect_pythran_extensions(session):
+    """Detect and print Pythran extension modules"""
+    session.chdir("src")
+    begin = "- "
+    # begin = "import "
+    paths_pythran_files = sorted(Path("fluidimage").rglob("*/__pythran__/*.py"))
+    print(
+        begin
+        + f"\n{begin}".join(
+            [str(p)[:-3].replace("/", ".") for p in paths_pythran_files]
+        )
+    )
