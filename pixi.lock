@@ -19606,7 +19606,7 @@ package:
   - pkg:pypi/traitlets
 - platform: linux-64
   name: transonic
-  version: 0.6.2
+  version: 0.6.4
   category: main
   manager: conda
   dependencies:
@@ -19615,10 +19615,10 @@ package:
   - gast ~=0.5.0
   - numpy
   - python >=3.9
-  url: https://conda.anaconda.org/conda-forge/noarch/transonic-0.6.2-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/transonic-0.6.4-pyhd8ed1ab_0.conda
   hash:
-    md5: 3d391d9bac800d29cd633571e322bfae
-    sha256: 8b1d7f04e3371df32187d432b8626d064f6b2bac21698648fe513fd6b9fe01fe
+    md5: 9c9081ba670ae4e9bb5097bf2697febf
+    sha256: 781351d83b8deb4cd0eb21c056bd891324cbc0203703a2360f703cb1b5c1f500
   build: pyhd8ed1ab_0
   arch: x86_64
   subdir: linux-64
@@ -19626,11 +19626,11 @@ package:
   license: BSD-3-Clause
   license_family: OTHER
   noarch: python
-  size: 60951
-  timestamp: 1707998862288
+  size: 62458
+  timestamp: 1711764672001
 - platform: osx-64
   name: transonic
-  version: 0.6.2
+  version: 0.6.4
   category: main
   manager: conda
   dependencies:
@@ -19639,10 +19639,10 @@ package:
   - gast ~=0.5.0
   - numpy
   - python >=3.9
-  url: https://conda.anaconda.org/conda-forge/noarch/transonic-0.6.2-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/transonic-0.6.4-pyhd8ed1ab_0.conda
   hash:
-    md5: 3d391d9bac800d29cd633571e322bfae
-    sha256: 8b1d7f04e3371df32187d432b8626d064f6b2bac21698648fe513fd6b9fe01fe
+    md5: 9c9081ba670ae4e9bb5097bf2697febf
+    sha256: 781351d83b8deb4cd0eb21c056bd891324cbc0203703a2360f703cb1b5c1f500
   build: pyhd8ed1ab_0
   arch: x86_64
   subdir: osx-64
@@ -19650,11 +19650,11 @@ package:
   license: BSD-3-Clause
   license_family: OTHER
   noarch: python
-  size: 60951
-  timestamp: 1707998862288
+  size: 62458
+  timestamp: 1711764672001
 - platform: win-64
   name: transonic
-  version: 0.6.2
+  version: 0.6.4
   category: main
   manager: conda
   dependencies:
@@ -19663,10 +19663,10 @@ package:
   - gast ~=0.5.0
   - numpy
   - python >=3.9
-  url: https://conda.anaconda.org/conda-forge/noarch/transonic-0.6.2-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/transonic-0.6.4-pyhd8ed1ab_0.conda
   hash:
-    md5: 3d391d9bac800d29cd633571e322bfae
-    sha256: 8b1d7f04e3371df32187d432b8626d064f6b2bac21698648fe513fd6b9fe01fe
+    md5: 9c9081ba670ae4e9bb5097bf2697febf
+    sha256: 781351d83b8deb4cd0eb21c056bd891324cbc0203703a2360f703cb1b5c1f500
   build: pyhd8ed1ab_0
   arch: x86_64
   subdir: win-64
@@ -19674,8 +19674,8 @@ package:
   license: BSD-3-Clause
   license_family: OTHER
   noarch: python
-  size: 60951
-  timestamp: 1707998862288
+  size: 62458
+  timestamp: 1711764672001
 - platform: linux-64
   name: trio
   version: 0.24.0
