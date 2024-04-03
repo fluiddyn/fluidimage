@@ -1,5 +1,5 @@
-"""module to define command line tools with argparse (args.py)
-==============================================================
+"""module to define command line tools with argparse
+====================================================
 
 It is used in other scripts in this directory.
 
@@ -13,7 +13,10 @@ def make_parser(doc="", postfix_in="pre", postfix_out="piv_coarse"):
         description=doc, formatter_class=argparse.RawDescriptionHelpFormatter
     )
     parser.add_argument("exp", help="index of the experiment (int)", type=int)
-    parser.add_argument("nb_cores", help="nb_cores", type=int)
+
+    parser.add_argument(
+        "--nb-cores", help="Number of cores", type=int, default=None
+    )
     parser.add_argument(
         "-s", "--seq", help="launch topologies sequentially", action="store_true"
     )
