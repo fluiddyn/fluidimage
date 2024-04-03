@@ -16,9 +16,8 @@ cluster = Calcul()
 # we use half of the node
 nb_cores = cluster.nb_cores_per_node // 2
 
-for iexp in range(4):
-    command = f"job_piv.py {iexp} {nb_cores}"
-
+for iexp in range(1):
+    command = f"job_piv.py {iexp} --nb-cores {nb_cores}"
     cluster.submit_script(
         command,
         name_run=f"fluidimage_exp{iexp}",

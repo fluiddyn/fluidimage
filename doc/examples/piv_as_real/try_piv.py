@@ -1,6 +1,6 @@
 #! /usr/bin/env python
-"""Experiment on the parameters of the PIV computation (try_piv.py)
-===================================================================
+"""Experiment on the parameters of the PIV computation
+======================================================
 
 It can be convenient to use this script with ipython --matplotlib
 
@@ -13,28 +13,19 @@ Alternatively, run the script with::
 
 """
 
+from importlib import reload
+
 import params_piv
 
-from fluidimage import SeriesOfArrays
-from fluidimage.piv import WorkPIV
-
-try:
-    reload
-except NameError:
-    from importlib import reload
-
+from fluidimage.piv import Work
 
 reload(params_piv)
 
-iexp = 0
+params = params_piv.make_params_piv(iexp=0)
 
-params = params_piv.make_params_piv(iexp)
+work = Work(params=params)
 
-work = WorkPIV(params=params)
-
-# c060a.png and c060b.png
-piv = work.process_1_serie(params.series.ind_start)
+piv = work.process_1_serie()
 
 # piv.piv0.display(show_interp=True, scale=0.05, show_error=True)
-
 piv.display(show_interp=False, scale=0.05, show_error=True)

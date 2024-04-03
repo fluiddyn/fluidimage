@@ -1,5 +1,6 @@
-"""Contains the parameters for the image preprocessing (params_pre.py)
-======================================================================
+#! /usr/bin/env python
+"""Contains the parameters for the image preprocessing
+======================================================
 
 This can be run in ipython to explore the preprocessing parameters.
 
@@ -14,12 +15,9 @@ and use the GUI tool `fluidimviewer` in the input and output directories::
 
 You can also try the piv computation with::
 
-  ./try_piv.py &
+  ./try_pre.py &
 
 """
-
-from copy import deepcopy
-from glob import glob
 
 from params_piv import get_path
 
@@ -27,26 +25,18 @@ from fluidimage.topologies.preproc import TopologyPreproc
 
 
 def make_params_pre(iexp, savinghow="recompute", postfix_out="pre"):
-    path = get_path(iexp)
+
+    # These parameters can depend on the experiment.
+    # One can add here a lot of conditions to set good values.
+    # DO NOT change the default value if you want to change the value for 1 experiment
+
+    path_images_dir = get_path(iexp)
+    assert path_images_dir
 
     params = TopologyPreproc.create_default_params()
-    params.series.path = path
+    params.series.path = path_images_dir
 
-    print("path", path)
-    str_glob = path + "/c*.png"
-    paths = glob(str_glob)
-    if len(paths) == 0:
-        raise ValueError('No images detected from the string "' + str_glob + '"')
-
-    pathim = paths[0]
-    double_frame = pathim.endswith("a.png") or pathim.endswith("b.png")
-    if double_frame:
-        params.series.str_subset = "i:i+1, 0"
-    else:
-        params.series.str_subset = "i:i+1"
-
-    params.series.ind_start = 60
-    params.series.ind_stop = 62
+    print(f"{path_images_dir}")
 
     params.tools.sequence = ["rescale_intensity_tanh", "sliding_median"]
 
@@ -60,27 +50,15 @@ def make_params_pre(iexp, savinghow="recompute", postfix_out="pre"):
     params.saving.how = savinghow
     params.saving.postfix = postfix_out
 
-    if double_frame:
-        # for 'b.png' images
-        params2 = deepcopy(params)
-        params2.preproc.series.str_subset = params.series.str_subset[:-1] + "1"
-        return [params, params2]
-    else:
-        return [params]
+    return params
 
 
 if __name__ == "__main__":
-    from fluidcoriolis.milestone.args_piv import parse_args
+    from args import parse_args
 
     args = parse_args(doc="", postfix_in=None, postfix_out="pre")
-    list_params = make_params_pre(
+    params = make_params_pre(
         args.exp, savinghow=args.saving_how, postfix_out=args.postfix_out
     )
-
-    params = list_params[0]
-    try:
-        params2 = list_params[1]
-    except IndexError:
-        pass
 
     print(params)

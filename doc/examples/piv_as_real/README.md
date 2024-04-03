@@ -10,6 +10,8 @@ new project of PIV computation with fluidimage.
 +---------------+------------------------------------------------------+
 | params_pre.py | parameters for the image preprocessing               |
 +---------------+------------------------------------------------------+
+| try_pre.py    | script to be used with ipython to try pre parameters |
++---------------+------------------------------------------------------+
 | job_pre.py    | job for image preprocessing                          |
 +---------------+------------------------------------------------------+
 | submit_pre.py | submit preprocessing jobs on a cluster               |
@@ -32,6 +34,11 @@ new project of PIV computation with fluidimage.
 ## params_pre.py
 
 ```{literalinclude} params_pre.py
+```
+
+## try_pre.py
+
+```{literalinclude} try_pre.py
 ```
 
 ## job_pre.py
