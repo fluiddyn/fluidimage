@@ -61,6 +61,8 @@ fluidpivviewer = "fluidimage.gui.piv_viewer:main"
 pims = ["pims"]
 opencv = ["opencv-python"]
 graph = ["gprof2dot"]
+pytest = ["pytest"]
+all = ["fluidimage[pims, opencv-python, gprof2dot, pytest]"]
 # qt = ["PySide6"]
 
 [project.entry-points."fluidimage.executors"]
@@ -73,9 +75,6 @@ multi_exec_subproc = "fluidimage.executors.multi_exec_subproc"
 exec_async_multi =  "fluidimage.executors.exec_async_multiproc"
 exec_async_servers =  "fluidimage.executors.exec_async_servers"
 exec_async_servers_threading =  "fluidimage.executors.exec_async_servers_threading"
-
-[tool.meson-python.args]
-setup = ['-Doptimization=3']
 
 
 [tool.pdm]
