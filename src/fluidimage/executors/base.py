@@ -207,7 +207,11 @@ class ExecutorBase:
     def _save_job_data(self):
         self.path_job_data = self.path_dir_result / f"job_{self._unique_postfix}"
         self.path_job_data.mkdir(exist_ok=True)
-        self.topology.params._save_as_xml(self.path_job_data / "params.xml")
+
+        params = self.topology.params
+        if isinstance(params, dict):
+            params = ParamContainer("params", attribs=params)
+        params._save_as_xml(self.path_job_data / "params.xml")
 
         self.info_job["num_expected_results"] = self.num_expected_results
         info_job = ParamContainer("info", attribs=self.info_job)
