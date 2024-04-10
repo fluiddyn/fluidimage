@@ -56,10 +56,6 @@ class BaseWork(ABC):
     def _complete_params_with_default(cls, params):
         """Complete an object with the default params"""
 
-    @abstractmethod
-    def calcul(self, obj_input):
-        """Calcul something from an object"""
-
     @classmethod
     def create_default_params(cls):
         "Create an object containing the default parameters (class method)."
@@ -68,7 +64,14 @@ class BaseWork(ABC):
         return params
 
 
-class BaseWorkFromSerie(BaseWork):
+class BaseWorkWithCalculMethod(BaseWork):
+
+    @abstractmethod
+    def calcul(self, obj_input):
+        """Calcul something from an object"""
+
+
+class BaseWorkFromSerie(BaseWorkWithCalculMethod):
     """Base class for work taking as argument a SerieOfArraysFromFiles"""
 
     _series: SeriesOfArrays
@@ -176,7 +179,7 @@ int_stop : None
         return result
 
 
-class BaseWorkFromImage(BaseWork):
+class BaseWorkFromImage(BaseWorkWithCalculMethod):
     """Base class for work taking as argument an image"""
 
     serie: SerieOfArraysFromFiles
