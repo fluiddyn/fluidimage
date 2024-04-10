@@ -16,7 +16,7 @@ transonic = ">=0.6.4"
 fluiddyn = ">=0.6.0"
 h5netcdf = ">=1.3.0"
 h5py = ">=3.10.0"
-matplotlib = ">=3.3"
+matplotlib = ">=3.5"
 scipy = ">=1.11.4"
 # build deps
 pip = ">=23.3.2"

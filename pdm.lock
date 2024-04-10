@@ -5,7 +5,7 @@
 groups = ["default", "all", "build", "dev", "dev-doc", "doc", "graph", "opencv", "pims", "pytest", "test"]
 strategy = ["cross_platform", "inherit_metadata"]
 lock_version = "4.4.1"
-content_hash = "sha256:d4c2d5caa2790a7921d9e92122176a98808c86692cca04a78c1616ed8ae916dc"
+content_hash = "sha256:9ba4c44535449579ba8532a058483eab7b2a09e859bb0ce44faea322b8692a21"
 
 [[package]]
 name = "accessible-pygments"
@@ -1393,7 +1393,7 @@ files = [
 
 [[package]]
 name = "jupyter-lsp"
-version = "2.2.4"
+version = "2.2.5"
 requires_python = ">=3.8"
 summary = "Multi-Language Server WebSocket proxy for Jupyter Notebook/Lab server"
 groups = ["dev-doc"]
@@ -1402,8 +1402,8 @@ dependencies = [
     "jupyter-server>=1.1.2",
 ]
 files = [
-    {file = "jupyter-lsp-2.2.4.tar.gz", hash = "sha256:5e50033149344065348e688608f3c6d654ef06d9856b67655bd7b6bac9ee2d59"},
-    {file = "jupyter_lsp-2.2.4-py3-none-any.whl", hash = "sha256:da61cb63a16b6dff5eac55c2699cc36eac975645adee02c41bdfc03bf4802e77"},
+    {file = "jupyter-lsp-2.2.5.tar.gz", hash = "sha256:793147a05ad446f809fd53ef1cd19a9f5256fd0a2d6b7ce943a982cb4f545001"},
+    {file = "jupyter_lsp-2.2.5-py3-none-any.whl", hash = "sha256:45fbddbd505f3fbfb0b6cb2f1bc5e15e83ab7c79cd6e89416b248cb3c00c11da"},
 ]
 
 [[package]]
