@@ -15,6 +15,7 @@ import os
 import signal
 import sys
 import traceback
+from abc import ABC, abstractmethod
 from pathlib import Path
 from time import sleep, time
 
@@ -41,7 +42,7 @@ config = get_config()
 _omp_num_threads_equal_1_at_import = os.environ.get("OMP_NUM_THREADS") == "1"
 
 
-class ExecutorBase:
+class ExecutorBase(ABC):
     """Base class for executors.
 
     Parameters
@@ -333,6 +334,10 @@ class MultiExecutorBase(ExecutorBase):
         path_dir_log = self.path_dir_exceptions = self.path_dir_result / name
         path_dir_log.mkdir(exist_ok=True)
         self._log_path = path_dir_log / (name + ".txt")
+
+    @abstractmethod
+    def _start_processes(self):
+        """Start the processes doing the hard work"""
 
     def compute(self):
         """Compute the topology."""
