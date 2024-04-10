@@ -36,6 +36,8 @@ Provides:
 
 """
 
+import time
+from abc import ABC, abstractmethod
 from copy import deepcopy
 from typing import Optional
 
@@ -45,9 +47,14 @@ from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles, SeriesOfArrays
 from .. import imread
 
 
-class BaseWork:
+class BaseWork(ABC):
     def __init__(self, params=None):
         self.params = params
+
+    @classmethod
+    @abstractmethod
+    def _complete_params_with_default(cls, params):
+        """Complete an object with the default params"""
 
     @classmethod
     def create_default_params(cls):
@@ -57,7 +64,14 @@ class BaseWork:
         return params
 
 
-class BaseWorkFromSerie(BaseWork):
+class BaseWorkWithCalculMethod(BaseWork):
+
+    @abstractmethod
+    def calcul(self, obj_input):
+        """Calcul something from an object"""
+
+
+class BaseWorkFromSerie(BaseWorkWithCalculMethod):
     """Base class for work taking as argument a SerieOfArraysFromFiles"""
 
     _series: SeriesOfArrays
@@ -149,15 +163,23 @@ int_stop : None
 
     def process_1_serie(self, index_serie: Optional[int] = None):
         """Process one serie and return the result"""
-        return self.calcul(self.get_serie(index_serie))
+        serie = self.get_serie(index_serie)
+        print("Process from arrays", serie.get_name_arrays())
+        t_start = time.perf_counter()
+        result = self.calcul(serie)
+        print(f"Calcul done in {time.perf_counter() - t_start:.2f} s")
+        return result
 
     def calcul_from_arrays(self, *arrays, names=None):
         """Calcul from images"""
         names = [f"array{i}" for i in range(len(arrays))]
-        return self.calcul({"arrays": arrays, "names": names})
+        t_start = time.perf_counter()
+        result = self.calcul({"arrays": arrays, "names": names})
+        print(f"Calcul done in {time.perf_counter() - t_start:.2f} s")
+        return result
 
 
-class BaseWorkFromImage(BaseWork):
+class BaseWorkFromImage(BaseWorkWithCalculMethod):
     """Base class for work taking as argument an image"""
 
     serie: SerieOfArraysFromFiles
@@ -198,7 +220,12 @@ str_subset : None
 
     def process_1_image(self, index_serie: int = 0):
         """Process one serie and return the result"""
-        return self.calcul(self.get_tuple_image_name(index_serie))
+        tuple_image_name = self.get_tuple_image_name(index_serie)
+        print("Process from image", tuple_image_name[1])
+        t_start = time.perf_counter()
+        result = self.calcul(tuple_image_name)
+        print(f"Calcul done in {time.perf_counter() - t_start:.2f} s")
+        return result
 
 
 def load_image(path):
