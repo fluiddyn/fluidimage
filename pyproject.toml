@@ -29,6 +29,7 @@ dependencies = [
     "dask[array]",
     "ipython",
     "rich>=13.7.1",
+    "textual",
 ]
 requires-python = ">=3.9,<3.13"
 readme = "README.md"
@@ -52,16 +53,17 @@ classifiers = [
 Homepage = "https://foss.heptapod.net/fluiddyn/fluidimage"
 
 [project.scripts]
-fluidimviewer-pg = "fluidimage.gui.pg_main:main"
-fluidimviewer = "fluidimage.gui.imviewer:main"
 fluidimlauncher = "fluidimage.gui.launcher.main:main"
+fluidimage-monitor = "fluidimage.gui.monitor:main"
+fluidimviewer = "fluidimage.gui.imviewer:main"
+fluidimviewer-pg = "fluidimage.gui.pg_main:main"
 fluidpivviewer = "fluidimage.gui.piv_viewer:main"
 
 [project.optional-dependencies]
 pims = ["pims"]
 opencv = ["opencv-python"]
 graph = ["gprof2dot"]
-pytest = ["pytest"]
+pytest = ["pytest", "pytest-asyncio"]
 all = ["fluidimage[pims, opencv-python, gprof2dot, pytest]"]
 # qt = ["PySide6"]
 
@@ -110,6 +112,7 @@ test = [
     "pytest",
     "coverage",
     "pytest-cov",
+    "pytest-asyncio",
     "fluidimage"
 ]
 # test-qt = ["pytest-qt"]
@@ -120,6 +123,7 @@ dev = [
     "pylint",
     "isort",
     "ipdb>=0.13.13",
+    "textual-dev",
 ]
 
 [tool.pdm.scripts]

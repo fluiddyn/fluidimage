@@ -9,8 +9,6 @@
 
 import time
 
-from fluidimage.util import cstring, log_memory_usage, logger
-
 from .base import ExecutorBase
 
 

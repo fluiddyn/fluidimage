@@ -23,6 +23,7 @@ from rich.progress import Progress
 
 from fluiddyn import time_as_str
 from fluiddyn.io.tee import MultiFile
+from fluiddyn.util.paramcontainer import ParamContainer
 from fluidimage.config import get_config
 from fluidimage.topologies.nb_cpu_cores import nb_cores
 from fluidimage.util import (
@@ -65,6 +66,9 @@ class ExecutorBase:
     stop_if_error : bool, optional {False}
 
     """
+
+    info_job: dict
+    path_job_data: Path
 
     def _init_log_path(self):
         name = f"log_{self._unique_postfix}"
@@ -183,11 +187,31 @@ class ExecutorBase:
 
     def _init_compute_log(self):
         log_memory_usage(time_as_str(2) + ": starting execution. mem usage")
-        print("  topology:", str_short(type(self.topology)))
-        print("  executor:", str_short(type(self)))
+
+        topology_name = str_short(type(self.topology))
+        executor_name = str_short(type(self))
+        print("  topology:", topology_name)
+        print("  executor:", executor_name)
         print("  nb_cpus_allowed =", nb_cores)
         print("  nb_max_workers =", self.nb_max_workers)
         print("  path_dir_result =", self.path_dir_result)
+
+        self.info_job = {
+            "topology": topology_name,
+            "executor": executor_name,
+            "nb_cpus_allowed": nb_cores,
+            "nb_max_workers": self.nb_max_workers,
+            "path_dir_result": self.path_dir_result,
+        }
+
+    def _save_job_data(self):
+        self.path_job_data = self.path_dir_result / f"job_{self._unique_postfix}"
+        self.path_job_data.mkdir(exist_ok=True)
+        self.topology.params._save_as_xml(self.path_job_data / "params.xml")
+
+        self.info_job["num_expected_results"] = self.num_expected_results
+        info_job = ParamContainer("info", attribs=self.info_job)
+        info_job._save_as_xml(self.path_job_data / "info.xml")
 
     def _reset_std_as_default(self):
         sys.stdout = self._old_stdout
@@ -327,6 +351,11 @@ class MultiExecutorBase(ExecutorBase):
             signal.signal(12, handler_signals)
 
         self._start_processes()
+
+        # _start_processes has to initialize num_expected_results
+        # so _save_job_data can be called
+        self._save_job_data()
+
         self._wait_for_all_processes()
         self._finalize_compute()
 
