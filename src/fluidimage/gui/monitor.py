@@ -31,10 +31,12 @@ from fluidimage import ParamContainer
 
 
 def build_branch(branch, params_node):
-    print(params_node)
-    branch.root.expand()
     for key in params_node._get_key_attribs():
-        branch.root.add_leaf(f"{key} = {params_node[key]}")
+        branch.add_leaf(f"{key} = {repr(params_node[key])}")
+
+    for tag in params_node._tag_children:
+        new_branch = branch.add(tag, expand=False)
+        build_branch(new_branch, params_node[tag])
 
 
 class MonitorApp(App):
@@ -91,12 +93,14 @@ class MonitorApp(App):
         if not self.path_in.exists():
             print(f"{self.args.path} does not exist.")
             self.exit(0)
+            return
 
         try:
             self.path_job_info = sorted(self.path_in.glob("job_*"))[-1]
         except IndexError:
             print("No job info folder found.")
             self.exit(0)
+            return
 
         self.path_lockfile = self.path_job_info / "is_running.lock"
         self.job_is_running = self.path_lockfile.exists()
@@ -108,6 +112,16 @@ class MonitorApp(App):
         }
 
         self.params = ParamContainer(path_file=self.path_job_info / "params.xml")
+
+        paths_len_results = sorted(self.path_job_info.glob("len_results_*.txt"))
+
+        num_results_vs_idx_process = []
+        for path_len_results in paths_len_results:
+            with open(path_len_results, encoding="utf-8") as file:
+                content = file.read()
+                len_results = int(content) if content else 0
+                num_results_vs_idx_process.append(len_results)
+        self.num_results = sum(num_results_vs_idx_process)
 
     def compose(self) -> ComposeResult:
         yield Header()
@@ -129,6 +143,8 @@ class MonitorApp(App):
                     with Center():
                         yield Label("Parameters")
                         self.tree_params = Tree("params")
+                        self.tree_params.root.expand()
+                        build_branch(self.tree_params.root, self.params)
                         yield self.tree_params
 
         yield Footer()
@@ -136,20 +152,24 @@ class MonitorApp(App):
     def on_mount(self) -> None:
         table = self.query_one(DataTable)
         table.add_columns("Parameter", "Value")
-        table.add_rows([(key, value) for key, value in self.info_job.items()])
 
-        build_branch(self.tree_params, self.params)
+        keys = [
+            "topology",
+            "executor",
+            "nb_cpus_allowed",
+            "nb_max_workers",
+            "num_expected_results",
+        ]
+        lines = [(key, self.info_job[key]) for key in keys]
+        table.add_rows(lines)
+
+        progress_bar = self.query_one(ProgressBar)
+        progress_bar.update(total=self.info_job["num_expected_results"])
+        progress_bar.progress = self.num_results
 
     def action_launch_fluidpivviewer(self) -> None:
         print("launching fluidpivviewer")
         subprocess.run(["fluidpivviewer", str(self.path_in)])
-
-    def action_start(self) -> None:
-        """Start the progress tracking."""
-
-        self.query_one(ProgressBar).update(total=100)
-        self.query_one(ProgressBar).percentage = 0
-        self.query_one(ProgressBar).advance(1)
 
     def action_show_info(self) -> None:
         self.query_one(TabbedContent).active = "info"

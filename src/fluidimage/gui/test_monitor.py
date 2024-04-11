@@ -44,7 +44,9 @@ async def test_monitor(monkeypatch, tmp_path_oseen, executor):
     topology.compute(executor, nb_max_workers=2)
 
     with monkeypatch.context() as ctx:
-        ctx.setattr(sys, "argv", ["fluidimage-monitor", str(topology.path_dir_result)])
+        ctx.setattr(
+            sys, "argv", ["fluidimage-monitor", str(topology.path_dir_result)]
+        )
         args = MonitorApp.parse_args()
 
     app = MonitorApp(args)
