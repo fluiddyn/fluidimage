@@ -28,7 +28,7 @@ from .util import (
     reset_logger,
 )
 
-if any("pytest" in part for part in sys.argv):
+if any(part.endswith("pytest") for part in sys.argv):
     print(
         "Fluidimage guesses that it is tested so it"
         " loads the Agg Matplotlib backend."
