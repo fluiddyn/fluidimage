@@ -11,6 +11,7 @@
 
 """
 
+import atexit
 import os
 import signal
 import sys
@@ -70,11 +71,17 @@ class ExecutorBase(ABC):
 
     info_job: dict
     path_job_data: Path
+    _path_lockfile: Path
 
     def _init_log_path(self):
         name = f"log_{self._unique_postfix}"
         self.path_dir_exceptions = self.path_dir_result / name
         self._log_path = self.path_dir_result / (name + ".txt")
+
+        self.path_job_data = self.path_dir_result / f"job_{self._unique_postfix}"
+        self.path_job_data.mkdir(exist_ok=True)
+
+        self._save_lock_file()
 
     def __init__(
         self,
@@ -108,7 +115,7 @@ class ExecutorBase(ABC):
         self._init_log_path()
         if path_log is not None:
             self._log_path = path_log
-        self._log_file = open(self._log_path, "w")
+        self._log_file = open(self._log_path, "w", encoding="utf-8")
 
         stdout = sys.stdout
         if isinstance(stdout, MultiFile):
@@ -205,10 +212,28 @@ class ExecutorBase(ABC):
             "path_dir_result": self.path_dir_result,
         }
 
-    def _save_job_data(self):
-        self.path_job_data = self.path_dir_result / f"job_{self._unique_postfix}"
-        self.path_job_data.mkdir(exist_ok=True)
+    def _save_lock_file(self):
+        self._path_lockfile = self.path_job_data / "is_running.lock"
+        if self._path_lockfile.exists():
+            raise RuntimeError(
+                f"File {self._path_lockfile} already exists. It usually "
+                "means that this directory is already being used by "
+                "another process. Alternatively it might be that an "
+                "old lockfile has not been deleted (which is a bug). "
+                "If no process uses this directory, the lockfile "
+                "can safely be removed."
+            )
+        else:
+            with open(self._path_lockfile, "w", encoding="utf-8") as file:
+                file.write(time_as_str() + f"\n{os.getpid()}\n")
 
+        atexit.register(self._release_lock)
+
+    def _release_lock(self):
+        if self._path_lockfile.exists():
+            self._path_lockfile.unlink(missing_ok=True)
+
+    def _save_job_data(self):
         params = self.topology.params
         if isinstance(params, dict):
             params = ParamContainer("params", attribs=params)
@@ -228,6 +253,7 @@ class ExecutorBase(ABC):
         log_memory_usage(time_as_str(2) + ": end of `compute`. mem usage")
         self.topology.print_at_exit(time() - self.t_start)
         self._reset_std_as_default()
+        self._release_lock()
 
     def log_in_file(self, *args, sep=" ", end="\n"):
         """Simple write in the log file (without print)"""
@@ -330,10 +356,10 @@ class MultiExecutorBase(ExecutorBase):
         self.log_paths = None
 
     def _init_log_path(self):
-        name = f"log_{self._unique_postfix}"
-        path_dir_log = self.path_dir_exceptions = self.path_dir_result / name
+        super()._init_log_path()
+        path_dir_log = self.path_dir_exceptions
         path_dir_log.mkdir(exist_ok=True)
-        self._log_path = path_dir_log / (name + ".txt")
+        self._log_path = path_dir_log / (path_dir_log.name + ".txt")
 
     @abstractmethod
     def _start_processes(self):
@@ -385,7 +411,7 @@ class MultiExecutorBase(ExecutorBase):
 
         num_results_vs_idx_process = [0 for idx in range(len(self.processes))]
         paths_len_results = [
-            self._log_path.parent / f"len_results_{idx:03}.txt"
+            self.path_job_data / f"len_results_{idx:03}.txt"
             for idx in range(len(self.processes))
         ]
         num_results = num_results_previous = 0
@@ -443,7 +469,7 @@ class MultiExecutorBase(ExecutorBase):
 
     def _finalize_compute(self):
         self.topology.results = results = []
-        for path in self._log_path.parent.glob("results_*.txt"):
+        for path in self.path_job_data.glob("results_*.txt"):
             with open(path, encoding="utf-8") as file:
                 results.extend(line.strip() for line in file.readlines())
 
