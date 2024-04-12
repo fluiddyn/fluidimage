@@ -569,6 +569,9 @@ class MultipassPIVResults(DataObject):
             with h5py.File(path_file, "w") as file:
                 file.attrs["class_name"] = "MultipassPIVResults"
                 file.attrs["module_name"] = "fluidimage.data_objects.piv"
+                file.attrs["Conventions"] = (
+                    "fluidimage.data_objects.piv.MultipassPIVResults v1"
+                )
 
                 file.attrs["nb_passes"] = len(self.passes)
 
@@ -808,6 +811,9 @@ class LightPIVResults(DataObject):
         with h5py.File(path_file, "w") as file:
             file.attrs["class_name"] = "LightPIVResults"
             file.attrs["module_name"] = "fluidimage.data_objects.piv"
+            file.attrs["Conventions"] = (
+                "fluidimage.data_objects.piv.LightPIVResults v1"
+            )
 
             self._save_in_hdf5_object(file, tag="piv")
 
