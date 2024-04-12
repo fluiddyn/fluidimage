@@ -4,7 +4,6 @@
    :members:
    :private-members:
 
-
 """
 
 import argparse
@@ -15,6 +14,7 @@ from pathlib import Path
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Center, Middle
+from textual.timer import Timer
 from textual.widgets import (
     DataTable,
     Footer,
@@ -41,6 +41,10 @@ def build_branch(branch, params_node):
 
 class MonitorApp(App):
     """Fluidimage monitor Textual app"""
+
+    progress_bar: ProgressBar
+    tree_params: Tree
+    timer_update_info: Timer
 
     TITLE = "Fluidimage monitor app"
     SUB_TITLE = "Monitoring parallel Fluidimage computations"
@@ -108,10 +112,15 @@ class MonitorApp(App):
 
         self.params = ParamContainer(path_file=self.path_job_info / "params.xml")
 
-        paths_len_results = sorted(self.path_job_info.glob("len_results_*.txt"))
+        self.paths_len_results = sorted(self.path_job_info.glob("len_results_*.txt"))
+        assert self.paths_len_results
 
+        self.num_results = 0
+        self.detect_results()
+
+    def detect_results(self):
         num_results_vs_idx_process = []
-        for path_len_results in paths_len_results:
+        for path_len_results in self.paths_len_results:
             with open(path_len_results, encoding="utf-8") as file:
                 content = file.read()
                 len_results = int(content) if content else 0
@@ -157,17 +166,23 @@ class MonitorApp(App):
         lines = [(key, self.info_job[key]) for key in keys]
         table.add_rows(lines)
 
-        progress_bar = self.query_one(ProgressBar)
-        progress_bar.update(total=self.info_job["num_expected_results"])
-        progress_bar.progress = self.num_results
+        self.progress_bar = self.query_one(ProgressBar)
+        self.progress_bar.update(total=self.info_job["num_expected_results"])
+        self.progress_bar.progress = self.num_results
 
         topology_name = self.info_job["topology"].rsplit(".")[-1]
         if topology_name in ("TopologyPIV",):
             self.bind(
-                "f",
-                "launch_fluidpivviewer",
-                description="Launch fluidpivviewer",
+                "f", "launch_fluidpivviewer", description="Launch fluidpivviewer"
             )
+
+        self.timer_update_info = self.set_timer(
+            1.0, callback=self.update_info, name="update_info"
+        )
+
+    def update_info(self):
+        self.detect_results()
+        self.progress_bar.progress = self.num_results
 
     def action_launch_fluidpivviewer(self) -> None:
         """Launch fluidpivviewer from the result directory"""
