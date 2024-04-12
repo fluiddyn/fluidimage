@@ -43,7 +43,11 @@ def get_name_piv(serie, prefix="piv"):
         if len(inds) > 1:
             last = serie.get_str_for_name_from_idim_idx(idim, inds[1] - 1)
             if last != str_index:
-                str_index += "-" + last
+                if str_index.isalpha() and len(str_index) == 1:
+                    sep = ""
+                else:
+                    sep = "-"
+                str_index += sep + last
 
         if idim > 1:
             str_indices += serie.get_index_separators[idim - 1]
