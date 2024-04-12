@@ -64,7 +64,7 @@ class PreprocToolsBase:
 
             if func_doc is not None:
                 enable_doc = (
-                    "enable : bool\n" + "        Set as `True` to enable the tool"
+                    "- enable : bool\n\n  Set as `True` to enable the tool"
                 )
                 params[tool]._set_doc(func_doc + enable_doc)
 

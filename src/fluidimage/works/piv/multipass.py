@@ -70,35 +70,36 @@ class WorkPIV(BaseWorkFromSerie):
         params.multipass._set_doc(
             """Multipass PIV parameters:
 
-number : int (default 1)
-    Number of PIV passes.
+- number : int (default 1)
 
-coeff_zoom : integer or iterable of size `number - 1`.
+  Number of PIV passes.
 
-    Reduction coefficient defining the size of the interrogation windows for
-    the passes 1 (second pass) to `number - 1` (last pass) (always
-    defined comparing the passes `i-1`).
+- coeff_zoom : integer or iterable of size `number - 1`.
 
-use_tps : bool or 'last'
+  Reduction coefficient defining the size of the interrogation windows for
+  the passes 1 (second pass) to `number - 1` (last pass) (always
+  defined comparing the passes `i-1`).
 
-    If it is True, the interpolation is done using the Thin Plate Spline method
-    (computationally heavy but sometimes interesting). If it is 'last', the
-    TPS method is used only for the last pass.
+- use_tps : bool or 'last'
 
-subdom_size : int
+  If it is True, the interpolation is done using the Thin Plate Spline method
+  (computationally heavy but sometimes interesting). If it is 'last', the
+  TPS method is used only for the last pass.
 
-    Number of vectors in the subdomains used for the TPS method.
+- subdom_size : int
 
-smoothing_coef : float
+  Number of vectors in the subdomains used for the TPS method.
 
-    Coefficient used for the TPS method. The result is smoother for larger
-    smoothing_coef.
+- smoothing_coef : float
 
-threshold_tps :  float
+  Coefficient used for the TPS method. The result is smoother for larger
+  smoothing_coef.
 
-    Allowed difference of displacement (in pixels) between smoothed and input
-    field for TPS filter used in an iterative filtering method. Vectors too far
-    from the corresponding interpolated vector are removed.
+- threshold_tps :  float
+
+  Allowed difference of displacement (in pixels) between smoothed and input
+  field for TPS filter used in an iterative filtering method. Vectors too far
+  from the corresponding interpolated vector are removed.
 
 """
         )

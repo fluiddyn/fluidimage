@@ -104,18 +104,18 @@ See https://docs.opencv.org/3.0-beta/modules/video/doc/motion_analysis_and_objec
 
 The algorithm is "pyramidal" (multiple passes).
 
-winSize :
+- winSize :
 
   Size of the search window at each pyramid level.
 
-maxLevel :
+- maxLevel :
 
   0-based maximal pyramid level number; if set to 0, pyramids are not used
   (single level), if set to 1, two levels are used, and so on; if pyramids are
   passed to input then algorithm will use as many levels as pyramids have but no
   more than maxLevel.
 
-criteria :
+- criteria :
 
   Termination criteria of the iterative search algorithm (after the specified
   maximum number of iterations criteria.maxCount or when the search window
@@ -135,12 +135,12 @@ criteria :
 
 See https://docs.opencv.org/3.0-beta/modules/imgproc/doc/feature_detection.html#goodfeaturestotrack
 
-maxCorners :
+- maxCorners :
 
   Maximum number of corners to return. If there are more corners than are found,
   the strongest of them is returned.
 
-qualityLevel :
+- qualityLevel :
 
   Parameter characterizing the minimal accepted quality of image corners. The
   parameter value is multiplied by the best corner quality measure, which is the
@@ -149,11 +149,11 @@ qualityLevel :
   corner has the quality measure = 1500, and the qualityLevel=0.01 , then all the
   corners with the quality measure less than 15 are rejected.
 
-minDistance :
+- minDistance :
 
   Minimum possible Euclidean distance between the returned corners.
 
-blockSize :
+- blockSize :
 
   Size of an average block for computing a derivative covariation matrix over
   each pixel neighborhood."""
@@ -171,15 +171,15 @@ blockSize :
             doc="""
 Parameters indicating how are detected and processed false vectors.
 
-threshold_diff_ab_ba : 1.
+- threshold_diff_ab_ba : 1.
 
     ???
 
-displacement_min : None
+- displacement_min : None
 
     Vectors smaller than `displacement_min` are considered as false vectors.
 
-displacement_max : None
+- displacement_max : None
 
     Vectors larger than `displacement_max` are considered as false vectors.
 

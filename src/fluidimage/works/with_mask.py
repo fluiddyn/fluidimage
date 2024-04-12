@@ -39,9 +39,9 @@ class BaseWorkWithMask(BaseWork):
             """
 Parameters describing how images are masked.
 
-strcrop : None, str
+- strcrop : None, str
 
-    Two-dimensional slice (for example '100:600, :'). If None, the whole image
-    is used.
+  Two-dimensional slice (for example '100:600, :'). If None, the whole image
+  is used.
 """
         )

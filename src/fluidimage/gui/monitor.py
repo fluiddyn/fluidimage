@@ -9,6 +9,7 @@
 import argparse
 import os
 import subprocess
+from importlib import import_module
 from pathlib import Path
 
 from textual.app import App, ComposeResult
@@ -21,6 +22,7 @@ from textual.widgets import (
     Footer,
     Header,
     Label,
+    Markdown,
     ProgressBar,
     Rule,
     TabbedContent,
@@ -32,12 +34,21 @@ from fluidimage import ParamContainer
 
 
 def build_branch(branch, params_node):
+    """Build the branches of the tree"""
     for key in params_node._get_key_attribs():
         branch.add_leaf(f"{key} = {repr(params_node[key])}")
 
     for tag in params_node._tag_children:
-        new_branch = branch.add(tag, expand=False)
+        new_branch = branch.add(tag, expand=False, data=params_node[tag])
         build_branch(new_branch, params_node[tag])
+
+
+def copy_doc(params_node, params_node_with_doc):
+    """Copy the documentation between 2 ParamContainer objects"""
+    params_node._set_doc(params_node_with_doc._doc)
+
+    for tag in params_node._tag_children:
+        copy_doc(params_node[tag], params_node_with_doc[tag])
 
 
 class MonitorApp(App):
@@ -46,6 +57,8 @@ class MonitorApp(App):
     progress_bar: ProgressBar
     tree_params: Tree
     timer_update_info: Timer
+    digit_num_results: Digits
+    widget_doc: Markdown
 
     CSS_PATH = "monitor.tcss"
 
@@ -68,6 +81,7 @@ class MonitorApp(App):
 
     @classmethod
     def parse_args(cls):
+        """Parse the arguments of the command line"""
 
         parser = argparse.ArgumentParser(
             description=cls.__doc__,
@@ -115,6 +129,12 @@ class MonitorApp(App):
 
         self.params = ParamContainer(path_file=self.path_job_info / "params.xml")
 
+        module_name, class_name = self.info_job["topology"].rsplit(".", 1)
+        mod = import_module(module_name)
+        class_topology = getattr(mod, class_name)
+        params_default = class_topology.create_default_params()
+        copy_doc(self.params, params_default)
+
         self.paths_len_results = sorted(
             self.path_job_info.glob("len_results_*.txt")
         )
@@ -124,6 +144,7 @@ class MonitorApp(App):
         self.detect_results()
 
     def detect_results(self):
+        """Detect how many results have been computed"""
         num_results_vs_idx_process = []
         for path_len_results in self.paths_len_results:
             with open(path_len_results, encoding="utf-8") as file:
@@ -146,25 +167,27 @@ class MonitorApp(App):
                     with Center():
                         yield ProgressBar()
                     with Center():
-                        self.diget_num_results = Digits(f"{self.num_results}")
+                        self.digit_num_results = Digits(f"{self.num_results}")
                         yield Horizontal(
-                            self.diget_num_results,
+                            self.digit_num_results,
                             Label("results", id="label_result"),
                             id="num_results",
                         )
 
             with TabPane("Parameters", id="params"):
                 with Middle():
-                    with Center():
-                        yield Label("Parameters")
-                        self.tree_params = Tree("params")
+                    with Horizontal():
+                        self.tree_params = Tree("params", data=self.params)
                         self.tree_params.root.expand()
                         build_branch(self.tree_params.root, self.params)
                         yield self.tree_params
+                        self.widget_doc = Markdown(self.params._doc)
+                        yield self.widget_doc
 
         yield Footer()
 
     def on_mount(self) -> None:
+        """on_mount Textual method"""
         table = self.query_one(DataTable)
         table.add_columns("Parameter", "Value")
 
@@ -192,10 +215,22 @@ class MonitorApp(App):
             2.0, callback=self.update_info, name="update_info"
         )
 
+        self.tree_params.styles.border = ("round", "yellow")
+        self.tree_params.styles.width = "1fr"
+        self.tree_params.border_title = "Parameters"
+        self.tree_params.styles.border_title_align = "center"
+
+        self.widget_doc.styles.border = ("round", "yellow")
+        self.widget_doc.styles.width = "1fr"
+        self.widget_doc.styles.height = "100%"
+        self.widget_doc.border_title = "Documentation"
+        self.widget_doc.styles.border_title_align = "center"
+
     def update_info(self):
+        """Update the 'info' panel"""
         self.detect_results()
         self.progress_bar.progress = self.num_results
-        self.diget_num_results.update(f"{self.num_results}")
+        self.digit_num_results.update(f"{self.num_results}")
 
     def action_launch_fluidpivviewer(self) -> None:
         """Launch fluidpivviewer from the result directory"""
@@ -210,8 +245,16 @@ class MonitorApp(App):
         """Show the 'params' panel"""
         self.query_one(TabbedContent).active = "params"
 
+    def on_tree_node_selected(self, event):
+        """Triggered when the tree_params is selected"""
+        params_node = event.node.data
+        if params_node is None:
+            return
+        self.widget_doc.update(params_node._doc)
+
 
 def main():
+    """Main function for fluidimage-monitor"""
     args = MonitorApp.parse_args()
     app = MonitorApp(args)
     app.run()
