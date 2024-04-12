@@ -57,11 +57,6 @@ class MonitorApp(App):
             action="show_params",
             description="Show parameters",
         ),
-        Binding(
-            key="f",
-            action="launch_fluidpivviewer",
-            description="Launch fluidpivviewer",
-        ),
     ]
 
     @classmethod
@@ -88,15 +83,15 @@ class MonitorApp(App):
         super().__init__()
 
         self.args = args
-        self.path_in = Path(self.args.path)
+        self.path_results = Path(self.args.path)
 
-        if not self.path_in.exists():
+        if not self.path_results.exists():
             print(f"{self.args.path} does not exist.")
             self.exit(0)
             return
 
         try:
-            self.path_job_info = sorted(self.path_in.glob("job_*"))[-1]
+            self.path_job_info = sorted(self.path_results.glob("job_*"))[-1]
         except IndexError:
             print("No job info folder found.")
             self.exit(0)
@@ -127,10 +122,9 @@ class MonitorApp(App):
         yield Header()
         with TabbedContent():
             with TabPane("Info", id="info"):
-
                 with Middle():
                     with Center():
-                        yield Label(f"Output directory: {str(self.path_in)}")
+                        yield Label(f"Output directory: {str(self.path_results)}")
                         yield Label(f"Running: {self.job_is_running}")
                     yield Rule()
                     yield DataTable()
@@ -167,14 +161,25 @@ class MonitorApp(App):
         progress_bar.update(total=self.info_job["num_expected_results"])
         progress_bar.progress = self.num_results
 
+        topology_name = self.info_job["topology"].rsplit(".")[-1]
+        if topology_name in ("TopologyPIV",):
+            self.bind(
+                "f",
+                "launch_fluidpivviewer",
+                description="Launch fluidpivviewer",
+            )
+
     def action_launch_fluidpivviewer(self) -> None:
+        """Launch fluidpivviewer from the result directory"""
         print("launching fluidpivviewer")
-        subprocess.run(["fluidpivviewer", str(self.path_in)])
+        subprocess.run(["fluidpivviewer", str(self.path_results)], check=False)
 
     def action_show_info(self) -> None:
+        """Show the 'info' panel"""
         self.query_one(TabbedContent).active = "info"
 
     def action_show_params(self) -> None:
+        """Show the 'params' panel"""
         self.query_one(TabbedContent).active = "params"
 
 
