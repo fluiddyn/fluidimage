@@ -321,10 +321,7 @@ class TopologyBase:
             txt += "."
 
         if hasattr(self, "path_dir_result"):
-            txt += "\npath results:\n" + str(
-                Path(self.path_dir_result).absolute()
-            )
-
+            txt += f"\npath results:\n{Path(self.path_dir_result).absolute()}\n"
         return txt
 
     def print_at_exit(self, time_since_start):

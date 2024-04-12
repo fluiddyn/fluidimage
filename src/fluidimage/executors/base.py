@@ -203,7 +203,9 @@ class ExecutorBase(ABC):
         print("  nb_cpus_allowed =", nb_cores)
         print("  nb_max_workers =", self.nb_max_workers)
         print("  path_dir_result =", self.path_dir_result)
-
+        print(
+            "  (use fluidimage-monitor in this directory to monitor this computation)"
+        )
         self.info_job = {
             "topology": topology_name,
             "executor": executor_name,

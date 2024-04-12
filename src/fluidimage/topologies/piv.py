@@ -237,7 +237,6 @@ class TopologyPIV(TopologyBaseFromSeries):
 
     def make_text_at_exit(self, time_since_start):
         """Make a text printed at exit"""
-
         txt = f"Stop compute after t = {time_since_start:.2f} s"
         try:
             nb_results = len(self.results)
@@ -247,9 +246,7 @@ class TopologyPIV(TopologyBaseFromSeries):
             txt += f" ({nb_results} piv fields, {time_since_start / nb_results:.2f} s/field)."
         else:
             txt += "."
-
         txt += "\npath results:\n" + str(Path(self.path_dir_result).absolute())
-
         return txt
 
 
