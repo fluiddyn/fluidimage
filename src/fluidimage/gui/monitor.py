@@ -13,10 +13,11 @@ from pathlib import Path
 
 from textual.app import App, ComposeResult
 from textual.binding import Binding
-from textual.containers import Center, Middle
+from textual.containers import Center, Horizontal, Middle
 from textual.timer import Timer
 from textual.widgets import (
     DataTable,
+    Digits,
     Footer,
     Header,
     Label,
@@ -45,6 +46,8 @@ class MonitorApp(App):
     progress_bar: ProgressBar
     tree_params: Tree
     timer_update_info: Timer
+
+    CSS_PATH = "monitor.tcss"
 
     TITLE = "Fluidimage monitor app"
     SUB_TITLE = "Monitoring parallel Fluidimage computations"
@@ -112,7 +115,9 @@ class MonitorApp(App):
 
         self.params = ParamContainer(path_file=self.path_job_info / "params.xml")
 
-        self.paths_len_results = sorted(self.path_job_info.glob("len_results_*.txt"))
+        self.paths_len_results = sorted(
+            self.path_job_info.glob("len_results_*.txt")
+        )
         assert self.paths_len_results
 
         self.num_results = 0
@@ -140,6 +145,13 @@ class MonitorApp(App):
                     yield Rule()
                     with Center():
                         yield ProgressBar()
+                    with Center():
+                        self.diget_num_results = Digits(f"{self.num_results}")
+                        yield Horizontal(
+                            self.diget_num_results,
+                            Label("results", id="label_result"),
+                            id="num_results",
+                        )
 
             with TabPane("Parameters", id="params"):
                 with Middle():
@@ -176,13 +188,14 @@ class MonitorApp(App):
                 "f", "launch_fluidpivviewer", description="Launch fluidpivviewer"
             )
 
-        self.timer_update_info = self.set_timer(
-            1.0, callback=self.update_info, name="update_info"
+        self.timer_update_info = self.set_interval(
+            2.0, callback=self.update_info, name="update_info"
         )
 
     def update_info(self):
         self.detect_results()
         self.progress_bar.progress = self.num_results
+        self.diget_num_results.update(f"{self.num_results}")
 
     def action_launch_fluidpivviewer(self) -> None:
         """Launch fluidpivviewer from the result directory"""

@@ -4,6 +4,7 @@ python_sources = [
   'base_matplotlib.py',
   'imviewer.py',
   'monitor.py',
+  'monitor.tcss',
   'pg_main.py',
   'pg_wrapper.py',
   'piv_viewer.py',

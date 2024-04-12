@@ -1,0 +1,7 @@
+#num_results {
+    width: 20;
+}
+
+#label_result {
+    offset: 0 2
+}
