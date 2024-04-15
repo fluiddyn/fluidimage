@@ -246,7 +246,7 @@ class TopologyPIV(TopologyBaseFromSeries):
             txt += f" ({nb_results} piv fields, {time_since_start / nb_results:.2f} s/field)."
         else:
             txt += "."
-        txt += "\npath results:\n" + str(Path(self.path_dir_result).absolute())
+        txt += "\npath results:\n" + str(Path(self.path_dir_result).resolve())
         return txt
 
 
