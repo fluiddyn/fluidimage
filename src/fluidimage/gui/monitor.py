@@ -153,6 +153,10 @@ class MonitorApp(App):
                 num_results_vs_idx_process.append(len_results)
         self.num_results = sum(num_results_vs_idx_process)
 
+    def check_is_running(self):
+        self.job_is_running = self.path_lockfile.exists()
+        return self.job_is_running
+
     def compose(self) -> ComposeResult:
         yield Header()
         with TabbedContent():
@@ -160,7 +164,10 @@ class MonitorApp(App):
                 with Middle():
                     with Center():
                         yield Label(f"Output directory: {str(self.path_results)}")
-                        yield Label(f"Running: {self.job_is_running}")
+                        self.label_is_running = Label(
+                            f"Running: {self.job_is_running}"
+                        )
+                        yield self.label_is_running
                     yield Rule()
                     yield DataTable()
                     yield Rule()
@@ -214,6 +221,8 @@ class MonitorApp(App):
         self.timer_update_info = self.set_interval(
             2.0, callback=self.update_info, name="update_info"
         )
+        if not self.job_is_running:
+            self.timer_update_info.pause()
 
         self.tree_params.styles.border = ("round", "yellow")
         self.tree_params.styles.width = "1fr"
@@ -231,6 +240,9 @@ class MonitorApp(App):
         self.detect_results()
         self.progress_bar.progress = self.num_results
         self.digit_num_results.update(f"{self.num_results}")
+        if not self.check_is_running():
+            self.timer_update_info.pause()
+            self.label_is_running.update(f"Running: {self.job_is_running}")
 
     def action_launch_fluidpivviewer(self) -> None:
         """Launch fluidpivviewer from the result directory"""
