@@ -59,6 +59,7 @@ class MonitorApp(App):
     timer_update_info: Timer
     digit_num_results: Digits
     widget_doc: Markdown
+    job_is_running: bool
 
     CSS_PATH = "monitor.tcss"
 
@@ -119,7 +120,7 @@ class MonitorApp(App):
             return
 
         self.path_lockfile = self.path_job_info / "is_running.lock"
-        self.job_is_running = self.path_lockfile.exists()
+        self.check_is_running()
 
         self.path_info = self.path_job_info / "info.xml"
         info = ParamContainer(path_file=self.path_info)
@@ -154,6 +155,7 @@ class MonitorApp(App):
         self.num_results = sum(num_results_vs_idx_process)
 
     def check_is_running(self):
+        """Check if the executor is running"""
         self.job_is_running = self.path_lockfile.exists()
         return self.job_is_running
 

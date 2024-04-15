@@ -1,3 +1,4 @@
+import subprocess
 import sys
 
 import pytest
@@ -21,6 +22,19 @@ def test_monitor_help(monkeypatch):
             pass
         else:
             raise RuntimeError
+
+
+def test_monitor_bad_paths(monkeypatch, tmp_path):
+
+    command = "fluidimage-monitor __dir_does_not_exist__"
+    with monkeypatch.context() as ctx:
+        ctx.setattr(sys, "argv", command.split())
+        main()
+
+    command = f"fluidimage-monitor {tmp_path}"
+    with monkeypatch.context() as ctx:
+        ctx.setattr(sys, "argv", command.split())
+        main()
 
 
 @pytest.mark.usefixtures("close_plt_figs")
@@ -52,4 +66,27 @@ async def test_monitor(monkeypatch, tmp_path_oseen, executor):
     app = MonitorApp(args)
 
     async with app.run_test() as pilot:
-        await pilot.press("r")
+        await pilot.press("p")
+        await pilot.press("i")
+
+        def _run(*args, **kwargs):
+            pass
+
+        with monkeypatch.context() as ctx:
+            ctx.setattr(subprocess, "run", _run)
+            await pilot.press("f")
+
+    app.update_info()
+
+    node_saving = app.tree_params.root.children[0]
+
+    class MyEvent:
+        def __init__(self, node):
+            self.node = node
+
+    event = MyEvent(node_saving)
+    app.on_tree_node_selected(event)
+
+    leaf = node_saving.children[0]
+    event.node = leaf
+    app.on_tree_node_selected(event)
