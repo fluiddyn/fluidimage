@@ -12,6 +12,7 @@
 """
 
 import atexit
+import copy
 import os
 import signal
 import sys
@@ -72,16 +73,25 @@ class ExecutorBase(ABC):
     info_job: dict
     path_job_data: Path
     _path_lockfile: Path
+    num_expected_results: int
 
     def _init_log_path(self):
-        name = f"log_{self._unique_postfix}"
-        self.path_dir_exceptions = self.path_dir_result / name
-        self._log_path = self.path_dir_result / (name + ".txt")
+        unique_postfix = f"{time_as_str()}_{os.getpid()}"
+        path_job_data = self.path_dir_result / f"job_{unique_postfix}"
 
-        self.path_job_data = self.path_dir_result / f"job_{self._unique_postfix}"
-        self.path_job_data.mkdir(exist_ok=True)
+        if path_job_data.exists():
+            index = 0
+            unique_postfix0 = unique_postfix
+            while path_job_data.exists():
+                index += 1
+                unique_postfix = unique_postfix0 + str(index)
+                path_job_data = self.path_dir_result / f"log_{unique_postfix}"
 
-        self._save_lock_file()
+        self._unique_postfix = unique_postfix
+        self.path_job_data = path_job_data
+        self._path_lockfile = self.path_job_data / "is_running.lock"
+        self.path_dir_exceptions = self.path_dir_result / f"log_{unique_postfix}"
+        self._log_path = self.path_dir_result / f"log_{unique_postfix}.txt"
 
     def __init__(
         self,
@@ -106,11 +116,9 @@ class ExecutorBase(ABC):
         self.logging_level = logging_level
         self.stop_if_error = stop_if_error
 
-        path_dir_result = Path(path_dir_result)
+        path_dir_result = Path(path_dir_result).resolve()
         path_dir_result.mkdir(exist_ok=True)
         self.path_dir_result = path_dir_result
-
-        self._unique_postfix = f"{time_as_str()}_{os.getpid()}"
 
         self._init_log_path()
         if path_log is not None:
@@ -191,7 +199,11 @@ class ExecutorBase(ABC):
 
     def _init_compute(self):
         self.t_start = time()
+        self._init_num_expected_results()
+        if self.num_expected_results == 0:
+            return
         self._init_compute_log()
+        self._save_job_data()
 
     def _init_compute_log(self):
         log_memory_usage(time_as_str(2) + ": starting execution. mem usage")
@@ -202,9 +214,11 @@ class ExecutorBase(ABC):
         print("  executor:", executor_name)
         print("  nb_cpus_allowed =", nb_cores)
         print("  nb_max_workers =", self.nb_max_workers)
+        print("  num_expected_results", self.num_expected_results)
         print("  path_dir_result =", self.path_dir_result)
         print(
-            "  (use fluidimage-monitor in this directory to monitor this computation)"
+            "Monitoring app can be launched with:\n"
+            f"fluidimage-monitor {self.path_dir_result}"
         )
         self.info_job = {
             "topology": topology_name,
@@ -212,10 +226,10 @@ class ExecutorBase(ABC):
             "nb_cpus_allowed": nb_cores,
             "nb_max_workers": self.nb_max_workers,
             "path_dir_result": self.path_dir_result,
+            "num_expected_results": self.num_expected_results,
         }
 
     def _save_lock_file(self):
-        self._path_lockfile = self.path_job_data / "is_running.lock"
         if self._path_lockfile.exists():
             raise RuntimeError(
                 f"File {self._path_lockfile} already exists. It usually "
@@ -236,12 +250,15 @@ class ExecutorBase(ABC):
             self._path_lockfile.unlink(missing_ok=True)
 
     def _save_job_data(self):
+        self.path_job_data = self.path_dir_result / f"job_{self._unique_postfix}"
+        self.path_job_data.mkdir(exist_ok=False)
+        self._save_lock_file()
+
         params = self.topology.params
         if isinstance(params, dict):
             params = ParamContainer("params", attribs=params)
         params._save_as_xml(self.path_job_data / "params.xml")
 
-        self.info_job["num_expected_results"] = self.num_expected_results
         info_job = ParamContainer("info", attribs=self.info_job)
         info_job._save_as_xml(self.path_job_data / "info.xml")
 
@@ -293,13 +310,46 @@ class ExecutorBase(ABC):
         except TypeError:
             # Python >= 3.10
             parts = traceback.format_exception(exception)
-        formated_exception = "".join(parts)
+        formatted_exception = "".join(parts)
 
         with open(path_log, "w", encoding="utf-8") as file:
             file.write(
                 f"Exception for work {work_name}, key {key}:\n"
-                + formated_exception
+                + formatted_exception
             )
+
+    def _init_num_expected_results(self):
+        if hasattr(self.topology, "series"):
+            self._init_num_expected_results_series()
+        else:
+            self._init_num_expected_results_first_queue()
+
+    def _init_num_expected_results_series(self):
+        if self.topology.how_saving == "complete" and hasattr(
+            self.topology, "compute_indices_to_be_computed"
+        ):
+            indices = self.topology.compute_indices_to_be_computed()
+            self.num_expected_results = len(indices)
+        else:
+            series = self.topology.series
+            self.num_expected_results = len(
+                range(series.ind_start, series.ind_stop, series.ind_step)
+            )
+
+    def _init_num_expected_results_first_queue(self):
+        first_work = self.topology.works[0]
+        if first_work.input_queue is not None:
+            raise NotImplementedError
+        if isinstance(first_work.output_queue, tuple):
+            raise NotImplementedError
+        # fill the first queue
+        first_work.func_or_cls(
+            input_queue=None, output_queue=first_work.output_queue
+        )
+        self._first_queue = copy.copy(first_work.output_queue)
+        # split the first queue
+        self._keys_first_queue = list(self._first_queue.keys())
+        self.num_expected_results = len(self._keys_first_queue)
 
 
 class MultiExecutorBase(ExecutorBase):
@@ -326,8 +376,6 @@ class MultiExecutorBase(ExecutorBase):
       when there is nothing in their input_queue.
 
     """
-
-    num_expected_results: int
 
     def __init__(
         self,
@@ -371,6 +419,11 @@ class MultiExecutorBase(ExecutorBase):
         """Compute the topology."""
 
         self._init_compute()
+
+        if self.num_expected_results == 0:
+            print("Nothing to be computed")
+            return
+
         self.log_paths = []
 
         if sys.platform != "win32":
@@ -388,11 +441,6 @@ class MultiExecutorBase(ExecutorBase):
             signal.signal(12, handler_signals)
 
         self._start_processes()
-
-        # _start_processes has to initialize num_expected_results
-        # so _save_job_data can be called
-        self._save_job_data()
-
         self._wait_for_all_processes()
         self._finalize_compute()
 

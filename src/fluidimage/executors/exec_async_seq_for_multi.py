@@ -49,6 +49,9 @@ class ExecutorAsyncSeqForMulti(ExecutorAsyncSequential):
         self.t_start = t_start
         self.index_process = index_process
 
+        # No need to correctly set num_expected_results for this class
+        self.num_expected_results = None
+
         if hasattr(self.topology, "results"):
             self.async_funcs["_save_topology_results"] = (
                 self._save_topology_results
@@ -58,14 +61,11 @@ class ExecutorAsyncSeqForMulti(ExecutorAsyncSequential):
             self._path_results = (
                 path_job_data / f"results_{self.index_process:03}.txt"
             )
-            self._path_results.touch()
 
             self._path_num_results = (
                 self._path_results.parent
                 / f"len_results_{self.index_process:03}.txt"
             )
-            with open(self._path_num_results, "w", encoding="utf-8") as file:
-                file.write("0\n")
 
             self._len_saved_results = 0
 
@@ -79,6 +79,13 @@ class ExecutorAsyncSeqForMulti(ExecutorAsyncSequential):
 
     def _init_compute(self):
         self._init_compute_log()
+        if hasattr(self, "_path_results"):
+            self._path_results.touch()
+            with open(self._path_num_results, "w", encoding="utf-8") as file:
+                file.write("0\n")
+
+    def _init_num_expected_results(self):
+        pass
 
     def _finalize_compute(self):
         self._reset_std_as_default()
