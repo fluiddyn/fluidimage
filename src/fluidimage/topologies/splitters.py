@@ -52,6 +52,8 @@ def split_range(start0, stop0, step0, num_parts):
 
 
 def split_list(sequence, num_parts):
+    if not sequence:
+        return [[] for _ in range(num_parts)]
     num_parts = min(num_parts, len(sequence))
     k, m = divmod(len(sequence), num_parts)
     return [
@@ -153,8 +155,8 @@ class SplitterFromSeries(SplitterCompleteAware):
             and hasattr(topology, "compute_indices_to_be_computed")
         ):
             indices = topology.compute_indices_to_be_computed()
-            self.indices_lists = split_list(indices, self.num_processes)
             self.num_expected_results = len(indices)
+            self.indices_lists = split_list(indices, self.num_processes)
         else:
             self.num_expected_results = len(
                 range(
@@ -211,8 +213,8 @@ class SplitterFromImages(SplitterCompleteAware):
             and hasattr(topology, "compute_indices_to_be_computed")
         ):
             indices = topology.compute_indices_to_be_computed()
-            self.indices_lists = split_list(indices, self.num_processes)
             self.num_expected_results = len(indices)
+            self.indices_lists = split_list(indices, self.num_processes)
         else:
             self.num_expected_results = len(self.serie)
             slicing_tuples = self.serie.get_slicing_tuples()
