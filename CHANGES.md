@@ -3,6 +3,12 @@
 See also the
 [unreleased changes](https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.4.3...branch%2Fdefault).
 
+## [0.4.4] (unreleased, 2024-04-??)
+
+- `fluidimage-monitor` textual app to monitor executions of topologies
+- Update and test doc/examples/piv_as_real
+- Support `pip install fluidimage[all]`
+
 ## [0.4.3] (2024-03-27)
 
 - [!85](https://foss.heptapod.net/fluiddyn/fluidimage/-/merge_requests/85): `fluidpivviewer`.
@@ -177,3 +183,4 @@ This version contains incompatible API changes documented here.
 [0.4.1]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.4.0...0.4.1
 [0.4.2]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.4.1...0.4.2
 [0.4.3]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.4.2...0.4.3
+[0.4.4]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.4.3...0.4.4
