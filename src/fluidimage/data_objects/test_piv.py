@@ -9,4 +9,4 @@ def test_get_name_piv():
     series = SeriesOfArrays(path_jet)
     serie = series.get_next_serie()
     name = get_name_piv(serie)
-    assert name == "piv_060a-b.h5", name
+    assert name == "piv_060ab.h5", name

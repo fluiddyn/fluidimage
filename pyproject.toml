@@ -21,7 +21,7 @@ dependencies = [
     "h5py",
     "h5netcdf",
     "transonic>=0.6.2",
-    "fluiddyn >=0.6.0",
+    "fluiddyn >=0.6.2",
     "pyfftw >= 0.10.4",
     "imageio",
     "scikit-image >= 0.12.3",

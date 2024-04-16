@@ -3,24 +3,27 @@
 See also the
 [unreleased changes](https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.4.3...branch%2Fdefault).
 
-## [0.4.4] (unreleased, 2024-04-??)
+## [0.4.4] (2024-04-16)
 
-- `fluidimage-monitor` textual app to monitor executions of topologies
-- Update and test doc/examples/piv_as_real
-- Support `pip install fluidimage[all]`
+- `fluidimage-monitor` [Textual](https://textual.textualize.io/) app to monitor
+  executions of topologies.
+- Update and test doc/examples/piv_as_real.
+- Support `pip install fluidimage[all]`.
+- Change in PIV file names (can now be something like "piv02ab.h5").
 
 ## [0.4.3] (2024-03-27)
 
-- [!85](https://foss.heptapod.net/fluiddyn/fluidimage/-/merge_requests/85): `fluidpivviewer`.
-- [!84](https://foss.heptapod.net/fluiddyn/fluidimage/-/merge_requests/84): `multi_exec_async`
-  using {class}`fluidimage.topologies.splitters.Splitter`.
+- [!85](https://foss.heptapod.net/fluiddyn/fluidimage/-/merge_requests/85):
+  `fluidpivviewer`.
+- [!84](https://foss.heptapod.net/fluiddyn/fluidimage/-/merge_requests/84):
+  `multi_exec_async` using {class}`fluidimage.topologies.splitters.Splitter`.
 - Other bugfixes and improvements (name PIV files and
   {class}`fluidimage.postproc.vector_field.VectorFieldOnGrid`).
 
 ## [0.4.2] (2024-03-20)
 
-- Fix 2 bugs affecting PIV computations (`nb_peaks_to_search` and interpolation
-  close to the borders of the image).
+- Fix 2 bugs affecting PIV computations (`nb_peaks_to_search` and interpolation close to
+  the borders of the image).
 
 ## [0.4.1] (2024-03-20)
 
