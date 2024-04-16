@@ -124,6 +124,7 @@ dev = [
     "isort",
     "ipdb>=0.13.13",
     "textual-dev",
+    "pyinstrument",
 ]
 
 [tool.pdm.scripts]

@@ -1,7 +1,5 @@
 """Profile PIV work with pyinstrument
 
-Install pyinstrument with `pip install pyinstrument` and run this script.
-
 Result with fluidimage 0.4.4:
 
 total: ~4.7 s
