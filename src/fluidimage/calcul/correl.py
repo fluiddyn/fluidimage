@@ -344,7 +344,7 @@ class CorrelPythran(CorrelBase):
 
 class CorrelPyCuda(CorrelBase):
     """Correlation using pycuda.
-    Correlation class by hands with with cuda.
+    Correlation class by hands with cuda.
     """
 
     _tag = "pycuda"
@@ -683,7 +683,11 @@ class CorrelFFTW(CorrelFFTBase):
         self.op = self.FFTClass(n1, n0)
 
     def __call__(self, im0, im1):
-        """Compute the correlation from images."""
+        """Compute the correlation from images.
+
+        Warning: important for perf (~25% for PIV)
+
+        """
         norm = np.sqrt(np.sum(im1**2) * np.sum(im0**2)) * im0.size
         op = self.op
         corr = op.ifft(op.fft(im0).conj() * op.fft(im1))
