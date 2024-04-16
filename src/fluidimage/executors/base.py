@@ -191,6 +191,8 @@ class ExecutorBase(ABC):
             if work.kind is None or "one shot" not in work.kind
         ]
 
+        self._indices_to_be_computed = None
+
         # to avoid a pylint warning
         self.t_start = None
 
@@ -328,8 +330,10 @@ class ExecutorBase(ABC):
         if self.topology.how_saving == "complete" and hasattr(
             self.topology, "compute_indices_to_be_computed"
         ):
-            indices = self.topology.compute_indices_to_be_computed()
-            self.num_expected_results = len(indices)
+            self._indices_to_be_computed = (
+                self.topology.compute_indices_to_be_computed()
+            )
+            self.num_expected_results = len(self._indices_to_be_computed)
         else:
             series = self.topology.series
             self.num_expected_results = len(

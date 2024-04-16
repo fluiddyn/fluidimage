@@ -136,8 +136,10 @@ class MultiExecutorAsync(MultiExecutorBase):
             ) from error
 
         params = copy.deepcopy(self.topology.params)
-        splitter = splitter_cls(params, self.nb_processes, self.topology)
-        self.num_expected_results = splitter.num_expected_results
+        splitter = splitter_cls(
+            params, self.nb_processes, self.topology, self._indices_to_be_computed
+        )
+        assert self.num_expected_results == splitter.num_expected_results
 
         if (
             hasattr(self.topology, "how_saving")

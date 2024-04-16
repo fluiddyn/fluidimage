@@ -65,7 +65,9 @@ class MultiExecutorSubproc(MultiExecutorBase):
         if hasattr(self.topology, ""):
             params.saving.path = self.topology.path_dir_result
 
-        self.splitter = splitter_cls(params, self.nb_processes, self.topology)
+        self.splitter = splitter_cls(
+            params, self.nb_processes, self.topology, self._indices_to_be_computed
+        )
         self.num_expected_results = self.splitter.num_expected_results
 
     def _start_processes(self):
