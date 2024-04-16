@@ -598,49 +598,57 @@ class FirstWorkPIV(BaseWorkPIV):
         params.piv0._set_doc(
             """Parameters describing one PIV step.
 
-shape_crop_im0 : int (48)
-    Shape of the cropped images 0 from which are computed the correlation.
-shape_crop_im1 : int or None
-    Shape of the cropped images 0 (has to be None for correl based on fft).
+- `shape_crop_im0` : int (48)
 
-displacement_max : None
-    Displacement maximum used in correlation classes. The exact effect depends
-    on the correlation method. For fft based correlation, it can also be of the
-    form '50%' and then the maximum displacement is computed for each pass as a
-    pourcentage of max(shape_crop_im0).
+  Shape of the cropped images 0 from which are computed the correlation.
 
-displacement_mean : None
-    Displacement averaged over space (NotImplemented).
+- `shape_crop_im1` : int or None
 
-method_correl : str, default 'fftw'
+  Shape of the cropped images 0 (has to be None for correl based on fft).
 
-    Can be in """
+- displacement_max : None
+
+  Displacement maximum used in correlation classes. The exact effect depends
+  on the correlation method. For fft based correlation, it can also be of the
+  form '50%' and then the maximum displacement is computed for each pass as a
+  pourcentage of max(shape_crop_im0).
+
+- displacement_mean : None
+
+  Displacement averaged over space (NotImplemented).
+
+- method_correl : str, default 'fftw'
+
+  Can be in """
             + str(list(correlation_classes.keys()))
             + """
 
-method_subpix : str, default '2d_gaussian2'
+- method_subpix : str, default '2d_gaussian2'
 
-    Can be in """
+  Can be in """
             + str(SubPix.methods)
             + """
 
-nsubpix : None
+- nsubpix : None
 
-    Integer used in the subpix finder to compute the shape of the correlation
-    crop (`(1+2*nsubpix,)*2`). It is related to the typical size of the
-    particles. It has to be increased in case of peak locking (plot the
-    histograms of the displacements).
+  Integer used in the subpix finder to compute the shape of the correlation
+  crop (`(1+2*nsubpix,)*2`). It is related to the typical size of the
+  particles. It has to be increased in case of peak locking (plot the
+  histograms of the displacements).
 
-coef_correl_no_displ : None, number
-    If this coefficient is not None, the correlation of the point corresponding
-    to no displacement is multiplied by this coefficient (for the first pass).
+- coef_correl_no_displ : None, number
 
-nb_peaks_to_search : 1, int
-    Number of peaks to search. Secondary peaks can be used during the fix step.
+  If this coefficient is not None, the correlation of the point corresponding
+  to no displacement is multiplied by this coefficient (for the first pass).
 
-particle_radius : 3, int
-    Typical radius of a particle (or more precisely of a correlation
-    peak). Used only if `nb_peaks_to_search` is larger than one.
+- nb_peaks_to_search : 1, int
+
+  Number of peaks to search. Secondary peaks can be used during the fix step.
+
+- particle_radius : 3, int
+
+  Typical radius of a particle (or more precisely of a correlation
+  peak). Used only if `nb_peaks_to_search` is larger than one.
 
 """
         )
@@ -653,11 +661,13 @@ particle_radius : 3, int
             """
 Parameters describing the grid.
 
-overlap : float (0.5)
-    Number smaller than 1 defining the overlap between interrogation windows.
+- overlap : float (0.5)
 
-from : str {'overlap'}
-    Keyword for the method from which is computed the grid.
+  Number smaller than 1 defining the overlap between interrogation windows.
+
+- from : str {'overlap'}
+
+  Keyword for the method from which is computed the grid.
 """
         )
 

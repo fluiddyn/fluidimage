@@ -71,28 +71,28 @@ class TopologySurfaceTracking(TopologyBase):
             """
 Parameters indicating the input image set.
 
-path : str, {''}
+- path : str, {''}
 
-    String indicating the input images (can be a full path towards an image
-    file or a string given to `glob`).
+  String indicating the input images (can be a full path towards an image
+  file or a string given to `glob`).
 
-path_ref : str, {''}
+- path_ref : str, {''}
 
-    String indicating the reference input images (can be a full path towards
-    an image file or a string given to `glob`).
+  String indicating the reference input images (can be a full path towards
+  an image file or a string given to `glob`).
 
-str_subset_ref : None
+- str_subset_ref : None
 
-    String indicating as a Python slicing how to select reference images
-    from the serie of reference images on the disk (in order to compute
-    k_x value necessary for gain and filter).
-    If None, no selection so all images are going to be processed.
+  String indicating as a Python slicing how to select reference images
+  from the serie of reference images on the disk (in order to compute
+  k_x value necessary for gain and filter).
+  If None, no selection so all images are going to be processed.
 
-str_subset : None
+- str_subset : None
 
-    String indicating as a Python slicing how to select images from the
-    serie of images on the disk. If None, no selection so all images
-    are going to be processed.
+  String indicating as a Python slicing how to select images from the
+  serie of images on the disk. If None, no selection so all images
+  are going to be processed.
 
 """
         )

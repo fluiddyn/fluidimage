@@ -91,55 +91,55 @@ class BaseWorkFromSerie(BaseWorkWithCalculMethod):
             doc="""
 Parameters indicating the input series of images.
 
-path : str, {''}
+- path : str, {''}
 
-    String indicating the input images (can be a full path towards an image
-    file or a string given to `glob`).
+  String indicating the input images (can be a full path towards an image
+  file or a string given to `glob`).
 
-str_subset : 'pairs'
+- str_subset : 'pairs'
 
-    String indicating as a Python slicing how couples of images are formed.
-    There is one couple per value of `i`. The values of `i` are set with the
-    other parameters `ind_start`, `ind_step` and `ind_stop` approximately with
-    the function range (`range(ind_start, ind_stop, ind_step)`).
+  String indicating as a Python slicing how couples of images are formed.
+  There is one couple per value of `i`. The values of `i` are set with the
+  other parameters `ind_start`, `ind_step` and `ind_stop` approximately with
+  the function range (`range(ind_start, ind_stop, ind_step)`).
 
-    Python slicing is a very powerful notation to define subset from a
-    (possibly multidimensional) set of images. For a user, an alternative is to
-    understand how Python slicing works. See for example this page:
-    http://stackoverflow.com/questions/509211/explain-pythons-slice-notation.
+  Python slicing is a very powerful notation to define subset from a
+  (possibly multidimensional) set of images. For a user, an alternative is to
+  understand how Python slicing works. See for example this page:
+  http://stackoverflow.com/questions/509211/explain-pythons-slice-notation.
 
-    Another possibility is to follow simple examples:
+  Another possibility is to follow simple examples:
 
-    For single-frame images (im0, im1, im2, im3, ...), we keep the default
-    value 'i:i+2' to form the couples (im0, im1), (im1, im2), ...
+  For single-frame images (im0, im1, im2, im3, ...), we keep the default
+  value 'i:i+2' to form the couples (im0, im1), (im1, im2), ...
 
-    To see what it gives, one can use IPython and range:
+  To see what it gives, one can use IPython and range:
 
-    >>> i = 0
-    >>> list(range(10))[i:i+2]
-    [0, 1]
+  >>> i = 0
+  >>> list(range(10))[i:i+2]
+  [0, 1]
 
-    >>> list(range(10))[i:i+4:2]
-    [0, 2]
+  >>> list(range(10))[i:i+4:2]
+  [0, 2]
 
-    We see that we can also use the value 'i:i+4:2' to form the couples (im0,
-    im2), (im1, im3), ...
+  We see that we can also use the value 'i:i+4:2' to form the couples (im0,
+  im2), (im1, im3), ...
 
-    For double-frame images (im1a, im1b, im2a, im2b, ...) you can write
+  For double-frame images (im1a, im1b, im2a, im2b, ...) you can write
 
-    >>> params.series.str_subset = 'i, 0:2'
+  >>> params.series.str_subset = 'i, 0:2'
 
-    In this case, the first couple will be (im1a, im1b).
+  In this case, the first couple will be (im1a, im1b).
 
-    To get the first couple (im1a, im1a), we would have to write
+  To get the first couple (im1a, im1a), we would have to write
 
-    >>> params.series.str_subset = 'i:i+2, 0'
+  >>> params.series.str_subset = 'i:i+2, 0'
 
-ind_start : int, {'first'}
+- ind_start : int, {'first'}
 
-ind_step : int, {1}
+- ind_step : int, {1}
 
-int_stop : None
+- int_stop : None
 
 """,
         )
@@ -193,15 +193,15 @@ class BaseWorkFromImage(BaseWorkWithCalculMethod):
             """
 Parameters indicating the input image set.
 
-path : str, {''}
+- path : str, {''}
 
-    String indicating the input images (can be a full path towards an image
-    file or a string given to `glob`).
+  String indicating the input images (can be a full path towards an image
+  file or a string given to `glob`).
 
-str_subset : None
+- str_subset : None
 
-    String indicating as a Python slicing how to select images from the serie of
-    images on the disk. If None, no selection so all images will be processed.
+  String indicating as a Python slicing how to select images from the serie of
+  images on the disk. If None, no selection so all images will be processed.
 
 """
         )

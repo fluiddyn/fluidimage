@@ -71,29 +71,17 @@ class MultiExecutorAsync(MultiExecutorBase):
 
     def _start_multiprocess_first_queue(self):
         """Start the processes spitting the work with the first queue"""
-        first_work = self.topology.works[0]
-        if first_work.input_queue is not None:
-            raise NotImplementedError
-        if isinstance(first_work.output_queue, tuple):
-            raise NotImplementedError
 
-        # fill the first queue
-        first_work.func_or_cls(
-            input_queue=None, output_queue=first_work.output_queue
+        nb_keys_per_process = max(
+            1, int(len(self._keys_first_queue) / self.nb_processes)
         )
-
-        first_queue = copy.copy(first_work.output_queue)
-
-        # split the first queue
-        keys = list(first_queue.keys())
-        self.num_expected_results = len(keys)
-
-        nb_keys_per_process = max(1, int(len(keys) / self.nb_processes))
 
         keys_for_processes = []
         for iproc in range(self.nb_processes):
             istart = iproc * nb_keys_per_process
-            keys_for_processes.append(keys[istart : istart + nb_keys_per_process])
+            keys_for_processes.append(
+                self._keys_first_queue[istart : istart + nb_keys_per_process]
+            )
 
         # change topology
         self.topology.first_queue = self.topology.works[0].output_queue
@@ -130,7 +118,7 @@ class MultiExecutorAsync(MultiExecutorBase):
                             work.output_queue[iq] = new_queue
 
             for key in keys_proc:
-                new_queue[key] = first_queue[key]
+                new_queue[key] = self._first_queue[key]
 
             old_queue = new_queue
 
@@ -148,8 +136,10 @@ class MultiExecutorAsync(MultiExecutorBase):
             ) from error
 
         params = copy.deepcopy(self.topology.params)
-        splitter = splitter_cls(params, self.nb_processes, self.topology)
-        self.num_expected_results = splitter.num_expected_results
+        splitter = splitter_cls(
+            params, self.nb_processes, self.topology, self._indices_to_be_computed
+        )
+        assert self.num_expected_results == splitter.num_expected_results
 
         if (
             hasattr(self.topology, "how_saving")

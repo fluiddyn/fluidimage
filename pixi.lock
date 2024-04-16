@@ -19141,6 +19141,87 @@ package:
   purls:
   - pkg:pypi/tblib
 - platform: linux-64
+  name: textual
+  version: 0.56.4
+  category: main
+  manager: conda
+  dependencies:
+  - markdown-it-py >=2.1.0
+  - python >=3.8.0,<4.0.0
+  - rich >=13.3.3
+  - typing-extensions >=4.4.0,<5.0.0
+  url: https://conda.anaconda.org/conda-forge/noarch/textual-0.56.4-pyhd8ed1ab_0.conda
+  hash:
+    md5: 94c0c6bff0adc8893c8912fda20831d6
+    sha256: df5ee1666df74859458a03771ae9154e4a3041508155567a8b254f41f2db7b56
+  build: pyhd8ed1ab_0
+  arch: x86_64
+  subdir: linux-64
+  build_number: 0
+  constrains:
+  - tree-sitter >=0.20.1,<0.21.0
+  - tree_sitter_languages >=1.7.0
+  license: MIT
+  noarch: python
+  size: 381024
+  timestamp: 1712679288725
+  purls:
+  - pkg:pypi/textual
+- platform: osx-64
+  name: textual
+  version: 0.56.4
+  category: main
+  manager: conda
+  dependencies:
+  - markdown-it-py >=2.1.0
+  - python >=3.8.0,<4.0.0
+  - rich >=13.3.3
+  - typing-extensions >=4.4.0,<5.0.0
+  url: https://conda.anaconda.org/conda-forge/noarch/textual-0.56.4-pyhd8ed1ab_0.conda
+  hash:
+    md5: 94c0c6bff0adc8893c8912fda20831d6
+    sha256: df5ee1666df74859458a03771ae9154e4a3041508155567a8b254f41f2db7b56
+  build: pyhd8ed1ab_0
+  arch: x86_64
+  subdir: osx-64
+  build_number: 0
+  constrains:
+  - tree-sitter >=0.20.1,<0.21.0
+  - tree_sitter_languages >=1.7.0
+  license: MIT
+  noarch: python
+  size: 381024
+  timestamp: 1712679288725
+  purls:
+  - pkg:pypi/textual
+- platform: win-64
+  name: textual
+  version: 0.56.4
+  category: main
+  manager: conda
+  dependencies:
+  - markdown-it-py >=2.1.0
+  - python >=3.8.0,<4.0.0
+  - rich >=13.3.3
+  - typing-extensions >=4.4.0,<5.0.0
+  url: https://conda.anaconda.org/conda-forge/noarch/textual-0.56.4-pyhd8ed1ab_0.conda
+  hash:
+    md5: 94c0c6bff0adc8893c8912fda20831d6
+    sha256: df5ee1666df74859458a03771ae9154e4a3041508155567a8b254f41f2db7b56
+  build: pyhd8ed1ab_0
+  arch: x86_64
+  subdir: win-64
+  build_number: 0
+  constrains:
+  - tree-sitter >=0.20.1,<0.21.0
+  - tree_sitter_languages >=1.7.0
+  license: MIT
+  noarch: python
+  size: 381024
+  timestamp: 1712679288725
+  purls:
+  - pkg:pypi/textual
+- platform: linux-64
   name: tifffile
   version: 2024.2.12
   category: main
@@ -19762,16 +19843,76 @@ package:
   purls:
   - pkg:pypi/trio
 - platform: linux-64
+  name: typing-extensions
+  version: 4.11.0
+  category: main
+  manager: conda
+  dependencies:
+  - typing_extensions 4.11.0 pyha770c72_0
+  url: https://conda.anaconda.org/conda-forge/noarch/typing-extensions-4.11.0-hd8ed1ab_0.conda
+  hash:
+    md5: 471e3988f8ca5e9eb3ce6be7eac3bcee
+    sha256: aecbd9c601ba5a6c128da8975276fd817b968a9edc969b7ae97aee76e80a14a6
+  build: hd8ed1ab_0
+  arch: x86_64
+  subdir: linux-64
+  build_number: 0
+  license: PSF-2.0
+  license_family: PSF
+  noarch: python
+  size: 10093
+  timestamp: 1712330094282
+- platform: osx-64
+  name: typing-extensions
+  version: 4.11.0
+  category: main
+  manager: conda
+  dependencies:
+  - typing_extensions 4.11.0 pyha770c72_0
+  url: https://conda.anaconda.org/conda-forge/noarch/typing-extensions-4.11.0-hd8ed1ab_0.conda
+  hash:
+    md5: 471e3988f8ca5e9eb3ce6be7eac3bcee
+    sha256: aecbd9c601ba5a6c128da8975276fd817b968a9edc969b7ae97aee76e80a14a6
+  build: hd8ed1ab_0
+  arch: x86_64
+  subdir: osx-64
+  build_number: 0
+  license: PSF-2.0
+  license_family: PSF
+  noarch: python
+  size: 10093
+  timestamp: 1712330094282
+- platform: win-64
+  name: typing-extensions
+  version: 4.11.0
+  category: main
+  manager: conda
+  dependencies:
+  - typing_extensions 4.11.0 pyha770c72_0
+  url: https://conda.anaconda.org/conda-forge/noarch/typing-extensions-4.11.0-hd8ed1ab_0.conda
+  hash:
+    md5: 471e3988f8ca5e9eb3ce6be7eac3bcee
+    sha256: aecbd9c601ba5a6c128da8975276fd817b968a9edc969b7ae97aee76e80a14a6
+  build: hd8ed1ab_0
+  arch: x86_64
+  subdir: win-64
+  build_number: 0
+  license: PSF-2.0
+  license_family: PSF
+  noarch: python
+  size: 10093
+  timestamp: 1712330094282
+- platform: linux-64
   name: typing_extensions
-  version: 4.9.0
+  version: 4.11.0
   category: main
   manager: conda
   dependencies:
   - python >=3.8
-  url: https://conda.anaconda.org/conda-forge/noarch/typing_extensions-4.9.0-pyha770c72_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/typing_extensions-4.11.0-pyha770c72_0.conda
   hash:
-    md5: a92a6440c3fe7052d63244f3aba2a4a7
-    sha256: f3c5be8673bfd905c4665efcb27fa50192f24f84fa8eff2f19cba5d09753d905
+    md5: 6ef2fc37559256cf682d8b3375e89b80
+    sha256: a7e8714d14f854058e971a6ed44f18cc37cc685f98ddefb2e6b7899a0cc4d1a2
   build: pyha770c72_0
   arch: x86_64
   subdir: linux-64
@@ -19779,21 +19920,21 @@ package:
   license: PSF-2.0
   license_family: PSF
   noarch: python
-  size: 36058
-  timestamp: 1702176292645
+  size: 37583
+  timestamp: 1712330089194
   purls:
   - pkg:pypi/typing-extensions
 - platform: osx-64
   name: typing_extensions
-  version: 4.9.0
+  version: 4.11.0
   category: main
   manager: conda
   dependencies:
   - python >=3.8
-  url: https://conda.anaconda.org/conda-forge/noarch/typing_extensions-4.9.0-pyha770c72_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/typing_extensions-4.11.0-pyha770c72_0.conda
   hash:
-    md5: a92a6440c3fe7052d63244f3aba2a4a7
-    sha256: f3c5be8673bfd905c4665efcb27fa50192f24f84fa8eff2f19cba5d09753d905
+    md5: 6ef2fc37559256cf682d8b3375e89b80
+    sha256: a7e8714d14f854058e971a6ed44f18cc37cc685f98ddefb2e6b7899a0cc4d1a2
   build: pyha770c72_0
   arch: x86_64
   subdir: osx-64
@@ -19801,21 +19942,21 @@ package:
   license: PSF-2.0
   license_family: PSF
   noarch: python
-  size: 36058
-  timestamp: 1702176292645
+  size: 37583
+  timestamp: 1712330089194
   purls:
   - pkg:pypi/typing-extensions
 - platform: win-64
   name: typing_extensions
-  version: 4.9.0
+  version: 4.11.0
   category: main
   manager: conda
   dependencies:
   - python >=3.8
-  url: https://conda.anaconda.org/conda-forge/noarch/typing_extensions-4.9.0-pyha770c72_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/typing_extensions-4.11.0-pyha770c72_0.conda
   hash:
-    md5: a92a6440c3fe7052d63244f3aba2a4a7
-    sha256: f3c5be8673bfd905c4665efcb27fa50192f24f84fa8eff2f19cba5d09753d905
+    md5: 6ef2fc37559256cf682d8b3375e89b80
+    sha256: a7e8714d14f854058e971a6ed44f18cc37cc685f98ddefb2e6b7899a0cc4d1a2
   build: pyha770c72_0
   arch: x86_64
   subdir: win-64
@@ -19823,8 +19964,8 @@ package:
   license: PSF-2.0
   license_family: PSF
   noarch: python
-  size: 36058
-  timestamp: 1702176292645
+  size: 37583
+  timestamp: 1712330089194
   purls:
   - pkg:pypi/typing-extensions
 - platform: linux-64

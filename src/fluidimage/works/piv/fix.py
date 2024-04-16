@@ -40,19 +40,19 @@ class WorkFIX(BaseWork):
             """
 Parameters indicating how are detected and processed false vectors.
 
-correl_min : 0.2
+- correl_min : 0.2
 
-    Vectors associated with correlation smaller than correl_min are considered
-    as false vectors.
+  Vectors associated with correlation smaller than correl_min are considered
+  as false vectors.
 
-threshold_diff_neighbour : 10
+- threshold_diff_neighbour : 10
 
-    Vectors for which the difference with the average vectors is larger than
-    `threshold_diff_neighbour` are considered as false vectors.
+  Vectors for which the difference with the average vectors is larger than
+  `threshold_diff_neighbour` are considered as false vectors.
 
-displacement_max : None
+- displacement_max : None
 
-    Vectors larger than `displacement_max` are considered as false vectors.
+  Vectors larger than `displacement_max` are considered as false vectors.
 
 """
         )

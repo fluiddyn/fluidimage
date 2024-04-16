@@ -94,7 +94,7 @@ class ArrayCouple(DataObject):
             self._load(hdf5_object=hdf5_parent["couple"])
             return
 
-        if serie is not None:
+        if serie is not None and paths is None:
             names = serie.get_name_arrays()
             if len(names) != 2:
                 raise ValueError("serie has to contain 2 arrays.")
@@ -107,16 +107,21 @@ class ArrayCouple(DataObject):
                     + str(paths)
                 )
 
-            self.paths = paths = tuple(os.path.abspath(p) for p in paths)
+        if paths is not None:
+            paths = self.paths = tuple(os.path.abspath(p) for p in paths)
 
-            if arrays is None:
-                arrays = self.read_images()
+        if arrays is None:
+            arrays = self.read_images()
 
         self.paths = paths
         self.names = tuple(names)
-        self.name = "-".join(self.names)
+        self.name = self._compute_name_from_names()
+        self.shape_images = arrays[0].shape
         self.arrays = self._mask_arrays(arrays)
         self.serie = serie
+
+    def _compute_name_from_names(self):
+        return "-".join(self.names)
 
     def _read_image(self, index):
         arr = imread(self.paths[index])
@@ -171,12 +176,7 @@ class ArrayCouple(DataObject):
         group.attrs["names"] = repr(self.names).encode()
         group.attrs["paths"] = repr(self.paths).encode()
 
-        if not hasattr(self, "arrays"):
-            arr0 = self._mask_array(self._read_image(0))
-        else:
-            arr0 = self.arrays[0]
-
-        group.create_dataset("shape_images", data=arr0.shape)
+        group.create_dataset("shape_images", data=self.shape_images)
 
     def _load(self, path=None, hdf5_object=None):
         if path is not None:
@@ -203,33 +203,8 @@ class ArrayCouple(DataObject):
 class ArrayCoupleBOS(ArrayCouple):
     """Couple of arrays (images)."""
 
-    def __init__(
-        self,
-        names=None,
-        arrays=None,
-        serie=None,
-        paths=None,
-        str_path=None,
-        hdf5_parent=None,
-        params_mask=None,
-    ):
-        self.params_mask = params_mask
-
-        if str_path is not None:
-            self._load(path=str_path)
-            return
-
-        if hdf5_parent is not None:
-            self._load(hdf5_object=hdf5_parent["couple"])
-            return
-
-        if paths is not None:
-            self.paths = tuple(os.path.abspath(p) for p in paths)
-
-        self.serie = serie
-        self.names = tuple(names)
-        self.name = self.names[-1]
-        self.arrays = self._mask_arrays(arrays)
+    def _compute_name_from_names(self):
+        return self.names[-1]
 
 
 class HeavyPIVResults(DataObject):
@@ -594,6 +569,9 @@ class MultipassPIVResults(DataObject):
             with h5py.File(path_file, "w") as file:
                 file.attrs["class_name"] = "MultipassPIVResults"
                 file.attrs["module_name"] = "fluidimage.data_objects.piv"
+                file.attrs["Conventions"] = (
+                    "fluidimage.data_objects.piv.MultipassPIVResults v1"
+                )
 
                 file.attrs["nb_passes"] = len(self.passes)
 
@@ -833,6 +811,9 @@ class LightPIVResults(DataObject):
         with h5py.File(path_file, "w") as file:
             file.attrs["class_name"] = "LightPIVResults"
             file.attrs["module_name"] = "fluidimage.data_objects.piv"
+            file.attrs["Conventions"] = (
+                "fluidimage.data_objects.piv.LightPIVResults v1"
+            )
 
             self._save_in_hdf5_object(file, tag="piv")
 

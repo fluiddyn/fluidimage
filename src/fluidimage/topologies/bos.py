@@ -21,8 +21,15 @@ from fluidimage.works.bos import WorkBOS
 
 
 class SplitterBos(SplitterFromImages):
-    def __init__(self, params, num_processes, topology=None):
-        super().__init__(params, num_processes, topology=topology)
+    def __init__(
+        self, params, num_processes, topology=None, indices_to_be_computed=None
+    ):
+        super().__init__(
+            params,
+            num_processes,
+            topology=topology,
+            indices_to_be_computed=indices_to_be_computed,
+        )
         self.params.reference = topology.path_reference
 
 

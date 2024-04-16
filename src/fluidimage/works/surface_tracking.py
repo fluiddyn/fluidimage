@@ -96,66 +96,85 @@ class WorkSurfaceTracking(BaseWork):
         params.surface_tracking._set_doc(
             """Surface Tracking parameters:
 
-xmin: int (default 475)
-    xmin to crop the image im[xmin:xmax, ymin:ymax].
+- xmin: int (default 475)
 
-xmax: int (default 640)
-    xmax to crop the image im[xmin:xmax, ymin:ymax]
+  xmin to crop the image im[xmin:xmax, ymin:ymax].
 
-ymin: int (default 50)
-    ymin to crop the image im[xmin:xmax, ymin:ymax]
+- xmax: int (default 640)
 
-ymax: int (default 700)
-    ymax to crop the image im[xmin:xmax, ymin:ymax]
+  xmax to crop the image im[xmin:xmax, ymin:ymax]
 
-distance_lens: float (default 0.36)
-    distance in [m] lenses of camera/projetor
+- ymin: int (default 50)
 
-distance_object: float (default 1.07)
-    distance in [m] camera/projector and surface
+  ymin to crop the image im[xmin:xmax, ymin:ymax]
 
-pix_size: float (default 2.4 * 10 ** -4)
-    pixel size
+- ymax: int (default 700)
 
-startref_frame: int (default 0)
-    indice of first reference image
+  ymax to crop the image im[xmin:xmax, ymin:ymax]
 
-lastref_frame: int (default 49)
-    indice of last reference image
+- distance_lens: float (default 0.36)
 
-sur: int (default 16)
+  distance in [m] lenses of camera/projetor
 
-k_x: float (default 70.75)
-    wave vector oj. grid (approx. value, will set accurate later)
+- distance_object: float (default 1.07)
 
-k_y: float (default 0)
-    wave vector of the grid y-axis
+  distance in [m] camera/projector and surface
 
-slicer: int (default 4)
-    cut the borders
+- pix_size: float (default 2.4 * 10 ** -4)
 
-red_factor: int (default 1)
-    reduction factor to for the pixels to take tp speed up
+  pixel size
 
-n_frames_stock: int (default 1)
-    number of frames to stock in one file
+- startref_frame: int (default 0)
 
-crop_edge: boolean (default False)
-    searches for the structure and crops the part of the frame outside of
-    the structure
+  indice of first reference image
 
-borders: int (default 7)
-    pixel to set zero height additional to the borders if the structure was
-    cropped to avoid jerks
+- lastref_frame: int (default 49)
 
-correct_pos: boolean (default=False)
-    correct position of the height (necessary for large heights)
+  indice of last reference image
 
-correct_height: boolean (default=False)
-    correct height by a reference (provided from path_ref)
+- sur: int (default 16)
 
-offset: float (default 0.0)
-    height of the reference surface in [m] to zero level
+- k_x: float (default 70.75)
+
+  wave vector oj. grid (approx. value, will set accurate later)
+
+- k_y: float (default 0)
+
+  wave vector of the grid y-axis
+
+- slicer: int (default 4)
+
+  cut the borders
+
+- red_factor: int (default 1)
+
+  reduction factor to for the pixels to take tp speed up
+
+- n_frames_stock: int (default 1)
+
+  number of frames to stock in one file
+
+- crop_edge: boolean (default False)
+
+  searches for the structure and crops the part of the frame outside of
+  the structure
+
+- borders: int (default 7)
+
+  pixel to set zero height additional to the borders if the structure was
+  cropped to avoid jerks
+
+- correct_pos: boolean (default=False)
+
+  correct position of the height (necessary for large heights)
+
+- correct_height: boolean (default=False)
+
+  correct height by a reference (provided from path_ref)
+
+- offset: float (default 0.0)
+
+  height of the reference surface in [m] to zero level
 """
         )
 

@@ -12,6 +12,7 @@ from copy import deepcopy
 from time import sleep
 
 from fluiddyn import time_as_str
+from fluidimage.topologies.splitters import Splitter
 from fluidimage.util import logger
 
 from .base import MultiExecutorBase
@@ -20,7 +21,9 @@ from .base import MultiExecutorBase
 class MultiExecutorSubproc(MultiExecutorBase):
     """Multi executor based on subprocesses and splitters"""
 
-    def _start_processes(self):
+    splitter: Splitter
+
+    def _init_num_expected_results(self):
 
         try:
             splitter_cls = self.topology.Splitter
@@ -62,9 +65,14 @@ class MultiExecutorSubproc(MultiExecutorBase):
         if hasattr(self.topology, ""):
             params.saving.path = self.topology.path_dir_result
 
-        splitter = splitter_cls(params, self.nb_processes, self.topology)
-        self.num_expected_results = splitter.num_expected_results
+        self.splitter = splitter_cls(
+            params, self.nb_processes, self.topology, self._indices_to_be_computed
+        )
+        self.num_expected_results = self.splitter.num_expected_results
 
+    def _start_processes(self):
+
+        splitter = self.splitter
         path_dir_params = (
             self.path_dir_result / f"params_files_{self._unique_postfix}"
         )

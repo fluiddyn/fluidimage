@@ -43,7 +43,7 @@ def test_splitter_from_serie():
 
     splitter = SplitterFromSeries(params, 4)
 
-    p_series = splitter.get_params_series(params)
+    p_series = splitter._get_params_series(params)
 
     series = SeriesOfArrays(
         p_series.path,
@@ -56,7 +56,7 @@ def test_splitter_from_serie():
 
     indices_new = []
     for params_split in splitter.iter_over_new_params():
-        p_series = splitter.get_params_series(params_split)
+        p_series = splitter._get_params_series(params_split)
         indices_new.extend(
             list(range(p_series.ind_start, p_series.ind_stop, p_series.ind_step))
         )

@@ -11,7 +11,6 @@ A executor using async for IO and servers for CPU-bounded tasks.
 
 import os
 import signal
-from pathlib import Path
 
 import numpy as np
 import trio
@@ -50,10 +49,10 @@ class ExecutorAsyncServers(ExecutorAsync):
     _type_server = "multiprocessing"
 
     def _init_log_path(self):
-        name = "_".join(("log", time_as_str(), str(os.getpid())))
-        path_dir_log = self.path_dir_exceptions = self.path_dir_result / name
+        super()._init_log_path()
+        path_dir_log = self.path_dir_exceptions
         path_dir_log.mkdir(exist_ok=True)
-        self._log_path = path_dir_log / (name + ".txt")
+        self._log_path = path_dir_log / (path_dir_log.name + ".txt")
 
     def __init__(
         self,

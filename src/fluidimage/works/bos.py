@@ -34,11 +34,11 @@ class WorkBOS(BaseWorkFromImage):
 
         params._set_doc(
             """
-reference : str or int, {0}
+- reference : str or int, {0}
 
-    Reference file (from which the displacements will be computed). Can be an
-    absolute file path, a file name or the index in the list of files found
-    from the parameters in ``params.images``.
+  Reference file (from which the displacements will be computed). Can be an
+  absolute file path, a file name or the index in the list of files found
+  from the parameters in ``params.images``.
 
 """
         )

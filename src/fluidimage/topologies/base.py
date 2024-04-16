@@ -172,18 +172,18 @@ class TopologyBase:
             attribs={"path": None, "how": "ask", "postfix": cls._short_name},
             doc="""Saving of the results.
 
-path : None or str
+- path : None or str
 
-    Path of the directory where the data will be saved. If None, the path is
-    obtained from the input path and the parameter `postfix`.
+  Path of the directory where the data will be saved. If None, the path is
+  obtained from the input path and the parameter `postfix`.
 
-how : str {'ask'}
+- how : str {'ask'}
 
-    'ask', 'new_dir', 'complete' or 'recompute'.
+  'ask', 'new_dir', 'complete' or 'recompute'.
 
-postfix : str
+- postfix : str
 
-    Postfix from which the output file is computed.
+  Postfix from which the output file is computed.
 """,
         )
 
@@ -321,10 +321,7 @@ postfix : str
             txt += "."
 
         if hasattr(self, "path_dir_result"):
-            txt += "\npath results:\n" + str(
-                Path(self.path_dir_result).absolute()
-            )
-
+            txt += f"\npath results:\n{Path(self.path_dir_result).absolute()}\n"
         return txt
 
     def print_at_exit(self, time_since_start):

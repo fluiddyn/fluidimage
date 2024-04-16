@@ -90,32 +90,36 @@ class TopologyPreproc(TopologyBaseFromSeries):
             """
 Parameters describing image loading prior to preprocessing.
 
-str_subset : str
-    Determines the subset from the whole series of images that should be loaded
-    and preprocessed together. Particularly useful when temporal filtering requires
-    multiple images.
+- str_subset : str
 
-    For example, for a series of images with just one index,
+  Determines the subset from the whole series of images that should be loaded
+  and preprocessed together. Particularly useful when temporal filtering requires
+  multiple images.
 
-        >>> str_subset = 'i:i+1'   # load one image at a time
-        >>> str_subset = 'i-2:i+3'  # loads 5 images at a time
+  For example, for a series of images with just one index,
 
-    Similarly for two indices,
+  >>> str_subset = 'i:i+1'   # load one image at a time
+  >>> str_subset = 'i-2:i+3'  # loads 5 images at a time
 
-        >>> str_subset = 'i:i+1,0'   # load one image at a time, with second index fixed
-        >>> str_subset = 'i-2:i+3,0'  # loads 5 images at a time, with second index fixed
+  Similarly for two indices,
 
-ind_start : int
-    Start index for the whole series of images being loaded.
-    For more details: see {class}`fluiddyn.util.serieofarrays.SeriesOfArrays`.
+  >>> str_subset = 'i:i+1,0'   # load one image at a time, with second index fixed
+  >>> str_subset = 'i-2:i+3,0'  # loads 5 images at a time, with second index fixed
 
-ind_stop : int
-    Stop index for the whole series of images being loaded.
-    For more details: see {class}`fluiddyn.util.serieofarrays.SeriesOfArrays`.
+- ind_start : int
 
-ind_step : int
-    Step index for the whole series of images being loaded.
-    For more details: see {class}`fluiddyn.util.serieofarrays.SeriesOfArrays`.
+  Start index for the whole series of images being loaded.
+  For more details: see {class}`fluiddyn.util.serieofarrays.SeriesOfArrays`.
+
+- ind_stop : int
+
+  Stop index for the whole series of images being loaded.
+  For more details: see {class}`fluiddyn.util.serieofarrays.SeriesOfArrays`.
+
+- ind_step : int
+
+  Step index for the whole series of images being loaded.
+  For more details: see {class}`fluiddyn.util.serieofarrays.SeriesOfArrays`.
 
 """
         )
@@ -133,26 +137,28 @@ ind_step : int
             """
 Parameters describing image saving after preprocessing.
 
-path : str or None
-    Path to which preprocessed images are saved.
+- path : str or None
 
-how : str {'ask', 'new_dir', 'complete', 'recompute'}
-    How preprocessed images must be saved if it already exists or not.
+  Path to which preprocessed images are saved.
 
-postfix : str
-    A suffix added to the new directory where preprocessed images are saved.
+- how : str {'ask', 'new_dir', 'complete', 'recompute'}
 
-format : str {'img', 'hdf5'}
-    Format in which preprocessed image data must be saved.
+  How preprocessed images must be saved if it already exists or not.
 
-str_subset : str or None
-    NotImplemented! Determines the sub-subset of images must be saved from subset
-    of images that were loaded and preprocessed. When set as None, saves the
-    middle image from every subset.
+- postfix : str
 
-    .. todo::
+  A suffix added to the new directory where preprocessed images are saved.
 
-        Implement the option params.saving.str_subset...
+- format : str {'img', 'hdf5'}
+
+  Format in which preprocessed image data must be saved.
+
+- str_subset : str or None
+
+  NotImplemented! Determines the sub-subset of images must be saved from subset
+  of images that were loaded and preprocessed. When set as None, saves the
+  middle image from every subset.
+
 """
         )
 

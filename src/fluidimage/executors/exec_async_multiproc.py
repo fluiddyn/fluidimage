@@ -14,7 +14,7 @@ from multiprocessing import Event, Pipe, Process
 
 import trio
 
-from fluidimage.util import cstring, log_debug, log_memory_usage, logger
+from fluidimage.util import log_debug, logger
 
 from .exec_async import ExecutorAsync
 

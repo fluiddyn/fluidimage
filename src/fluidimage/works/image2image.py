@@ -28,14 +28,14 @@ def complete_im2im_params_with_default(params):
 
     params._set_doc(
         """
-im2im : str {None}
+- im2im : str {None}
 
-    Function or class to be used to process the images.
+  Function or class to be used to process the images.
 
-args_init : object {None}
+- args_init : object {None}
 
-    An argument given to the init function of the class used to process the
-    images.
+  An argument given to the init function of the class used to process the
+  images.
 
 """
     )

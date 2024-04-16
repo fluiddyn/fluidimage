@@ -28,6 +28,8 @@ from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles, SeriesOfArrays
 
 
 def split_range(start0, stop0, step0, num_parts):
+    """Split a range in ``num_parts`` of approximately equal size"""
+
     num_elems = len(range(start0, stop0, step0))
 
     num_elems_per_parts_approx = num_elems // num_parts
@@ -52,6 +54,9 @@ def split_range(start0, stop0, step0, num_parts):
 
 
 def split_list(sequence, num_parts):
+    """Split a sequence of ``num_parts`` of approximately equal size"""
+    if not sequence:
+        return [[] for _ in range(num_parts)]
     num_parts = min(num_parts, len(sequence))
     k, m = divmod(len(sequence), num_parts)
     return [
@@ -61,11 +66,15 @@ def split_list(sequence, num_parts):
 
 
 class Splitter(ABC):
+    """Split a computation in pieces"""
 
-    def __init__(self, params, num_processes, topology=None):
+    def __init__(
+        self, params, num_processes, topology=None, indices_to_be_computed=None
+    ):
         """Initialize the splitter"""
         self.params = params
         self.num_processes = num_processes
+        del topology, indices_to_be_computed
 
     @abstractmethod
     def iter_over_new_params(self):
@@ -73,6 +82,8 @@ class Splitter(ABC):
 
 
 class SplitterCompleteAware(Splitter):
+    """Splitter class aware of the 'complete' option"""
+
     _path_dir_indices: Path
     indices_lists: list
     _indices_files_saved: bool
@@ -83,6 +94,7 @@ class SplitterCompleteAware(Splitter):
         """Get the Parameters object corresponding to the series or the images"""
 
     def save_indices_files(self, path_dir):
+        """Save in files indices000.txt the indices to be computed"""
         self._path_dir_indices = path_dir
 
         for idx_process, indices in enumerate(self.indices_lists):
@@ -126,12 +138,20 @@ class SplitterCompleteAware(Splitter):
 
 
 class SplitterFromSeries(SplitterCompleteAware):
+    """Split from a SeriesOfArrays"""
 
-    def __init__(self, params, num_processes, topology=None):
-        super().__init__(params, num_processes, topology=topology)
+    def __init__(
+        self, params, num_processes, topology=None, indices_to_be_computed=None
+    ):
+        super().__init__(
+            params,
+            num_processes,
+            topology=topology,
+            indices_to_be_computed=indices_to_be_computed,
+        )
 
         if topology is None:
-            p_series = self.get_params_series(params)
+            p_series = self._get_params_series(params)
             self.series = SeriesOfArrays(
                 p_series.path,
                 p_series.str_subset,
@@ -152,9 +172,12 @@ class SplitterFromSeries(SplitterCompleteAware):
             and topology.how_saving == "complete"
             and hasattr(topology, "compute_indices_to_be_computed")
         ):
-            indices = topology.compute_indices_to_be_computed()
-            self.indices_lists = split_list(indices, self.num_processes)
+            if indices_to_be_computed is not None:
+                indices = indices_to_be_computed
+            else:
+                indices = topology.compute_indices_to_be_computed()
             self.num_expected_results = len(indices)
+            self.indices_lists = split_list(indices, self.num_processes)
         else:
             self.num_expected_results = len(
                 range(
@@ -170,29 +193,37 @@ class SplitterFromSeries(SplitterCompleteAware):
                 self.num_processes,
             )
 
-    def get_params_series(self, params):
+    def _get_params_series(self, params):
         return params.series
 
     def _get_params_things(self, params):
-        return self.get_params_series(params)
+        return self._get_params_series(params)
 
     def _iter_over_new_params_from_ranges(self):
         for sss in self.ranges:
             if len(range(*sss)) == 0:
                 continue
             params = deepcopy(self.params)
-            p_series = self.get_params_series(params)
+            p_series = self._get_params_series(params)
             p_series.ind_start, p_series.ind_stop, p_series.ind_step = sss
             yield params
 
 
 class SplitterFromImages(SplitterCompleteAware):
+    """Split from a SerieOfArraysFromFiles"""
 
-    def __init__(self, params, num_processes, topology=None):
-        super().__init__(params, num_processes, topology=topology)
+    def __init__(
+        self, params, num_processes, topology=None, indices_to_be_computed=None
+    ):
+        super().__init__(
+            params,
+            num_processes,
+            topology=topology,
+            indices_to_be_computed=indices_to_be_computed,
+        )
 
         if topology is None:
-            p_images = self.get_params_images(params)
+            p_images = self._get_params_images(params)
             self.serie = SerieOfArraysFromFiles(
                 p_images.path,
                 p_images.str_subset,
@@ -210,9 +241,12 @@ class SplitterFromImages(SplitterCompleteAware):
             and topology.how_saving == "complete"
             and hasattr(topology, "compute_indices_to_be_computed")
         ):
-            indices = topology.compute_indices_to_be_computed()
-            self.indices_lists = split_list(indices, self.num_processes)
+            if indices_to_be_computed is not None:
+                indices = indices_to_be_computed
+            else:
+                indices = topology.compute_indices_to_be_computed()
             self.num_expected_results = len(indices)
+            self.indices_lists = split_list(indices, self.num_processes)
         else:
             self.num_expected_results = len(self.serie)
             slicing_tuples = self.serie.get_slicing_tuples()
@@ -226,18 +260,18 @@ class SplitterFromImages(SplitterCompleteAware):
                     ":".join(str(n) for n in sss) for sss in slicing_tuples[1:]
                 )
 
-    def get_params_images(self, params):
+    def _get_params_images(self, params):
         return params.images
 
     def _get_params_things(self, params):
-        return self.get_params_images(params)
+        return self._get_params_images(params)
 
     def _iter_over_new_params_from_ranges(self):
         for sss in self.ranges:
             if len(range(*sss)) == 0:
                 continue
             params = deepcopy(self.params)
-            p_images = self.get_params_images(params)
+            p_images = self._get_params_images(params)
             p_images.str_subset = (
                 ":".join(str(n) for n in sss) + self.slicing_str_post
             )
