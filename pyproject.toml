@@ -64,7 +64,7 @@ pims = ["pims"]
 opencv = ["opencv-python"]
 graph = ["gprof2dot"]
 pytest = ["pytest", "pytest-asyncio"]
-all = ["fluidimage[pims, opencv-python, gprof2dot, pytest]"]
+all = ["fluidimage[pims, opencv, graph, pytest]"]
 # qt = ["PySide6"]
 
 [project.entry-points."fluidimage.executors"]
