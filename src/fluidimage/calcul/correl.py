@@ -24,10 +24,6 @@ different methods.
    :members:
    :private-members:
 
-.. autoclass:: CorrelTheano
-   :members:
-   :private-members:
-
 .. autoclass:: CorrelFFTNumpy
    :members:
    :private-members:
@@ -45,6 +41,8 @@ different methods.
    :private-members:
 
 """
+
+from abc import ABC, abstractmethod
 
 import numpy as np
 from numpy.fft import fft2, ifft2
@@ -133,7 +131,7 @@ def _compute_indices_max(
 ):
     """Compute the indices of the maximum correlation
 
-    Warning: important for perf (~25% for PIV)
+    Warning: important for perf, so use Pythran
 
     """
     i0_start, i0_stop = start_stop_for_search0
@@ -160,7 +158,7 @@ def _compute_indices_max(
     return ix, iy, correl_max
 
 
-class CorrelBase:
+class CorrelBase(ABC):
     """This class is meant to be subclassed, not instantiated directly."""
 
     _tag = "base"
@@ -193,9 +191,13 @@ class CorrelBase:
 
         self.start_stop_for_search0 = [0, None]
         self.start_stop_for_search1 = [0, None]
-        self._init2()
+        self._finalize_init()
 
-    def _init2(self):
+    @abstractmethod
+    def __call__(self, im0, im1):
+        """Compute the correlation from 2 images."""
+
+    def _finalize_init(self):
         """Finalize initialization"""
 
     def compute_displacement_from_indices(self, ix, iy):
@@ -203,9 +205,11 @@ class CorrelBase:
         return self.ix0 - ix, self.iy0 - iy
 
     def compute_indices_from_displacement(self, dx, dy):
+        """Compute the indices corresponding to a displacement"""
         return self.ix0 - dx, self.iy0 - dy
 
     def get_indices_no_displacement(self):
+        """Get the indices corresponding to no displacement"""
         return self.iy0, self.ix0
 
     def _compute_indices_max(self, correl, norm):
@@ -242,7 +246,7 @@ class CorrelBase:
         elif self.nb_peaks_to_search >= 1:
             correl = correl.copy()
             other_peaks = []
-            for ip in range(0, self.nb_peaks_to_search - 1):
+            for _ in range(0, self.nb_peaks_to_search - 1):
                 correl[
                     iy - self.particle_radius : iy + self.particle_radius + 1,
                     ix - self.particle_radius : ix + self.particle_radius + 1,
@@ -374,13 +378,11 @@ def correl_numpy(im0: A, im1: A, disp_max: int):
 
 
 class CorrelPythran(CorrelBase):
-    """Correlation using pythran.
-    Correlation class by hands with numpy.
-    """
+    """Correlation computed "by hands" with Numpy and Pythran"""
 
     _tag = "pythran"
 
-    def _init2(self):
+    def _finalize_init(self):
         if self.displacement_max is None:
             if self.im0_shape == self.im1_shape:
                 displacement_max = min(self.im0_shape) // 2 - 1
@@ -405,8 +407,7 @@ class CorrelPythran(CorrelBase):
 
     def __call__(self, im0, im1):
         """Compute the correlation from images."""
-        correl, norm = correl_numpy(im0, im1, self.displacement_max)
-        return correl, norm
+        return correl_numpy(im0, im1, self.displacement_max)
 
 
 class CorrelPyCuda(CorrelBase):
@@ -416,7 +417,7 @@ class CorrelPyCuda(CorrelBase):
 
     _tag = "pycuda"
 
-    def _init2(self):
+    def _finalize_init(self):
         if self.displacement_max is None:
             if self.im0_shape == self.im1_shape:
                 displacement_max = min(self.im0_shape) // 2
@@ -442,7 +443,8 @@ class CorrelPyCuda(CorrelBase):
     def __call__(self, im0, im1):
         """Compute the correlation from images."""
         correl, norm = correl_pycuda(im0, im1, self.displacement_max)
-        self._add_info_to_correl(correl)
+        # ???
+        # self._add_info_to_correl(correl)
         return correl, norm
 
 
@@ -451,7 +453,7 @@ class CorrelScipySignal(CorrelBase):
 
     _tag = "scipy.signal"
 
-    def _init2(self):
+    def _finalize_init(self):
         if self.mode is None:
             self.mode = "same"
 
@@ -479,7 +481,7 @@ class CorrelScipySignal(CorrelBase):
 
     def __call__(self, im0, im1):
         """Compute the correlation from images."""
-        norm = np.sqrt(np.sum(im1**2) * np.sum(im0**2))
+        norm = _norm_images_same_shape(im0, im1)
         if self.mode == "valid":
             correl = correlate2d(im0, im1, mode="valid")
         elif self.mode == "same":
@@ -495,14 +497,13 @@ class CorrelScipyNdimage(CorrelBase):
 
     _tag = "scipy.ndimage"
 
-    def _init2(self):
+    def _finalize_init(self):
         self.iy0, self.ix0 = (i // 2 for i in self.im0_shape)
 
     def __call__(self, im0, im1):
         """Compute the correlation from images."""
         norm = np.sum(im1**2)
         correl = correlate(im0, im1, mode="constant", cval=im1.min())
-
         return correl, norm
 
 
@@ -511,7 +512,7 @@ class CorrelFFTBase(CorrelBase):
 
     _tag = "fft.base"
 
-    def _init2(self):
+    def _finalize_init(self):
         if self.displacement_max is not None:
             where_large_displacement = np.zeros(self.im0_shape, dtype=bool)
 
@@ -583,13 +584,35 @@ def _norm_images_same_shape(im0: "float32[][]", im1: "float32[][]"):
     return np.sqrt(tmp0 * tmp1)
 
 
+@boost
 def _like_fftshift(arr: A2D):
     """Pythran optimized function doing the equivalent of
 
     np.ascontiguousarray(np.fft.fftshift(arr[::-1, ::-1]))
 
     """
-    return np.ascontiguousarray(np.fft.fftshift(arr[::-1, ::-1]))
+    n0, n1 = arr.shape
+
+    assert n0 % 2 == 0
+    assert n1 % 2 == 0
+
+    arr = np.ascontiguousarray(arr[::-1, ::-1])
+    tmp = np.empty_like(arr)
+
+    for i0 in range(n0):
+        for i1 in range(n1 // 2):
+            tmp[i0, n1 // 2 + i1] = arr[i0, i1]
+            tmp[i0, i1] = arr[i0, n1 // 2 + i1]
+
+    arr_1d_view = arr.ravel()
+    tmp_1d_view = tmp.ravel()
+
+    n_half = n0 * n1 // 2
+    for idx in range(n_half):
+        arr_1d_view[idx + n_half] = tmp_1d_view[idx]
+        arr_1d_view[idx] = tmp_1d_view[idx + n_half]
+
+    return arr
 
 
 class CorrelFFTNumpy(CorrelFFTBase):
@@ -599,7 +622,6 @@ class CorrelFFTNumpy(CorrelFFTBase):
 
     def __call__(self, im0, im1):
         """Compute the correlation from images."""
-        norm = np.sqrt(np.sum(im1**2) * np.sum(im0**2))
         norm = _norm_images_same_shape(im0, im1)
         correl = ifft2(fft2(im0).conj() * fft2(im1)).real
         return _like_fftshift(correl), norm
@@ -609,15 +631,15 @@ class CorrelFFTWithOperBase(CorrelFFTBase):
 
     FFTClass: object
 
-    def _init2(self):
-        CorrelFFTBase._init2(self)
+    def _finalize_init(self):
+        CorrelFFTBase._finalize_init(self)
         n0, n1 = self.im0_shape
         self.oper = self.FFTClass(n1, n0)
 
     def __call__(self, im0, im1):
         """Compute the correlation from images.
 
-        Warning: important for perf (~25% for PIV)
+        Warning: important for perf, so use Pythran
 
         """
         norm = _norm_images_same_shape(im0, im1) * im0.size
