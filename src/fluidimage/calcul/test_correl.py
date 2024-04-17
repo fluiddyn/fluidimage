@@ -8,7 +8,6 @@ from fluidimage.calcul.correl import (
     CorrelPyCuda,
     CorrelPythran,
     CorrelScipySignal,
-    CorrelTheano,
     _like_fftshift,
     correlation_classes,
 )
@@ -20,7 +19,6 @@ logger = logging.getLogger("fluidimage")
 classes = {k.replace(".", "_"): v for k, v in correlation_classes.items()}
 classes2 = {
     "sig": CorrelScipySignal,
-    "theano": CorrelTheano,
     "pycuda": CorrelPyCuda,
     "pythran": CorrelPythran,
 }
@@ -42,12 +40,6 @@ try:
     import skcuda
 except ImportError:
     classes.pop("skcufft")
-
-try:
-    import theano
-except ImportError:
-    classes.pop("theano")
-    classes2.pop("theano")
 
 
 class TestCorrel(unittest.TestCase):
