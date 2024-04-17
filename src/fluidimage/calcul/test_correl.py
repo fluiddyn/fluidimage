@@ -9,6 +9,7 @@ from fluidimage.calcul.correl import (
     CorrelPythran,
     CorrelScipySignal,
     CorrelTheano,
+    _like_fftshift,
     correlation_classes,
 )
 from fluidimage.synthetic import make_synthetic_images
@@ -247,6 +248,16 @@ for k, cls in classes2.items():
         )
 
     exec("TestCorrel2.test_correl_images_diff_sizes" + k + " = _test2")
+
+
+def test_like_fftshift():
+    n0, n1 = 24, 32
+    correl = np.reshape(np.arange(n0 * n1), (n0, n1))
+    assert np.allclose(
+        _like_fftshift(correl),
+        np.ascontiguousarray(np.fft.fftshift(correl[::-1, ::-1])),
+    )
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -749,26 +749,13 @@ class CorrelFFTBase(CorrelBase):
         return super().compute_displacements_from_correl(correl, norm=norm)
 
 
-class CorrelFFTNumpy(CorrelFFTBase):
-    """Correlations using numpy.fft."""
-
-    _tag = "np.fft"
-
-    def __call__(self, im0, im1):
-        """Compute the correlation from images."""
-        norm = np.sqrt(np.sum(im1**2) * np.sum(im0**2))
-        corr = ifft2(fft2(im0).conj() * fft2(im1)).real
-        correl = np.fft.fftshift(corr[::-1, ::-1])
-        return np.ascontiguousarray(correl), norm
-
-
 @boost
 def _norm_images_same_shape(im0: "float32[][]", im1: "float32[][]"):
     """Less accurate than the numpy equivalent but much faster
 
     Should return something close to:
 
-    np.sqrt(np.sum(im1**2) * np.sum(im0**2)) * im0.size
+    np.sqrt(np.sum(im1**2) * np.sum(im0**2))
 
     """
     im0 = im0.ravel()
@@ -781,16 +768,36 @@ def _norm_images_same_shape(im0: "float32[][]", im1: "float32[][]"):
     return np.sqrt(tmp0 * tmp1)
 
 
-class CorrelFFTW(CorrelFFTBase):
-    """Correlations using fluidimage.fft.FFTW2DReal2Complex"""
+def _like_fftshift(arr: A2D):
+    """Pythran optimized function doing the equivalent of
 
-    FFTClass = FFTW2DReal2Complex
-    _tag = "fftw"
+    np.ascontiguousarray(np.fft.fftshift(arr[::-1, ::-1]))
+
+    """
+    return np.ascontiguousarray(np.fft.fftshift(arr[::-1, ::-1]))
+
+
+class CorrelFFTNumpy(CorrelFFTBase):
+    """Correlations using numpy.fft."""
+
+    _tag = "np.fft"
+
+    def __call__(self, im0, im1):
+        """Compute the correlation from images."""
+        norm = np.sqrt(np.sum(im1**2) * np.sum(im0**2))
+        norm = _norm_images_same_shape(im0, im1)
+        correl = ifft2(fft2(im0).conj() * fft2(im1)).real
+        return _like_fftshift(correl), norm
+
+
+class CorrelFFTWithOperBase(CorrelFFTBase):
+
+    FFTClass: object
 
     def _init2(self):
         CorrelFFTBase._init2(self)
         n0, n1 = self.im0_shape
-        self.op = self.FFTClass(n1, n0)
+        self.oper = self.FFTClass(n1, n0)
 
     def __call__(self, im0, im1):
         """Compute the correlation from images.
@@ -798,51 +805,31 @@ class CorrelFFTW(CorrelFFTBase):
         Warning: important for perf (~25% for PIV)
 
         """
-        # norm = np.sqrt(np.sum(im1**2) * np.sum(im0**2)) * im0.size
         norm = _norm_images_same_shape(im0, im1) * im0.size
-        op = self.op
-        corr = op.ifft(op.fft(im0).conj() * op.fft(im1))
-        correl = np.fft.fftshift(corr[::-1, ::-1])
-        return correl, norm
+        oper = self.oper
+        correl = oper.ifft(oper.fft(im0).conj() * oper.fft(im1))
+        return _like_fftshift(correl), norm
 
 
-class CorrelCuFFT(CorrelFFTBase):
-    _tag = "cufft"
+class CorrelFFTW(CorrelFFTWithOperBase):
+    """Correlations using fluidimage.fft.FFTW2DReal2Complex"""
+
+    FFTClass = FFTW2DReal2Complex
+    _tag = "fftw"
+
+
+class CorrelCuFFT(CorrelFFTWithOperBase):
     """Correlations using fluidimage.fft.CUFFT2DReal2Complex"""
+
+    _tag = "cufft"
     FFTClass = CUFFT2DReal2Complex
 
-    def _init2(self):
-        CorrelFFTBase._init2(self)
-        n0, n1 = self.im0_shape
-        self.op = self.FFTClass(n1, n0)
 
-    def __call__(self, im0, im1):
-        """Compute the correlation from images."""
-        norm = np.sqrt(np.sum(im1**2) * np.sum(im0**2)) * im0.size
-        op = self.op
-        corr = op.ifft(op.fft(im0).conj() * op.fft(im1)).real * im0.size**2
-        correl = np.fft.fftshift(corr[::-1, ::-1])
-        return correl, norm
-
-
-class CorrelSKCuFFT(CorrelFFTBase):
+class CorrelSKCuFFT(CorrelFFTWithOperBase):
     """Correlations using fluidimage.fft.FFTW2DReal2Complex"""
 
     FFTClass = SKCUFFT2DReal2Complex
     _tag = "skcufft"
-
-    def _init2(self):
-        CorrelFFTBase._init2(self)
-        n0, n1 = self.im0_shape
-        self.op = self.FFTClass(n1, n0)
-
-    def __call__(self, im0, im1):
-        """Compute the correlation from images."""
-        norm = np.sqrt(np.sum(im1**2) * np.sum(im0**2)) * im0.size
-        op = self.op
-        corr = op.ifft(op.fft(im0).conj() * op.fft(im1))
-        correl = np.fft.fftshift(corr[::-1, ::-1])
-        return correl, norm
 
 
 correlation_classes = {
