@@ -34,7 +34,9 @@ params.mask.strcrop = ":, :1500"
 
 params.multipass.number = 2
 
-params.multipass.use_tps = False
+params.multipass.use_tps = "last"
+# params.multipass.use_tps = False
+params.multipass.subdom_size = 200
 params.multipass.smoothing_coef = 10.0
 params.multipass.threshold_tps = 0.5
 
