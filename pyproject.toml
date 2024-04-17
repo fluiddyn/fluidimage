@@ -9,7 +9,7 @@ build-backend = 'mesonpy'
 
 [project]
 name = "fluidimage"
-version = "0.4.4"
+version = "0.4.5"
 description = "Fluid image processing with Python."
 authors = [
     {name = "Pierre Augier", email = "pierre.augier@legi.cnrs.fr"},
@@ -64,7 +64,7 @@ pims = ["pims"]
 opencv = ["opencv-python"]
 graph = ["gprof2dot"]
 pytest = ["pytest", "pytest-asyncio"]
-all = ["fluidimage[pims, opencv-python, gprof2dot, pytest]"]
+all = ["fluidimage[pims, opencv, graph, pytest]"]
 # qt = ["PySide6"]
 
 [project.entry-points."fluidimage.executors"]
@@ -124,6 +124,7 @@ dev = [
     "isort",
     "ipdb>=0.13.13",
     "textual-dev",
+    "pyinstrument",
 ]
 
 [tool.pdm.scripts]

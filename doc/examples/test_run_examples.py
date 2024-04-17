@@ -46,6 +46,7 @@ exclude = set(
         "surface_tracking.py",
         "preproc_sback1_filter.py",
         "preproc_sback2_rescale.py",
+        "profile_piv_work.py",
     ]
 )
 

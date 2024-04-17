@@ -23,11 +23,6 @@ try:
 except ImportError:
     classes.pop("skcufft")
 
-try:
-    import theano
-except ImportError:
-    classes.pop("theano")
-
 
 def setUpImages(nx, ny, dx, dy, part_size):
     displacements = np.array([dx, dy])

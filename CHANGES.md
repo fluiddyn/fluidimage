@@ -3,6 +3,10 @@
 See also the
 [unreleased changes](https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.4.3...branch%2Fdefault).
 
+## [0.4.5] (2024-04-17)
+
+- Performance optimizations for PIV (- ~40% of CPU time without TPS)
+
 ## [0.4.4] (2024-04-16)
 
 - `fluidimage-monitor` [Textual](https://textual.textualize.io/) app to monitor

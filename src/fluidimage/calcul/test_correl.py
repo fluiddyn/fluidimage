@@ -8,7 +8,7 @@ from fluidimage.calcul.correl import (
     CorrelPyCuda,
     CorrelPythran,
     CorrelScipySignal,
-    CorrelTheano,
+    _like_fftshift,
     correlation_classes,
 )
 from fluidimage.synthetic import make_synthetic_images
@@ -18,8 +18,7 @@ logger = logging.getLogger("fluidimage")
 
 classes = {k.replace(".", "_"): v for k, v in correlation_classes.items()}
 classes2 = {
-    "sig": CorrelScipySignal,
-    "theano": CorrelTheano,
+    "signal": CorrelScipySignal,
     "pycuda": CorrelPyCuda,
     "pythran": CorrelPythran,
 }
@@ -41,12 +40,6 @@ try:
     import skcuda
 except ImportError:
     classes.pop("skcufft")
-
-try:
-    import theano
-except ImportError:
-    classes.pop("theano")
-    classes2.pop("theano")
 
 
 class TestCorrel(unittest.TestCase):
@@ -246,7 +239,23 @@ for k, cls in classes2.items():
             np.allclose(self.displacements, displacement_computed, atol=0.8)
         )
 
-    exec("TestCorrel2.test_correl_images_diff_sizes" + k + " = _test2")
+    exec("TestCorrel2.test_correl_images_diff_sizes_" + k + " = _test2")
+
+
+def _test_like_fftshift(n0, n1):
+    correl = np.reshape(np.arange(n0 * n1, dtype=np.float32), (n0, n1))
+    assert np.allclose(
+        _like_fftshift(correl),
+        np.ascontiguousarray(np.fft.fftshift(correl[::-1, ::-1])),
+    )
+
+
+def test_like_fftshift():
+    _test_like_fftshift(24, 32)
+    _test_like_fftshift(21, 32)
+    _test_like_fftshift(12, 13)
+    _test_like_fftshift(7, 9)
+
 
 if __name__ == "__main__":
     unittest.main()

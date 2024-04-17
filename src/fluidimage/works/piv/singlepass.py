@@ -401,7 +401,10 @@ class BaseWorkPIV(BaseWorkWithMask):
         self._stop_for_crop1 = tuple(_stop_for_crop1)
 
     def _crop_im0(self, ixvec, iyvec, im):
-        """Crop image 0."""
+        """Crop image 0.
+
+        Warning: important for perf (~12% for PIV with _crop_im1)
+        """
         subim = im[
             iyvec - self._start_for_crop0[0] : iyvec + self._stop_for_crop0[0],
             ixvec - self._start_for_crop0[1] : ixvec + self._stop_for_crop0[1],
@@ -536,7 +539,7 @@ class BaseWorkPIV(BaseWorkWithMask):
                 else:
                     print("no erratic vector found.")
 
-                print("  Statistics on TPS subdomains:")
+                print(f"  Statistics on the {tps.nb_subdom} TPS subdomains:")
                 for key, value in summary.items():
                     fmt = ".3f" if isinstance(value[0], float) else "d"
                     print(

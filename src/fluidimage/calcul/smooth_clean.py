@@ -23,6 +23,11 @@ def _smooth(a, for_norm):
 
 
 def smooth_clean(xs, ys, deltaxs, deltays, iyvecs, ixvecs, threshold):
+    """Smooth and clean the displacements
+
+    Warning: important for perf (~25% for PIV)
+
+    """
     nx = len(ixvecs)
     ny = len(iyvecs)
 
