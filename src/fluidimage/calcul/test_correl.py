@@ -244,7 +244,7 @@ for k, cls in classes2.items():
 
 def test_like_fftshift():
     n0, n1 = 24, 32
-    correl = np.reshape(np.arange(n0 * n1), (n0, n1))
+    correl = np.reshape(np.arange(n0 * n1, dtype=np.float32), (n0, n1))
     assert np.allclose(
         _like_fftshift(correl),
         np.ascontiguousarray(np.fft.fftshift(correl[::-1, ::-1])),

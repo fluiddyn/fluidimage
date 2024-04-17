@@ -68,7 +68,8 @@ def parse_displacement_max(displ_max, im0_shape):
         return displ_max
 
 
-A2D = Array[Type(np.float32, np.float64), "2d", "C"]
+A2dC = Array[Type(np.float32, np.float64), "2d", "C"]
+A2df32 = "float32[][]"
 
 
 def _is_there_a_nan(arr):
@@ -81,7 +82,7 @@ def _is_there_a_nan(arr):
 
 @boost
 def nan_indices_max(
-    correl: A2D,
+    correl: A2dC,
     i0_start: np.int32,
     i0_stop: np.int32,
     i1_start: np.int32,
@@ -275,11 +276,8 @@ class CorrelBase(ABC):
         return self.compute_displacement_from_indices(ix, iy)
 
 
-A = "float32[][]"
-
-
 @boost
-def correl_numpy(im0: A, im1: A, disp_max: int):
+def correl_numpy(im0: A2df32, im1: A2df32, disp_max: int):
     """Correlations by hand using only numpy.
 
     Parameters
@@ -566,7 +564,7 @@ class CorrelFFTBase(CorrelBase):
 
 
 @boost
-def _norm_images_same_shape(im0: "float32[][]", im1: "float32[][]"):
+def _norm_images_same_shape(im0: A2df32, im1: A2df32):
     """Less accurate than the numpy equivalent but much faster
 
     Should return something close to:
@@ -585,7 +583,7 @@ def _norm_images_same_shape(im0: "float32[][]", im1: "float32[][]"):
 
 
 @boost
-def _like_fftshift(arr: A2D):
+def _like_fftshift(arr: A2dC):
     """Pythran optimized function doing the equivalent of
 
     np.ascontiguousarray(np.fft.fftshift(arr[::-1, ::-1]))
@@ -624,7 +622,7 @@ class CorrelFFTNumpy(CorrelFFTBase):
         """Compute the correlation from images."""
         norm = _norm_images_same_shape(im0, im1)
         correl = ifft2(fft2(im0).conj() * fft2(im1)).real
-        return _like_fftshift(correl), norm
+        return _like_fftshift(np.ascontiguousarray(correl)), norm
 
 
 class CorrelFFTWithOperBase(CorrelFFTBase):
