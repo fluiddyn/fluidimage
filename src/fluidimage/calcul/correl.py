@@ -479,7 +479,7 @@ class CorrelScipySignal(CorrelBase):
 
     def __call__(self, im0, im1):
         """Compute the correlation from images."""
-        norm = _norm_images_same_shape(im0, im1)
+        norm = _norm_images(im0, im1)
         if self.mode == "valid":
             correl = correlate2d(im0, im1, mode="valid")
         elif self.mode == "same":
@@ -564,7 +564,7 @@ class CorrelFFTBase(CorrelBase):
 
 
 @boost
-def _norm_images_same_shape(im0: A2df32, im1: A2df32):
+def _norm_images(im0: A2df32, im1: A2df32):
     """Less accurate than the numpy equivalent but much faster
 
     Should return something close to:
@@ -576,9 +576,15 @@ def _norm_images_same_shape(im0: A2df32, im1: A2df32):
     im1 = im1.ravel()
     tmp0 = np.float64(im0[0] ** 2)
     tmp1 = np.float64(im1[0] ** 2)
-    for idx in range(1, im0.size):
-        tmp0 += im0[idx] ** 2
-        tmp1 += im1[idx] ** 2
+    if im0.size != im1.size:
+        for idx in range(1, im0.size):
+            tmp0 += im0[idx] ** 2
+        for idx in range(1, im1.size):
+            tmp1 += im1[idx] ** 2
+    else:
+        for idx in range(1, im0.size):
+            tmp0 += im0[idx] ** 2
+            tmp1 += im1[idx] ** 2
     return np.sqrt(tmp0 * tmp1)
 
 
@@ -620,7 +626,7 @@ class CorrelFFTNumpy(CorrelFFTBase):
 
     def __call__(self, im0, im1):
         """Compute the correlation from images."""
-        norm = _norm_images_same_shape(im0, im1)
+        norm = _norm_images(im0, im1)
         correl = ifft2(fft2(im0).conj() * fft2(im1)).real
         return _like_fftshift(np.ascontiguousarray(correl)), norm
 
@@ -640,7 +646,7 @@ class CorrelFFTWithOperBase(CorrelFFTBase):
         Warning: important for perf, so use Pythran
 
         """
-        norm = _norm_images_same_shape(im0, im1) * im0.size
+        norm = _norm_images(im0, im1) * im0.size
         oper = self.oper
         correl = oper.ifft(oper.fft(im0).conj() * oper.fft(im1))
         return _like_fftshift(correl), norm

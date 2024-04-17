@@ -18,7 +18,7 @@ logger = logging.getLogger("fluidimage")
 
 classes = {k.replace(".", "_"): v for k, v in correlation_classes.items()}
 classes2 = {
-    "sig": CorrelScipySignal,
+    "signal": CorrelScipySignal,
     "pycuda": CorrelPyCuda,
     "pythran": CorrelPythran,
 }
@@ -239,7 +239,7 @@ for k, cls in classes2.items():
             np.allclose(self.displacements, displacement_computed, atol=0.8)
         )
 
-    exec("TestCorrel2.test_correl_images_diff_sizes" + k + " = _test2")
+    exec("TestCorrel2.test_correl_images_diff_sizes_" + k + " = _test2")
 
 
 def test_like_fftshift():

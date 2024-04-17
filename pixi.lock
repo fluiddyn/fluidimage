@@ -13350,6 +13350,75 @@ package:
   license_family: Apache
   size: 207974
   timestamp: 1607309596528
+- platform: linux-64
+  name: linkify-it-py
+  version: 2.0.3
+  category: main
+  manager: conda
+  dependencies:
+  - python >=3.7
+  - uc-micro-py
+  url: https://conda.anaconda.org/conda-forge/noarch/linkify-it-py-2.0.3-pyhd8ed1ab_0.conda
+  hash:
+    md5: f1b64ca4faf563605cf6f6ca93f9ff3f
+    sha256: aa99d44e8c83865026575a8af253141c53e0b3ab05f053befaa7757c8525064f
+  build: pyhd8ed1ab_0
+  arch: x86_64
+  subdir: linux-64
+  build_number: 0
+  license: MIT
+  license_family: MIT
+  noarch: python
+  size: 24035
+  timestamp: 1707129321841
+  purls:
+  - pkg:pypi/linkify-it-py
+- platform: osx-64
+  name: linkify-it-py
+  version: 2.0.3
+  category: main
+  manager: conda
+  dependencies:
+  - python >=3.7
+  - uc-micro-py
+  url: https://conda.anaconda.org/conda-forge/noarch/linkify-it-py-2.0.3-pyhd8ed1ab_0.conda
+  hash:
+    md5: f1b64ca4faf563605cf6f6ca93f9ff3f
+    sha256: aa99d44e8c83865026575a8af253141c53e0b3ab05f053befaa7757c8525064f
+  build: pyhd8ed1ab_0
+  arch: x86_64
+  subdir: osx-64
+  build_number: 0
+  license: MIT
+  license_family: MIT
+  noarch: python
+  size: 24035
+  timestamp: 1707129321841
+  purls:
+  - pkg:pypi/linkify-it-py
+- platform: win-64
+  name: linkify-it-py
+  version: 2.0.3
+  category: main
+  manager: conda
+  dependencies:
+  - python >=3.7
+  - uc-micro-py
+  url: https://conda.anaconda.org/conda-forge/noarch/linkify-it-py-2.0.3-pyhd8ed1ab_0.conda
+  hash:
+    md5: f1b64ca4faf563605cf6f6ca93f9ff3f
+    sha256: aa99d44e8c83865026575a8af253141c53e0b3ab05f053befaa7757c8525064f
+  build: pyhd8ed1ab_0
+  arch: x86_64
+  subdir: win-64
+  build_number: 0
+  license: MIT
+  license_family: MIT
+  noarch: python
+  size: 24035
+  timestamp: 1707129321841
+  purls:
+  - pkg:pypi/linkify-it-py
 - platform: osx-64
   name: llvm-openmp
   version: 18.1.3
@@ -17796,6 +17865,69 @@ package:
   purls:
   - pkg:pypi/pytest
 - platform: linux-64
+  name: pytest-asyncio
+  version: 0.23.6
+  category: main
+  manager: conda
+  dependencies:
+  - pytest >=7.0.0,<9
+  - python >=3.8
+  url: https://conda.anaconda.org/conda-forge/noarch/pytest-asyncio-0.23.6-pyhd8ed1ab_0.conda
+  hash:
+    md5: 811340befcada7641384d4f115ddbd6e
+    sha256: 4867959aacaf4402a3e12bb283b8e09a0f8cdc1f6bd7aab84e0d4d2f33b5b994
+  build: pyhd8ed1ab_0
+  arch: x86_64
+  subdir: linux-64
+  build_number: 0
+  license: Apache-2.0
+  license_family: APACHE
+  noarch: python
+  size: 33372
+  timestamp: 1710849429651
+- platform: osx-64
+  name: pytest-asyncio
+  version: 0.23.6
+  category: main
+  manager: conda
+  dependencies:
+  - pytest >=7.0.0,<9
+  - python >=3.8
+  url: https://conda.anaconda.org/conda-forge/noarch/pytest-asyncio-0.23.6-pyhd8ed1ab_0.conda
+  hash:
+    md5: 811340befcada7641384d4f115ddbd6e
+    sha256: 4867959aacaf4402a3e12bb283b8e09a0f8cdc1f6bd7aab84e0d4d2f33b5b994
+  build: pyhd8ed1ab_0
+  arch: x86_64
+  subdir: osx-64
+  build_number: 0
+  license: Apache-2.0
+  license_family: APACHE
+  noarch: python
+  size: 33372
+  timestamp: 1710849429651
+- platform: win-64
+  name: pytest-asyncio
+  version: 0.23.6
+  category: main
+  manager: conda
+  dependencies:
+  - pytest >=7.0.0,<9
+  - python >=3.8
+  url: https://conda.anaconda.org/conda-forge/noarch/pytest-asyncio-0.23.6-pyhd8ed1ab_0.conda
+  hash:
+    md5: 811340befcada7641384d4f115ddbd6e
+    sha256: 4867959aacaf4402a3e12bb283b8e09a0f8cdc1f6bd7aab84e0d4d2f33b5b994
+  build: pyhd8ed1ab_0
+  arch: x86_64
+  subdir: win-64
+  build_number: 0
+  license: Apache-2.0
+  license_family: APACHE
+  noarch: python
+  size: 33372
+  timestamp: 1710849429651
+- platform: linux-64
   name: pytest-cov
   version: 5.0.0
   category: main
@@ -20975,6 +21107,72 @@ package:
   noarch: generic
   size: 119815
   timestamp: 1706886945727
+- platform: linux-64
+  name: uc-micro-py
+  version: 1.0.3
+  category: main
+  manager: conda
+  dependencies:
+  - python >=3.6
+  url: https://conda.anaconda.org/conda-forge/noarch/uc-micro-py-1.0.3-pyhd8ed1ab_0.conda
+  hash:
+    md5: 3b7fc78d7be7b450952aaa916fb78877
+    sha256: 54293cd94da3a6b978b353eb7897555055d925ad0008bc73e85cca19e2587ed0
+  build: pyhd8ed1ab_0
+  arch: x86_64
+  subdir: linux-64
+  build_number: 0
+  license: MIT
+  license_family: MIT
+  noarch: python
+  size: 11162
+  timestamp: 1707507514699
+  purls:
+  - pkg:pypi/uc-micro-py
+- platform: osx-64
+  name: uc-micro-py
+  version: 1.0.3
+  category: main
+  manager: conda
+  dependencies:
+  - python >=3.6
+  url: https://conda.anaconda.org/conda-forge/noarch/uc-micro-py-1.0.3-pyhd8ed1ab_0.conda
+  hash:
+    md5: 3b7fc78d7be7b450952aaa916fb78877
+    sha256: 54293cd94da3a6b978b353eb7897555055d925ad0008bc73e85cca19e2587ed0
+  build: pyhd8ed1ab_0
+  arch: x86_64
+  subdir: osx-64
+  build_number: 0
+  license: MIT
+  license_family: MIT
+  noarch: python
+  size: 11162
+  timestamp: 1707507514699
+  purls:
+  - pkg:pypi/uc-micro-py
+- platform: win-64
+  name: uc-micro-py
+  version: 1.0.3
+  category: main
+  manager: conda
+  dependencies:
+  - python >=3.6
+  url: https://conda.anaconda.org/conda-forge/noarch/uc-micro-py-1.0.3-pyhd8ed1ab_0.conda
+  hash:
+    md5: 3b7fc78d7be7b450952aaa916fb78877
+    sha256: 54293cd94da3a6b978b353eb7897555055d925ad0008bc73e85cca19e2587ed0
+  build: pyhd8ed1ab_0
+  arch: x86_64
+  subdir: win-64
+  build_number: 0
+  license: MIT
+  license_family: MIT
+  noarch: python
+  size: 11162
+  timestamp: 1707507514699
+  purls:
+  - pkg:pypi/uc-micro-py
 - platform: win-64
   name: ucrt
   version: 10.0.22621.0
