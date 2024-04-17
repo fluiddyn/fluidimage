@@ -597,25 +597,37 @@ def _like_fftshift(arr: A2dC):
     """
     n0, n1 = arr.shape
 
-    assert n0 % 2 == 0
-    assert n1 % 2 == 0
-
     arr = np.ascontiguousarray(arr[::-1, ::-1])
     tmp = np.empty_like(arr)
 
-    for i0 in range(n0):
-        for i1 in range(n1 // 2):
-            tmp[i0, n1 // 2 + i1] = arr[i0, i1]
-            tmp[i0, i1] = arr[i0, n1 // 2 + i1]
+    if n1 % 2 == 0:
+        for i0 in range(n0):
+            for i1 in range(n1 // 2):
+                tmp[i0, n1 // 2 + i1] = arr[i0, i1]
+                tmp[i0, i1] = arr[i0, n1 // 2 + i1]
+    else:
+        for i0 in range(n0):
+            for i1 in range(n1 // 2 + 1):
+                tmp[i0, n1 // 2 + i1] = arr[i0, i1]
+
+            for i1 in range(n1 // 2):
+                tmp[i0, i1] = arr[i0, n1 // 2 + 1 + i1]
 
     arr_1d_view = arr.ravel()
     tmp_1d_view = tmp.ravel()
 
-    n_half = n0 * n1 // 2
-    for idx in range(n_half):
-        arr_1d_view[idx + n_half] = tmp_1d_view[idx]
-        arr_1d_view[idx] = tmp_1d_view[idx + n_half]
-
+    if n0 % 2 == 0:
+        n_half = (n0 // 2) * n1
+        for idx in range(n_half):
+            arr_1d_view[idx + n_half] = tmp_1d_view[idx]
+            arr_1d_view[idx] = tmp_1d_view[idx + n_half]
+    else:
+        n_half_a = (n0 // 2 + 1) * n1
+        n_half_b = (n0 // 2) * n1
+        for idx in range(n_half_a):
+            arr_1d_view[idx + n_half_b] = tmp_1d_view[idx]
+        for idx in range(n_half_b):
+            arr_1d_view[idx] = tmp_1d_view[idx + n_half_a]
     return arr
 
 

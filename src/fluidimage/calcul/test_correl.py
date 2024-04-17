@@ -242,13 +242,19 @@ for k, cls in classes2.items():
     exec("TestCorrel2.test_correl_images_diff_sizes_" + k + " = _test2")
 
 
-def test_like_fftshift():
-    n0, n1 = 24, 32
+def _test_like_fftshift(n0, n1):
     correl = np.reshape(np.arange(n0 * n1, dtype=np.float32), (n0, n1))
     assert np.allclose(
         _like_fftshift(correl),
         np.ascontiguousarray(np.fft.fftshift(correl[::-1, ::-1])),
     )
+
+
+def test_like_fftshift():
+    _test_like_fftshift(24, 32)
+    _test_like_fftshift(21, 32)
+    _test_like_fftshift(12, 13)
+    _test_like_fftshift(7, 9)
 
 
 if __name__ == "__main__":
