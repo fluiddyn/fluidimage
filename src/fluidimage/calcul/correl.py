@@ -78,6 +78,14 @@ def parse_displacement_max(displ_max, im0_shape):
 A2D = Array[Type(np.float32, np.float64), "2d", "C"]
 
 
+def _is_there_a_nan(arr):
+    arr = arr.ravel()
+    for idx in range(9):
+        if np.isnan(arr[idx]):
+            return True
+    return False
+
+
 @boost
 def nan_indices_max(
     correl: A2D,
@@ -113,7 +121,16 @@ def nan_indices_max(
                 i0_max = i0
                 i1_max = i1
 
-    return i0_max, i1_max
+    error_message = ""
+
+    i0, i1 = i0_max, i1_max
+
+    if i0 == 0 or i0 == n0 - 1 or i1 == 0 or i1 == n1 - 1:
+        error_message = "Correlation peak touching boundary."
+    elif _is_there_a_nan(correl[i0 - 1 : i0 + 2, i1 - 1 : i1 + 2]):
+        error_message = "Correlation peak touching nan."
+
+    return i0_max, i1_max, error_message
 
 
 def _compute_indices_max(
@@ -130,9 +147,9 @@ def _compute_indices_max(
     if i0_stop is None:
         i0_stop, i1_stop = correl.shape
 
-    iy, ix = nan_indices_max(correl, i0_start, i0_stop, i1_start, i1_stop)
-
-    # iy, ix = np.unravel_index(np.nanargmax(correl), correl.shape)
+    iy, ix, error_message = nan_indices_max(
+        correl, i0_start, i0_stop, i1_start, i1_stop
+    )
 
     if norm == 0:
         # I hope it is ok (Pierre)
@@ -140,18 +157,8 @@ def _compute_indices_max(
     else:
         correl_max = correl[iy, ix] / norm
 
-    if (
-        iy == 0
-        or iy == correl.shape[0] - 1
-        or ix == 0
-        or ix == correl.shape[1] - 1
-    ):
-        error = PIVError(explanation="Correlation peak touching boundary.")
-        error.results = (ix, iy, correl_max)
-        raise error
-
-    if np.isnan(np.sum(correl[iy - 1 : iy + 2 : 2, ix - 1 : ix + 2 : 2])):
-        error = PIVError(explanation="Correlation peak touching nan.")
+    if error_message:
+        error = PIVError(explanation=error_message)
         error.results = (ix, iy, correl_max)
         raise error
 
