@@ -762,6 +762,25 @@ class CorrelFFTNumpy(CorrelFFTBase):
         return np.ascontiguousarray(correl), norm
 
 
+@boost
+def _norm_images_same_shape(im0: "float32[][]", im1: "float32[][]"):
+    """Less accurate than the numpy equivalent but much faster
+
+    Should return something close to:
+
+    np.sqrt(np.sum(im1**2) * np.sum(im0**2)) * im0.size
+
+    """
+    im0 = im0.ravel()
+    im1 = im1.ravel()
+    tmp0 = np.float64(im0[0] ** 2)
+    tmp1 = np.float64(im1[0] ** 2)
+    for idx in range(1, im0.size):
+        tmp0 += im0[idx] ** 2
+        tmp1 += im1[idx] ** 2
+    return np.sqrt(tmp0 * tmp1)
+
+
 class CorrelFFTW(CorrelFFTBase):
     """Correlations using fluidimage.fft.FFTW2DReal2Complex"""
 
@@ -779,7 +798,8 @@ class CorrelFFTW(CorrelFFTBase):
         Warning: important for perf (~25% for PIV)
 
         """
-        norm = np.sqrt(np.sum(im1**2) * np.sum(im0**2)) * im0.size
+        # norm = np.sqrt(np.sum(im1**2) * np.sum(im0**2)) * im0.size
+        norm = _norm_images_same_shape(im0, im1) * im0.size
         op = self.op
         corr = op.ifft(op.fft(im0).conj() * op.fft(im1))
         correl = np.fft.fftshift(corr[::-1, ::-1])
