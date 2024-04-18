@@ -655,8 +655,8 @@ class CorrelFFTWithOperBase(CorrelFFTBase):
         fft_im0[0, 0] = 0.0
         fft_im1 = self.oper.fft(im1)
         fft_im1[0, 0] = 0.0
-        energy0 = self.oper.compute_energy_from_Fourier(fft_im0)
-        energy1 = self.oper.compute_energy_from_Fourier(fft_im1)
+        energy0 = self.oper.compute_energy_from_fourier(fft_im0)
+        energy1 = self.oper.compute_energy_from_fourier(fft_im1)
         norm = sqrt(4 * energy0 * energy1) * self.oper.coef_norm_correl
         correl = self.oper.ifft(fft_im0.conj() * fft_im1)
         return _like_fftshift(correl), norm
@@ -679,8 +679,8 @@ class CorrelFFTNumpy(CorrelFFTWithOperBase):
         fft_im1 = self.oper.fft(im1)
         fft_im1[0, 0] = 0.0
         correl = self.oper.ifft(fft_im0.conj() * fft_im1).real
-        energy0 = self.oper.compute_energy_from_Fourier(fft_im0)
-        energy1 = self.oper.compute_energy_from_Fourier(fft_im1)
+        energy0 = self.oper.compute_energy_from_fourier(fft_im0)
+        energy1 = self.oper.compute_energy_from_fourier(fft_im1)
         norm = sqrt(4 * energy0 * energy1) * self.oper.coef_norm_correl
         return _like_fftshift(np.ascontiguousarray(correl)), norm
 

@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from numpy.random import PCG64, Generator
 
-from fluidimage.calcul.fft import classes
+from fluidimage.calcul.fft import _compute_energy_from_fourier, classes
 
 
 @pytest.mark.parametrize("cls", classes)
@@ -17,11 +17,11 @@ def test_fft_random(cls):
     arr_fft = oper.fft(arr)
 
     energyX = oper.compute_energy_from_spatial(arr)
-    energyK = oper.compute_energy_from_Fourier(arr_fft)
+    energyK = oper.compute_energy_from_fourier(arr_fft)
     back = oper.ifft(arr_fft) / oper.coef_norm
     energyX = oper.compute_energy_from_spatial(back)
     arr_fft_2 = oper.fft(back)
-    energyKback = oper.compute_energy_from_Fourier(arr_fft_2)
+    energyKback = oper.compute_energy_from_fourier(arr_fft_2)
     rtol = 8e-05
     atol = 1e-04
     assert np.allclose(arr_fft, arr_fft_2, rtol=rtol, atol=atol)
@@ -43,7 +43,7 @@ def test_fft_simple(cls):
     arr_fft = np.zeros(oper.shapeK, dtype=cls.type_complex)
     arr_fft[0, 1] = 1
 
-    energyK = oper.compute_energy_from_Fourier(arr_fft)
+    energyK = oper.compute_energy_from_fourier(arr_fft)
 
     func = oper.ifft(arr_fft)
     energyX = oper.compute_energy_from_spatial(func)
@@ -58,6 +58,32 @@ def test_fft_simple(cls):
 
     assert energyX, pytest.approx(energyK)
 
-    energyKback = oper.compute_energy_from_Fourier(back_fft)
+    energyKback = oper.compute_energy_from_fourier(back_fft)
 
     assert energyK, pytest.approx(energyKback)
+
+
+@pytest.mark.parametrize("dtype", [np.complex64, np.complex128])
+def test_compute_energy_from_fourier(dtype):
+
+    coef_norm = 10
+    n0 = 12
+    n1 = 8
+
+    generator = Generator(PCG64())
+    field_fft = generator.random(n0 * n1) + 1j * generator.random(n0 * n1)
+    field_fft = field_fft.reshape((n0, n1)).astype(np.complex64)
+
+    assert field_fft.shape == (n0, n1)
+
+    expected = (
+        0.5
+        / coef_norm
+        * (
+            np.sum(abs(field_fft[:, 0]) ** 2 + abs(field_fft[:, -1]) ** 2)
+            + 2 * np.sum(abs(field_fft[:, 1:-1]) ** 2)
+        )
+    )
+
+    energy = _compute_energy_from_fourier(field_fft, coef_norm)
+    assert energy == pytest.approx(expected)

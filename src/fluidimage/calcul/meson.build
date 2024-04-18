@@ -19,7 +19,7 @@ py.install_sources(
 
 subdir('interpolate')
 
-run_command(['transonic', '--meson', '--backend', backend, 'correl.py', 'subpix.py', 'mean_neighbors.py'], check: true)
+run_command(['transonic', '--meson', '--backend', backend, 'correl.py', 'subpix.py', 'mean_neighbors.py', 'fft.py'], check: true)
 
 foreach be : backends
   subdir('__' + be + '__')

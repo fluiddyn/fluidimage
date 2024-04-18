@@ -30,6 +30,7 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 import numpy.fft as np_fft
+from transonic import Array, Type, boost
 
 try:
     import pyfftw
@@ -65,6 +66,30 @@ else:
 nthreads = 1
 
 
+A2d_complex = Array[Type(np.complex64, np.complex128), "2d"]
+
+
+@boost
+def _compute_energy_from_fourier(field_fft: A2d_complex, coef_norm: int):
+    """Simple Pythran implementation of
+
+    (
+        0.5 / coef_norm
+        * (
+            np.sum(abs(field_fft[:, 0]) ** 2 + abs(field_fft[:, -1]) ** 2)
+            + 2 * np.sum(abs(field_fft[:, 1:-1]) ** 2)
+        )
+    )
+    """
+    n0, n1 = field_fft.shape
+    result = 0.0
+    for i0 in range(n0):
+        result += abs(field_fft[i0, 0]) ** 2 + abs(field_fft[i0, n1 - 1]) ** 2
+        for i1 in range(1, n1 - 1):
+            result += 2 * abs(field_fft[i0, i1]) ** 2
+    return 0.5 / coef_norm * result
+
+
 class OperatorFFTBase(ABC):
     """Abstract class for FFT operators"""
 
@@ -91,16 +116,9 @@ class OperatorFFTBase(ABC):
     def ifft(self, field_fft):
         """Inverse Fast Fourier Transform"""
 
-    def compute_energy_from_Fourier(self, field_fft):
+    def compute_energy_from_fourier(self, field_fft):
         """Compute the energy from a field in Fourier space"""
-        return (
-            (
-                np.sum(abs(field_fft[:, 0]) ** 2 + abs(field_fft[:, -1]) ** 2)
-                + 2 * np.sum(abs(field_fft[:, 1:-1]) ** 2)
-            )
-            / 2
-            / self.coef_norm_energy
-        )
+        return _compute_energy_from_fourier(field_fft, self.coef_norm_energy)
 
     def compute_energy_from_spatial(self, field):
         """Compute energy from a field in real space"""
@@ -149,8 +167,8 @@ class CUFFT2DReal2Complex(OperatorFFTBase):
         self.fftplan(arr_dev, arr_dev, self.coef_norm, inverse=True)
         return arr_dev.get()
 
-    def compute_energy_from_Fourier(self, field_fft):
-        return np.sum(abs(field_fft) ** 2) / 2 / self.coef_norm**2
+    def compute_energy_from_fourier(self, field_fft):
+        return np.sum(abs(field_fft) ** 2) / 2 / self.coef_norm_energy
 
 
 class CUFFT2DReal2ComplexFloat64(CUFFT2DReal2Complex):
@@ -247,7 +265,7 @@ class NumpyFFT2DReal2Complex(OperatorFFTBase):
     def ifft(self, field_fft):
         return np_fft.ifft2(field_fft)
 
-    def compute_energy_from_Fourier(self, field_fft):
+    def compute_energy_from_fourier(self, field_fft):
         return np.sum(abs(field_fft) ** 2) / 2 / self.coef_norm_energy
 
 
