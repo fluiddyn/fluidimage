@@ -27,15 +27,15 @@ params.series.path = "../../image_samples/wake_legi/images/B*.png"
 params.piv0.shape_crop_im0 = 40
 params.piv0.displacement_max = 14
 
-params.piv0.nb_peaks_to_search = 2
+params.piv0.nb_peaks_to_search = 1
 params.piv0.particle_radius = 3
 
 params.mask.strcrop = ":, :1500"
 
 params.multipass.number = 2
 
-params.multipass.use_tps = "last"
-# params.multipass.use_tps = False
+# params.multipass.use_tps = "last"
+params.multipass.use_tps = False
 params.multipass.subdom_size = 200
 params.multipass.smoothing_coef = 10.0
 params.multipass.threshold_tps = 0.5
@@ -56,7 +56,7 @@ print(
             unicode=True,
             color=True,
             show_all=False,
-            # time="percent_of_total",
+            time="percent_of_total",
             # flat=True,  # buggy with pyinstrument 4.6.2!
         )
     )

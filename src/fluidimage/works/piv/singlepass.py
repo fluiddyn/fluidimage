@@ -155,8 +155,10 @@ class BaseWorkPIV(BaseWorkWithMask):
         couple.apply_mask(self.params.mask)
 
         im0, im1 = couple.get_arrays()
+
         if not hasattr(self, "ixvecs_grid"):
             self._prepare_with_image(im0)
+
         (
             deltaxs,
             deltays,
@@ -401,16 +403,13 @@ class BaseWorkPIV(BaseWorkWithMask):
         self._stop_for_crop1 = tuple(_stop_for_crop1)
 
     def _crop_im0(self, ixvec, iyvec, im):
-        """Crop image 0.
-
-        Warning: important for perf (~12% for PIV with _crop_im1)
-        """
+        """Crop image 0."""
         subim = im[
             iyvec - self._start_for_crop0[0] : iyvec + self._stop_for_crop0[0],
             ixvec - self._start_for_crop0[1] : ixvec + self._stop_for_crop0[1],
         ]
-        subim = np.array(subim, dtype=np.float32)
-        return subim - subim.mean()
+        subim = np.ascontiguousarray(subim, dtype=np.float32)
+        return subim
 
     def _crop_im1(self, ixvec, iyvec, im):
         """Crop image 1."""
@@ -418,8 +417,8 @@ class BaseWorkPIV(BaseWorkWithMask):
             iyvec - self._start_for_crop1[0] : iyvec + self._stop_for_crop1[0],
             ixvec - self._start_for_crop1[1] : ixvec + self._stop_for_crop1[1],
         ]
-        subim = np.array(subim, dtype=np.float32)
-        return subim - subim.mean()
+        subim = np.ascontiguousarray(subim, dtype=np.float32)
+        return subim
 
     def apply_interp(self, piv_results, last=False):
         """Interpolate a PIV result object on the grid of the PIV work.
