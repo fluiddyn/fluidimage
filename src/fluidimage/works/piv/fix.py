@@ -11,8 +11,8 @@ import numpy as np
 
 from fluiddyn.util.paramcontainer import ParamContainer
 from fluidimage.calcul.errors import PIVError
+from fluidimage.calcul.mean_neighbors import mean_neighbors_xy
 
-from ...calcul.smooth_clean import smooth_clean
 from .. import BaseWork
 
 
@@ -104,21 +104,17 @@ Parameters indicating how are detected and processed false vectors.
             threshold = self.params_fix.threshold_diff_neighbour
             ixvecs = self.piv_work.ixvecs
             iyvecs = self.piv_work.iyvecs
-            xs = piv_results.xs
-            ys = piv_results.ys
 
             ixvecs, iyvecs = self.piv_work._xyoriginalimage_from_xymasked(
                 ixvecs, iyvecs
             )
 
-            dxs_smooth, dys_smooth = smooth_clean(
-                xs, ys, deltaxs, deltays, iyvecs, ixvecs, threshold
+            dxs_neighbors, dys_neighbors = mean_neighbors_xy(
+                deltaxs, deltays, iyvecs, ixvecs
             )
-            piv_results.dxs_smooth_clean = dxs_smooth
-            piv_results.dys_smooth_clean = dys_smooth
 
             differences = np.sqrt(
-                (dxs_smooth - deltaxs) ** 2 + (dys_smooth - deltays) ** 2
+                (dxs_neighbors - deltaxs) ** 2 + (dys_neighbors - deltays) ** 2
             )
 
             with np.errstate(invalid="ignore"):
@@ -173,7 +169,8 @@ Parameters indicating how are detected and processed false vectors.
 
             for i, (dx, dy, corr) in enumerate(other_peaks_good):
                 diff_neighbours[i + 1] = np.sqrt(
-                    (dxs_smooth[ivec] - dx) ** 2 + (dys_smooth[ivec] - dy) ** 2
+                    (dxs_neighbors[ivec] - dx) ** 2
+                    + (dys_neighbors[ivec] - dy) ** 2
                 )
 
             argmin = diff_neighbours.argmin()

@@ -15,8 +15,9 @@ from fluidimage.calcul.interpolate.griddata import griddata
 weights = np.ones([3, 3])
 
 
-def _smooth(a, for_norm):
-    norm = convolve(for_norm, weights, mode="nearest")
+def _smooth(a, is_correct):
+    # assert a.shape == is_correct.shape
+    norm = convolve(is_correct, weights, mode="nearest")
     ind = np.where(norm == 0)
     norm[ind] = 1
     return convolve(a, weights, mode="nearest") / norm
@@ -25,14 +26,17 @@ def _smooth(a, for_norm):
 def smooth_clean(xs, ys, deltaxs, deltays, iyvecs, ixvecs, threshold):
     """Smooth and clean the displacements
 
-    Warning: important for perf (~25% for PIV)
+    Consider the nan values and a threshold for the difference between the vector
+    and its neighbors.
+
+    Warning: important for perf (~40% for PIV)
 
     """
     nx = len(ixvecs)
     ny = len(iyvecs)
 
     shape = [ny, nx]
-    for_norm = np.ones(shape)
+    arr_is_not_nan = np.ones(shape)
 
     selection = ~(np.isnan(deltaxs) | np.isnan(deltays))
     if not selection.any():
@@ -41,20 +45,22 @@ def smooth_clean(xs, ys, deltaxs, deltays, iyvecs, ixvecs, threshold):
     centers = np.vstack([xs[selection], ys[selection]])
     dxs_select = deltaxs[selection]
     dys_select = deltays[selection]
-    dxs = griddata(centers, dxs_select, (ixvecs, iyvecs)).reshape([ny, nx])
-    dys = griddata(centers, dys_select, (ixvecs, iyvecs)).reshape([ny, nx])
+    dxs = griddata(centers, dxs_select, (ixvecs, iyvecs)).reshape(shape)
+    dys = griddata(centers, dys_select, (ixvecs, iyvecs)).reshape(shape)
 
-    dxs2 = _smooth(dxs, for_norm)
-    dys2 = _smooth(dys, for_norm)
+    assert arr_is_not_nan.shape == dxs.shape
 
-    inds = (abs(dxs2 - dxs) + abs(dys2 - dys) > threshold).nonzero()
+    dxs2 = _smooth(dxs, arr_is_not_nan)
+    dys2 = _smooth(dys, arr_is_not_nan)
 
-    dxs[inds] = 0
-    dys[inds] = 0
-    for_norm[inds] = 0
+    indices = (abs(dxs2 - dxs) + abs(dys2 - dys) > threshold).nonzero()
 
-    dxs_smooth = _smooth(dxs, for_norm)
-    dys_smooth = _smooth(dys, for_norm)
+    dxs[indices] = 0
+    dys[indices] = 0
+    arr_is_not_nan[indices] = 0
+
+    dxs_smooth = _smooth(dxs, arr_is_not_nan)
+    dys_smooth = _smooth(dys, arr_is_not_nan)
 
     # come back to the unstructured grid
     xy = list(itertools.product(ixvecs, iyvecs))
@@ -62,14 +68,5 @@ def smooth_clean(xs, ys, deltaxs, deltays, iyvecs, ixvecs, threshold):
     interpolator_y = LinearNDInterpolator(xy, dys_smooth.T.flat)
     out_dxs = interpolator_x(xs, ys)
     out_dys = interpolator_y(xs, ys)
-
-    # previous implementation (interp2d is depreciated)
-    # fxs = interp2d(ixvecs, iyvecs, dxs_smooth, kind="linear")
-    # fys = interp2d(ixvecs, iyvecs, dys_smooth, kind="linear")
-    # out_dxs = np.empty_like(deltaxs)
-    # out_dys = np.empty_like(deltays)
-    # for i, (x, y) in enumerate(zip(xs, ys)):
-    #     out_dxs[i] = fxs(x, y)[0]
-    #     out_dys[i] = fys(x, y)[0]
 
     return out_dxs, out_dys
