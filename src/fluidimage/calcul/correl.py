@@ -43,16 +43,21 @@ different methods.
 """
 
 from abc import ABC, abstractmethod
+from math import sqrt
 
 import numpy as np
-from numpy.fft import fft2, ifft2
 from scipy.ndimage import correlate
 from scipy.signal import correlate2d
 from transonic import Array, Type, boost
 
 from .correl_pycuda import correl_pycuda
 from .errors import PIVError
-from .fft import CUFFT2DReal2Complex, FFTW2DReal2Complex, SKCUFFT2DReal2Complex
+from .fft import (
+    CUFFT2DReal2Complex,
+    FFTW2DReal2Complex,
+    NumpyFFT2DReal2Complex,
+    SKCUFFT2DReal2Complex,
+)
 from .subpix import SubPix
 
 
@@ -516,7 +521,7 @@ class CorrelFFTBase(CorrelBase):
 
             for indices, v in np.ndenumerate(where_large_displacement):
                 dx, dy = self.compute_displacement_from_indices(*indices[::-1])
-                displacement = np.sqrt(dx**2 + dy**2)
+                displacement = sqrt(dx**2 + dy**2)
                 if displacement > self.displacement_max:
                     where_large_displacement[indices] = True
 
@@ -569,7 +574,7 @@ def _norm_images(im0: A2df32, im1: A2df32):
 
     Should return something close to:
 
-    np.sqrt(np.sum(im1**2) * np.sum(im0**2))
+    sqrt(np.sum(im1**2) * np.sum(im0**2))
 
     """
     im0 = im0.ravel()
@@ -585,7 +590,7 @@ def _norm_images(im0: A2df32, im1: A2df32):
         for idx in range(1, im0.size):
             tmp0 += im0[idx] ** 2
             tmp1 += im1[idx] ** 2
-    return np.sqrt(tmp0 * tmp1)
+    return sqrt(tmp0 * tmp1)
 
 
 @boost
@@ -631,18 +636,6 @@ def _like_fftshift(arr: A2dC):
     return arr
 
 
-class CorrelFFTNumpy(CorrelFFTBase):
-    """Correlations using numpy.fft."""
-
-    _tag = "np.fft"
-
-    def __call__(self, im0, im1):
-        """Compute the correlation from images."""
-        norm = _norm_images(im0, im1)
-        correl = ifft2(fft2(im0).conj() * fft2(im1)).real
-        return _like_fftshift(np.ascontiguousarray(correl)), norm
-
-
 class CorrelFFTWithOperBase(CorrelFFTBase):
 
     FFTClass: object
@@ -658,10 +651,38 @@ class CorrelFFTWithOperBase(CorrelFFTBase):
         Warning: important for perf, so use Pythran
 
         """
-        norm = _norm_images(im0, im1) * im0.size
-        oper = self.oper
-        correl = oper.ifft(oper.fft(im0).conj() * oper.fft(im1))
+        fft_im0 = self.oper.fft(im0)
+        fft_im0[0, 0] = 0.0
+        fft_im1 = self.oper.fft(im1)
+        fft_im1[0, 0] = 0.0
+        energy0 = self.oper.compute_energy_from_Fourier(fft_im0)
+        energy1 = self.oper.compute_energy_from_Fourier(fft_im1)
+        norm = sqrt(4 * energy0 * energy1) * self.oper.coef_norm_correl
+        correl = self.oper.ifft(fft_im0.conj() * fft_im1)
         return _like_fftshift(correl), norm
+
+
+class CorrelFFTNumpy(CorrelFFTWithOperBase):
+    """Correlations using numpy.fft."""
+
+    FFTClass = NumpyFFT2DReal2Complex
+    _tag = "np.fft"
+
+    def __call__(self, im0, im1):
+        """Compute the correlation from images.
+
+        Warning: important for perf, so use Pythran
+
+        """
+        fft_im0 = self.oper.fft(im0)
+        fft_im0[0, 0] = 0.0
+        fft_im1 = self.oper.fft(im1)
+        fft_im1[0, 0] = 0.0
+        correl = self.oper.ifft(fft_im0.conj() * fft_im1).real
+        energy0 = self.oper.compute_energy_from_Fourier(fft_im0)
+        energy1 = self.oper.compute_energy_from_Fourier(fft_im1)
+        norm = sqrt(4 * energy0 * energy1) * self.oper.coef_norm_correl
+        return _like_fftshift(np.ascontiguousarray(correl)), norm
 
 
 class CorrelFFTW(CorrelFFTWithOperBase):
