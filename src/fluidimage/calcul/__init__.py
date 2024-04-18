@@ -7,10 +7,10 @@ calculations.
 .. autosummary::
    :toctree:
 
-   fft
    correl
-   subpix
+   fft
    interpolate
-   smooth_clean
+   mean_neighbors
+   subpix
 
 """

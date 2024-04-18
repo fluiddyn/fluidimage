@@ -6,7 +6,6 @@ python_sources = [
   'correl_pycuda.py',
   'errors.py',
   'fft.py',
-  'smooth_clean.py',
   'mean_neighbors.py',
   'subpix.py',
   'test_correl.py',
