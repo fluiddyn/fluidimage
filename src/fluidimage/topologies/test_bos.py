@@ -25,7 +25,7 @@ def test_bos(tmp_path_karman, executor):
     params.piv0.shape_crop_im0 = 16
 
     # compute only few vectors
-    params.piv0.grid.overlap = -8
+    params.piv0.grid.overlap = -2
 
     params.saving.how = "recompute"
     params.saving.postfix = postfix
