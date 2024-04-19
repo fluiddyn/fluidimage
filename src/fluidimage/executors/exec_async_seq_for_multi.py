@@ -117,6 +117,9 @@ class ExecutorAsyncSeqForMulti(ExecutorAsyncSequential):
             with open(self._path_results, "a", encoding="utf-8") as file:
                 file.write(new_results)
 
+        if not self._log_file.closed:
+            self._log_file.flush()
+
     async def _save_topology_results(self):
         while not self._has_to_stop:
             self._save_results_names()
