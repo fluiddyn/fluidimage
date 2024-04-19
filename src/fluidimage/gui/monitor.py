@@ -270,10 +270,10 @@ class MonitorApp(App):
         self.detect_results()
         self.progress_bar.progress = self.num_results
         self.digit_num_results.update(f"{self.num_results}")
+        self.label_times.update(self.compute_times_str())
         if not self.check_is_running():
             self.timer_update_info.pause()
             self.label_is_running.update(f"Running: {self.job_is_running}")
-            self.label_times.update(self.compute_times_str())
 
     def load_time_max(self):
         """Load the end time or now"""
