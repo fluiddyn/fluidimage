@@ -15,6 +15,7 @@ from glob import glob
 
 import matplotlib.pyplot as plt
 
+import fluidimage
 from fluiddyn.io.image import imread
 from fluiddyn.util import time_as_str
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
@@ -62,7 +63,12 @@ def parse_args():
         "-cm", "--colormap", help="colormap", type=str, default=""
     )
     parser.add_argument("-v", "--verbose", help="verbose mode", action="count")
-
+    parser.add_argument(
+        "-V",
+        "--version",
+        help="Print fluidimage version and exit",
+        action="count",
+    )
     return parser.parse_args()
 
 
@@ -309,4 +315,9 @@ class ImageViewer(AppMatplotlibWidgets):
 
 def main():
     args = parse_args()
+
+    if args.version:
+        print(f"fluidimage {fluidimage.__version__}")
+        return
+
     ImageViewer(args)

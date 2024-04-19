@@ -1,134 +1,89 @@
-import unittest
-from time import time
-
 import numpy as np
+import pytest
+from numpy.random import PCG64, Generator
 
-from fluidimage.calcul.correl import CUFFT2DReal2Complex, FFTW2DReal2Complex
-
-# from scipy.misc import lena
-# from correl import calcul_correl_norm_scipy, CorrelWithFFT
+from fluidimage.calcul.fft import _compute_energy_from_fourier, classes
 
 
-class TestFFTW2DReal2Complex(unittest.TestCase):
-    # def test_correl(self):
+@pytest.mark.parametrize("cls", classes)
+def test_fft_random(cls):
 
-    #     rtime, ntime = 0., 0.
+    nx, ny = 20, 24
+    oper = cls(nx, ny)
 
-    #     im1 = lena()
-    #     im2 = im1 + np.random.randn(*im1.shape) * 50  # add noise
-    #     im1 = im1.astype('float32')
-    #     im2 = im2.astype('float32')
-    #     nx, ny = im1.shape
+    generator = Generator(PCG64())
 
-    #     t0 = time()
-    #     correl = CorrelWithFFT(nx, ny)
-    #     correlfft = correl.calcul_correl_norm(im1, im2)
-    #     ntime += time() - t0
+    arr = generator.random(nx * ny, dtype=oper.type_real).reshape(oper.shapeX)
+    arr_fft = oper.fft(arr)
 
-    #     t0 = time()
-    #     correl_dir = calcul_correl_norm_scipy(im1, im2)
-    #     rtime += time() - t0
+    energyX = oper.compute_energy_from_spatial(arr)
+    energyK = oper.compute_energy_from_fourier(arr_fft)
+    back = oper.ifft(arr_fft) / oper.coef_norm
+    energyX = oper.compute_energy_from_spatial(back)
+    arr_fft_2 = oper.fft(back)
+    energyKback = oper.compute_energy_from_fourier(arr_fft_2)
+    rtol = 8e-05
+    atol = 1e-04
+    assert np.allclose(arr_fft, arr_fft_2, rtol=rtol, atol=atol)
+    assert np.allclose(arr, back, rtol=rtol, atol=atol)
+    assert energyK == pytest.approx(energyKback)
+    assert energyX == pytest.approx(energyK)
 
-    #     print 'correl fft speedup = %g' % (rtime / ntime)
-    #     # ax1 = plt.subplot(121)
-    #     # ax2 = plt.subplot(122)
-    #     # ax1.imshow(correlfft)
-    #     # ax2.imshow(correl_dir)
-    #     # plt.show(block=True)
+    correl = oper.ifft(arr_fft.conj() * arr_fft)
+    assert np.allclose(correl.max() / (2 * energyK * oper.coef_norm_correl), 1)
 
-    #     rtol = 8e-0
-    #     atol = 3e-04
-    #     # tmp = np.absolute(correlfft - correl_dir) #- atol - rtol*np.abs(back)
 
-    #     # print(tmp.max())
-    #     self.assertTrue(np.allclose(correlfft,
-    #                                 correl_dir, rtol=rtol, atol=atol))
+@pytest.mark.parametrize("cls", classes)
+def test_fft_simple(cls):
+    """simple"""
+    nx = 4
+    ny = 2
+    oper = cls(nx, ny)
 
-    def test_fft(self):
-        """simple"""
-        nx = 4
-        ny = 2
-        op = FFTW2DReal2Complex(nx, ny)
+    arr_fft = np.zeros(oper.shapeK, dtype=cls.type_complex)
+    arr_fft[0, 1] = 1
 
-        func_fft = np.zeros(op.shapeK, dtype=op.type_complex)
-        func_fft[0, 1] = 1
+    energyK = oper.compute_energy_from_fourier(arr_fft)
 
-        self.compute_and_check(func_fft, op)
+    func = oper.ifft(arr_fft)
+    energyX = oper.compute_energy_from_spatial(func)
 
-    def compute_and_check(self, func_fft, op):
-        energyK = op.compute_energy_from_Fourier(func_fft)
+    back_fft = oper.fft(func) / oper.coef_norm
+    back = oper.ifft(back_fft)
 
-        func = op.ifft(func_fft)
-        energyX = op.compute_energy_from_spatial(func)
+    rtol = 8e-05
+    atol = 1e-04
+    assert np.allclose(arr_fft, back_fft, rtol=rtol, atol=atol)
+    assert np.allclose(func, back, rtol=rtol, atol=atol)
 
-        back_fft = op.fft(func) / op.coef_norm
-        back = op.ifft(back_fft)
+    assert energyX, pytest.approx(energyK)
 
-        rtol = 8e-05
-        atol = 1e-04
-        self.assertTrue(np.allclose(func_fft, back_fft, rtol=rtol, atol=atol))
-        self.assertTrue(np.allclose(func, back, rtol=rtol, atol=atol))
+    energyKback = oper.compute_energy_from_fourier(back_fft)
 
-        self.assertAlmostEqual(energyX / energyK, 1.0, places=3)
+    assert energyK, pytest.approx(energyKback)
 
-        energyKback = op.compute_energy_from_Fourier(back_fft)
-        self.assertAlmostEqual(energyK / energyKback, 1.0, places=3)
 
-    def compute_and_check2(self, func, op):
-        energyX = op.compute_energy_from_spatial(func)
-        func_fft = op.fft(func)
-        energyK = op.compute_energy_from_Fourier(func_fft)
-        back = op.ifft(func_fft)
-        energyX = op.compute_energy_from_spatial(back)
-        func_fft_2 = op.fft(back)
-        energyKback = op.compute_energy_from_Fourier(func_fft_2)
-        rtol = 8e-05
-        atol = 1e-04
-        self.assertTrue(np.allclose(func_fft, func_fft_2, rtol=rtol, atol=atol))
+@pytest.mark.parametrize("dtype", [np.complex64, np.complex128])
+def test_compute_energy_from_fourier(dtype):
 
-        # tmp = np.absolute(func - back) - atol - rtol*np.abs(back)
+    coef_norm = 10
+    n0 = 12
+    n1 = 8
 
-        # print(tmp.max())
+    generator = Generator(PCG64())
+    field_fft = generator.random(n0 * n1) + 1j * generator.random(n0 * n1)
+    field_fft = field_fft.reshape((n0, n1)).astype(np.complex64)
 
-        self.assertTrue(np.allclose(func, back, rtol=rtol, atol=atol))
+    assert field_fft.shape == (n0, n1)
 
-        self.assertAlmostEqual(energyX / energyK, 1.0, places=3)
-        self.assertAlmostEqual(energyK / energyKback, 1.0, places=3)
-
-    def bench_fft_random(self):
-        """random"""
-        nx = 128 * 16
-        ny = 64 * 4 * 8
-
-        rtime, ntime = 0.0, 0.0
-        Nloops = 2
-        for nloop in range(Nloops):
-            op = FFTW2DReal2Complex(nx, ny)
-
-            func = np.random.random(op.shapeX)
-
-            func = np.array(func, dtype=op.type_real)
-
-            t0 = time()
-            func_fft = op.fft(func)
-            func = op.ifft(func_fft)
-
-            self.compute_and_check2(func, op)
-            ntime += time() - t0
-
-            op = CUFFT2DReal2Complex(nx, ny)
-
-            t0 = time()
-            func_fft = op.fft(func)
-            func1 = op.ifft(func_fft)
-
-            self.compute_and_check2(func1, op)
-            rtime += time() - t0
-
-        print(
-            "array size = %5d x %5d : gpu speedup = %g" % (nx, ny, ntime / rtime)
+    expected = (
+        0.5
+        / coef_norm
+        * (
+            np.sum(abs(field_fft[:, 0]) ** 2 + abs(field_fft[:, -1]) ** 2)
+            + 2 * np.sum(abs(field_fft[:, 1:-1]) ** 2)
         )
+    )
 
-
-if __name__ == "__main__":
-    unittest.main()
+    energy = _compute_energy_from_fourier(field_fft, coef_norm)
+    assert energy == pytest.approx(expected)

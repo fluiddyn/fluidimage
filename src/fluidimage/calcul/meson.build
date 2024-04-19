@@ -6,7 +6,7 @@ python_sources = [
   'correl_pycuda.py',
   'errors.py',
   'fft.py',
-  'smooth_clean.py',
+  'mean_neighbors.py',
   'subpix.py',
   'test_correl.py',
   'test_fft.py',
@@ -19,7 +19,7 @@ py.install_sources(
 
 subdir('interpolate')
 
-run_command(['transonic', '--meson', '--backend', backend, 'correl.py', 'subpix.py'], check: true)
+run_command(['transonic', '--meson', '--backend', backend, 'correl.py', 'subpix.py', 'mean_neighbors.py', 'fft.py'], check: true)
 
 foreach be : backends
   subdir('__' + be + '__')

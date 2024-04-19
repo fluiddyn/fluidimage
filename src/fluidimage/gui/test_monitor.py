@@ -24,6 +24,14 @@ def test_monitor_help(monkeypatch):
             raise RuntimeError
 
 
+def test_monitor_version(monkeypatch):
+    command = "fluidimage-monitor --version"
+
+    with monkeypatch.context() as ctx:
+        ctx.setattr(sys, "argv", command.split())
+        main()
+
+
 def test_monitor_bad_paths(monkeypatch, tmp_path):
 
     command = "fluidimage-monitor __dir_does_not_exist__"

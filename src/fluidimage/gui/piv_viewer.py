@@ -16,6 +16,7 @@ from pathlib import Path
 import h5py
 import matplotlib.pyplot as plt
 
+import fluidimage
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
 from fluidimage.gui.base_matplotlib import AppMatplotlibWidgets
 
@@ -84,7 +85,12 @@ class VectorFieldsViewer(AppMatplotlibWidgets):
         parser.add_argument(
             "-v", "--verbose", help="verbose mode", action="count"
         )
-
+        parser.add_argument(
+            "-V",
+            "--version",
+            help="Print fluidimage version and exit",
+            action="count",
+        )
         return parser.parse_args()
 
     def __init__(self, args):
@@ -208,4 +214,9 @@ class VectorFieldsViewer(AppMatplotlibWidgets):
 
 def main():
     args = VectorFieldsViewer.parse_args()
+
+    if args.version:
+        print(f"fluidimage {fluidimage.__version__}")
+        return
+
     return VectorFieldsViewer(args)

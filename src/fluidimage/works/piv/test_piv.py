@@ -25,7 +25,7 @@ def test_minimal_piv(tmp_path):
 
     params.multipass.number = 2
 
-    params.fix.displacement_max = 2
+    params.fix.displacement_max = 3
     params.fix.threshold_diff_neighbour = 2
 
     params.series.path = str(path_images / "Oseen*")

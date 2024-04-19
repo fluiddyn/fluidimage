@@ -155,8 +155,10 @@ class BaseWorkPIV(BaseWorkWithMask):
         couple.apply_mask(self.params.mask)
 
         im0, im1 = couple.get_arrays()
+
         if not hasattr(self, "ixvecs_grid"):
             self._prepare_with_image(im0)
+
         (
             deltaxs,
             deltays,
@@ -201,8 +203,8 @@ class BaseWorkPIV(BaseWorkWithMask):
         """
         npad = self.npad = max(self._start_for_crop0 + self._stop_for_crop0)
         tmp = [(npad, npad), (npad, npad)]
-        im0pad = np.pad(im0 - im0.min(), tmp, "constant")
-        im1pad = np.pad(im1 - im1.min(), tmp, "constant")
+        im0pad = np.pad(im0 - im0.min(), tmp, "constant", constant_values=0)
+        im1pad = np.pad(im1 - im1.min(), tmp, "constant", constant_values=0)
         return im0pad, im1pad
 
     def _calcul_positions_vectors_subimages(
@@ -308,22 +310,8 @@ class BaseWorkPIV(BaseWorkWithMask):
                 errors[ivec] = "Bad im_crop shape."
                 continue
 
-            if np.isnan(im0crop).any() or np.isnan(im1crop).any():
-                deltaxs[ivec] = np.nan
-                deltays[ivec] = np.nan
-                correls_max[ivec] = np.nan
-                errors[ivec] = "Nan(s) in cropped images."
-                continue
-
             # compute and store correlation map
             correl, norm = self.correl(im0crop, im1crop)
-            if (
-                self.index_pass == 0
-                and self.params.piv0.coef_correl_no_displ is not None
-            ):
-                correl[
-                    self.correl.get_indices_no_displacement()
-                ] *= self.params.piv0.coef_correl_no_displ
 
             correls[ivec] = correl
 
@@ -401,16 +389,13 @@ class BaseWorkPIV(BaseWorkWithMask):
         self._stop_for_crop1 = tuple(_stop_for_crop1)
 
     def _crop_im0(self, ixvec, iyvec, im):
-        """Crop image 0.
-
-        Warning: important for perf (~12% for PIV with _crop_im1)
-        """
+        """Crop image 0."""
         subim = im[
             iyvec - self._start_for_crop0[0] : iyvec + self._stop_for_crop0[0],
             ixvec - self._start_for_crop0[1] : ixvec + self._stop_for_crop0[1],
         ]
-        subim = np.array(subim, dtype=np.float32)
-        return subim - subim.mean()
+        subim = np.ascontiguousarray(subim, dtype=np.float32)
+        return subim
 
     def _crop_im1(self, ixvec, iyvec, im):
         """Crop image 1."""
@@ -418,8 +403,8 @@ class BaseWorkPIV(BaseWorkWithMask):
             iyvec - self._start_for_crop1[0] : iyvec + self._stop_for_crop1[0],
             ixvec - self._start_for_crop1[1] : ixvec + self._stop_for_crop1[1],
         ]
-        subim = np.array(subim, dtype=np.float32)
-        return subim - subim.mean()
+        subim = np.ascontiguousarray(subim, dtype=np.float32)
+        return subim
 
     def apply_interp(self, piv_results, last=False):
         """Interpolate a PIV result object on the grid of the PIV work.
@@ -592,7 +577,6 @@ class FirstWorkPIV(BaseWorkPIV):
                 "method_correl": "fftw",
                 "method_subpix": "2d_gaussian2",
                 "nsubpix": None,
-                "coef_correl_no_displ": None,
                 "nb_peaks_to_search": 1,
                 "particle_radius": 3,
             },
@@ -638,11 +622,6 @@ class FirstWorkPIV(BaseWorkPIV):
   crop (`(1+2*nsubpix,)*2`). It is related to the typical size of the
   particles. It has to be increased in case of peak locking (plot the
   histograms of the displacements).
-
-- coef_correl_no_displ : None, number
-
-  If this coefficient is not None, the correlation of the point corresponding
-  to no displacement is multiplied by this coefficient (for the first pass).
 
 - nb_peaks_to_search : 1, int
 

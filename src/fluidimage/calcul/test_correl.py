@@ -17,7 +17,7 @@ from fluidimage.synthetic import make_synthetic_images
 logger = logging.getLogger("fluidimage")
 
 classes = {k.replace(".", "_"): v for k, v in correlation_classes.items()}
-classes2 = {
+classes_real_space = {
     "signal": CorrelScipySignal,
     "pycuda": CorrelPyCuda,
     "pythran": CorrelPythran,
@@ -34,7 +34,7 @@ try:
     import pycuda
 except ImportError:
     classes.pop("pycuda")
-    classes2.pop("pycuda")
+    classes_real_space.pop("pycuda")
 
 try:
     import skcuda
@@ -86,14 +86,10 @@ for k, cls in classes.items():
         ) = correl.compute_displacements_from_correl(c, norm=norm)
         displacement_computed = np.array([dx, dy])
 
-        logger.debug(
-            k
-            + ", displacement = [0, 0]\t error= {}\n".format(
-                abs(displacement_computed)
-            )
-        )
+        print(f"{k}, displacement = [0, 0]\t error= {abs(displacement_computed)}")
 
-        self.assertTrue(np.allclose([0, 0], displacement_computed, atol=1e-03))
+        assert np.allclose([0, 0], displacement_computed, atol=1e-03)
+        assert np.allclose(correl_max, 1.0), correl_max
 
         # then, with the 2 figures with displacements
         c, norm = correl(self.im0, self.im1)
@@ -159,7 +155,8 @@ for k, cls in classes.items():
             )
         )
 
-        self.assertTrue(np.allclose([0, 0], displacement_computed, atol=1e-03))
+        assert np.allclose(correl_max, 1.0), correl_max
+        assert np.allclose([0, 0], displacement_computed, atol=1e-03)
 
         # then, with the 2 figures with displacements
         c, norm = correl(self.im0, self.im1)
@@ -214,7 +211,7 @@ class TestCorrel2(unittest.TestCase):
         cls.im1 = cls.im1.astype("float32")
 
 
-for k, cls in classes2.items():
+for k, cls in classes_real_space.items():
 
     def _test2(self, cls=cls, k=k):
         correl = cls(self.im0.shape, self.im1.shape, mode="valid")
