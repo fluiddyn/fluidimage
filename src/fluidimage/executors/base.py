@@ -74,9 +74,11 @@ class ExecutorBase(ABC):
     path_job_data: Path
     _path_lockfile: Path
     num_expected_results: int
+    time_start: str
 
     def _init_log_path(self):
-        unique_postfix = f"{time_as_str()}_{os.getpid()}"
+        self.time_start_str = time_as_str()
+        unique_postfix = f"{self.time_start_str}_{os.getpid()}"
         path_job_data = self.path_dir_result / f"job_{unique_postfix}"
 
         if path_job_data.exists():
@@ -229,6 +231,7 @@ class ExecutorBase(ABC):
             "nb_max_workers": self.nb_max_workers,
             "path_dir_result": self.path_dir_result,
             "num_expected_results": self.num_expected_results,
+            "time_start": self.time_start_str,
         }
 
     def _save_lock_file(self):
@@ -250,6 +253,9 @@ class ExecutorBase(ABC):
     def _release_lock(self):
         if self._path_lockfile.exists():
             self._path_lockfile.unlink(missing_ok=True)
+            t_as_str = time_as_str()
+            path_end_time = self._path_lockfile.with_name("time_end.txt")
+            path_end_time.write_text(f"{t_as_str}\n")
 
     def _save_job_data(self):
         self.path_job_data = self.path_dir_result / f"job_{self._unique_postfix}"
@@ -381,6 +387,8 @@ class MultiExecutorBase(ExecutorBase):
 
     """
 
+    errors: dict
+
     def __init__(
         self,
         topology,
@@ -461,7 +469,7 @@ class MultiExecutorBase(ExecutorBase):
         }
         running_processes_updated = {}
         return_codes = {}
-        errors = {}
+        self.errors = {}
 
         num_results_vs_idx_process = [0 for idx in range(len(self.processes))]
         paths_len_results = [
@@ -491,7 +499,7 @@ class MultiExecutorBase(ExecutorBase):
                                 error = process.stderr.read()
                             except AttributeError:
                                 error = f"{ret_code = }"
-                            errors[idx] = error
+                            self.errors[idx] = error
                             logger.error(error)
 
                     if paths_len_results[idx].exists():
@@ -516,15 +524,22 @@ class MultiExecutorBase(ExecutorBase):
 
         self._join_processes()
 
-        if errors:
-            raise RuntimeError(
-                f"{len(errors)} sub-executors failed (over {len(self.processes)} processes)."
-            )
-
     def _finalize_compute(self):
         self.topology.results = results = []
         for path in self.path_job_data.glob("results_*.txt"):
             with open(path, encoding="utf-8") as file:
                 results.extend(line.strip() for line in file.readlines())
 
+        if self.errors:
+            text_error = (
+                f"{len(self.errors)} sub-executors failed "
+                f"(over {len(self.processes)} processes)."
+            )
+            for idx_process, error in self.errors.items():
+                text_error += f"\n{idx_process = }\nerror:\n{error}"
+            print(text_error, file=sys.stderr)
+
         super()._finalize_compute()
+
+        if self.errors:
+            raise RuntimeError(text_error)

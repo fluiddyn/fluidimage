@@ -12,6 +12,8 @@ from time import time
 
 import trio
 
+from fluiddyn import time_as_str
+
 from .exec_async_sequential import ExecutorAsyncSequential
 
 
@@ -78,6 +80,7 @@ class ExecutorAsyncSeqForMulti(ExecutorAsyncSequential):
         self.path_dir_exceptions = Path(self._log_path).parent
 
     def _init_compute(self):
+        self.time_start_str = time_as_str()
         self._init_compute_log()
         if hasattr(self, "_path_results"):
             self._path_results.touch()
@@ -116,6 +119,9 @@ class ExecutorAsyncSeqForMulti(ExecutorAsyncSequential):
 
             with open(self._path_results, "a", encoding="utf-8") as file:
                 file.write(new_results)
+
+        if not self._log_file.closed:
+            self._log_file.flush()
 
     async def _save_topology_results(self):
         while not self._has_to_stop:

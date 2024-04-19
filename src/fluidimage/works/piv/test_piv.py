@@ -20,8 +20,7 @@ def test_minimal_piv(tmp_path):
     params.piv0.shape_crop_im0 = 32
     params.piv0.grid.overlap = -3
 
-    # still buggy
-    # params.piv0.nb_peaks_to_search = 2
+    params.piv0.nb_peaks_to_search = 2
 
     params.multipass.number = 2
 

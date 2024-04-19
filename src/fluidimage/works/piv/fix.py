@@ -167,7 +167,7 @@ Parameters indicating how are detected and processed false vectors.
                 continue
 
             diff_neighbours = np.empty(len(other_peaks_good) + 1)
-            diff_neighbours[0] = sqrt(differences_2[ivec])
+            diff_neighbours[0] = sqrt(differences2[ivec])
 
             for i, (dx, dy, corr) in enumerate(other_peaks_good):
                 diff_neighbours[i + 1] = np.sqrt(

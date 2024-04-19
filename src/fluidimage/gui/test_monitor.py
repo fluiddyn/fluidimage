@@ -4,7 +4,7 @@ import sys
 import pytest
 
 from fluidimage.executors import supported_multi_executors
-from fluidimage.gui.monitor import MonitorApp, main
+from fluidimage.gui.monitor import MonitorApp, main, format_time_in_seconds
 from fluidimage.piv import TopologyPIV
 
 postfix = "test_monitor"
@@ -98,3 +98,9 @@ async def test_monitor(monkeypatch, tmp_path_oseen, executor):
     leaf = node_saving.children[0]
     event.node = leaf
     app.on_tree_node_selected(event)
+
+
+def test_format_time_in_seconds():
+    assert format_time_in_seconds(25.5) == "25.50 s"
+    assert format_time_in_seconds(120) == "00:02:00"
+    assert format_time_in_seconds(3625) == "01:00:25"
