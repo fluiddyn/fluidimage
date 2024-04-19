@@ -381,6 +381,8 @@ class MultiExecutorBase(ExecutorBase):
 
     """
 
+    errors: dict
+
     def __init__(
         self,
         topology,
@@ -461,7 +463,7 @@ class MultiExecutorBase(ExecutorBase):
         }
         running_processes_updated = {}
         return_codes = {}
-        errors = {}
+        self.errors = {}
 
         num_results_vs_idx_process = [0 for idx in range(len(self.processes))]
         paths_len_results = [
@@ -491,7 +493,7 @@ class MultiExecutorBase(ExecutorBase):
                                 error = process.stderr.read()
                             except AttributeError:
                                 error = f"{ret_code = }"
-                            errors[idx] = error
+                            self.errors[idx] = error
                             logger.error(error)
 
                     if paths_len_results[idx].exists():
@@ -516,15 +518,22 @@ class MultiExecutorBase(ExecutorBase):
 
         self._join_processes()
 
-        if errors:
-            raise RuntimeError(
-                f"{len(errors)} sub-executors failed (over {len(self.processes)} processes)."
-            )
-
     def _finalize_compute(self):
         self.topology.results = results = []
         for path in self.path_job_data.glob("results_*.txt"):
             with open(path, encoding="utf-8") as file:
                 results.extend(line.strip() for line in file.readlines())
 
+        if self.errors:
+            text_error = (
+                f"{len(self.errors)} sub-executors failed "
+                f"(over {len(self.processes)} processes)."
+            )
+            for idx_process, error in self.errors.items():
+                text_error += f"\n{idx_process = }\nerror:\n{error}"
+            print(text_error, file=sys.stderr)
+
         super()._finalize_compute()
+
+        if self.errors:
+            raise RuntimeError(text_error)
