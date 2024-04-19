@@ -1,7 +1,15 @@
 # Release notes
 
 See also the
-[unreleased changes](https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.4.3...branch%2Fdefault).
+[unreleased changes](https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.4.5...branch%2Fdefault).
+
+## [0.4.6] (2024-04-??)
+
+- Performance optimizations for PIV
+- Remove `params.piv0.coef_correl_no_displ` (old useless parameter)
+- Add option `--version` to fluidimage apps
+- `fluidimage-monitor`: show time info
+- Internal: better fft and correl with more testing
 
 ## [0.4.5] (2024-04-17)
 
@@ -191,3 +199,5 @@ This version contains incompatible API changes documented here.
 [0.4.2]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.4.1...0.4.2
 [0.4.3]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.4.2...0.4.3
 [0.4.4]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.4.3...0.4.4
+[0.4.5]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.4.4...0.4.5
+[0.4.6]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.4.5...0.4.6
