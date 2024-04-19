@@ -1,42 +1,46 @@
 import sys
-import unittest
 
-from fluiddyn.io import stdout_redirected
 from fluidimage import get_path_image_samples
-from fluidimage.gui.imviewer import ImageViewer, parse_args
+from fluidimage.gui.imviewer import ImageViewer, main, parse_args
 
 path_image_samples = get_path_image_samples()
 
 
-class TestImageViewer(unittest.TestCase):
-    def test_main(self):
-        with stdout_redirected():
-            command = "fluidimviewer"
-            args = command.split()
-            args.append(str(path_image_samples / "Karman/Images"))
-            sys.argv = args
-            args = parse_args()
-            ImageViewer(args)
+def test_fluidimviewer_version(monkeypatch):
+    command = "fluidimviewer --version"
+    with monkeypatch.context() as ctx:
+        ctx.setattr(sys, "argv", command.split())
+        main()
 
-            args = command.split()
-            args.append(str(path_image_samples / "Karman/Images/*"))
-            sys.argv = args
 
-            args = parse_args()
-            self = ImageViewer(args)
+def test_main(monkeypatch):
 
-            self.set_autoclim(None)
+    words = ["fluidimviewer", str(path_image_samples / "Karman/Images")]
+    with monkeypatch.context() as ctx:
+        ctx.setattr(sys, "argv", words)
+        args = parse_args()
 
-            self._switch()
-            self._switch()
+    ImageViewer(args)
 
-            self._increase_ifile()
-            self._decrease_ifile()
+    words = ["fluidimviewer", str(path_image_samples / "Karman/Images/*")]
+    with monkeypatch.context() as ctx:
+        ctx.setattr(sys, "argv", words)
+        args = parse_args()
 
-            self._submit_n("2")
+    viewer = ImageViewer(args)
 
-            self._increase_ifile_n()
-            self._decrease_ifile_n()
+    viewer.set_autoclim(None)
 
-            self._change_cmin("1")
-            self._change_cmax("2")
+    viewer._switch()
+    viewer._switch()
+
+    viewer._increase_ifile()
+    viewer._decrease_ifile()
+
+    viewer._submit_n("2")
+
+    viewer._increase_ifile_n()
+    viewer._decrease_ifile_n()
+
+    viewer._change_cmin("1")
+    viewer._change_cmax("2")
