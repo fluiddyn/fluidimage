@@ -9,6 +9,7 @@
 import argparse
 import os
 import subprocess
+from datetime import datetime
 from importlib import import_module
 from pathlib import Path
 
@@ -52,6 +53,15 @@ def copy_doc(params_node, params_node_with_doc):
         copy_doc(params_node[tag], params_node_with_doc[tag])
 
 
+def format_time_in_seconds(duration_in_s):
+    """return a formatted str of the duration"""
+    if duration_in_s < 60:
+        return f"{duration_in_s:.2f} s"
+    hours, remainder = divmod(duration_in_s, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    return f"{int(hours):02}:{int(minutes):02}:{int(seconds):02}"
+
+
 class MonitorApp(App):
     """Fluidimage monitor Textual app"""
 
@@ -60,6 +70,8 @@ class MonitorApp(App):
     timer_update_info: Timer
     digit_num_results: Digits
     widget_doc: Markdown
+    label_is_running: Label
+    label_times: Label
     job_is_running: bool
 
     CSS_PATH = "monitor.tcss"
@@ -126,6 +138,8 @@ class MonitorApp(App):
             return
 
         self.path_lockfile = self.path_job_info / "is_running.lock"
+        self.path_time_end = self.path_job_info / "time_end.txt"
+        self.time_end = None
         self.check_is_running()
 
         self.path_info = self.path_job_info / "info.xml"
@@ -133,6 +147,10 @@ class MonitorApp(App):
         self.info_job = {
             key: info[key] for key in sorted(info._get_key_attribs())
         }
+
+        self.time_start = datetime.strptime(
+            self.info_job["time_start"], "%Y-%m-%d_%H-%M-%S"
+        )
 
         self.params = ParamContainer(path_file=self.path_job_info / "params.xml")
 
@@ -176,6 +194,10 @@ class MonitorApp(App):
                             f"Running: {self.job_is_running}"
                         )
                         yield self.label_is_running
+                        self.label_times = Label(
+                            self.compute_times_str(), id="label_times"
+                        )
+                        yield self.label_times
                     yield Rule()
                     yield DataTable()
                     yield Rule()
@@ -251,6 +273,37 @@ class MonitorApp(App):
         if not self.check_is_running():
             self.timer_update_info.pause()
             self.label_is_running.update(f"Running: {self.job_is_running}")
+            self.label_times.update(self.compute_times_str())
+
+    def load_time_max(self):
+        """Load the end time or now"""
+        if self.time_end is not None:
+            return self.time_end
+
+        if self.path_time_end.exists():
+            self.time_end = datetime.strptime(
+                self.path_time_end.read_text().strip(), "%Y-%m-%d_%H-%M-%S"
+            )
+            return self.time_end
+        else:
+            return datetime.now()
+
+    def compute_times_str(self):
+        """Compute the string used for the label 'label_times'"""
+
+        duration = self.load_time_max() - self.time_start
+        duration_in_s = duration.total_seconds()
+        duration_str = format_time_in_seconds(duration_in_s)
+
+        if self.job_is_running:
+            result = f"Started since {duration_str}"
+        else:
+            result = f"Total duration: {duration_str}"
+
+        if self.num_results:
+            result += f" ({duration_in_s * self.info_job['nb_max_workers'] / self.num_results:.2f} s.CPU/result)"
+
+        return result
 
     def action_launch_fluidpivviewer(self) -> None:
         """Launch fluidpivviewer from the result directory"""

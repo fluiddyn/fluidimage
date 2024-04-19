@@ -74,9 +74,11 @@ class ExecutorBase(ABC):
     path_job_data: Path
     _path_lockfile: Path
     num_expected_results: int
+    time_start: str
 
     def _init_log_path(self):
-        unique_postfix = f"{time_as_str()}_{os.getpid()}"
+        self.time_start_str = time_as_str()
+        unique_postfix = f"{self.time_start_str}_{os.getpid()}"
         path_job_data = self.path_dir_result / f"job_{unique_postfix}"
 
         if path_job_data.exists():
@@ -229,6 +231,7 @@ class ExecutorBase(ABC):
             "nb_max_workers": self.nb_max_workers,
             "path_dir_result": self.path_dir_result,
             "num_expected_results": self.num_expected_results,
+            "time_start": self.time_start_str,
         }
 
     def _save_lock_file(self):
@@ -250,6 +253,9 @@ class ExecutorBase(ABC):
     def _release_lock(self):
         if self._path_lockfile.exists():
             self._path_lockfile.unlink(missing_ok=True)
+            t_as_str = time_as_str()
+            path_end_time = self._path_lockfile.with_name("time_end.txt")
+            path_end_time.write_text(f"{t_as_str}\n")
 
     def _save_job_data(self):
         self.path_job_data = self.path_dir_result / f"job_{self._unique_postfix}"
