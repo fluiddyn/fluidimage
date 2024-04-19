@@ -6,7 +6,7 @@ def _mean_neighbors(arr, arr_is_not_nan):
     """Nan has to be zeros in `arr`!"""
 
     arr_a = arr
-    arr_b = arr_is_not_nan
+    arr_b = arr_is_not_nan.astype(np.uint8)
 
     n0, n1 = arr.shape
     arr_output = np.zeros_like(arr)
@@ -117,7 +117,7 @@ def _mean_neighbors(arr, arr_is_not_nan):
     # normalize
     for i0 in range(n0):
         for i1 in range(n1):
-            if arr_is_not_nan[i0, i1] or arr_nb_pts[i0, i1] == 0:
+            if not arr_is_not_nan[i0, i1] or arr_nb_pts[i0, i1] == 0:
                 arr_output[i0, i1] = np.nan
                 continue
             arr_output[i0, i1] /= arr_nb_pts[i0, i1]

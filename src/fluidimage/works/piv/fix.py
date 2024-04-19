@@ -7,6 +7,8 @@
 
 """
 
+from math import sqrt
+
 import numpy as np
 
 from fluiddyn.util.paramcontainer import ParamContainer
@@ -113,19 +115,19 @@ Parameters indicating how are detected and processed false vectors.
                 deltaxs, deltays, iyvecs, ixvecs
             )
 
-            differences = np.sqrt(
-                (dxs_neighbors - deltaxs) ** 2 + (dys_neighbors - deltays) ** 2
-            )
+            diff_x = dxs_neighbors - deltaxs
+            diff_y = dys_neighbors - deltays
+            differences2 = diff_x**2 + diff_y**2
 
             with np.errstate(invalid="ignore"):
-                inds = (differences > threshold).nonzero()[0]
+                inds = (differences2 > threshold**2).nonzero()[0]
 
             put_to_nan(inds, "diff neighbour too large")
 
             for ivec in inds:
-                piv_results.errors[ivec] += " (diff = {:.2f})".format(
-                    differences[ivec]
-                )
+                piv_results.errors[
+                    ivec
+                ] += f" (diff = {sqrt(differences2[ivec]):.2f})"
 
             piv_results.deltaxs_wrong = deltaxs_wrong
             piv_results.deltays_wrong = deltays_wrong
@@ -165,7 +167,7 @@ Parameters indicating how are detected and processed false vectors.
                 continue
 
             diff_neighbours = np.empty(len(other_peaks_good) + 1)
-            diff_neighbours[0] = differences[ivec]
+            diff_neighbours[0] = sqrt(differences_2[ivec])
 
             for i, (dx, dy, corr) in enumerate(other_peaks_good):
                 diff_neighbours[i + 1] = np.sqrt(
