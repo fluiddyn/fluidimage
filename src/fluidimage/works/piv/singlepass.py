@@ -203,8 +203,8 @@ class BaseWorkPIV(BaseWorkWithMask):
         """
         npad = self.npad = max(self._start_for_crop0 + self._stop_for_crop0)
         tmp = [(npad, npad), (npad, npad)]
-        im0pad = np.pad(im0 - im0.min(), tmp, "constant")
-        im1pad = np.pad(im1 - im1.min(), tmp, "constant")
+        im0pad = np.pad(im0 - im0.min(), tmp, "constant", constant_values=0)
+        im1pad = np.pad(im1 - im1.min(), tmp, "constant", constant_values=0)
         return im0pad, im1pad
 
     def _calcul_positions_vectors_subimages(
@@ -310,22 +310,8 @@ class BaseWorkPIV(BaseWorkWithMask):
                 errors[ivec] = "Bad im_crop shape."
                 continue
 
-            if np.isnan(im0crop).any() or np.isnan(im1crop).any():
-                deltaxs[ivec] = np.nan
-                deltays[ivec] = np.nan
-                correls_max[ivec] = np.nan
-                errors[ivec] = "Nan(s) in cropped images."
-                continue
-
             # compute and store correlation map
             correl, norm = self.correl(im0crop, im1crop)
-            if (
-                self.index_pass == 0
-                and self.params.piv0.coef_correl_no_displ is not None
-            ):
-                correl[
-                    self.correl.get_indices_no_displacement()
-                ] *= self.params.piv0.coef_correl_no_displ
 
             correls[ivec] = correl
 
@@ -591,7 +577,6 @@ class FirstWorkPIV(BaseWorkPIV):
                 "method_correl": "fftw",
                 "method_subpix": "2d_gaussian2",
                 "nsubpix": None,
-                "coef_correl_no_displ": None,
                 "nb_peaks_to_search": 1,
                 "particle_radius": 3,
             },
@@ -637,11 +622,6 @@ class FirstWorkPIV(BaseWorkPIV):
   crop (`(1+2*nsubpix,)*2`). It is related to the typical size of the
   particles. It has to be increased in case of peak locking (plot the
   histograms of the displacements).
-
-- coef_correl_no_displ : None, number
-
-  If this coefficient is not None, the correlation of the point corresponding
-  to no displacement is multiplied by this coefficient (for the first pass).
 
 - nb_peaks_to_search : 1, int
 
