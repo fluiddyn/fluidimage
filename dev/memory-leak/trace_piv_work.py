@@ -4,7 +4,7 @@ import tracemalloc
 
 from fluidimage.piv import Work
 
-import tracemalloc_profiler as profiler
+import profiler
 
 os.environ["OMP_NUM_THREADS"] = "1"
 
