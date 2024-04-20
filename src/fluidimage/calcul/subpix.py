@@ -15,14 +15,22 @@ from .errors import PIVError
 
 @boost
 def compute_subpix_2d_gaussian2(correl: "float32[][]", ix: int, iy: int):
-    correl_crop = correl[iy - 1 : iy + 2, ix - 1 : ix + 2]
-    # hoops, pythran crashes because of this line
-    # correl_crop[correl_crop < 0] = 1e-6
+    # without np.ascontiguousarray => memory leak
+    correl_crop = np.ascontiguousarray(correl[iy - 1 : iy + 2, ix - 1 : ix + 2])
 
-    # we write it like this to please pythran
-    tmp = np.where(correl_crop < 0)
-    for i0, i1 in zip(tmp[0], tmp[1]):
-        correl_crop[i0, i1] = 1e-6
+    correl_crop_ravel = correl_crop.ravel()
+
+    correl_min = correl_crop.min()
+    for idx in range(9):
+        correl_crop_ravel[idx] -= correl_min
+
+    correl_max = correl_crop.max()
+    for idx in range(9):
+        correl_crop_ravel[idx] /= correl_max
+
+    for idx in range(9):
+        if correl_crop_ravel[idx] == 0:
+            correl_crop_ravel[idx] = 1e-8
 
     c10 = 0
     c01 = 0
