@@ -37,15 +37,15 @@ def compute_subpix_2d_gaussian2(correl: "float32[][]", ix: int, iy: int):
     c11 = 0
     c20 = 0
     c02 = 0
-    for i in range(3):
-        for j in range(3):
-            c10 += (i - 1) * np.log(correl_crop[j, i])
-            c01 += (j - 1) * np.log(correl_crop[j, i])
-            c11 += (i - 1) * (j - 1) * np.log(correl_crop[j, i])
-            c20 += (3 * (i - 1) ** 2 - 2) * np.log(correl_crop[j, i])
-            c02 += (3 * (j - 1) ** 2 - 2) * np.log(correl_crop[j, i])
-            c00 = (5 - 3 * (i - 1) ** 2 - 3 * (j - 1) ** 2) * np.log(
-                correl_crop[j, i]
+    for i0 in range(3):
+        for i1 in range(3):
+            c10 += (i1 - 1) * np.log(correl_crop[i0, i1])
+            c01 += (i0 - 1) * np.log(correl_crop[i0, i1])
+            c11 += (i1 - 1) * (i0 - 1) * np.log(correl_crop[i0, i1])
+            c20 += (3 * (i1 - 1) ** 2 - 2) * np.log(correl_crop[i0, i1])
+            c02 += (3 * (i0 - 1) ** 2 - 2) * np.log(correl_crop[i0, i1])
+            c00 = (5 - 3 * (i1 - 1) ** 2 - 3 * (i0 - 1) ** 2) * np.log(
+                correl_crop[i0, i1]
             )
 
     c00, c10, c01, c11, c20, c02 = (
