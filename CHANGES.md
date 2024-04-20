@@ -3,13 +3,15 @@
 See also the
 [unreleased changes](https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.4.5...branch%2Fdefault).
 
-## [0.4.6] (2024-04-??)
+## [0.4.6] (2024-04-20)
 
-- Performance optimizations for PIV
-- Remove `params.piv0.coef_correl_no_displ` (old useless parameter)
-- Add option `--version` to fluidimage apps
-- `fluidimage-monitor`: show time info
-- Internal: better fft and correl with more testing
+- Fix a memory leak related to Pythran in {mod}`fluidimage.calcul.subpix` (see
+  [!97](https://foss.heptapod.net/fluiddyn/fluidimage/-/merge_requests/97)).
+- Performance optimizations for PIV.
+- Remove `params.piv0.coef_correl_no_displ` (old useless parameter).
+- Add option `--version` to fluidimage apps.
+- `fluidimage-monitor`: show time info.
+- Internal: better fft and correl with more testing.
 
 ## [0.4.5] (2024-04-17)
 
