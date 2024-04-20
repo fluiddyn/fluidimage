@@ -7,4 +7,5 @@ pixi.lock linguist-language=YAML
 old export-ignore
 try export-ignore
 bench export-ignore
+dev export-ignore
 image_samples export-ignore
