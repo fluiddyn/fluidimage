@@ -301,7 +301,7 @@ class MonitorApp(App):
             result = f"Total duration: {duration_str}"
 
         if self.num_results:
-            result += f" ({duration_in_s * self.info_job['nb_max_workers'] / self.num_results:.2f} s.CPU/result)"
+            result += f" ({duration_in_s * self.info_job['nb_cpus_allowed'] / self.num_results:.2f} s.CPU/result)"
 
         return result
 
