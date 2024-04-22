@@ -21,6 +21,7 @@ obtained as ``dot(U_tps, EMDX)`` and ``dot(U_tps, EMDY)``, where
 """
 
 from logging import debug
+from typing import List
 
 import numpy as np
 from transonic import Array
@@ -30,6 +31,10 @@ from .thin_plate_spline import compute_tps_coeff, compute_tps_matrix
 
 class ThinPlateSplineSubdom:
     """Helper class for thin plate interpolation."""
+
+    new_positions: "np.int64[:,:]"
+    ind_new_positions_subdom: List["np.int64[:]"]
+    norm_coefs: "float[:]"
 
     def __init__(
         self,
@@ -137,6 +142,15 @@ class ThinPlateSplineSubdom:
         return U_smooth_tmp, U_tps, summary
 
     def init_with_new_positions(self, new_positions):
+        """Initialize with the new positions
+
+        Parameters
+        ----------
+
+        new_positions: 2d array of int64
+          new_positions[0] and new_positions[1] correspond to the x and y values, respectively.
+
+        """
         npos = self.new_positions = new_positions
 
         ind_new_positions_subdom = []
@@ -161,6 +175,15 @@ class ThinPlateSplineSubdom:
                 i_subdom += 1
 
         self.ind_new_positions_subdom = ind_new_positions_subdom
+
+        self.norm_coefs = np.zeros(self.new_positions.shape[1])
+        for i_subdom in range(self.nb_subdom):
+            # TODO: replace 1 by an appropriate function of
+            # ind_new_positions_subdom[i_subdom]
+            # + save another list of 1d array like ind_new_positions_subdom
+            # containing the norm coefficients for each subdomain
+            self.norm_coefs[ind_new_positions_subdom[i_subdom]] += 1
+
         self._init_EM_subdom()
 
     def _init_EM_subdom(self):
@@ -176,16 +199,14 @@ class ThinPlateSplineSubdom:
         self.EM = EM
 
     def compute_eval(self, U_tps):
-        U_eval = np.zeros(self.new_positions[1].shape)
-        nb_tps = np.zeros(self.new_positions[1].shape, dtype=int)
+        U_eval = np.zeros(self.new_positions.shape[1])
 
         for i in range(self.nb_subdom):
             U_eval[self.ind_new_positions_subdom[i]] += np.dot(
                 U_tps[i], self.EM[i]
             )
-            nb_tps[self.ind_new_positions_subdom[i]] += 1
 
-        U_eval /= nb_tps
+        U_eval /= self.norm_coefs
 
         return U_eval
 
