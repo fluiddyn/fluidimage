@@ -102,3 +102,7 @@ def main():
 
     action.compute(**kwargs_compute)
     return action
+
+
+if __name__ == "__main__":
+    main()

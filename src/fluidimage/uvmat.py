@@ -80,8 +80,12 @@ class ActionBase(ABC):
                 ind_stop = None
 
         if pair_mode == "pair j1-j2":
-            if pair_indices.list_pair_civ1 != "j= a-b":
+            if not pair_indices.list_pair_civ1.startswith("j= a-b"):
                 raise NotImplementedError(f"{pair_indices.list_pair_civ1 = }")
+            if pair_indices.list_pair_civ1 != "j= a-b":
+                warning(
+                    f"Do not know how to handle UVmat XML: {pair_indices.list_pair_civ1 = }"
+                )
             str_subset = "i,0:2"
         elif pair_mode == "series(Di)":
             str_subset = "i:i+2:1"
