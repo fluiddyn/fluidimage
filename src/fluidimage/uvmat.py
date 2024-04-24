@@ -23,8 +23,9 @@ def tidy_uvmat_instructions(instructions):
         if input_table[i].startswith("/"):
             input_table[i] = input_table[i][1:]
 
-    filename = "".join(input_table[2:])
     path_dir = os.path.join(*input_table[:2])
+    input_table[3] = "*"
+    filename = "".join(input_table[2:])
     path_file_input = os.path.abspath(os.path.join(path_dir, filename))
     path_dir_input = path_dir
     instructions._set_attrib("path_dir_input", path_dir_input)
@@ -47,28 +48,49 @@ class ActionBase(ABC):
     def set_params_series(cls, params, instructions):
         """Set params.series from UVmat xml"""
         ir = instructions.index_range
-        if not hasattr(ir, "incr_i"):
-            ir._set_attrib("incr_i", 1)
 
-        if not hasattr(ir, "first_i"):
-            warning("Warning: no attribute first_i in xml UVmat file.")
-            ir._set_attrib("first_i", 1)
+        pair_indices = instructions.action_input.pair_indices
+        pair_mode = pair_indices.list_pair_mode
 
-        if not hasattr(ir, "last_i"):
-            warning("Warning: no attribute last_i in xml UVmat file.")
-            ir._set_attrib("last_i", None)
-
-        if not hasattr(ir, "first_j"):
-            str_subset = "i:i+2:1"
+        if pair_mode in ["series(Di)", "pair j1-j2"]:
             ind_start = ir.first_i
-            ind_step = ir.incr_i
 
-            if ir.last_i is None:
-                ind_stop = None
-            else:
+            try:
+                ind_step = ir.incr_i
+            except AttributeError:
+                ind_step = 1
+
+            try:
                 ind_stop = ir.last_i + 1
+            except AttributeError:
+                ind_stop = None
+
+        elif pair_mode == "series(Dj)":
+
+            ind_start = ir.first_j
+
+            try:
+                ind_step = ir.incr_j
+            except AttributeError:
+                ind_step = 1
+
+            try:
+                ind_stop = ir.last_j + 1
+            except AttributeError:
+                ind_stop = None
+
+        if pair_mode == "pair j1-j2":
+            if pair_indices.list_pair_civ1 != "j= a-b":
+                raise NotImplementedError(f"{pair_indices.list_pair_civ1 = }")
+            str_subset = "i,0:2"
+        elif pair_mode == "series(Di)":
+            str_subset = "i:i+2:1"
+        elif pair_mode == "series(Dj)":
+            if ir.first_i != ir.last_i:
+                raise NotImplementedError("ir.first_i != ir.last_i")
+            str_subset = "{ir.first_i},i:i+2:1"
         else:
-            raise NotImplementedError
+            raise NotImplementedError(f"{pair_indices.list_pair_mode = }")
 
         params.series.path = instructions.path_file_input
         params.series.str_subset = str_subset

@@ -20,7 +20,7 @@ def test_uvmat(tmp_path, monkeypatch, name):
         shutil.copy(path_im, path_dir_images)
 
     path_save_uvmat_xml = (
-        path_image_samples / name /"Images.civ/0_XML/instructions.xml"
+        path_image_samples / name / "Images.civ/0_XML/instructions.xml"
     )
     text = path_save_uvmat_xml.read_text()
     text = text.replace("TO_BE_REPLACED_BY_TMP_PATH", str(tmp_path))
@@ -37,7 +37,13 @@ def test_uvmat(tmp_path, monkeypatch, name):
     assert action.params.saving.path == str(path_results)
 
     paths_piv = sorted(p.name for p in path_results.glob("piv*.h5"))
-    assert paths_piv == ["piv_01-02.h5", "piv_03-04.h5"]
+
+    if name == "Karman":
+        assert paths_piv == ["piv_01-02.h5", "piv_03-04.h5"]
+    elif name == "Jet":
+        assert paths_piv == ["piv_060ab.h5", "piv_061ab.h5"]
+    else:
+        raise ValueError
 
 
 def test_piv_sequential(tmp_path, monkeypatch):
