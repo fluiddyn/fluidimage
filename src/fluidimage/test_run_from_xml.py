@@ -1,6 +1,8 @@
 import shutil
 import sys
 
+import pytest
+
 from fluidimage import get_path_image_samples
 from fluidimage.piv import TopologyPIV
 from fluidimage.run_from_xml import main
@@ -8,16 +10,17 @@ from fluidimage.run_from_xml import main
 path_image_samples = get_path_image_samples()
 
 
-def test_uvmat(tmp_path, monkeypatch):
+@pytest.mark.parametrize("name", ["Karman", "Jet"])
+def test_uvmat(tmp_path, monkeypatch, name):
 
     path_dir_images = tmp_path / "Images"
     path_dir_images.mkdir()
 
-    for path_im in (path_image_samples / "Karman/Images").glob("*"):
+    for path_im in (path_image_samples / name / "Images").glob("*"):
         shutil.copy(path_im, path_dir_images)
 
     path_save_uvmat_xml = (
-        path_image_samples / "Karman/Images.civ/0_XML/Karman_1-3.xml"
+        path_image_samples / name /"Images.civ/0_XML/instructions.xml"
     )
     text = path_save_uvmat_xml.read_text()
     text = text.replace("TO_BE_REPLACED_BY_TMP_PATH", str(tmp_path))
