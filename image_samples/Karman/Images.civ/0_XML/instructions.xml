@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Series>
    <InputTable>
-      Karman &amp; Images &amp; Karman &amp; _01 &amp; .bmp
+      TO_BE_REPLACED_BY_TMP_PATH &amp; Images &amp; Karman &amp; _01 &amp; .bmp
    </InputTable>
    <OutputDirExt>
       .civ
@@ -11,7 +11,7 @@
          civ_series
       </ActionName>
       <ActionPath>
-         /home/users/campagne8a/Dev/MATLAB/UVMAT/series
+         /home/users/fluidimage-dev/UVMAT/series
       </ActionPath>
       <RUN>
          1
@@ -28,7 +28,7 @@
          2
       </incr_i>
       <last_i>
-         4
+         3
       </last_i>
       <TimeUnit>
          s
@@ -42,6 +42,9 @@
       <TimeSource>
          
       </TimeSource>
+      <incr_slice>
+         1
+      </incr_slice>
    </IndexRange>
    <OutputSubDir>
       Images
@@ -49,7 +52,110 @@
    <CheckOverwrite>
       1
    </CheckOverwrite>
+   <Replicate>
+      0
+   </Replicate>
+   <OutputPath>
+      /not/used/by/fluidimage
+   </OutputPath>
+   <Experiment>
+      image_samples
+   </Experiment>
+   <Device>
+      Karman
+   </Device>
+   <OutputPathBrowse>
+      0
+   </OutputPathBrowse>
+   <Mask>
+      
+   </Mask>
    <ActionInput>
+      <Patch2>
+         <FieldSmooth>
+            2
+         </FieldSmooth>
+         <MaxDiff>
+            1.5
+         </MaxDiff>
+         <SubDomainSize>
+            500
+         </SubDomainSize>
+         <TestPatch2>
+            0
+         </TestPatch2>
+      </Patch2>
+      <Fix2>
+         <CheckFmin2>
+            1
+         </CheckFmin2>
+         <CheckF4>
+            0
+         </CheckF4>
+         <CheckF3>
+            1
+         </CheckF3>
+         <MinCorr>
+            0.2
+         </MinCorr>
+      </Fix2>
+      <Civ2>
+         <CorrBoxSize>
+            21	21
+         </CorrBoxSize>
+         <CorrSmooth>
+            1
+         </CorrSmooth>
+         <CheckDeformation>
+            0
+         </CheckDeformation>
+         <Dx>
+            10
+         </Dx>
+         <Dy>
+            10
+         </Dy>
+         <CheckGrid>
+            0
+         </CheckGrid>
+         <CheckMask>
+            0
+         </CheckMask>
+         <CheckThreshold>
+            0
+         </CheckThreshold>
+         <TestCiv2>
+            0
+         </TestCiv2>
+         <SearchBoxSize>
+            27	27
+         </SearchBoxSize>
+      </Civ2>
+      <Patch1>
+         <FieldSmooth>
+            10
+         </FieldSmooth>
+         <MaxDiff>
+            1.5
+         </MaxDiff>
+         <SubDomainSize>
+            200
+         </SubDomainSize>
+         <TestPatch1>
+            0
+         </TestPatch1>
+      </Patch1>
+      <Fix1>
+         <CheckFmin2>
+            1
+         </CheckFmin2>
+         <CheckF3>
+            1
+         </CheckF3>
+         <MinCorr>
+            0.2
+         </MinCorr>
+      </Fix1>
       <Civ1>
          <CorrBoxSize>
             25	25
@@ -86,24 +192,27 @@
          1
       </CheckCiv1>
       <CheckFix1>
-         0
+         1
       </CheckFix1>
       <CheckPatch1>
-         0
+         1
       </CheckPatch1>
       <CheckCiv2>
-         0
+         1
       </CheckCiv2>
       <CheckFix2>
-         0
+         1
       </CheckFix2>
       <CheckPatch2>
-         0
+         1
       </CheckPatch2>
       <PairIndices>
          <ListPairCiv1>
             Di= 0|1 :dt= 1
          </ListPairCiv1>
+         <ListPairCiv2>
+            Di= 0|1 :dt= 1
+         </ListPairCiv2>
          <dt_unit>
             dt in mframe
          </dt_unit>
@@ -139,12 +248,15 @@
          PIV
       </ListCompareMode>
       <ConfigSource>
-         default
+         NEW
       </ConfigSource>
       <Program>
          civ_series
       </Program>
    </ActionInput>
+   <RunMode>
+      local
+   </RunMode>
    <OutputRootFile>
       Karman
    </OutputRootFile>

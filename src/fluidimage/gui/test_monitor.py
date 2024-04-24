@@ -4,7 +4,7 @@ import sys
 import pytest
 
 from fluidimage.executors import supported_multi_executors
-from fluidimage.gui.monitor import MonitorApp, main, format_time_in_seconds
+from fluidimage.gui.monitor import MonitorApp, format_time_in_seconds, main
 from fluidimage.piv import TopologyPIV
 
 postfix = "test_monitor"
