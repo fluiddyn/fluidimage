@@ -8,16 +8,33 @@ from fluidimage.run_from_xml import main
 path_image_samples = get_path_image_samples()
 
 
-def test_main(monkeypatch):
+def test_uvmat(tmp_path, monkeypatch):
 
-    monkeypatch.chdir(path_image_samples)
+    path_dir_images = tmp_path / "Images"
+    path_dir_images.mkdir()
 
-    path = path_image_samples / "Karman/Images.civ/0_XML/Karman_1-4.xml"
-    command = f"run {path} --mode recompute"
+    for path_im in (path_image_samples / "Karman/Images").glob("*"):
+        shutil.copy(path_im, path_dir_images)
+
+    path_save_uvmat_xml = (
+        path_image_samples / "Karman/Images.civ/0_XML/Karman_1-3.xml"
+    )
+    text = path_save_uvmat_xml.read_text()
+    text = text.replace("TO_BE_REPLACED_BY_TMP_PATH", str(tmp_path))
+    path_uvmat_xml = tmp_path / "uvmat.xml"
+    path_uvmat_xml.write_text(text)
+
+    command = f"run {path_uvmat_xml} --mode recompute"
 
     with monkeypatch.context() as ctx:
         ctx.setattr(sys, "argv", command.split())
-        main()
+        action = main()
+
+    path_results = tmp_path / "Images.civ"
+    assert action.params.saving.path == str(path_results)
+
+    paths_piv = sorted(p.name for p in path_results.glob("piv*.h5"))
+    assert paths_piv == ["piv_01-02.h5", "piv_03-04.h5"]
 
 
 def test_piv_sequential(tmp_path, monkeypatch):

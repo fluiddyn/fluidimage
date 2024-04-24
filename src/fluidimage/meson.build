@@ -14,6 +14,7 @@ python_sources = [
   'synthetic.py',
   'test_image2image.py',
   'test_run_from_xml.py',
+  'uvmat.py',
 ]
 
 py.install_sources(
