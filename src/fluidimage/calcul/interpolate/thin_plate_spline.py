@@ -211,12 +211,7 @@ def compute_tps_coeff(centers, U, smoothing_coef):
         ]
     )
 
-    # print('det(IM)', np.linalg.det(IM))
-    # print('cond(IM)', np.linalg.cond(IM))
-
-    # U_tps, r, r2, r3 = np.linalg.lstsq(IM, U)
     U_tps = np.linalg.solve(IM, U)
-
     U_smooth = np.dot(EM, U_tps)
     return U_smooth.ravel(), U_tps.ravel()
 

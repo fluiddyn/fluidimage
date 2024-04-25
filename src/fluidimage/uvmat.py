@@ -182,21 +182,31 @@ class ActionPIVFromUvmatXML(ActionBase):
 
         params.saving.path = instructions.path_dir_output
 
-        n0 = int(instructions.action_input.civ1.search_box_size.split("\t")[0])
+        action_input = instructions.action_input
+
+        n0 = int(action_input.civ1.search_box_size.split("\t")[0])
         if n0 % 2 == 1:
             n0 -= 1
 
         params.piv0.shape_crop_im0 = n0
 
-        if hasattr(instructions.action_input, "patch2"):
-            params.multipass.subdom_size = (
-                instructions.action_input.patch2.sub_domain_size
-            )
+        if hasattr(action_input, "patch2"):
+            params.multipass.subdom_size = action_input.patch2.sub_domain_size
+            params.multipass.smoothing_coef = action_input.patch2.field_smooth
+            params.multipass.threshold_tps = action_input.patch2.max_diff
         else:
             params.multipass.use_tps = False
 
-        if hasattr(instructions.action_input, "civ2"):
+        if hasattr(action_input, "civ2"):
             params.multipass.number = 2
+
+        fix = params.fix
+        fix.correl_min = action_input.fix1.min_corr
+
+        try:
+            fix.displacement_max = action_input.fix1.max_vel
+        except AttributeError:
+            pass
 
         return params
 

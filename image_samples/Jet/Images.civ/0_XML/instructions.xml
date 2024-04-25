@@ -167,6 +167,12 @@
          <CheckF3>
             1
          </CheckF3>
+         <MaxVel>
+            5
+         </MaxVel>
+         <MinVel>
+            1
+         </MinVel>
          <MinCorr>
             0.2
          </MinCorr>
