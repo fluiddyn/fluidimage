@@ -1,5 +1,15 @@
 """UVmat interface
 
+.. autofunction:: tidy_uvmat_instructions
+
+.. autoclass:: ActionBase
+   :members:
+   :private-members:
+
+.. autoclass:: ActionPIVFromUvmatXML
+   :members:
+   :private-members:
+
 """
 
 import os
@@ -8,8 +18,8 @@ from logging import warning
 from time import time
 
 from fluiddyn.util.paramcontainer import tidy_container
-from fluidimage import logger
 from fluidimage.topologies.piv import TopologyPIV
+from fluidimage.util import format_time_in_seconds
 
 
 def tidy_uvmat_instructions(instructions):
@@ -36,6 +46,8 @@ def tidy_uvmat_instructions(instructions):
 
 
 class ActionBase(ABC):
+    """Abstract class to represent UVmat 'actions'"""
+
     name: str
     computer_cls: type
 
@@ -43,6 +55,12 @@ class ActionBase(ABC):
     @abstractmethod
     def params_from_uvmat_xml(cls, instructions):
         """Create fluidimage params from UVmat xml"""
+        print("UVmat instructions:", instructions._make_xml_text(), sep="\n")
+        params = cls.computer_cls.create_default_params()
+        params.saving.path = instructions.path_dir_output
+        params.saving.how = "recompute"
+        cls.set_params_series(params, instructions)
+        return params
 
     @classmethod
     def set_params_series(cls, params, instructions):
@@ -105,8 +123,8 @@ class ActionBase(ABC):
     def __init__(self, params):
         """Initialize the action class"""
         self.params = params
-        logger.info("Initialize Fluidimage computations with parameters:")
-        logger.info(self.params._make_xml_text())
+        print("Initialize Fluidimage computations with parameters:")
+        print(self.params._make_xml_text())
         self.computer = self.computer_cls(self.params)
 
     def compute(self):
@@ -114,7 +132,7 @@ class ActionBase(ABC):
         t = time()
         self.computer.compute()
         t = time() - t
-        print(f"elapsed time: {t} s")
+        print(f"elapsed time: {format_time_in_seconds(t)}")
 
 
 # class ActionAverage(ActionBase):
@@ -177,26 +195,33 @@ class ActionPIVFromUvmatXML(ActionBase):
 
     @classmethod
     def params_from_uvmat_xml(cls, instructions):
-        params = cls.computer_cls.create_default_params()
-        cls.set_params_series(params, instructions)
+        params = super().params_from_uvmat_xml(instructions)
 
-        params.saving.path = instructions.path_dir_output
+        action_input = instructions.action_input
 
-        n0 = int(instructions.action_input.civ1.search_box_size.split("\t")[0])
+        n0 = int(action_input.civ1.search_box_size.split("\t")[0])
         if n0 % 2 == 1:
             n0 -= 1
 
         params.piv0.shape_crop_im0 = n0
 
-        if hasattr(instructions.action_input, "patch2"):
-            params.multipass.subdom_size = (
-                instructions.action_input.patch2.sub_domain_size
-            )
+        if hasattr(action_input, "patch2"):
+            params.multipass.subdom_size = action_input.patch2.sub_domain_size
+            params.multipass.smoothing_coef = action_input.patch2.field_smooth
+            params.multipass.threshold_tps = action_input.patch2.max_diff
         else:
             params.multipass.use_tps = False
 
-        if hasattr(instructions.action_input, "civ2"):
+        if hasattr(action_input, "civ2"):
             params.multipass.number = 2
+
+        fix = params.fix
+        fix.correl_min = action_input.fix1.min_corr
+
+        try:
+            fix.displacement_max = action_input.fix1.max_vel
+        except AttributeError:
+            pass
 
         return params
 

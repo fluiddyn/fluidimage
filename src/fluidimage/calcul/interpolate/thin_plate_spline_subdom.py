@@ -23,6 +23,7 @@ obtained as ``dot(U_tps, EMDX)`` and ``dot(U_tps, EMDY)``, where
 from logging import debug
 
 import numpy as np
+from transonic import Array
 
 from .thin_plate_spline import compute_tps_coeff, compute_tps_matrix
 
@@ -188,7 +189,7 @@ class ThinPlateSplineSubdom:
 
         return U_eval
 
-    def compute_tps_coeff_iter(self, centers, U):
+    def compute_tps_coeff_iter(self, centers, values: Array[np.float64, "1d"]):
         """Compute the thin plate spline (tps) coefficients removing erratic
         vectors
 
@@ -198,24 +199,29 @@ class ThinPlateSplineSubdom:
 
         """
         summary = {"nb_fixed_vectors": 0}
-        U_smooth, U_tps = compute_tps_coeff(centers, U, self.smoothing_coef)
+
+        # normalization as UVmat so that the effect of the filter do not depends
+        # too much on the size of the domains
+        smoothing_coef = self.smoothing_coef * values.size / 1000
+
+        U_smooth, U_tps = compute_tps_coeff(centers, values, smoothing_coef)
         count = 1
         if self.threshold is not None:
-            Udiff = np.sqrt((U_smooth - U) ** 2)
-            ind_erratic_vector = np.argwhere(Udiff > self.threshold)
+            differences = np.sqrt((U_smooth - values) ** 2)
+            ind_erratic_vector = np.argwhere(differences > self.threshold)
 
-            summary["max(Udiff)"] = max(Udiff)
+            summary["max(Udiff)"] = max(differences)
 
             nb_fixed_vectors = 0
             while ind_erratic_vector.size != 0:
                 nb_fixed_vectors += ind_erratic_vector.size
-                U[ind_erratic_vector] = U_smooth[ind_erratic_vector]
+                values[ind_erratic_vector] = U_smooth[ind_erratic_vector]
                 U_smooth, U_tps = compute_tps_coeff(
-                    centers, U, self.smoothing_coef
+                    centers, values, smoothing_coef
                 )
 
-                Udiff = np.sqrt((U_smooth - U) ** 2)
-                ind_erratic_vector = np.argwhere(Udiff > self.threshold)
+                differences = np.sqrt((U_smooth - values) ** 2)
+                ind_erratic_vector = np.argwhere(differences > self.threshold)
                 count += 1
 
                 if count > 10:

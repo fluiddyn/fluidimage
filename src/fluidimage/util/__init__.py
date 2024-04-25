@@ -22,6 +22,7 @@ from .log import (
 )
 from .util import (
     cstring,
+    format_time_in_seconds,
     get_txt_memory_usage,
     imread,
     imsave,
@@ -46,4 +47,5 @@ __all__ = [
     "log_error",
     "config_logging",
     "safe_eval",
+    "format_time_in_seconds",
 ]

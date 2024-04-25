@@ -33,6 +33,7 @@ from textual.widgets import (
 
 import fluidimage
 from fluidimage import ParamContainer
+from fluidimage.util import format_time_in_seconds
 
 
 def build_branch(branch, params_node):
@@ -51,15 +52,6 @@ def copy_doc(params_node, params_node_with_doc):
 
     for tag in params_node._tag_children:
         copy_doc(params_node[tag], params_node_with_doc[tag])
-
-
-def format_time_in_seconds(duration_in_s):
-    """return a formatted str of the duration"""
-    if duration_in_s < 60:
-        return f"{duration_in_s:.2f} s"
-    hours, remainder = divmod(duration_in_s, 3600)
-    minutes, seconds = divmod(remainder, 60)
-    return f"{int(hours):02}:{int(minutes):02}:{int(seconds):02}"
 
 
 class MonitorApp(App):
