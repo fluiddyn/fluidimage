@@ -18,6 +18,8 @@ Provides:
 
 .. autofunction:: safe_eval
 
+.. autofunction:: format_time_in_seconds
+
 """
 
 from pathlib import Path
@@ -131,3 +133,12 @@ _evaluator = EvalWithCompoundTypes()
 def safe_eval(source):
     """Save eval with simpleeval"""
     return _evaluator.eval(source)
+
+
+def format_time_in_seconds(duration_in_s):
+    """return a formatted str of the duration"""
+    if duration_in_s < 60:
+        return f"{duration_in_s:.2f} s"
+    hours, remainder = divmod(duration_in_s, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    return f"{int(hours):02}:{int(minutes):02}:{int(seconds):02}"

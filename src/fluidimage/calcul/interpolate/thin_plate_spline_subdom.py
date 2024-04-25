@@ -23,6 +23,7 @@ obtained as ``dot(U_tps, EMDX)`` and ``dot(U_tps, EMDY)``, where
 from logging import debug
 
 import numpy as np
+from transonic import Array
 
 from .thin_plate_spline import compute_tps_coeff, compute_tps_matrix
 
@@ -188,7 +189,7 @@ class ThinPlateSplineSubdom:
 
         return U_eval
 
-    def compute_tps_coeff_iter(self, centers, values: "float[:]"):
+    def compute_tps_coeff_iter(self, centers, values: Array[np.float64, "1d"]):
         """Compute the thin plate spline (tps) coefficients removing erratic
         vectors
 

@@ -33,7 +33,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def modif_fluidimage_params(params, args):
+def modif_params_with_args(params, args):
     if args.mode is not None:
         try:
             params.saving.how = args.mode
@@ -90,7 +90,7 @@ def main():
             params._value_text["module"], params._value_text["class"]
         )
 
-    modif_fluidimage_params(params, args)
+    modif_params_with_args(params, args)
     action = cls(params)
 
     try:

@@ -1,5 +1,15 @@
 """UVmat interface
 
+.. autofunction:: tidy_uvmat_instructions
+
+.. autoclass:: ActionBase
+   :members:
+   :private-members:
+
+.. autoclass:: ActionPIVFromUvmatXML
+   :members:
+   :private-members:
+
 """
 
 import os
@@ -8,8 +18,8 @@ from logging import warning
 from time import time
 
 from fluiddyn.util.paramcontainer import tidy_container
-from fluidimage import logger
 from fluidimage.topologies.piv import TopologyPIV
+from fluidimage.util import format_time_in_seconds
 
 
 def tidy_uvmat_instructions(instructions):
@@ -36,6 +46,8 @@ def tidy_uvmat_instructions(instructions):
 
 
 class ActionBase(ABC):
+    """Abstract class to represent UVmat 'actions'"""
+
     name: str
     computer_cls: type
 
@@ -43,6 +55,7 @@ class ActionBase(ABC):
     @abstractmethod
     def params_from_uvmat_xml(cls, instructions):
         """Create fluidimage params from UVmat xml"""
+        print("UVmat instructions:", instructions._make_xml_text(), sep="\n")
 
     @classmethod
     def set_params_series(cls, params, instructions):
@@ -105,8 +118,8 @@ class ActionBase(ABC):
     def __init__(self, params):
         """Initialize the action class"""
         self.params = params
-        logger.info("Initialize Fluidimage computations with parameters:")
-        logger.info(self.params._make_xml_text())
+        print("Initialize Fluidimage computations with parameters:")
+        print(self.params._make_xml_text())
         self.computer = self.computer_cls(self.params)
 
     def compute(self):
@@ -114,7 +127,7 @@ class ActionBase(ABC):
         t = time()
         self.computer.compute()
         t = time() - t
-        print(f"elapsed time: {t} s")
+        print(f"elapsed time: {format_time_in_seconds(t)}")
 
 
 # class ActionAverage(ActionBase):
@@ -177,6 +190,7 @@ class ActionPIVFromUvmatXML(ActionBase):
 
     @classmethod
     def params_from_uvmat_xml(cls, instructions):
+        super().params_from_uvmat_xml(instructions)
         params = cls.computer_cls.create_default_params()
         cls.set_params_series(params, instructions)
 
