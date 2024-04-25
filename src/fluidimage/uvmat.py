@@ -56,6 +56,11 @@ class ActionBase(ABC):
     def params_from_uvmat_xml(cls, instructions):
         """Create fluidimage params from UVmat xml"""
         print("UVmat instructions:", instructions._make_xml_text(), sep="\n")
+        params = cls.computer_cls.create_default_params()
+        params.saving.path = instructions.path_dir_output
+        params.saving.how = "recompute"
+        cls.set_params_series(params, instructions)
+        return params
 
     @classmethod
     def set_params_series(cls, params, instructions):
@@ -190,11 +195,7 @@ class ActionPIVFromUvmatXML(ActionBase):
 
     @classmethod
     def params_from_uvmat_xml(cls, instructions):
-        super().params_from_uvmat_xml(instructions)
-        params = cls.computer_cls.create_default_params()
-        cls.set_params_series(params, instructions)
-
-        params.saving.path = instructions.path_dir_output
+        params = super().params_from_uvmat_xml(instructions)
 
         action_input = instructions.action_input
 
