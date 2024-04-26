@@ -24,11 +24,15 @@ from .thin_plate_spline import compute_tps_matrix, compute_tps_weights
 class ThinPlateSplineSubdom:
     """Helper class for thin plate interpolation."""
 
-    ind_new_positions_domains: List["np.int64[:]"]
-    norm_coefs: "float[:]"
-    num_new_positions: int
     num_centers: int
     tps_matrices: List["float[:,:]"]
+    norm_coefs: "float[:]"
+    norm_coefs_domains: List["float[:]"]
+
+    num_new_positions: int
+    ind_new_positions_domains: List["np.int64[:]"]
+    norm_coefs_new_pos: "float[:]"
+    norm_coefs_new_pos_domains: List["float[:]"]
 
     def __init__(
         self,
@@ -77,23 +81,47 @@ class ThinPlateSplineSubdom:
         buffer_length_x = coef_buffer * range_x / nb_subdomx
         buffer_length_y = coef_buffer * range_y / nb_subdomy
 
-        self.xmin_limits = x_dom[:-1] - buffer_length_x
-        self.xmax_limits = x_dom[1:] + buffer_length_x
+        self.limits_min_x = x_dom[:-1] - buffer_length_x
+        self.limits_max_x = x_dom[1:] + buffer_length_x
 
-        self.ymin_limits = y_dom[:-1] - buffer_length_y
-        self.ymax_limits = y_dom[1:] + buffer_length_y
+        self.limits_min_y = y_dom[:-1] - buffer_length_y
+        self.limits_max_y = y_dom[1:] + buffer_length_y
 
+        self.xmax_domains = np.empty(self.nb_subdom)
+        self.ymax_domains = np.empty(self.nb_subdom)
+        self.xc_domains = np.empty(self.nb_subdom)
+        self.yc_domains = np.empty(self.nb_subdom)
         self.indices_domains = []
+
+        i_dom = 0
         for iy in range(nb_subdomy):
             for ix in range(nb_subdomx):
+                xmin = self.limits_min_x[ix]
+                xmax = self.limits_max_x[ix]
+                ymin = self.limits_min_y[iy]
+                ymax = self.limits_max_y[iy]
+
                 self.indices_domains.append(
                     np.where(
-                        (xs >= self.xmin_limits[ix])
-                        & (xs < self.xmax_limits[ix])
-                        & (ys >= self.ymin_limits[iy])
-                        & (ys < self.ymin_limits[iy])
+                        (xs >= xmin) & (xs < xmax) & (ys >= ymin) & (ys < ymax)
                     )[0]
                 )
+
+                self.xmax_domains[i_dom] = xmax
+                self.ymax_domains[i_dom] = ymax
+                self.xc_domains[i_dom] = 0.5 * (xmin + xmax)
+                self.yc_domains[i_dom] = 0.5 * (ymin + ymax)
+                i_dom += 1
+
+        self.norm_coefs = np.zeros(self.num_centers)
+        self.norm_coefs_domains = []
+        for i_dom in range(self.nb_subdom):
+            indices_domain = self.indices_domains[i_dom]
+            xs_domain = xs[indices_domain]
+            ys_domain = ys[indices_domain]
+            coefs = self._compute_coef_norm(xs_domain, ys_domain, i_dom)
+            self.norm_coefs_domains.append(coefs)
+            self.norm_coefs[indices_domain] += coefs
 
     def compute_tps_weights_subdom(self, values):
         """Compute the TPS weights for all subdomains"""
@@ -113,19 +141,18 @@ class ThinPlateSplineSubdom:
             )
 
         smoothed_field = np.zeros(self.num_centers)
-        nb_tps = np.zeros(self.num_centers, dtype=int)
         summary = {"nb_fixed_vectors": [], "max(Udiff)": [], "nb_iterations": []}
 
         for idx in range(self.nb_subdom):
-            smoothed_field[self.indices_domains[idx]] += smoothed_field_domains[
-                idx
-            ]
-            nb_tps[self.indices_domains[idx]] += 1
+            indices_domain = self.indices_domains[idx]
+            smoothed_field[indices_domain] += (
+                self.norm_coefs_domains[idx] * smoothed_field_domains[idx]
+            )
             for key in ("nb_fixed_vectors", "max(Udiff)", "nb_iterations"):
                 summary[key].append(summaries[idx][key])
 
         summary["nb_fixed_vectors_tot"] = sum(summary["nb_fixed_vectors"])
-        smoothed_field /= nb_tps
+        smoothed_field /= self.norm_coefs
 
         return smoothed_field, weights_domains, summary
 
@@ -148,20 +175,23 @@ class ThinPlateSplineSubdom:
             for ix in range(self.nb_subdomx):
                 ind_new_positions_domains.append(
                     np.where(
-                        (xs >= self.xmin_limits[ix])
-                        & (xs < self.xmax_limits[ix])
-                        & (ys >= self.ymin_limits[iy])
-                        & (ys < self.ymin_limits[iy])
+                        (xs >= self.limits_min_x[ix])
+                        & (xs < self.limits_max_x[ix])
+                        & (ys >= self.limits_min_y[iy])
+                        & (ys < self.limits_max_y[iy])
                     )[0]
                 )
 
-        self.norm_coefs = np.zeros(self.num_new_positions)
+        self.norm_coefs_new_pos = np.zeros(self.num_new_positions)
+        self.norm_coefs_new_pos_domains = []
+
         for i_domain in range(self.nb_subdom):
-            # TODO: replace 1 by an appropriate function of
-            # ind_new_positions_domains[i_subdom]
-            # + save another list of 1d array like ind_new_positions_domains
-            # containing the norm coefficients for each subdomain
-            self.norm_coefs[ind_new_positions_domains[i_domain]] += 1
+            indices_domain = ind_new_positions_domains[i_domain]
+            xs_domain = xs[indices_domain]
+            ys_domain = ys[indices_domain]
+            coefs = self._compute_coef_norm(xs_domain, ys_domain, i_domain)
+            self.norm_coefs_new_pos_domains.append(coefs)
+            self.norm_coefs_new_pos[indices_domain] += coefs
 
         self.tps_matrices = [None] * self.nb_subdom
         for i_domain in range(self.nb_subdom):
@@ -173,14 +203,32 @@ class ThinPlateSplineSubdom:
                 new_positions_tmp, centers_tmp
             )
 
-    def interpolate(self, tps_weights_domains):
+    def _compute_coef_norm(self, xs_domain, ys_domain, i_domain):
+
+        x_center_domain = self.xc_domains[i_domain]
+        y_center_domain = self.yc_domains[i_domain]
+
+        x_max_domain = self.xmax_domains[i_domain]
+        y_max_domain = self.ymax_domains[i_domain]
+
+        dx_max = x_max_domain - x_center_domain
+        dy_max = y_max_domain - y_center_domain
+
+        dx2_normed = (xs_domain - x_center_domain) ** 2 / dx_max**2
+        dy2_normed = (ys_domain - y_center_domain) ** 2 / dy_max**2
+
+        return (1 - dx2_normed) * (1 - dy2_normed) + 0.001
+
+    def interpolate(self, weights_domains):
         """Interpolate on new positions"""
         values = np.zeros(self.num_new_positions)
         for i_domain in range(self.nb_subdom):
-            values[self.ind_new_positions_domains[i_domain]] += np.dot(
-                tps_weights_domains[i_domain], self.tps_matrices[i_domain]
+            values[
+                self.ind_new_positions_domains[i_domain]
+            ] += self.norm_coefs_new_pos_domains[i_domain] * np.dot(
+                weights_domains[i_domain], self.tps_matrices[i_domain]
             )
-        values /= self.norm_coefs
+        values /= self.norm_coefs_new_pos
         return values
 
     def compute_tps_weights_iter(

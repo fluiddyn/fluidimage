@@ -23,6 +23,7 @@ def test_minimal_piv(tmp_path):
     params.piv0.nb_peaks_to_search = 2
 
     params.multipass.number = 2
+    params.multipass.use_tps = True
 
     params.fix.displacement_max = 3
     params.fix.threshold_diff_neighbour = 2
