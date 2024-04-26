@@ -165,7 +165,13 @@ class LogTopology:
         self.topology_name = data_main_file.topology_name
 
         self.mem_start = data_main_file.mem_start
-        self.mem_end = data_main_file.mem_end
+
+        try:
+            self.duration = data_main_file.duration
+        except AttributeError:
+            pass
+        else:
+            self.mem_end = data_main_file.mem_end
 
         self.paths_log_files = sorted(path_log_dir.glob("process_*.txt"))
         for path_log_process in self.paths_log_files:

@@ -11,15 +11,17 @@ params.piv0.shape_crop_im0 = 64
 params.piv0.grid.overlap = 0.5
 
 params.multipass.number = 3
-params.multipass.use_tps = False
+params.multipass.use_tps = "last"
+params.multipass.subdom_size = 200
 
 params.fix.displacement_max = 3
 params.fix.correl_min = 0.1
 params.fix.threshold_diff_neighbour = 3
 
-params.saving.how = "complete"
+params.saving.how = "recompute"
 
 topology = Topology(params)
 
 topology.compute()
+# topology.compute(nb_max_workers=4)
 # topology.compute("multi_exec_subproc")
