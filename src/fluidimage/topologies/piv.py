@@ -14,6 +14,7 @@ from pathlib import Path
 from fluidimage import ParamContainer, SeriesOfArrays
 from fluidimage.data_objects.piv import ArrayCouple, get_name_piv
 from fluidimage.topologies import TopologyBaseFromSeries, prepare_path_dir_result
+from fluidimage.topologies.nb_cpu_cores import nb_cores
 from fluidimage.topologies.splitters import SplitterFromSeries
 from fluidimage.util import imread, logger
 from fluidimage.works import image2image
@@ -243,7 +244,10 @@ class TopologyPIV(TopologyBaseFromSeries):
         except AttributeError:
             nb_results = None
         if nb_results is not None and nb_results > 0:
-            txt += f" ({nb_results} piv fields, {time_since_start / nb_results:.2f} s/field)."
+            txt += (
+                f" ({nb_results} piv fields, {time_since_start / nb_results:.2f} s/field,"
+                f" {time_since_start * nb_cores / nb_results:.2f} s.CPU/field)."
+            )
         else:
             txt += "."
         txt += "\npath results:\n" + str(Path(self.path_dir_result).resolve())
