@@ -62,7 +62,7 @@ class WorkPIV(BaseWorkFromSerie):
                 "coeff_zoom": 2,
                 "use_tps": "last",
                 "subdom_size": 200,
-                "smoothing_coef": 0.5,
+                "smoothing_coef": 2.0,
                 "threshold_tps": 1.0,
             },
         )

@@ -42,7 +42,7 @@ class ThinPlateSplineSubdom:
         subdom_size,
         smoothing_coef,
         threshold=None,
-        percent_buffer_area=0.2,
+        percent_buffer_area=20,
     ):
         self.centers = centers
         self.subdom_size = subdom_size
@@ -50,13 +50,17 @@ class ThinPlateSplineSubdom:
         self.threshold = threshold
         self.compute_indices(percent_buffer_area)
 
-    def compute_indices(self, percent_buffer_area=0.25):
+    def compute_indices(self, percent_buffer_area):
+        # note: `centers = np.vstack([ys, xs])`
         xs = self.centers[1]
         ys = self.centers[0]
-        max_coord = np.max(self.centers, 1)
-        min_coord = np.min(self.centers, 1)
-        range_coord = max_coord - min_coord
-        aspect_ratio = range_coord[0] / range_coord[1]
+        x_min = xs.min()
+        y_min = ys.min()
+        x_max = xs.max()
+        y_max = ys.max()
+        range_x = x_max - x_min
+        range_y = y_max - y_min
+        aspect_ratio = range_y / range_x
 
         nb_subdom = xs.size / self.subdom_size
         nb_subdomx = int(np.floor(np.sqrt(nb_subdom / aspect_ratio)))
@@ -71,45 +75,33 @@ class ThinPlateSplineSubdom:
         self.nb_subdomx = nb_subdomx
         self.nb_subdomy = nb_subdomy
 
-        x_dom = np.linspace(min_coord[1], max_coord[1], nb_subdomx + 1)
-        y_dom = np.linspace(min_coord[0], max_coord[0], nb_subdomy + 1)
+        x_dom = np.linspace(x_min, x_max, nb_subdomx + 1)
+        y_dom = np.linspace(y_min, y_max, nb_subdomy + 1)
 
-        buffer_area_x = (
-            range_coord[1]
-            / (nb_subdomx)
-            * percent_buffer_area
-            * np.ones_like(x_dom)
-        )
-        buffer_area_y = (
-            range_coord[0]
-            / (nb_subdomy)
-            * percent_buffer_area
-            * np.ones_like(y_dom)
-        )
+        coef_buffer = percent_buffer_area / 100
+        buffer_length_x = coef_buffer * range_x / nb_subdomx
+        buffer_length_y = coef_buffer * range_y / nb_subdomy
 
-        self.x_dom = x_dom
-        self.y_dom = y_dom
-        self.buffer_area_x = buffer_area_x
-        self.buffer_area_y = buffer_area_y
+        self.xmin_limits = x_dom[:-1] - buffer_length_x
+        self.xmax_limits = x_dom[1:] + buffer_length_x
 
-        ind_subdom = np.zeros([nb_subdom, 2])
+        self.ymin_limits = y_dom[:-1] - buffer_length_y
+        self.ymax_limits = y_dom[1:] + buffer_length_y
+
         ind_v_subdom = []
 
-        i_subdom = 0
-        for i in range(nb_subdomx):
-            for j in range(nb_subdomy):
-                ind_subdom[i_subdom, :] = [i, j]
+        for iy in range(nb_subdomy):
+            for ix in range(nb_subdomx):
 
                 ind_v_subdom.append(
                     np.where(
-                        (xs >= x_dom[i] - buffer_area_x[i])
-                        & (xs < x_dom[i + 1] + buffer_area_x[i + 1])
-                        & (ys >= y_dom[j] - buffer_area_y[j])
-                        & (ys < y_dom[j + 1] + buffer_area_y[j + 1])
+                        (xs >= self.xmin_limits[ix])
+                        & (xs < self.xmax_limits[ix])
+                        & (ys >= self.ymin_limits[iy])
+                        & (ys < self.ymin_limits[iy])
                     )[0]
                 )
 
-                i_subdom += 1
         self.ind_v_subdom = ind_v_subdom
         self.nb_subdom = nb_subdom
 
@@ -120,7 +112,6 @@ class ThinPlateSplineSubdom:
 
         for i in range(self.nb_subdom):
             centers_tmp = self.centers[:, self.ind_v_subdom[i]]
-
             U_tmp = U[self.ind_v_subdom[i]]
             U_smooth[i], U_tps[i], summaries[i] = self.compute_tps_coeff_iter(
                 centers_tmp, U_tmp
@@ -148,31 +139,25 @@ class ThinPlateSplineSubdom:
         ----------
 
         new_positions: 2d array of int64
-          new_positions[0] and new_positions[1] correspond to the x and y values, respectively.
+          new_positions[1] and new_positions[0] correspond to the x and y values, respectively.
 
         """
-        npos = self.new_positions = new_positions
+        self.new_positions = new_positions
+        xs = new_positions[1]
+        ys = new_positions[0]
 
         ind_new_positions_subdom = []
 
-        x_dom = self.x_dom
-        y_dom = self.y_dom
-        buffer_area_x = self.buffer_area_x
-        buffer_area_y = self.buffer_area_y
-
-        i_subdom = 0
-        for i in range(self.nb_subdomx):
-            for j in range(self.nb_subdomy):
+        for iy in range(self.nb_subdomy):
+            for ix in range(self.nb_subdomx):
                 ind_new_positions_subdom.append(
                     np.where(
-                        (npos[1] >= x_dom[i] - buffer_area_x[i])
-                        & (npos[1] < x_dom[i + 1] + buffer_area_x[i + 1])
-                        & (npos[0] >= y_dom[j] - buffer_area_y[j])
-                        & (npos[0] < y_dom[j + 1] + buffer_area_y[j + 1])
+                        (xs >= self.xmin_limits[ix])
+                        & (xs < self.xmax_limits[ix])
+                        & (ys >= self.ymin_limits[iy])
+                        & (ys < self.ymin_limits[iy])
                     )[0]
                 )
-
-                i_subdom += 1
 
         self.ind_new_positions_subdom = ind_new_positions_subdom
 
@@ -184,21 +169,16 @@ class ThinPlateSplineSubdom:
             # containing the norm coefficients for each subdomain
             self.norm_coefs[ind_new_positions_subdom[i_subdom]] += 1
 
-        self._init_EM_subdom()
-
-    def _init_EM_subdom(self):
         EM = [None] * self.nb_subdom
 
         for i in range(self.nb_subdom):
             centers_tmp = self.centers[:, self.ind_v_subdom[i]]
-            new_positions_tmp = self.new_positions[
-                :, self.ind_new_positions_subdom[i]
-            ]
+            new_positions_tmp = new_positions[:, ind_new_positions_subdom[i]]
             EM[i] = compute_tps_matrix(new_positions_tmp, centers_tmp)
 
         self.EM = EM
 
-    def compute_eval(self, U_tps):
+    def interpolate(self, U_tps):
         U_eval = np.zeros(self.new_positions.shape[1])
 
         for i in range(self.nb_subdom):
