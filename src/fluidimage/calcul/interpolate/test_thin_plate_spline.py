@@ -3,7 +3,7 @@ import numpy as np
 from .thin_plate_spline import (
     ThinPlateSpline,
     ThinPlateSplineNumpy,
-    compute_tps_coeff,
+    compute_tps_weights,
 )
 
 pi = np.pi
@@ -29,7 +29,7 @@ def test_tps():
     new_positions = np.vstack([XI, YI])
 
     # calculate tps coeff
-    U_smooth, U_tps = compute_tps_coeff(centers, U, 0)
+    U_smooth, U_tps = compute_tps_weights(centers, U, 0)
     # evaluate interpolation on the new grid
     tps = ThinPlateSpline(new_positions, centers)
     tps.compute_field(U_tps)

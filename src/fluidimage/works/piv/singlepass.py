@@ -490,12 +490,12 @@ class BaseWorkPIV(BaseWorkWithMask):
                     deltaxs_smooth,
                     deltaxs_tps,
                     summary,
-                ) = tps.compute_tps_coeff_subdom(deltaxs)
+                ) = tps.compute_tps_weights_subdom(deltaxs)
                 (
                     deltays_smooth,
                     deltays_tps,
                     summary,
-                ) = tps.compute_tps_coeff_subdom(deltays)
+                ) = tps.compute_tps_weights_subdom(deltays)
             except np.linalg.LinAlgError:
                 print("LinAlgError in TPS: compute delta_approx with griddata")
                 deltaxs_approx = griddata(
