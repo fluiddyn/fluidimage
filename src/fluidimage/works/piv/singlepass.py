@@ -483,19 +483,19 @@ class BaseWorkPIV(BaseWorkWithMask):
                 subdom_size,
                 smoothing_coef,
                 threshold=threshold,
-                percent_buffer_area=0.25,
+                percent_buffer_area=20,
             )
             try:
                 (
                     deltaxs_smooth,
                     deltaxs_tps,
                     summary,
-                ) = tps.compute_tps_coeff_subdom(deltaxs)
+                ) = tps.compute_tps_weights_subdom(deltaxs)
                 (
                     deltays_smooth,
                     deltays_tps,
                     summary,
-                ) = tps.compute_tps_coeff_subdom(deltays)
+                ) = tps.compute_tps_weights_subdom(deltays)
             except np.linalg.LinAlgError:
                 print("LinAlgError in TPS: compute delta_approx with griddata")
                 deltaxs_approx = griddata(
@@ -514,8 +514,8 @@ class BaseWorkPIV(BaseWorkWithMask):
 
                 tps.init_with_new_positions(new_positions)
 
-                deltaxs_approx = tps.compute_eval(deltaxs_tps)
-                deltays_approx = tps.compute_eval(deltays_tps)
+                deltaxs_approx = tps.interpolate(deltaxs_tps)
+                deltays_approx = tps.interpolate(deltays_tps)
 
                 print("TPS summary: ", end="")
                 nb_fixed_vectors_tot = summary.pop("nb_fixed_vectors_tot")

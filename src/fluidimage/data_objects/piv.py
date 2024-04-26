@@ -246,6 +246,10 @@ class HeavyPIVResults(DataObject):
       Equivalent to the `_approx` variables but for the last pass
       and of size ``num_vectors``.
 
+    deltaxs_smooth, deltays_smooth:
+
+      Smoothed displacements at the positions ``xs``, ``ys`` (present only for
+      TPS interpolation).
     """
 
     _keys_to_be_saved = [
@@ -260,6 +264,8 @@ class HeavyPIVResults(DataObject):
         "iyvecs_approx",
         "deltaxs_final",
         "deltays_final",
+        "deltaxs_smooth",
+        "deltays_smooth",
         "ixvecs_final",
         "iyvecs_final",
     ]

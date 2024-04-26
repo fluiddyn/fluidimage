@@ -8,14 +8,14 @@ This interpolation/smoothing (Duchon, 1976; NguyenDuc and Sommeria,
 squared difference from the initial data.
 
 We first need to compute tps coefficients ``U_tps`` (function
-``compute_tps_coeff``). Interpolated data can then be obtained as the
+``compute_tps_weights``). Interpolated data can then be obtained as the
 matrix product ``dot(U_tps, EM)`` where the matrix ``EM`` is obtained
 by the function ``compute_tps_matrix``.  The spatial derivatives are
 obtained as ``dot(U_tps, EMDX)`` and ``dot(U_tps, EMDY)``, where
 ``EMDX`` and ``EMDY`` are obtained from the function
 ``compute_tps_matrix_dxy``. A helper class is also provided.
 
-.. autofunction:: compute_tps_coeff
+.. autofunction:: compute_tps_weights
 
 .. autoclass:: ThinPlateSpline
    :members:
@@ -165,7 +165,7 @@ else:
     compute_tps_matrix = compute_tps_matrix_numpy
 
 
-def compute_tps_coeff(centers, U, smoothing_coef):
+def compute_tps_weights(centers, values, smoothing_coef):
     """Calculate the thin plate spline (tps) coefficients
 
     Parameters
@@ -175,7 +175,7 @@ def compute_tps_coeff(centers, U, smoothing_coef):
         ``[nb_dim,  N]`` array representing the positions of the N centers,
         sources of the TPS (nb_dim = space dimension).
 
-    U : np.array
+    values : np.array
         ``[N]`` array representing the values of the considered
         scalar measured at the centres ``centers``.
 
@@ -185,25 +185,25 @@ def compute_tps_coeff(centers, U, smoothing_coef):
     Returns
     -------
 
-    U_smooth : np.array
+    smoothed_values : np.array
          Values of the quantity U at the N centres after smoothing.
 
-    U_tps : np.array
+    tps_weights : np.array
          TPS weights of the centres and columns of the linear.
 
     """
-    nb_dim, N = centers.shape
-    U = np.hstack([U, np.zeros(nb_dim + 1)])
-    U = U.reshape([U.size, 1])
+    nb_dim, num_values = centers.shape
+    values = np.hstack([values, np.zeros(nb_dim + 1)])
+    values = values.reshape([values.size, 1])
     try:
         EM = compute_tps_matrix(centers, centers).T
     except TypeError as e:
         print(centers.dtype, centers.shape)
         raise e
 
-    smoothing_mat = smoothing_coef * np.eye(N, N)
-    smoothing_mat = np.hstack([smoothing_mat, np.zeros([N, nb_dim + 1])])
-    PM = np.hstack([np.ones([N, 1]), centers.T])
+    smoothing_mat = smoothing_coef * np.eye(num_values, num_values)
+    smoothing_mat = np.hstack([smoothing_mat, np.zeros([num_values, nb_dim + 1])])
+    PM = np.hstack([np.ones([num_values, 1]), centers.T])
     IM = np.vstack(
         [
             EM + smoothing_mat,
@@ -211,9 +211,9 @@ def compute_tps_coeff(centers, U, smoothing_coef):
         ]
     )
 
-    U_tps = np.linalg.solve(IM, U)
-    U_smooth = np.dot(EM, U_tps)
-    return U_smooth.ravel(), U_tps.ravel()
+    tps_weights = np.linalg.solve(IM, values)
+    smoothed_values = np.dot(EM, tps_weights)
+    return smoothed_values.ravel(), tps_weights.ravel()
 
 
 def compute_tps_matrices_dxy(dsites, centers):
