@@ -1,15 +1,19 @@
+"""Handle Fluidimage configuration"""
+
 import os
 from configparser import ConfigParser
 
 
 def get_config():
+    """Get configuration from .fluidimagerc"""
     config = ConfigParser()
 
     home = os.path.expanduser("~")
     path_config = os.path.join(home, ".fluidimagerc")
 
-    if os.path.exists(path_config):
-        config.read(path_config)
+    if not os.path.exists(path_config):
+        return {}
+    config.read(path_config)
 
     config_dict = {}
     for section in config.sections():

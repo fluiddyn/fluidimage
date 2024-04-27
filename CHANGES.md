@@ -1,7 +1,7 @@
 # Release notes
 
 See also the
-[unreleased changes](https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.4.5...branch%2Fdefault).
+[unreleased changes](https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.4.6...branch%2Fdefault).
 
 ## [0.4.6] (2024-04-20)
 
