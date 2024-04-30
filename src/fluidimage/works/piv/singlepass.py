@@ -457,9 +457,8 @@ class BaseWorkPIV(BaseWorkWithMask):
         xs = piv_results.xs[selection]
         ys = piv_results.ys[selection]
 
-        xs, ys = self._xymasked_from_xyoriginalimage(xs, ys)
-
-        centers = np.vstack([ys, xs])
+        xs_tmp, ys_tmp = self._xymasked_from_xyoriginalimage(xs, ys)
+        centers = np.vstack([ys_tmp, xs_tmp])
 
         deltaxs = piv_results.deltaxs[selection]
         deltays = piv_results.deltays[selection]
@@ -506,8 +505,10 @@ class BaseWorkPIV(BaseWorkWithMask):
                 )
             else:
                 piv_results.deltaxs_smooth = deltaxs_smooth
+                piv_results.xs_smooth = xs
                 piv_results.deltaxs_tps = deltaxs_tps
                 piv_results.deltays_smooth = deltays_smooth
+                piv_results.ys_smooth = ys
                 piv_results.deltays_tps = deltays_tps
 
                 new_positions = np.vstack([self.iyvecs_grid, self.ixvecs_grid])

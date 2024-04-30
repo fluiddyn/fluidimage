@@ -255,6 +255,8 @@ class HeavyPIVResults(DataObject):
     _keys_to_be_saved = [
         "xs",
         "ys",
+        "xs_smooth",
+        "ys_smooth",
         "deltaxs",
         "deltays",
         "correls_max",
