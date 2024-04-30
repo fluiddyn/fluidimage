@@ -396,7 +396,10 @@ class HeavyPIVResults(DataObject):
 
         for k in self._keys_to_be_saved:
             if k in self.__dict__ and self.__dict__[k] is not None:
-                g_piv.create_dataset(k, data=self.__dict__[k])
+                arr = self.__dict__[k]
+                if arr.dtype == np.float64:
+                    arr = arr.astype(np.float32)
+                g_piv.create_dataset(k, data=arr)
 
         for name_dict in self._dict_to_be_saved:
             try:
