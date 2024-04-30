@@ -1,3 +1,5 @@
+"""Production of synthetic images"""
+
 import numpy as np
 
 
@@ -9,6 +11,7 @@ def make_synthetic_images(
     epsilon=0.0,
     part_size=np.sqrt(1 / 0.5),
 ):
+    """Produce synthetic images for testing PIV"""
     ny, nx = tuple(shape_im0)
 
     displacement_x, displacement_y = tuple(displacements)

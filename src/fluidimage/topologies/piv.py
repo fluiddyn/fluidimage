@@ -244,9 +244,14 @@ class TopologyPIV(TopologyBaseFromSeries):
         except AttributeError:
             nb_results = None
         if nb_results is not None and nb_results > 0:
+            try:
+                num_processes = self.executor.nb_processes
+            except AttributeError:
+                num_processes = self.executor.nb_max_workers
+            num_cores_used = min(nb_cores, num_processes)
             txt += (
                 f" ({nb_results} piv fields, {time_since_start / nb_results:.2f} s/field,"
-                f" {time_since_start * nb_cores / nb_results:.2f} s.CPU/field)."
+                f" {time_since_start * num_cores_used / nb_results:.2f} s.CPU/field)."
             )
         else:
             txt += "."
