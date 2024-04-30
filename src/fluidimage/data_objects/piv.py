@@ -248,8 +248,9 @@ class HeavyPIVResults(DataObject):
 
     deltaxs_smooth, deltays_smooth:
 
-      Smoothed displacements at the positions ``xs``, ``ys`` (present only for
-      TPS interpolation).
+      Smoothed displacements at the positions ``xs_smooth``, ``ys_smooth``,
+      equal to ``xs``, ``ys`` except where the vectors are detected as wrong.
+      (present only for TPS interpolation).
     """
 
     _keys_to_be_saved = [

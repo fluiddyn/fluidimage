@@ -504,11 +504,7 @@ class BaseWorkPIV(BaseWorkWithMask):
                     centers[::-1], deltays, (self.ixvecs, self.iyvecs)
                 )
             else:
-                piv_results.deltaxs_smooth = deltaxs_smooth
-                piv_results.xs_smooth = xs
                 piv_results.deltaxs_tps = deltaxs_tps
-                piv_results.deltays_smooth = deltays_smooth
-                piv_results.ys_smooth = ys
                 piv_results.deltays_tps = deltays_tps
 
                 new_positions = np.vstack([self.iyvecs_grid, self.ixvecs_grid])
@@ -517,6 +513,22 @@ class BaseWorkPIV(BaseWorkWithMask):
 
                 deltaxs_approx = tps.interpolate(deltaxs_tps)
                 deltays_approx = tps.interpolate(deltays_tps)
+
+                if last:
+                    xs_smooth = self.ixvecs_grid.copy().astype(np.float32)
+                    xs_smooth[selection] = xs
+                    ys_smooth = self.iyvecs_grid.copy().astype(np.float32)
+                    ys_smooth[selection] = ys
+
+                    deltaxs_smooth_full = deltaxs_approx.copy()
+                    deltaxs_smooth_full[selection] = deltaxs_smooth
+                    deltays_smooth_full = deltays_approx.copy()
+                    deltays_smooth_full[selection] = deltays_smooth
+
+                    piv_results.xs_smooth = xs_smooth
+                    piv_results.ys_smooth = ys_smooth
+                    piv_results.deltaxs_smooth = deltaxs_smooth_full
+                    piv_results.deltays_smooth = deltays_smooth_full
 
                 print("TPS summary: ", end="")
                 nb_fixed_vectors_tot = summary.pop("nb_fixed_vectors_tot")
