@@ -453,6 +453,7 @@ class MultiExecutorBase(ExecutorBase):
             signal.signal(12, handler_signals)
 
         self._start_processes()
+        self.nb_processes = len(self.processes)
         self._wait_for_all_processes()
         self._finalize_compute()
 
