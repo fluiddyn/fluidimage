@@ -515,9 +515,9 @@ class BaseWorkPIV(BaseWorkWithMask):
                 deltays_approx = tps.interpolate(deltays_tps)
 
                 if last:
-                    xs_smooth = self.ixvecs_grid.copy().astype(np.float32)
+                    xs_smooth = piv_results.ixvecs_final.copy().astype(np.float32)
                     xs_smooth[selection] = xs
-                    ys_smooth = self.iyvecs_grid.copy().astype(np.float32)
+                    ys_smooth = piv_results.iyvecs_final.copy().astype(np.float32)
                     ys_smooth[selection] = ys
 
                     deltaxs_smooth_full = deltaxs_approx.copy()

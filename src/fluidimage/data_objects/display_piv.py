@@ -133,8 +133,8 @@ class DisplayPIV:
                 if show_interp == "smooth":
                     deltaxs = piv_results.deltaxs_smooth
                     deltays = piv_results.deltays_smooth
-                    xs = piv_results.xs
-                    ys = piv_results.ys
+                    xs = piv_results.xs_smooth
+                    ys = piv_results.ys_smooth
                 elif hasattr(piv_results, "deltaxs_approx"):
                     deltaxs = piv_results.deltaxs_approx
                     deltays = piv_results.deltays_approx
