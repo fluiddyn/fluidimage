@@ -248,13 +248,16 @@ class HeavyPIVResults(DataObject):
 
     deltaxs_smooth, deltays_smooth:
 
-      Smoothed displacements at the positions ``xs``, ``ys`` (present only for
-      TPS interpolation).
+      Smoothed displacements at the positions ``xs_smooth``, ``ys_smooth``,
+      equal to ``xs``, ``ys`` except where the vectors are detected as wrong.
+      (present only for TPS interpolation).
     """
 
     _keys_to_be_saved = [
         "xs",
         "ys",
+        "xs_smooth",
+        "ys_smooth",
         "deltaxs",
         "deltays",
         "correls_max",
@@ -393,7 +396,10 @@ class HeavyPIVResults(DataObject):
 
         for k in self._keys_to_be_saved:
             if k in self.__dict__ and self.__dict__[k] is not None:
-                g_piv.create_dataset(k, data=self.__dict__[k])
+                arr = self.__dict__[k]
+                if arr.dtype == np.float64:
+                    arr = arr.astype(np.float32)
+                g_piv.create_dataset(k, data=arr)
 
         for name_dict in self._dict_to_be_saved:
             try:
