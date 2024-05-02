@@ -3,7 +3,7 @@
 See also the
 [unreleased changes](https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.5.0...branch%2Fdefault).
 
-## [0.5.0] (2024-05-0?)
+## [0.5.0] (2024-05-02)
 
 - UVmat compatibility (launching in "local" mode).
 - Change defaults and exact meaning for parameters. `params.multipass.smoothing_coef`
