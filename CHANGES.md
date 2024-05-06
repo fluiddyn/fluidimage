@@ -1,7 +1,12 @@
 # Release notes
 
 See also the
-[unreleased changes](https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.5.0...branch%2Fdefault).
+[unreleased changes](https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.5.1...branch%2Fdefault).
+
+## [0.5.1] (2024-05-06)
+
+- Follow UVmat: change defaults and exact meaning for parameter
+  `params.multipass.smoothing_coef` (=2).
 
 ## [0.5.0] (2024-05-02)
 
@@ -211,3 +216,4 @@ This version contains incompatible API changes documented here.
 [0.4.5]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.4.4...0.4.5
 [0.4.6]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.4.5...0.4.6
 [0.5.0]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.4.6...0.5.0
+[0.5.1]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.5.0...0.5.1
