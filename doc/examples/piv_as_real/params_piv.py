@@ -56,7 +56,7 @@ def make_params_piv(
 
     params.multipass.number = 2
     params.multipass.use_tps = "last"
-    params.multipass.smoothing_coef = 10.0
+    params.multipass.smoothing_coef = 5.0
     params.multipass.threshold_tps = 0.1
 
     params.fix.correl_min = 0.2
