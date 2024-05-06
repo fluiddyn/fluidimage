@@ -13,6 +13,7 @@ squared difference from the initial data.
 """
 
 from logging import debug
+from math import sqrt
 from typing import List
 
 import numpy as np
@@ -57,9 +58,9 @@ class ThinPlateSplineSubdom:
         aspect_ratio = range_y / range_x
 
         nb_subdom = xs.size / self.subdom_size
-        nb_subdomx = int(np.floor(np.sqrt(nb_subdom / aspect_ratio)))
+        nb_subdomx = int(np.floor(sqrt(nb_subdom / aspect_ratio)))
         nb_subdomx = nb_subdomx or 1
-        nb_subdomy = int(np.ceil(np.sqrt(nb_subdom * aspect_ratio)))
+        nb_subdomy = int(np.ceil(sqrt(nb_subdom * aspect_ratio)))
         nb_subdomy = nb_subdomy or 1
 
         debug(f"nb_subdomx: {nb_subdomx} ; nb_subdomy: {nb_subdomy}")
@@ -73,8 +74,9 @@ class ThinPlateSplineSubdom:
 
         # normalization as UVmat so that the effect of the filter do not depends
         # too much on the size of the domains
-        self.smoothing_coef = (
-            smoothing_coef * (x_dom[1] - x_dom[0]) * (y_dom[1] - y_dom[0]) / 1000
+        num_vectors_per_subdom = xs.size / self.nb_subdom
+        self.smoothing_coef = smoothing_coef * sqrt(
+            (x_dom[1] - x_dom[0]) * (y_dom[1] - y_dom[0]) / num_vectors_per_subdom
         )
 
         coef_buffer = percent_buffer_area / 100

@@ -18,7 +18,7 @@ params.piv0.nb_peaks_to_search = 2
 params.multipass.number = 2
 params.multipass.use_tps = "last"
 params.multipass.subdom_size = 400
-params.multipass.smoothing_coef = 2.0
+params.multipass.smoothing_coef = 5.0
 
 work = Work(params=params)
 

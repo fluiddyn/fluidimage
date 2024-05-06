@@ -37,7 +37,7 @@ params.multipass.number = 2
 # params.multipass.use_tps = "last"
 params.multipass.use_tps = False
 params.multipass.subdom_size = 200
-params.multipass.smoothing_coef = 10.0
+params.multipass.smoothing_coef = 5.0
 params.multipass.threshold_tps = 1.5
 
 params.fix.correl_min = 0.15
