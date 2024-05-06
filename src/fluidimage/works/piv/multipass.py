@@ -62,7 +62,7 @@ class WorkPIV(BaseWorkFromSerie):
                 "coeff_zoom": 2,
                 "use_tps": "last",
                 "subdom_size": 200,
-                "smoothing_coef": 2.0,
+                "smoothing_coef": 5.0,
                 "threshold_tps": 1.5,
             },
         )
@@ -93,7 +93,7 @@ class WorkPIV(BaseWorkFromSerie):
 - smoothing_coef : float
 
   Coefficient used for the TPS method. The result is smoother for larger
-  smoothing_coef. 2 is often reasonable. Can typically be between 0 to 40.
+  smoothing_coef. 5 is often reasonable. Can typically be between 0 to 40.
 
 - threshold_tps :  float
 
