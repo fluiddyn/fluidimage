@@ -426,6 +426,23 @@ class HeavyPIVResults(DataObject):
                 g.create_dataset("keys", data=keys)
                 g.create_dataset("values", data=values)
 
+                if name_dict == "errors":
+                    error_codes = np.empty(len(values), dtype=np.uint8)
+                    code_unknow = np.iinfo(error_codes.dtype).max
+                    for idx, error in enumerate(values):
+                        if error.startswith(b"Correlation peak touching"):
+                            code = 1
+                        elif error.startswith(b"correl < correl_min"):
+                            code = 2
+                        elif error.startswith(b"delta2 < displacement_max2"):
+                            code = 3
+                        elif error.startswith(b"diff neighbour too large"):
+                            code = 4
+                        else:
+                            code = code_unknow
+                        error_codes[idx] = code
+                    g.create_dataset("codes", data=error_codes)
+
         if "deltaxs_tps" in self.__dict__:
             g = g_piv.create_group("deltaxs_tps")
             for i, arr in enumerate(self.deltaxs_tps):
