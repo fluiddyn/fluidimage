@@ -27,7 +27,10 @@ class ExecutorSequential(ExecutorBase):
             for work in self.works:
                 # global functions
                 if work.kind is not None and "global" in work.kind:
-                    if len(work.output_queue) > self.nb_items_queue_max:
+                    if (
+                        work.output_queue is not None
+                        and len(work.output_queue) > self.nb_items_queue_max
+                    ):
                         continue
 
                     work.func_or_cls(work.input_queue, work.output_queue)

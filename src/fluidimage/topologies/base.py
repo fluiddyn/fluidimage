@@ -146,6 +146,13 @@ class Queue(OrderedDict):
         return False
 
 
+class QueueList(list):
+
+    def __init__(self, name):
+        self.name = name
+        super().__init__()
+
+
 class TopologyBase:
     """Base class for topologies of processing.
 
@@ -212,7 +219,10 @@ class TopologyBase:
 
     def add_queue(self, name: str, kind: str = None):
         """Create a new queue."""
-        queue = Queue(name=name, kind=kind)
+        if kind == "list":
+            queue = QueueList(name)
+        else:
+            queue = Queue(name=name, kind=kind)
         self.queues.append(queue)
         return queue
 
