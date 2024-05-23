@@ -6,11 +6,14 @@
 
 """
 
+import argparse
+import os
 from pathlib import Path
 
 import h5py
 import numpy as np
 
+import fluidimage
 from fluiddyn.io.image import imsave
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
 from fluidimage import ParamContainer
@@ -151,10 +154,67 @@ class TopologyMeanImage(TopologyBaseFromImages):
 
         assert len(queue_tmp_arrays) == 1
         arr, num_images = queue_tmp_arrays[0]
-        self.result = arr / num_images
+        self.result = (arr / num_images).astype(np.uint8)
         self.results.append(num_images)
 
         self.path_result = self.path_dir_result.with_name(
-            self.path_dir_result.name + ".tiff"
+            self.path_dir_result.name + ".png"
         )
         imsave(self.path_result, self.result)
+
+
+def parse_args():
+    """Parse the arguments of the command line"""
+
+    parser = argparse.ArgumentParser(
+        description=TopologyMeanImage.__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
+        "path",
+        help="Path file or directory.",
+        type=str,
+        nargs="?",
+        default=os.getcwd(),
+    )
+    parser.add_argument("-v", "--verbose", help="verbose mode", action="count")
+    parser.add_argument(
+        "-V",
+        "--version",
+        help="Print fluidimage version and exit",
+        action="count",
+    )
+
+    parser.add_argument(
+        "-np",
+        "--nb-max-workers",
+        help="Maximum number of workers/processes.",
+        type=int,
+        default=None,
+    )
+
+    parser.add_argument(
+        "--executor",
+        help="Name of the executor.",
+        type=str,
+        default=None,
+    )
+
+    return parser.parse_args()
+
+
+Topology = TopologyMeanImage
+
+
+def main():
+    """Main function for fluidimage-mean"""
+    args = parse_args()
+
+    if args.version:
+        print(f"fluidimage {fluidimage.__version__}")
+        return
+
+    params = Topology.create_default_params()
+    params.images.path = str(args.path)
+    topology = Topology(params)
+    topology.compute(args.executor, nb_max_workers=args.nb_max_workers)

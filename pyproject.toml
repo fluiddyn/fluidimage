@@ -58,6 +58,7 @@ fluidimage-monitor = "fluidimage.gui.monitor:main"
 fluidimviewer = "fluidimage.gui.imviewer:main"
 fluidimviewer-pg = "fluidimage.gui.pg_main:main"
 fluidpivviewer = "fluidimage.gui.piv_viewer:main"
+fluidimage-mean = "fluidimage.topologies.mean:main"
 
 [project.optional-dependencies]
 pims = ["pims"]
