@@ -20,28 +20,6 @@ from fluidimage.util import imread
 from fluidimage.works import BaseWorkFromImage
 
 
-def reduce_queue_tmp_arrays4(queue_tmp_arrays):
-    while len(queue_tmp_arrays) >= 4:
-        arr0, n0 = queue_tmp_arrays.pop()
-        arr1, n1 = queue_tmp_arrays.pop()
-        arr2, n2 = queue_tmp_arrays.pop()
-        arr3, n3 = queue_tmp_arrays.pop()
-        arr_sum = arr0 + arr1 + arr2 + arr3
-        n_sum = n0 + n1 + n2 + n3
-        # print("reduce_queue_tmp_arrays4", n_sum)
-        queue_tmp_arrays.insert(0, (arr_sum, n_sum))
-
-
-def reduce_queue_tmp_arrays2(queue_tmp_arrays):
-    while len(queue_tmp_arrays) >= 2:
-        arr0, n0 = queue_tmp_arrays.pop()
-        arr1, n1 = queue_tmp_arrays.pop()
-        arr_sum = arr0 + arr1
-        n_sum = n0 + n1
-        # print("reduce_queue_tmp_arrays2", n_sum)
-        queue_tmp_arrays.insert(0, (arr_sum, n_sum))
-
-
 class TopologyMeanImage(TopologyBaseFromImages):
     """Compute in parallel the mean image."""
 
@@ -95,6 +73,28 @@ class TopologyMeanImage(TopologyBaseFromImages):
 
         self.results = []
 
+    def reduce_queue_tmp_arrays4(self, queue_tmp_arrays):
+        while len(queue_tmp_arrays) >= 4:
+            arr0, n0 = queue_tmp_arrays.pop()
+            arr1, n1 = queue_tmp_arrays.pop()
+            arr2, n2 = queue_tmp_arrays.pop()
+            arr3, n3 = queue_tmp_arrays.pop()
+            arr_sum = arr0 + arr1 + arr2 + arr3
+            n_sum = n0 + n1 + n2 + n3
+            # print("reduce_queue_tmp_arrays4", n_sum)
+            queue_tmp_arrays.insert(0, (arr_sum, n_sum))
+            self.results.extend([n_sum] * 3)
+
+    def reduce_queue_tmp_arrays2(self, queue_tmp_arrays):
+        while len(queue_tmp_arrays) >= 2:
+            arr0, n0 = queue_tmp_arrays.pop()
+            arr1, n1 = queue_tmp_arrays.pop()
+            arr_sum = arr0 + arr1
+            n_sum = n0 + n1
+            # print("reduce_queue_tmp_arrays2", n_sum)
+            queue_tmp_arrays.insert(0, (arr_sum, n_sum))
+            self.results.extend([n_sum])
+
     def main(self, input_queues, output_queue):
         del output_queue
         queue_paths, queue_arrays, queue_tmp_arrays = input_queues
@@ -105,7 +105,7 @@ class TopologyMeanImage(TopologyBaseFromImages):
             print(name)
             queue_tmp_arrays.append((arr.astype(np.uint32), 1))
 
-        reduce_queue_tmp_arrays4(queue_tmp_arrays)
+        self.reduce_queue_tmp_arrays4(queue_tmp_arrays)
 
         if (
             not queue_paths
@@ -115,7 +115,7 @@ class TopologyMeanImage(TopologyBaseFromImages):
                 or self.executor.nb_working_workers_io == 0
             )
         ):
-            reduce_queue_tmp_arrays2(queue_tmp_arrays)
+            self.reduce_queue_tmp_arrays2(queue_tmp_arrays)
             if not queue_tmp_arrays:
                 return
             assert len(queue_tmp_arrays) == 1, queue_tmp_arrays
@@ -134,7 +134,7 @@ class TopologyMeanImage(TopologyBaseFromImages):
                 file.create_dataset("arr", data=arr_result)
                 file.attrs["num_images"] = n_result
 
-    def finalize_compute_seq(self):
+    def final_seq_work(self):
         path_tmp_files = sorted(self.executor.path_job_data.glob("tmp_sum*.h5"))
 
         queue_tmp_arrays = []
@@ -144,9 +144,10 @@ class TopologyMeanImage(TopologyBaseFromImages):
                 num_images = file.attrs["num_images"]
                 queue_tmp_arrays.append((arr, num_images))
 
-        reduce_queue_tmp_arrays4(queue_tmp_arrays)
-        reduce_queue_tmp_arrays2(queue_tmp_arrays)
+        self.reduce_queue_tmp_arrays4(queue_tmp_arrays)
+        self.reduce_queue_tmp_arrays2(queue_tmp_arrays)
 
         assert len(queue_tmp_arrays) == 1
         arr, num_images = queue_tmp_arrays[0]
         self.result = arr / num_images
+        self.results.append(num_images)

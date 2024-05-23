@@ -75,6 +75,7 @@ class ExecutorBase(ABC):
     _path_lockfile: Path
     num_expected_results: int
     time_start: str
+    _final_seq_work_run: bool
 
     def _init_log_path(self):
         self.time_start_str = time_as_str()
@@ -202,6 +203,7 @@ class ExecutorBase(ABC):
         return sys.stdout
 
     def _init_compute(self):
+        self._final_seq_work_run = False
         self.t_start = time()
         self._init_num_expected_results()
         if self.num_expected_results == 0:
@@ -276,9 +278,16 @@ class ExecutorBase(ABC):
         reset_logger()
         self._log_file.close()
 
+    def _run_final_seq_work(self):
+        if (
+            hasattr(self.topology, "final_seq_work")
+            and not self._final_seq_work_run
+        ):
+            self.topology.final_seq_work()
+            self._final_seq_work_run = True
+
     def _finalize_compute(self):
-        if hasattr(self.topology, "finalize_compute_seq"):
-            self.topology.finalize_compute_seq()
+        self._run_final_seq_work()
         log_memory_usage(time_as_str(2) + ": end of `compute`. mem usage")
         self.topology.print_at_exit(time() - self.t_start)
         self._reset_std_as_default()
@@ -456,16 +465,6 @@ class MultiExecutorBase(ExecutorBase):
 
         self._start_processes()
         self.nb_processes = len(self.processes)
-        self._wait_for_all_processes()
-        self._finalize_compute()
-
-    def _poll_return_code(self, process):
-        return process.poll()
-
-    def _join_processes(self):
-        """Join the processes"""
-
-    def _wait_for_all_processes(self):
 
         running_processes = {
             idx: process for idx, process in enumerate(self.processes)
@@ -525,13 +524,26 @@ class MultiExecutorBase(ExecutorBase):
                 )
                 running_processes_updated.clear()
 
-        self._join_processes()
+            self._join_processes()
+
+            self.topology.results = results = []
+            for path in self.path_job_data.glob("results_*.txt"):
+                with open(path, encoding="utf-8") as file:
+                    results.extend(line.strip() for line in file.readlines())
+
+            self._run_final_seq_work()
+
+            progress.update(progress_task, completed=len(self.topology.results))
+
+        self._finalize_compute()
+
+    def _poll_return_code(self, process):
+        return process.poll()
+
+    def _join_processes(self):
+        """Join the processes"""
 
     def _finalize_compute(self):
-        self.topology.results = results = []
-        for path in self.path_job_data.glob("results_*.txt"):
-            with open(path, encoding="utf-8") as file:
-                results.extend(line.strip() for line in file.readlines())
 
         if self.errors:
             text_error = (
