@@ -119,7 +119,10 @@ class TopologyMeanImage(TopologyBaseFromImages):
         if (
             not queue_paths
             and not queue_arrays
-            and self.executor.nb_working_workers_io == 0
+            and (
+                not hasattr(self.executor, "nb_working_workers_io")
+                or self.executor.nb_working_workers_io == 0
+            )
         ):
             reduce_queue_tmp_arrays2(queue_tmp_arrays)
             if not queue_tmp_arrays:
