@@ -23,8 +23,10 @@ from fluidimage.works import BaseWorkFromImage
 class TopologyMeanImage(TopologyBaseFromImages):
     """Compute in parallel the mean image."""
 
-    _short_name = "mean_image"
+    _short_name = "mean"
     Splitter = SplitterFromImages
+    result: np.ndarray
+    path_result: Path
 
     @classmethod
     def create_default_params(cls):
@@ -151,3 +153,8 @@ class TopologyMeanImage(TopologyBaseFromImages):
         arr, num_images = queue_tmp_arrays[0]
         self.result = arr / num_images
         self.results.append(num_images)
+
+        self.path_result = self.path_dir_result.with_name(
+            self.path_dir_result.name + ".tiff"
+        )
+        imsave(self.path_result, self.result)

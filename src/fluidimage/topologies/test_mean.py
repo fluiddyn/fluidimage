@@ -22,7 +22,7 @@ num_images = 19
 @pytest.fixture(scope="session")
 def tmp_path_images(tmp_path_factory):
     tmp_path = tmp_path_factory.mktemp("dir_images")
-    path_dir_images = tmp_path / "Images"
+    path_dir_images = tmp_path / "images"
     path_dir_images.mkdir()
 
     im = np.empty([4, 8], dtype=np.uint8)
@@ -50,7 +50,13 @@ def test_mean(tmp_path_images, executor):
 
     topology.compute(executor, nb_max_workers=2)
 
-    assert topology.result[0, 0] == mean_should_be, (
-        topology.result[0, 0],
+    result = topology.result
+
+    assert result[0, 0] == mean_should_be, (
+        result[0, 0],
         mean_should_be,
     )
+    assert np.all(np.isclose(result, result[0, 0]))
+
+    assert len(topology.results) == num_images
+    assert topology.path_result.exists()
