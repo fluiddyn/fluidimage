@@ -15,6 +15,8 @@ Multi executors async
 import copy
 from multiprocessing import Process
 
+from fluidimage.topologies.splitters import split_list
+
 from .base import MultiExecutorBase
 from .exec_async_seq_for_multi import ExecutorAsyncSeqForMulti
 
@@ -72,16 +74,7 @@ class MultiExecutorAsync(MultiExecutorBase):
     def _start_multiprocess_first_queue(self):
         """Start the processes spitting the work with the first queue"""
 
-        nb_keys_per_process = max(
-            1, int(len(self._keys_first_queue) / self.nb_processes)
-        )
-
-        keys_for_processes = []
-        for iproc in range(self.nb_processes):
-            istart = iproc * nb_keys_per_process
-            keys_for_processes.append(
-                self._keys_first_queue[istart : istart + nb_keys_per_process]
-            )
+        keys_for_processes = split_list(self._keys_first_queue, self.nb_processes)
 
         # change topology
         self.topology.first_queue = self.topology.works[0].output_queue
