@@ -65,7 +65,10 @@ def prepare_path_dir_result(
         path_dir_result = path_dir_input + "." + postfix_saving
 
     how = how_saving
-    if os.path.exists(path_dir_result):
+    if not os.path.exists(path_dir_result):
+        if how == "ask":
+            how = "recompute"
+    else:
         if how == "ask":
             answer = query(
                 f"The directory {path_dir_result} "
@@ -293,7 +296,6 @@ class TopologyBase:
             path_dir_src, p_saving.path, p_saving.postfix, p_saving.how
         )
         p_saving.path = self.path_dir_result
-        p_saving.how = self.how_saving
 
     def add_queue(self, name: str, kind: str = None):
         """Create a new queue."""
