@@ -92,23 +92,21 @@ class TopologyExample(TopologyBase):
         return params
 
     def __init__(self, params, logging_level="info", nb_max_workers=None):
-        self.params = params
 
-        path_input = params["path_input"]
         path_dir_result = params["path_dir_result"]
         nloops = params["nloops"]
         self.multiplicator_nb_images = params["multiplicator_nb_images"]
 
-        self.path_input = path_input
-
         super().__init__(
+            params=params,
+            path_dir_src=params["path_input"],
             path_dir_result=path_dir_result,
             logging_level=logging_level,
             nb_max_workers=nb_max_workers,
         )
 
-        if not self.path_dir_result.exists():
-            self.path_dir_result.mkdir()
+        if not path_dir_result.exists():
+            path_dir_result.mkdir()
 
         self.img_counter = 0
 
@@ -167,8 +165,9 @@ class TopologyExample(TopologyBase):
         )
 
     def fill_names(self, input_queue, output_queue):
+        del input_queue
         for ind in range(self.multiplicator_nb_images):
-            for name in sorted(os.listdir(self.path_input)):
+            for name in sorted(os.listdir(self.path_dir_src)):
                 key = name.split(".bmp")[0] + f"_{ind:02}"
                 output_queue[key] = name
 
@@ -180,7 +179,7 @@ class TopologyExample(TopologyBase):
         if name == "Karman_03.bmp":
             raise ValueError("For testing")
 
-        image = imread(self.path_input / name)
+        image = imread(self.path_dir_src / name)
         return image
 
     def fill_couples_arrays(self, input_queues, output_queue):

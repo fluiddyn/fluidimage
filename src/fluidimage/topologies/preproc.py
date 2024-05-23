@@ -16,7 +16,7 @@ from fluiddyn.util.paramcontainer import ParamContainer
 from fluidimage import SeriesOfArrays
 from fluidimage.data_objects.preproc import ArraySerie as ArraySubset
 from fluidimage.data_objects.preproc import PreprocResults, get_name_preproc
-from fluidimage.topologies import TopologyBaseFromSeries, prepare_path_dir_result
+from fluidimage.topologies import TopologyBaseFromSeries
 from fluidimage.topologies.splitters import SplitterFromSeries
 from fluidimage.util import imread
 from fluidimage.works import image2image
@@ -191,22 +191,13 @@ Parameters describing image saving after preprocessing.
             path_dir = params.series.path
         else:
             path_dir = os.path.dirname(params.series.path)
-        self.path_dir_input = path_dir
-
-        path_dir_result, self.how_saving = prepare_path_dir_result(
-            path_dir,
-            params.saving.path,
-            params.saving.postfix,
-            params.saving.how,
-        )
 
         super().__init__(
-            path_dir_result=path_dir_result,
+            params=params,
+            path_dir_src=path_dir,
             logging_level=logging_level,
             nb_max_workers=nb_max_workers,
         )
-
-        self.params.saving.path = self.path_dir_result
 
         # Define waiting queues
         queue_subsets_of_names = self.add_queue("subsets of filenames")

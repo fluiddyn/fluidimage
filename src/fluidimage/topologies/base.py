@@ -24,12 +24,15 @@
 """
 
 import json
+import os
+import sys
 from abc import ABC, abstractmethod
 from collections import OrderedDict
 from pathlib import Path
 from typing import Sequence, Union
 from warnings import warn
 
+from fluiddyn.io.query import query
 from fluidimage import ParamContainer, SerieOfArraysFromFiles, SeriesOfArrays
 from fluidimage.util import DEBUG, cstring, logger
 
@@ -39,6 +42,63 @@ from ..executors import (
     import_executor_class,
     supported_multi_executors,
 )
+
+how_values = ("ask", "new_dir", "complete", "recompute", "from_path_indices")
+
+
+def prepare_path_dir_result(
+    path_dir_input, path_saving, postfix_saving, how_saving
+):
+    """Makes new directory for results, if required, and returns its path."""
+
+    if how_saving not in how_values:
+        raise ValueError(
+            f"how_saving (here equal to '{how_saving}') "
+            f"should be in {how_values}"
+        )
+
+    path_dir_input = str(path_dir_input)
+
+    if path_saving is not None:
+        path_dir_result = path_saving
+    else:
+        path_dir_result = path_dir_input + "." + postfix_saving
+
+    how = how_saving
+    if os.path.exists(path_dir_result):
+        if how == "ask":
+            answer = query(
+                f"The directory {path_dir_result} "
+                + "already exists. What do you want to do?\n"
+                "New dir, Complete, Recompute or Stop?\n"
+            )
+
+            while answer.lower() not in ["n", "c", "r", "s"]:
+                answer = query(
+                    "The answer should be in ['n', 'c', 'r', 's']\n"
+                    "Please type your answer again...\n"
+                )
+
+            if answer == "s":
+                print("Stopped by the user.")
+                sys.exit()
+
+            elif answer == "n":
+                how = "new_dir"
+            elif answer == "c":
+                how = "complete"
+            elif answer == "r":
+                how = "recompute"
+
+        if how == "new_dir":
+            i = 0
+            while os.path.exists(path_dir_result + str(i)):
+                i += 1
+            path_dir_result += str(i)
+
+    path_dir_result = Path(path_dir_result)
+    path_dir_result.mkdir(exist_ok=True)
+    return path_dir_result, how
 
 
 class Work:
@@ -206,9 +266,19 @@ class TopologyBase:
         )
 
     def __init__(
-        self, path_dir_result=None, logging_level="info", nb_max_workers=None
+        self,
+        params=None,
+        path_dir_src=None,
+        path_dir_result=None,
+        logging_level="info",
+        nb_max_workers=None,
     ):
-        self.path_dir_result = path_dir_result
+        self.params = params
+        self.path_dir_src = Path(path_dir_src)
+        if path_dir_result is None:
+            self._init_path_dir_result(path_dir_src)
+        else:
+            self.path_dir_result = path_dir_result
         self.logging_level = logging_level
         self.nb_max_workers = nb_max_workers
 
@@ -216,6 +286,14 @@ class TopologyBase:
         self.works = []
         self.works_dict = {}
         self.executor = None
+
+    def _init_path_dir_result(self, path_dir_src):
+        p_saving = self.params.saving
+        self.path_dir_result, self.how_saving = prepare_path_dir_result(
+            path_dir_src, p_saving.path, p_saving.postfix, p_saving.how
+        )
+        p_saving.path = self.path_dir_result
+        p_saving.how = self.how_saving
 
     def add_queue(self, name: str, kind: str = None):
         """Create a new queue."""

@@ -13,7 +13,7 @@ from pathlib import Path
 
 from fluidimage import ParamContainer, SeriesOfArrays
 from fluidimage.data_objects.piv import ArrayCouple, get_name_piv
-from fluidimage.topologies import TopologyBaseFromSeries, prepare_path_dir_result
+from fluidimage.topologies import TopologyBaseFromSeries
 from fluidimage.topologies.nb_cpu_cores import nb_cores
 from fluidimage.topologies.splitters import SplitterFromSeries
 from fluidimage.util import imread, logger
@@ -88,13 +88,9 @@ class TopologyPIV(TopologyBaseFromSeries):
             ind_step=params.series.ind_step,
         )
 
-        path_dir = self.series.serie.path_dir
-        path_dir_result, self.how_saving = prepare_path_dir_result(
-            path_dir, params.saving.path, params.saving.postfix, params.saving.how
-        )
-
         super().__init__(
-            path_dir_result=path_dir_result,
+            params=params,
+            path_dir_src=self.series.serie.path_dir,
             logging_level=logging_level,
             nb_max_workers=nb_max_workers,
         )
