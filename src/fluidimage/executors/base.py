@@ -277,6 +277,8 @@ class ExecutorBase(ABC):
         self._log_file.close()
 
     def _finalize_compute(self):
+        if hasattr(self.topology, "finalize_compute_seq"):
+            self.topology.finalize_compute_seq()
         log_memory_usage(time_as_str(2) + ": end of `compute`. mem usage")
         self.topology.print_at_exit(time() - self.t_start)
         self._reset_std_as_default()

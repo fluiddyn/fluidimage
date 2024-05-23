@@ -38,6 +38,7 @@ class ExecutorAsyncSeqForMulti(ExecutorAsyncSequential):
             )
 
         self._log_path = path_log
+        topology.executor = self
         super().__init__(
             topology,
             path_dir_result,
@@ -59,9 +60,11 @@ class ExecutorAsyncSeqForMulti(ExecutorAsyncSequential):
                 self._save_topology_results
             )
             path_log_dir = Path(self._log_path).parent
-            path_job_data = path_log_dir.with_name("job" + path_log_dir.name[3:])
+            self.path_job_data = path_log_dir.with_name(
+                "job" + path_log_dir.name[3:]
+            )
             self._path_results = (
-                path_job_data / f"results_{self.index_process:03}.txt"
+                self.path_job_data / f"results_{self.index_process:03}.txt"
             )
 
             self._path_num_results = (

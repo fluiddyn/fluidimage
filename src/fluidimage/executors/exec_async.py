@@ -119,6 +119,11 @@ class ExecutorAsync(ExecutorBase):
             # global functions
             if work.kind is not None and "global" in work.kind:
 
+                try:
+                    work.func_or_cls.__self__.executor = self
+                except AttributeError:
+                    pass
+
                 async def func(work=work):
                     while True:
                         while (

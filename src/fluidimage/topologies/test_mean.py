@@ -2,18 +2,32 @@ import numpy as np
 import pytest
 
 from fluiddyn.io.image import imsave
+from fluidimage.executors import supported_multi_executors
 from fluidimage.topologies.mean import TopologyMeanImage as Topology
+
+executors = [
+    "exec_sequential",
+    "exec_async_sequential",
+    "exec_async",
+    "exec_async_multi",
+    "exec_async_servers",
+    "exec_async_servers_threading",
+]
+
+executors.extend(supported_multi_executors)
+
+num_images = 19
 
 
 @pytest.fixture(scope="session")
-def tmp_path_19_images(tmp_path_factory):
-    tmp_path = tmp_path_factory.mktemp("dir_19_images")
+def tmp_path_images(tmp_path_factory):
+    tmp_path = tmp_path_factory.mktemp("dir_images")
     path_dir_images = tmp_path / "Images"
     path_dir_images.mkdir()
 
     im = np.empty([4, 8], dtype=np.uint8)
 
-    for idx in range(19):
+    for idx in range(num_images):
         im.fill(idx)
         name = f"im{idx:03d}.png"
         imsave(path_dir_images / name, im, as_int=True)
@@ -21,14 +35,22 @@ def tmp_path_19_images(tmp_path_factory):
     return path_dir_images
 
 
-def test_mean(tmp_path_19_images):
+@pytest.mark.parametrize("executor", executors)
+def test_mean(tmp_path_images, executor):
 
-    tmp_path = tmp_path_19_images
+    mean_should_be = num_images // 2
+
+    tmp_path = tmp_path_images
 
     params = Topology.create_default_params()
     params.images.path = str(tmp_path)
+    params.saving.postfix = executor
 
     topology = Topology(params)
 
-    executor = "exec_sequential"
     topology.compute(executor, nb_max_workers=2)
+
+    assert topology.result[0, 0] == mean_should_be, (
+        topology.result[0, 0],
+        mean_should_be,
+    )

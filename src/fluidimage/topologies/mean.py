@@ -8,6 +8,9 @@
 
 from pathlib import Path
 
+import h5py
+import numpy as np
+
 from fluiddyn.io.image import imsave
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
 from fluidimage import ParamContainer
@@ -16,6 +19,28 @@ from fluidimage.topologies.base import TopologyBaseFromImages
 from fluidimage.topologies.splitters import SplitterFromImages
 from fluidimage.util import imread
 from fluidimage.works import BaseWorkFromImage
+
+
+def reduce_queue_tmp_arrays4(queue_tmp_arrays):
+    while len(queue_tmp_arrays) >= 4:
+        arr0, n0 = queue_tmp_arrays.pop()
+        arr1, n1 = queue_tmp_arrays.pop()
+        arr2, n2 = queue_tmp_arrays.pop()
+        arr3, n3 = queue_tmp_arrays.pop()
+        arr_sum = arr0 + arr1 + arr2 + arr3
+        n_sum = n0 + n1 + n2 + n3
+        # print("reduce_queue_tmp_arrays4", n_sum)
+        queue_tmp_arrays.insert(0, (arr_sum, n_sum))
+
+
+def reduce_queue_tmp_arrays2(queue_tmp_arrays):
+    while len(queue_tmp_arrays) >= 2:
+        arr0, n0 = queue_tmp_arrays.pop()
+        arr1, n1 = queue_tmp_arrays.pop()
+        arr_sum = arr0 + arr1
+        n_sum = n0 + n1
+        # print("reduce_queue_tmp_arrays2", n_sum)
+        queue_tmp_arrays.insert(0, (arr_sum, n_sum))
 
 
 class TopologyMeanImage(TopologyBaseFromImages):
@@ -77,6 +102,8 @@ class TopologyMeanImage(TopologyBaseFromImages):
             kind="global",
         )
 
+        self.results = []
+
     def main(self, input_queues, output_queue):
         del output_queue
         queue_paths, queue_arrays, queue_tmp_arrays = input_queues
@@ -85,15 +112,47 @@ class TopologyMeanImage(TopologyBaseFromImages):
         while queue_arrays:
             name, arr = queue_arrays.pop_first_item()
             print(name)
+            queue_tmp_arrays.append((arr.astype(np.uint32), 1))
 
-        # check arrays queue
+        reduce_queue_tmp_arrays4(queue_tmp_arrays)
 
-        # fill tmp_arrays with (arr, num_arrays_used)
+        if (
+            not queue_paths
+            and not queue_arrays
+            and self.executor.nb_working_workers_io == 0
+        ):
+            reduce_queue_tmp_arrays2(queue_tmp_arrays)
+            if not queue_tmp_arrays:
+                return
+            assert len(queue_tmp_arrays) == 1, queue_tmp_arrays
+            print(f"{queue_tmp_arrays = }")
+            arr_result, n_result = queue_tmp_arrays.pop()
 
-        # get 4 arrays (or less if queue_paths is empty)
+            executor = self.executor
 
-        # compute the mean over the 4 arrays
+            try:
+                index_process = executor.index_process
+            except AttributeError:
+                index_process = 0
 
-        # insert the sum and remove the arrays
+            path = executor.path_job_data / f"tmp_sum{index_process:03d}.h5"
+            with h5py.File(path, "w") as file:
+                file.create_dataset("arr", data=arr_result)
+                file.attrs["num_images"] = n_result
 
-        # when done, save tmp_mean
+    def finalize_compute_seq(self):
+        path_tmp_files = sorted(self.executor.path_job_data.glob("tmp_sum*.h5"))
+
+        queue_tmp_arrays = []
+        for path_tmp_file in path_tmp_files:
+            with h5py.File(path_tmp_file, "r") as file:
+                arr = file["arr"][...]
+                num_images = file.attrs["num_images"]
+                queue_tmp_arrays.append((arr, num_images))
+
+        reduce_queue_tmp_arrays4(queue_tmp_arrays)
+        reduce_queue_tmp_arrays2(queue_tmp_arrays)
+
+        assert len(queue_tmp_arrays) == 1
+        arr, num_images = queue_tmp_arrays[0]
+        self.result = arr / num_images
