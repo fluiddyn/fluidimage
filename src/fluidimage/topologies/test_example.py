@@ -38,7 +38,9 @@ def test_topo_example(tmp_path_karman, executor):
         assert (
             log.topology_name == "fluidimage.topologies.example.TopologyExample"
         )
-        assert log.nb_max_workers == 2
+
+        if executor != "exec_sequential":
+            assert log.nb_max_workers == 2
 
         if [
             len(log.durations[key])

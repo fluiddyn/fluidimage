@@ -60,6 +60,7 @@ from .base import ExecutorBase
 # see https://docs.python.org/3/library/multiprocessing.html#contexts-and-start-methods
 supported_multi_executors = ["multi_exec_subproc"]
 if sys.platform == "linux":
+    supported_multi_executors.insert(0, "multi_exec_sync")
     supported_multi_executors.insert(0, "multi_exec_async")
 
 

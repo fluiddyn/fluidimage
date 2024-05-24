@@ -6,10 +6,6 @@ Multi executors async
    :members:
    :private-members:
 
-.. autoclass:: ExecutorAsyncForMulti
-   :members:
-   :private-members:
-
 """
 
 import copy
@@ -19,10 +15,6 @@ from fluidimage.topologies.splitters import split_list
 
 from .base import MultiExecutorBase
 from .exec_async_seq_for_multi import ExecutorAsyncSeqForMulti
-
-
-class ExecutorAsyncForMulti(ExecutorAsyncSeqForMulti):
-    """Slightly modified ExecutorAsync"""
 
 
 class MultiExecutorAsync(MultiExecutorBase):
@@ -49,6 +41,8 @@ class MultiExecutorAsync(MultiExecutorBase):
       when there is nothing in their input_queue.
 
     """
+
+    ExecutorForMulti = ExecutorAsyncSeqForMulti
 
     def _start_processes(self):
         """
@@ -165,7 +159,7 @@ class MultiExecutorAsync(MultiExecutorBase):
 
     def init_and_compute(self, topology_this_process, log_path, idx_process):
         """Create an executor and start it in a process"""
-        executor = ExecutorAsyncForMulti(
+        executor = self.ExecutorForMulti(
             topology_this_process,
             self.path_dir_result,
             sleep_time=self.sleep_time,

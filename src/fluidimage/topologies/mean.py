@@ -217,6 +217,13 @@ def parse_args():
         default=None,
     )
 
+    parser.add_argument(
+        "--subset",
+        help="Subset of images.",
+        type=str,
+        default=None,
+    )
+
     return parser.parse_args()
 
 
@@ -233,5 +240,6 @@ def main():
 
     params = Topology.create_default_params()
     params.images.path = str(args.path)
+    params.images.str_subset = args.subset
     topology = Topology(params)
     topology.compute(args.executor, nb_max_workers=args.nb_max_workers)

@@ -153,7 +153,7 @@ class MonitorApp(App):
         copy_doc(self.params, params_default)
 
         self.paths_len_results = sorted(
-            self.path_job_info.glob("len_results_*.txt")
+            self.path_job_info.glob("len_results*.txt")
         )
         assert self.paths_len_results
 

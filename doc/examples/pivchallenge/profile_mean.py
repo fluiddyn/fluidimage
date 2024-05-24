@@ -14,7 +14,9 @@ params.images.path = str(path_images / "c*.bmp")
 
 topology = Topology(params)
 executor = "exec_sequential"
-executor = "exec_async_sequential"
+# executor = "exec_async_sequential"
+executor = "multi_exec_sync"
+# executor = "multi_exec_async"
 
 profiler = Profiler()
 profiler.start()

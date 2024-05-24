@@ -77,6 +77,11 @@ class ExecutorBase(ABC):
     time_start: str
     _final_seq_work_run: bool
 
+    # for results log
+    _path_results: Path
+    _path_num_results: Path
+    _len_saved_results: int
+
     def _init_log_path(self):
         self.time_start_str = time_as_str()
         unique_postfix = f"{self.time_start_str}_{os.getpid()}"
@@ -220,7 +225,7 @@ class ExecutorBase(ABC):
         print("  executor:", executor_name)
         print("  nb_cpus_allowed =", nb_cores)
         print("  nb_max_workers =", self.nb_max_workers)
-        print("  num_expected_results", self.num_expected_results)
+        print("  num_expected_results =", self.num_expected_results)
         print("  path_dir_result =", self.path_dir_result)
         print(
             "Monitoring app can be launched with:\n"
@@ -371,6 +376,42 @@ class ExecutorBase(ABC):
         # split the first queue
         self._keys_first_queue = list(self._first_queue.keys())
         self.num_expected_results = len(self._keys_first_queue)
+
+    def _init_results_log(self, path_job_data):
+
+        if hasattr(self, "index_process"):
+            str_index_process = f"_{self.index_process:03}"
+        else:
+            str_index_process = ""
+
+        self._path_results = path_job_data / f"results{str_index_process}.txt"
+        self._path_num_results = (
+            self._path_results.parent / f"len_results{str_index_process}.txt"
+        )
+        self._len_saved_results = 0
+
+    def _save_results_names(self):
+
+        new_results = self.topology.results[self._len_saved_results :]
+        self._len_saved_results = len(self.topology.results)
+
+        with open(self._path_num_results, "w", encoding="utf-8") as file:
+            file.write(f"{self._len_saved_results}\n")
+
+        if new_results:
+            if isinstance(new_results[0], str):
+                new_results = [Path(path).name for path in new_results]
+            elif hasattr(new_results[0], "name"):
+                new_results = [_r.name for _r in new_results]
+            else:
+                new_results = [str(_r) for _r in new_results]
+            new_results = "\n".join(new_results) + "\n"
+
+            with open(self._path_results, "a", encoding="utf-8") as file:
+                file.write(new_results)
+
+        if not self._log_file.closed:
+            self._log_file.flush()
 
 
 class MultiExecutorBase(ExecutorBase):

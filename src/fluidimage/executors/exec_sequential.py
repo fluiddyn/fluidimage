@@ -21,6 +21,8 @@ class ExecutorSequential(ExecutorBase):
         self.exec_one_shot_works()
         self._run_works()
         self._finalize_compute()
+        if hasattr(self.topology, "results"):
+            self._save_results_names()
 
     def _run_works(self):
         while not all([len(queue) == 0 for queue in self.topology.queues]):
@@ -69,6 +71,18 @@ class ExecutorSequential(ExecutorBase):
 
                     if work.output_queue is not None:
                         work.output_queue[key] = ret
+
+            if hasattr(self.topology, "results"):
+                self._save_results_names()
+
+    def _init_compute_log(self):
+        self.nb_max_workers = 1
+        super()._init_compute_log()
+
+    def _save_job_data(self):
+        super()._save_job_data()
+        if hasattr(self.topology, "results"):
+            self._init_results_log(self.path_job_data)
 
 
 Executor = ExecutorSequential
