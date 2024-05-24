@@ -3,7 +3,7 @@
 See also the
 [unreleased changes](https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.5.2...branch%2Fdefault).
 
-## [0.5.2] (2024-05-??)
+## [0.5.2] (2024-05-24)
 
 - New command `fluidimage-mean` to compute mean of images with the new topology
   {class}`fluidimage.topologies.mean.TopologyMeanImage`.
