@@ -1,3 +1,5 @@
+import sys
+
 import pytest
 
 from fluidimage.executors import supported_multi_executors
@@ -8,9 +10,16 @@ executors = [
     "exec_async_sequential",
     "exec_async",
     "exec_async_multi",
-    "exec_async_servers",
     "exec_async_servers_threading",
 ]
+
+if sys.platform != "darwin":
+    # too much ConnectionRefusedError on Github Actions
+    executors.extend(
+        [
+            "exec_async_servers",
+        ]
+    )
 
 executors.extend(supported_multi_executors)
 
