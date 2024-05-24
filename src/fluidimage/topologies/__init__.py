@@ -18,6 +18,7 @@ Users are particularly concerned with the following already defined topologies:
    piv
    bos
    preproc
+   mean
    image2image
    surface_tracking
    optical_flow
