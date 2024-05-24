@@ -1,9 +1,11 @@
+import sys
+
 import numpy as np
 import pytest
 
 from fluiddyn.io.image import imsave
 from fluidimage.executors import supported_multi_executors
-from fluidimage.topologies.mean import TopologyMeanImage as Topology
+from fluidimage.topologies.mean import Topology, main
 
 executors = [
     "exec_sequential",
@@ -60,3 +62,24 @@ def test_mean(tmp_path_images, executor):
 
     assert len(topology.results) == num_images
     assert topology.path_result.exists()
+
+
+def test_mean_help(monkeypatch):
+
+    command = "fluidimage-mean -h"
+
+    with monkeypatch.context() as ctx:
+        ctx.setattr(sys, "argv", command.split())
+
+
+def test_mean_command(tmp_path_images, monkeypatch):
+
+    tmp_path = tmp_path_images
+    path_output = tmp_path / "a-great-name.png"
+
+    command = f"fluidimage-monitor {tmp_path} -o {path_output.with_suffix('')}"
+    with monkeypatch.context() as ctx:
+        ctx.setattr(sys, "argv", command.split())
+        main()
+
+    assert path_output.exists()

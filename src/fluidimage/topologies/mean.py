@@ -12,9 +12,9 @@ from pathlib import Path
 
 import h5py
 import numpy as np
+from PIL import Image
 
 import fluidimage
-from fluiddyn.io.image import imsave
 from fluiddyn.util.serieofarrays import SerieOfArraysFromFiles
 from fluidimage import ParamContainer
 from fluidimage.topologies.base import TopologyBaseFromImages
@@ -96,6 +96,9 @@ class TopologyMeanImage(TopologyBaseFromImages):
 
         self.results = []
 
+        image = self.serie.get_array_from_index(0)
+        self.original_dtype = image.dtype
+
     def reduce_queue_tmp_arrays4(self, queue_tmp_arrays):
         while len(queue_tmp_arrays) >= 4:
             arr0, n0 = queue_tmp_arrays.pop()
@@ -171,13 +174,19 @@ class TopologyMeanImage(TopologyBaseFromImages):
 
         assert len(queue_tmp_arrays) == 1
         arr, num_images = queue_tmp_arrays[0]
-        self.result = (arr / num_images).astype(np.uint8)
+        self.result = (arr / num_images).astype(self.original_dtype)
         self.results.append(num_images)
 
         self.path_result = self.path_dir_result.with_name(
             self.path_dir_result.name + ".png"
         )
-        imsave(self.path_result, self.result)
+
+        im = Image.fromarray(self.result)
+        im.save(self.path_result, "PNG")
+        im.close()
+
+        for path_tmp_file in path_tmp_files:
+            path_tmp_file.unlink()
 
 
 def parse_args():
@@ -206,7 +215,7 @@ def parse_args():
         "--executor",
         help="Name of the executor.",
         type=str,
-        default="exec_sequential",
+        default=None,
     )
 
     parser.add_argument(
@@ -220,6 +229,14 @@ def parse_args():
     parser.add_argument(
         "--subset",
         help="Subset of images.",
+        type=str,
+        default=None,
+    )
+
+    parser.add_argument(
+        "-o",
+        "--output",
+        help="Output path (without the .png extension).",
         type=str,
         default=None,
     )
@@ -238,8 +255,17 @@ def main():
         print(f"fluidimage {fluidimage.__version__}")
         return
 
+    if args.executor is None:
+        if args.nb_max_workers == 1:
+            args.executor = "exec_sequential"
+        else:
+            args.executor = "exec_async_sequential"
+
+    print(args)
+
     params = Topology.create_default_params()
     params.images.path = str(args.path)
     params.images.str_subset = args.subset
+    params.saving.path = args.output
     topology = Topology(params)
     topology.compute(args.executor, nb_max_workers=args.nb_max_workers)
