@@ -22,6 +22,7 @@ class MultiExecutorSubproc(MultiExecutorBase):
     """Multi executor based on subprocesses and splitters"""
 
     splitter: Splitter
+    executor_for_multi = "exec_async_seq_for_multi"
 
     def _init_num_expected_results(self):
 
@@ -29,7 +30,7 @@ class MultiExecutorSubproc(MultiExecutorBase):
             splitter_cls = self.topology.Splitter
         except AttributeError as error:
             raise ValueError(
-                "MultiExecutorSubproc can only execute "
+                f"{type(self).__name__} can only execute "
                 "topologies with a Splitter."
             ) from error
 
@@ -39,12 +40,12 @@ class MultiExecutorSubproc(MultiExecutorBase):
             params._set_child(
                 "compute_kwargs",
                 attribs={
-                    "executor": "exec_async_seq_for_multi",
+                    "executor": self.executor_for_multi,
                     "nb_max_workers": 1,
                 },
             )
         except ValueError:
-            params.compute_kwargs.executor = "exec_async_seq_for_multi"
+            params.compute_kwargs.executor = self.executor_for_multi
             params.compute_kwargs.nb_max_workers = 1
 
         try:

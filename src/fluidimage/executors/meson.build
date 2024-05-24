@@ -13,6 +13,7 @@ python_sources = [
   'multi_exec_async.py',
   'multi_exec_sync.py',
   'multi_exec_subproc.py',
+  'multi_exec_subproc_sync.py',
   'servers.py',
 ]
 
