@@ -38,6 +38,7 @@ class ExecutorAsyncSeqForMulti(ExecutorAsyncSequential):
             )
 
         self._log_path = path_log
+        topology.executor = self
         super().__init__(
             topology,
             path_dir_result,
@@ -59,17 +60,10 @@ class ExecutorAsyncSeqForMulti(ExecutorAsyncSequential):
                 self._save_topology_results
             )
             path_log_dir = Path(self._log_path).parent
-            path_job_data = path_log_dir.with_name("job" + path_log_dir.name[3:])
-            self._path_results = (
-                path_job_data / f"results_{self.index_process:03}.txt"
+            self.path_job_data = path_log_dir.with_name(
+                "job" + path_log_dir.name[3:]
             )
-
-            self._path_num_results = (
-                self._path_results.parent
-                / f"len_results_{self.index_process:03}.txt"
-            )
-
-            self._len_saved_results = 0
+            self._init_results_log(self.path_job_data)
 
             sys.stdout = self._log_file
 
@@ -99,29 +93,6 @@ class ExecutorAsyncSeqForMulti(ExecutorAsyncSequential):
 
         if hasattr(self.topology, "results"):
             self._save_results_names()
-
-    def _save_results_names(self):
-
-        new_results = self.topology.results[self._len_saved_results :]
-        self._len_saved_results = len(self.topology.results)
-
-        with open(self._path_num_results, "w", encoding="utf-8") as file:
-            file.write(f"{self._len_saved_results}\n")
-
-        if new_results:
-            if isinstance(new_results[0], str):
-                new_results = [Path(path).name for path in new_results]
-            elif hasattr(new_results[0], "name"):
-                new_results = [_r.name for _r in new_results]
-            else:
-                new_results = [str(_r) for _r in new_results]
-            new_results = "\n".join(new_results) + "\n"
-
-            with open(self._path_results, "a", encoding="utf-8") as file:
-                file.write(new_results)
-
-        if not self._log_file.closed:
-            self._log_file.flush()
 
     async def _save_topology_results(self):
         while not self._has_to_stop:

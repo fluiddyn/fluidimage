@@ -1,7 +1,18 @@
 # Release notes
 
 See also the
-[unreleased changes](https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.5.1...branch%2Fdefault).
+[unreleased changes](https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.5.2...branch%2Fdefault).
+
+## [0.5.2] (2024-05-??)
+
+- New command `fluidimage-mean` to compute mean of images with the new topology
+  {class}`fluidimage.topologies.mean.TopologyMeanImage`.
+
+- New executors `multi_exec_sync` ({mod}`fluidimage.executors.multi_exec_sync`) and
+  `multi_exec_subproc_sync` ({mod}`fluidimage.executors.multi_exec_subproc_sync`).
+
+- [!108](https://foss.heptapod.net/fluiddyn/fluidimage/-/merge_requests/108): save UVmat
+  error codes in PIV files.
 
 ## [0.5.1] (2024-05-06)
 
@@ -217,3 +228,4 @@ This version contains incompatible API changes documented here.
 [0.4.6]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.4.5...0.4.6
 [0.5.0]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.4.6...0.5.0
 [0.5.1]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.5.0...0.5.1
+[0.5.2]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.5.1...0.5.2

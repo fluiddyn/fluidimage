@@ -6,21 +6,15 @@ Multi executors async
    :members:
    :private-members:
 
-.. autoclass:: ExecutorAsyncForMulti
-   :members:
-   :private-members:
-
 """
 
 import copy
 from multiprocessing import Process
 
+from fluidimage.topologies.splitters import split_list
+
 from .base import MultiExecutorBase
 from .exec_async_seq_for_multi import ExecutorAsyncSeqForMulti
-
-
-class ExecutorAsyncForMulti(ExecutorAsyncSeqForMulti):
-    """Slightly modified ExecutorAsync"""
 
 
 class MultiExecutorAsync(MultiExecutorBase):
@@ -48,6 +42,8 @@ class MultiExecutorAsync(MultiExecutorBase):
 
     """
 
+    ExecutorForMulti = ExecutorAsyncSeqForMulti
+
     def _start_processes(self):
         """
         There are two ways to split self.topology work:
@@ -72,16 +68,7 @@ class MultiExecutorAsync(MultiExecutorBase):
     def _start_multiprocess_first_queue(self):
         """Start the processes spitting the work with the first queue"""
 
-        nb_keys_per_process = max(
-            1, int(len(self._keys_first_queue) / self.nb_processes)
-        )
-
-        keys_for_processes = []
-        for iproc in range(self.nb_processes):
-            istart = iproc * nb_keys_per_process
-            keys_for_processes.append(
-                self._keys_first_queue[istart : istart + nb_keys_per_process]
-            )
+        keys_for_processes = split_list(self._keys_first_queue, self.nb_processes)
 
         # change topology
         self.topology.first_queue = self.topology.works[0].output_queue
@@ -172,7 +159,7 @@ class MultiExecutorAsync(MultiExecutorBase):
 
     def init_and_compute(self, topology_this_process, log_path, idx_process):
         """Create an executor and start it in a process"""
-        executor = ExecutorAsyncForMulti(
+        executor = self.ExecutorForMulti(
             topology_this_process,
             self.path_dir_result,
             sleep_time=self.sleep_time,

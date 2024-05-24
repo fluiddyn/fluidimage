@@ -14,6 +14,7 @@ overview
 install
 tutorial
 examples
+commands
 build-from-source
 ```
 

@@ -20,7 +20,7 @@ from pathlib import Path
 
 from fluiddyn.io.image import imsave_h5
 from fluidimage import ParamContainer, SerieOfArraysFromFiles, SeriesOfArrays
-from fluidimage.topologies import TopologyBase, prepare_path_dir_result
+from fluidimage.topologies import TopologyBase
 from fluidimage.util import imread, logger
 from fluidimage.works import image2image
 from fluidimage.works.surface_tracking import WorkSurfaceTracking
@@ -123,18 +123,11 @@ Parameters indicating the input image set.
             ind_stop=self.serie.get_slicing_tuples()[0][1] - 1,
             ind_step=self.serie.get_slicing_tuples()[0][2],
         )
-        path_dir = self.serie.path_dir
-        path_dir_result, self.how_saving = prepare_path_dir_result(
-            path_dir, params.saving.path, params.saving.postfix, params.saving.how
-        )
-
-        self.path_dir_result = path_dir_result
-        self.path_dir_src = Path(path_dir)
-
         self.surface_tracking_work = WorkSurfaceTracking(params)
 
         super().__init__(
-            path_dir_result=path_dir_result,
+            params=params,
+            path_dir_src=self.serie.path_dir,
             logging_level=logging_level,
             nb_max_workers=nb_max_workers,
         )

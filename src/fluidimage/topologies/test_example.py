@@ -16,8 +16,10 @@ executors.extend(supported_multi_executors)
 
 # tmp: TopologyExample doesn't have a Splitter
 executors.remove("multi_exec_subproc")
+executors.remove("multi_exec_subproc_sync")
 
 
+@pytest.mark.usefixtures("close_plt_figs")
 @pytest.mark.parametrize("executor", executors)
 def test_topo_example(tmp_path_karman, executor):
 
@@ -38,7 +40,9 @@ def test_topo_example(tmp_path_karman, executor):
         assert (
             log.topology_name == "fluidimage.topologies.example.TopologyExample"
         )
-        assert log.nb_max_workers == 2
+
+        if executor != "exec_sequential":
+            assert log.nb_max_workers == 2
 
         if [
             len(log.durations[key])

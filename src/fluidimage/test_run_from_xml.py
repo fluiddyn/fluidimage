@@ -34,7 +34,7 @@ def test_uvmat(tmp_path, monkeypatch, name):
         action = main()
 
     path_results = tmp_path / "Images.civ"
-    assert action.params.saving.path == str(path_results)
+    assert str(action.params.saving.path) == str(path_results)
 
     paths_piv = sorted(p.name for p in path_results.glob("piv*.h5"))
 

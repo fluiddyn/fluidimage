@@ -177,6 +177,15 @@ class WorkerServerMultiprocessing(WorkerServer):
 
         self.conn = conn
         self.event_has_to_stop = event_has_to_stop
+
+        try:
+            params.saving.how
+        except AttributeError:
+            pass
+        else:
+            if params.saving.how == "ask":
+                params.saving.how = "complete"
+
         self.topology = topology_cls(params)
 
         self._log_file = open(log_path, "w", encoding="utf-8")

@@ -12,7 +12,6 @@ from pathlib import Path
 
 from fluidimage import ParamContainer
 from fluidimage.data_objects.piv import get_name_bos
-from fluidimage.topologies import prepare_path_dir_result
 from fluidimage.topologies.base import TopologyBaseFromImages
 from fluidimage.topologies.splitters import SplitterFromImages
 from fluidimage.util import imread
@@ -94,22 +93,13 @@ class TopologyBOS(TopologyBaseFromImages):
         return params
 
     def __init__(self, params, logging_level="info", nb_max_workers=None):
-        self.params = params
-
         self.main_work = WorkBOS(params)
         self.serie = self.main_work.serie
         self.path_reference = self.main_work.path_reference
 
-        path_dir = Path(self.serie.path_dir)
-        path_dir_result, self.how_saving = prepare_path_dir_result(
-            path_dir, params.saving.path, params.saving.postfix, params.saving.how
-        )
-
-        self.path_dir_result = path_dir_result
-        self.path_dir_src = Path(path_dir)
-
         super().__init__(
-            path_dir_result=path_dir_result,
+            params=params,
+            path_dir_src=self.serie.path_dir,
             logging_level=logging_level,
             nb_max_workers=nb_max_workers,
         )

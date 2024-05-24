@@ -9,7 +9,7 @@ build-backend = 'mesonpy'
 
 [project]
 name = "fluidimage"
-version = "0.5.1"
+version = "0.5.2"
 description = "Fluid image processing with Python."
 authors = [
     {name = "Pierre Augier", email = "pierre.augier@legi.cnrs.fr"},
@@ -58,6 +58,7 @@ fluidimage-monitor = "fluidimage.gui.monitor:main"
 fluidimviewer = "fluidimage.gui.imviewer:main"
 fluidimviewer-pg = "fluidimage.gui.pg_main:main"
 fluidpivviewer = "fluidimage.gui.piv_viewer:main"
+fluidimage-mean = "fluidimage.topologies.mean:main"
 
 [project.optional-dependencies]
 pims = ["pims"]
@@ -72,8 +73,11 @@ exec_sequential = "fluidimage.executors.exec_sequential"
 exec_async = "fluidimage.executors.exec_async"
 exec_async_sequential =  "fluidimage.executors.exec_async_sequential"
 exec_async_seq_for_multi = "fluidimage.executors.exec_async_seq_for_multi"
+exec_seq_for_multi = "fluidimage.executors.exec_seq_for_multi"
 multi_exec_async =  "fluidimage.executors.multi_exec_async"
+multi_exec_sync =  "fluidimage.executors.multi_exec_sync"
 multi_exec_subproc = "fluidimage.executors.multi_exec_subproc"
+multi_exec_subproc_sync = "fluidimage.executors.multi_exec_subproc_sync"
 exec_async_multi =  "fluidimage.executors.exec_async_multiproc"
 exec_async_servers =  "fluidimage.executors.exec_async_servers"
 exec_async_servers_threading =  "fluidimage.executors.exec_async_servers_threading"

@@ -19,8 +19,11 @@ an executor compared to another.
    exec_async
    exec_async_sequential
    multi_exec_async
+   multi_exec_sync
    multi_exec_subproc
+   multi_exec_subproc_sync
    exec_async_seq_for_multi
+   exec_seq_for_multi
    exec_async_multiproc
    exec_async_servers
    servers
@@ -58,8 +61,9 @@ from .base import ExecutorBase
 # because the OS does not support forks (or not fully) and
 # multiprocessing works differently than on Linux
 # see https://docs.python.org/3/library/multiprocessing.html#contexts-and-start-methods
-supported_multi_executors = ["multi_exec_subproc"]
+supported_multi_executors = ["multi_exec_subproc", "multi_exec_subproc_sync"]
 if sys.platform == "linux":
+    supported_multi_executors.insert(0, "multi_exec_sync")
     supported_multi_executors.insert(0, "multi_exec_async")
 
 
