@@ -64,9 +64,9 @@ class TestCorrel(unittest.TestCase):
         )
 
 
-for k, cls in classes.items():
+for method, cls in classes.items():
 
-    def _test(self, cls=cls, k=k):
+    def _test(self, cls=cls, name=method):
         if issubclass(cls, CorrelFFTBase):
             displacement_max = "50%"
         else:
@@ -86,7 +86,7 @@ for k, cls in classes.items():
         ) = correl.compute_displacements_from_correl(c, norm=norm)
         displacement_computed = np.array([dx, dy])
 
-        print(f"{k}, displacement = [0, 0]\t error= {abs(displacement_computed)}")
+        print(f"{name}, displacement = [0, 0]\t{abs(displacement_computed) = }")
 
         assert np.allclose([0, 0], displacement_computed, atol=1e-03)
         assert np.allclose(correl_max, 1.0), correl_max
@@ -99,19 +99,16 @@ for k, cls in classes.items():
 
         displacement_computed = np.array([dx, dy])
 
-        logger.debug(
-            k
-            + ", displacement = {}\t error= {}\n".format(
-                self.displacements,
-                abs(displacement_computed - self.displacements),
-            )
+        print(
+            f"{name}, displacement = {self.displacements}\t"
+            f"error = {abs(displacement_computed - self.displacements)}"
         )
 
         self.assertTrue(
             np.allclose(self.displacements, displacement_computed, atol=0.8)
         )
 
-    exec("TestCorrel.test_correl_square_image_" + k + " = _test")
+    exec("TestCorrel.test_correl_square_image_" + method + " = _test")
 
 
 class TestCorrel1(unittest.TestCase):
@@ -136,9 +133,9 @@ class TestCorrel1(unittest.TestCase):
         )
 
 
-for k, cls in classes.items():
+for method, cls in classes.items():
 
-    def _test1(self, cls=cls, k=k):
+    def _test1(self, cls=cls, name=method):
         correl = cls(self.im0.shape, self.im1.shape)
 
         # first, no displacement
@@ -149,7 +146,7 @@ for k, cls in classes.items():
         displacement_computed = np.array([dx, dy])
 
         logger.debug(
-            k
+            name
             + ", displacement = [0, 0]\t error= {}\n".format(
                 abs(displacement_computed)
             )
@@ -166,19 +163,16 @@ for k, cls in classes.items():
 
         displacement_computed = np.array([dx, dy])
 
-        logger.debug(
-            k
-            + ", displacement = {}\t error= {}\n".format(
-                self.displacements,
-                abs(displacement_computed - self.displacements),
-            )
+        print(
+            f"{name}, displacement = {self.displacements}\t"
+            f"error = {abs(displacement_computed - self.displacements)}"
         )
 
         self.assertTrue(
             np.allclose(self.displacements, displacement_computed, atol=0.8)
         )
 
-    exec("TestCorrel1.test_correl_rectangular_image_" + k + " = _test1")
+    exec("TestCorrel1.test_correl_rectangular_image_" + method + " = _test1")
 
 
 class TestCorrel2(unittest.TestCase):
@@ -211,9 +205,9 @@ class TestCorrel2(unittest.TestCase):
         cls.im1 = cls.im1.astype("float32")
 
 
-for k, cls in classes_real_space.items():
+for method, cls in classes_real_space.items():
 
-    def _test2(self, cls=cls, k=k):
+    def _test2(self, cls=cls, name=method):
         correl = cls(self.im0.shape, self.im1.shape, mode="valid")
 
         # with the 2 figures with displacements
@@ -224,19 +218,16 @@ for k, cls in classes_real_space.items():
 
         displacement_computed = np.array([dx, dy])
 
-        logger.debug(
-            k
-            + ", displacement = {}\t error= {}\n".format(
-                self.displacements,
-                abs(displacement_computed - self.displacements),
-            )
+        print(
+            f"{name}, displacement = {self.displacements}\t"
+            f"error = {abs(displacement_computed - self.displacements)}"
         )
 
         self.assertTrue(
             np.allclose(self.displacements, displacement_computed, atol=0.8)
         )
 
-    exec("TestCorrel2.test_correl_images_diff_sizes_" + k + " = _test2")
+    exec("TestCorrel2.test_correl_images_diff_sizes_" + method + " = _test2")
 
 
 def _test_like_fftshift(n0, n1):
