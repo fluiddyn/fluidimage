@@ -22,6 +22,24 @@ from fluidimage.topologies.splitters import SplitterFromImages
 from fluidimage.util import imread
 from fluidimage.works import BaseWorkFromImage
 
+# from transonic import boost, Array
+
+
+# A2d = Array[np.uint32, "2d", "C"]
+
+
+# x2 speedup of this operation but this is clearly not the bottleneck yet...
+# @boost
+# def sum_4_2darrays(arr0: A2d, arr1: A2d, arr2: A2d, arr3: A2d):
+#     """Sum 4 2d arrays"""
+#     n0, n1 = arr0.shape
+#     for i0 in range(n0):
+#         for i1 in range(n1):
+#             arr0[i0, i1] = (
+#                 arr0[i0, i1] + arr1[i0, i1] + arr2[i0, i1] + arr3[i0, i1]
+#             )
+#     return arr0
+
 
 class TopologyMeanImage(TopologyBaseFromImages):
     """Compute in parallel the mean image."""
@@ -85,6 +103,7 @@ class TopologyMeanImage(TopologyBaseFromImages):
             arr2, n2 = queue_tmp_arrays.pop()
             arr3, n3 = queue_tmp_arrays.pop()
             arr_sum = arr0 + arr1 + arr2 + arr3
+            # arr_sum = sum_4_2darrays(arr0, arr1, arr2, arr3)
             n_sum = n0 + n1 + n2 + n3
             # print("reduce_queue_tmp_arrays4", n_sum)
             queue_tmp_arrays.insert(0, (arr_sum, n_sum))
@@ -107,7 +126,6 @@ class TopologyMeanImage(TopologyBaseFromImages):
 
         while queue_arrays:
             name, arr = queue_arrays.pop_first_item()
-            print(name)
             queue_tmp_arrays.append((arr.astype(np.uint32), 1))
 
         self.reduce_queue_tmp_arrays4(queue_tmp_arrays)
@@ -124,7 +142,6 @@ class TopologyMeanImage(TopologyBaseFromImages):
             if not queue_tmp_arrays:
                 return
             assert len(queue_tmp_arrays) == 1, queue_tmp_arrays
-            print(f"{queue_tmp_arrays = }")
             arr_result, n_result = queue_tmp_arrays.pop()
 
             executor = self.executor
@@ -186,17 +203,17 @@ def parse_args():
     )
 
     parser.add_argument(
+        "--executor",
+        help="Name of the executor.",
+        type=str,
+        default="exec_sequential",
+    )
+
+    parser.add_argument(
         "-np",
         "--nb-max-workers",
         help="Maximum number of workers/processes.",
         type=int,
-        default=None,
-    )
-
-    parser.add_argument(
-        "--executor",
-        help="Name of the executor.",
-        type=str,
         default=None,
     )
 
