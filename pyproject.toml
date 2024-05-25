@@ -45,12 +45,15 @@ classifiers = [
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.9",
     "Topic :: Scientific/Engineering",
 ]
 
 [project.urls]
-Homepage = "https://foss.heptapod.net/fluiddyn/fluidimage"
+homepage = "https://foss.heptapod.net/fluiddyn/fluidimage"
+documentation = "https://fluidimage.readthedocs.io"
+read-only-mirror = "https://github.com/fluiddyn/fluidimage"
 
 [project.scripts]
 fluidimlauncher = "fluidimage.gui.launcher.main:main"
