@@ -10,9 +10,9 @@ nox -k <keyword>  # execute some session
 
 """
 
+import json
 import os
-
-from datetime import timedelta
+from datetime import datetime, timedelta
 from functools import partial
 from pathlib import Path
 from time import time
@@ -143,6 +143,11 @@ def _get_version_from_pyproject(path=Path.cwd()):
     return version
 
 
+def _get_last_tag(session):
+    result = session.run("hg", "tags", "-T", "{tag},", external=True, silent=True)
+    return result.split(",", 2)[1]
+
+
 @nox.session(name="add-tag-for-release", venv_backend="none")
 def add_tag_for_release(session):
     """Add a tag to the repo for a new version"""
@@ -157,8 +162,7 @@ def add_tag_for_release(session):
     version = _get_version_from_pyproject()
     print(f"{version = }")
 
-    result = session.run("hg", "tags", "-T", "{tag},", external=True, silent=True)
-    last_tag = result.split(",", 2)[1]
+    last_tag = _get_last_tag(session)
     print(f"{last_tag = }")
 
     if last_tag == version:
@@ -190,3 +194,44 @@ def detect_pythran_extensions(session):
             [str(p)[:-3].replace("/", ".") for p in paths_pythran_files]
         )
     )
+
+
+@nox.session(name="zenodo-upload")
+def zenodo_upload(session):
+    """Upload an archive on Zenodo"""
+
+    session.install("cffconvert")
+    session.install("gitlab2zenodo")
+
+    version = _get_version_from_pyproject()
+    last_tag = _get_last_tag(session)
+
+    assert version == last_tag
+
+    now = datetime.now()
+    str_date = f"{now.year}-{now.month}-{now.day}"
+
+    command = "cffconvert -i CITATION.cff -f zenodo"
+    result = session.run(*command.split(), external=True, silent=True)
+
+    zenodo_info = json.loads(result)
+    zenodo_info["publication_date"] = str_date
+    zenodo_info["version"] = version
+
+    print(zenodo_info)
+
+    with open(".zenodo.json", "w", encoding="utf-8") as file:
+        json.dump(zenodo_info, file)
+
+    name_zip = f"fluidimage-{version}.zip"
+
+    command = (
+        f"hg archive {name_zip} --type zip "
+        "-X old -X try -X bench -X dev -X docker -X image_samples"
+    )
+    result = session.run(*command.split(), external=True)
+
+    zenodo_token = os.getenv("zenodo_token")
+    if zenodo_token is not None:
+        command = f"g2z-send -i {zenodo_token} -t 11359207 -s -m .zenodo.json {name_zip}"
+        session.run(*command.split())

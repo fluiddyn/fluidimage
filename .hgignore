@@ -87,3 +87,7 @@ image_samples/*/Images.*_example*
 **/.mypy_cache
 
 .eggs/*
+
+# zenodo
+.zenodo.json
+fluidimage-*.zip
