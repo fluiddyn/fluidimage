@@ -135,9 +135,9 @@ dev = [
 ]
 
 [tool.pdm.scripts]
-black = "black src doc"
-isort = "isort --atomic --tc src bench doc/examples"
-black_check = "black --check src doc"
+black = "black src doc noxfile.py"
+isort = "isort --atomic --tc src bench doc/examples noxfile.py"
+black_check = "black --check src doc noxfile.py"
 lint = {shell="pylint -rn --rcfile=pylintrc --jobs=$(nproc) src --exit-zero"}
 validate_code = {composite = ["black_check", "lint"]}
 format = {composite = ["black", "isort"]}

@@ -12,15 +12,13 @@ authors:
     given-names: Pierre
     orcid: https://orcid.org/0000-0001-9481-4459
 
-
+# Note: the values of "version" and "date-released" might not correspond to the last uploaded version.
+# The correct values are in the file pyproject.toml and CHANGES.md.
 version: 0.5.2
 date-released: "2024-05-24"
 identifiers:
   - description: This is the collection of archived snapshots of all versions of Fluidimage
     type: doi
     value: "10.5281/zenodo.11359207"
-  - description: This is the archived snapshot of version 0.5.2 of Fluidimage
-    type: doi
-    value: "10.5281/zenodo.11359208"
 license: CECILL-2.1
 repository-code: "https://foss.heptapod.net/fluiddyn/fluidimage"
