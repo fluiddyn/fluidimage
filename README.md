@@ -23,24 +23,24 @@ Matlab, which is itself proprietary.
 With the improvement of the Python numerical ecosystem and of tools for collaborative
 development, one can think it is possible to build together a good community-driven
 library/toolkit specialized in image processing for fluid mechanics. This is our project
-with FluidImage. Fluidimage can be thought as a partial rewrite in Python of [UVmat] with
-a focus on performance and usability. Moreover, we try to integrate good ideas taken from
-[OpenPIV], [PIVlab] and [PIVmat].
+with FluidImage.
 
-This package is quite young but can be used to
+Fluidimage has now grown into a clean software reimplementing in modern Python algorithms
+and ideas taken from [UVmat], [OpenPIV], [PIVlab] and [PIVmat] with a focus on
+performance, usability and maintanability. However, Fluidimage is not restricted to
+Particle Image Velocimetry computations ([PIV], i.e. displacements of pattern obtained by
+correlations of cropped images) and can be used to
 
 - display and pre-process images,
 
-- compute displacement or velocity fields with Particle Image Velocimetry ([PIV], i.e.
-  displacements of pattern obtained by correlations of cropped images),
-  Background-Oriented Schlieren
+- compute displacement or velocity fields with PIV, Background-Oriented Schlieren
   ([BOS](https://en.wikipedia.org/wiki/Background-oriented_schlieren_technique)) and
   [optical flow](https://en.wikipedia.org/wiki/Optical_flow),
 
-- analyze and display PIV fields.
+- analyze and display vector and scalar fields.
 
-We want to make FluidImage easy (useful documentation, easy installation, good API,
-usable with simple scripts and simple graphical user interfaces), reliable (with good
+We want to make FluidImage easy (useful documentation, easy installation, nice API,
+usable with simple scripts and few simple graphical user interfaces), reliable (with good
 [unittests](https://codecov.io/gh/fluiddyn/fluidimage/)) and very efficient, in
 particular when the number of images is large. Thus we want FluidImage to be able to run
 efficiently and easily on a personal computer and on big clusters. The efficiency is

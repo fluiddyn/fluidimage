@@ -37,8 +37,8 @@ Fluidimage has 2 sets of optional dependencies, which can be installed with comm
 ## Install the conda-forge package with conda or mamba
 
 We recommend installing `conda` and `mamba` with the
-[miniforge installer](https://github.com/conda-forge/miniforge) so that the installed
-packages will be uploaded from the [conda-forge] channel. Then, one can run:
+[miniforge installer](https://github.com/conda-forge/miniforge) so that the packages will
+be uploaded from the [conda-forge] channel. Then, one can run:
 
 ```sh
 mamba install fluidimage
