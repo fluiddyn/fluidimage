@@ -2,8 +2,8 @@
 
 # Fluidimage documentation
 
-FluidImage is a libre Python framework for scientific processing of
-large series of images.
+FluidImage is a free and open-source Python framework to process images of fluids (in
+particular with [PIV]), and analyse the resulting fields.
 
 ```{toctree}
 ---
@@ -44,3 +44,5 @@ for_dev
 - {ref}`genindex`
 - {ref}`modindex`
 - {ref}`search`
+
+[piv]: https://en.wikipedia.org/wiki/Particle_image_velocimetry%20(PIV)

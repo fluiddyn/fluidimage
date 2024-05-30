@@ -2,10 +2,11 @@ cff-version: 1.2.0
 message: If you use this software, please cite it using these metadata.
 title: "Fluidimage: a Python framework to study flows from images"
 abstract: |
-  Image processing is a common method in fluid mechanics, with various algorithms such
-  as Particle Image Velocimetry (PIV) or Light Induced Fluorescence (LIF) used to
-  compute velocity, vorticity, concentration or temperature fields. Fluidimage is a
-  Python framework to process images of fluids and analyze the results.
+  Fluid mechanics experimental studies are often based on image processing,
+  with various algorithms such as Particle Image Velocimetry (PIV) or
+  Light Induced Fluorescence (LIF) used to compute velocity, vorticity, concentration
+  or temperature fields. Fluidimage is a free and open-source Python framework
+  to process images of fluids and analyse the resulting fields.
 authors:
 
   - family-names: Augier
