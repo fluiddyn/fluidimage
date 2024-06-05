@@ -19,7 +19,7 @@ Mercurial extensions like [Evolve] and [Topic]. The main repository is hosted
 
 There are other ways to get the source but we are going here to assume that you can
 install [Mercurial]. It can be useful when working with Fluidimage source to
-[fully setup Mercurial with these extensions and learn a bit of Mercurial](http://fluiddyn.readthedocs.org/en/latest/mercurial_heptapod.html).
+[fully setup Mercurial with these extensions and learn a bit of Mercurial](https://fluidhowto.readthedocs.org/en/latest/mercurial.html).
 Then, the Fluidimage repository can be cloned with
 
 ```sh

@@ -23,4 +23,4 @@ are hosted here: <https://foss.heptapod.net/fluiddyn>.
 Please read our documentation on
 [developer essentials](https://fluiddyn.readthedocs.io/en/latest/advice_developers.html),
 and especially on
-[setting up Mercurial](https://fluiddyn.readthedocs.io/en/latest/mercurial_heptapod.html).
+[setting up Mercurial](https://fluidhowto.readthedocs.org/en/latest/mercurial.html).
