@@ -262,7 +262,7 @@ def temporal_minima(img=None, weight=1.0, window_shape=None):
 
 
 @iterate_multiple_imgs
-def global_threshold(img=None, minima=0.0, maxima=65535.0):
+def global_threshold(img=None, minima=0, maxima=None):
     """
     Trims pixel intensities which are outside the interval (minima, maxima).
 
@@ -276,6 +276,14 @@ def global_threshold(img=None, minima=0.0, maxima=65535.0):
 
     """
     img_out = img.copy()
+    if maxima is None:
+        dtype = img_out.dtype
+        try:
+            info = np.iinfo(dtype)
+        except ValueError:
+            maxima = 65535
+        else:
+            maxima = info.max
     img_out[img_out < minima] = minima
     img_out[img_out > maxima] = maxima
     return img_out
