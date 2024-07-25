@@ -31,7 +31,7 @@ dependencies = [
     "rich>=13.7.1",
     "textual",
 ]
-requires-python = ">=3.9,<3.13"
+requires-python = ">=3.9"
 readme = "README.md"
 license = {text = "CeCILL"}
 keywords = [
@@ -46,6 +46,7 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.9",
     "Topic :: Scientific/Engineering",
 ]
@@ -113,7 +114,8 @@ dev-doc = [
     "jupyterlab",
     "jupyterlab-myst",
     "jupytext",
-    "mdformat-myst"
+    # cannot lock with this (2024-07)
+    # "mdformat-myst"
 ]
 test = [
     "pytest",
