@@ -1,7 +1,11 @@
 # Release notes
 
 See also the
-[unreleased changes](https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.5.2...branch%2Fdefault).
+[unreleased changes](https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.5.3...branch%2Fdefault).
+
+## [0.5.3] (2024-07-25)
+
+- Support for Python 3.12 and Numpy 2.0
 
 ## [0.5.2] (2024-05-24)
 
@@ -229,3 +233,4 @@ This version contains incompatible API changes documented here.
 [0.5.0]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.4.6...0.5.0
 [0.5.1]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.5.0...0.5.1
 [0.5.2]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.5.1...0.5.2
+[0.5.3]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.5.2...0.5.3
