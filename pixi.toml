@@ -10,11 +10,10 @@ install-editable = {cmd = "pip install -e . -v --no-build-isolation --no-deps", 
 test = "export OMP_NUM_THREADS=1 && pytest src -v -s"
 
 [dependencies]
-python = ">=3.9,<3.11"
+python = ">=3.9"
 numpy = ">=1.26.3"
 transonic = ">=0.6.4"
-# should actually be >=0.6.2 (soon available)
-fluiddyn = ">=0.6.1"
+fluiddyn = ">=0.6.2"
 h5netcdf = ">=1.3.0"
 h5py = ">=3.10.0"
 matplotlib = ">=3.5"
@@ -37,5 +36,5 @@ pythran = ">=0.15.0"
 pytest = ">=8.0.0"
 pytest-cov = ">=4.1.0"
 coverage = ">=7.4.1"
-pytest-asyncio = ">=0.23.6,<0.24"
-linkify-it-py = ">=2.0.3,<2.1"
+pytest-asyncio = ">=0.23.6"
+linkify-it-py = ">=2.0.3"
