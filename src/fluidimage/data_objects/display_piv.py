@@ -319,7 +319,7 @@ class DisplayPIV:
             deltay = result.deltays_wrong[ind_all]
 
         self._point.set_visible(True)
-        self._point.set_data(ix, iy)
+        self._point.set_data([ix], [iy])
 
         text = (
             f"vector {ind_all} at ix = {ix} : iy = {iy}"
