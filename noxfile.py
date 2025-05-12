@@ -25,7 +25,7 @@ TEST_ENV_VARS = {"OMP_NUM_THREADS": "1"}
 no_venv_session = partial(nox.session, venv_backend="none")
 os.environ.update({"PDM_IGNORE_SAVED_PYTHON": "1"})
 nox.options.sessions = ["test(cov=True, with_opencv=True)"]
-nox.options.reuse_existing_virtualenvs = 1
+nox.options.reuse_existing_virtualenvs = True
 
 
 @nox.session
