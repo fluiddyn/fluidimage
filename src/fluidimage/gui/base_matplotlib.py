@@ -1,6 +1,4 @@
-"""Base class using matplotlib widgets
-
-"""
+"""Base class using matplotlib widgets"""
 
 from matplotlib.widgets import Button, TextBox
 

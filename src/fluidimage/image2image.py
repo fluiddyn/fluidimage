@@ -1,4 +1,4 @@
-""""Image to image" processing
+""" "Image to image" processing
 ==============================
 
 .. autofunction:: apply_im2im_filter

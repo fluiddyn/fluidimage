@@ -1,6 +1,4 @@
-"""Utility to obtain the number of cores available
-
-"""
+"""Utility to obtain the number of cores available"""
 
 import re
 from multiprocessing import cpu_count
