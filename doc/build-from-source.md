@@ -42,9 +42,12 @@ Cloud](https://www.clever-cloud.com) for providing <https://foss.heptapod.net>!
 
 ## Installing from the repository
 
-### Simple installation from source
+We describe few methods to install Fluidsim from source. Most developers should adopt
+[the method using PDM](#setup-dev-env).
 
-We recommend to create a clean virtual environment, for example with:
+### Simple installation from source with Pip
+
+When using Pip, we recommend to create a clean virtual environment, for example with:
 
 ```sh
 cd fluidimage
@@ -173,11 +176,13 @@ Note that Fluidimage builds are not sensible to the [`~/.pythranrc` file](pythra
 
 ```
 
+(setup-dev-env)=
+
 ### Setup a full developer environment with editable installation
 
 Let us first present the tools used for Fluidimage development.
 
-- [pip] is the official package installer for Python,
+- [Pip] is the official package installer for Python,
 
 - [PDM] is a modern Python package and dependency manager,
 
@@ -222,7 +227,7 @@ Installing in editable mode is a bit particular with Meson, since editable insta
 are incompatible with isolated builds, meaning that all build dependencies have to be
 installed in the main virtual environment! Fortunatelly, it's simple with [PDM].
 
-##### Build-install Fluidimage with pdm
+##### Build-install Fluidimage with PDM
 
 ```{warning}
 You should not run the following commands from a virtual environment not related to Fluidimage.
