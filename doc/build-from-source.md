@@ -177,15 +177,15 @@ Note that Fluidimage builds are not sensible to the [`~/.pythranrc` file](pythra
 
 Let us first present the tools used for Fluidimage development.
 
-- [PDM] is a modern Python package and dependency manager,
+- [pip] is the official package installer for Python,
 
-- [Meson] is an open source build system (in particular used by Scipy),
+- [PDM] is a modern Python package and dependency manager,
 
 - [Nox] is a command-line tool that automates testing in multiple Python environments,
 
-- [Pytest] is the most popular testing framework for Python,
+- [Meson] is an open source build system (in particular used by Scipy),
 
-- [pip] is the official package installer for Python,
+- [Pytest] is the most popular testing framework for Python,
 
 - [Pythran] is an ahead of time compiler for a subset of the Python language, with a
   focus on scientific computing,
@@ -196,6 +196,11 @@ Let us first present the tools used for Fluidimage development.
 Fluidimage is built with [Meson]. We use [PDM] for Fluidimage development. [Pytest] and
 [Nox] are used for testing. We use [Pythran] through [Transonic] to accelerate some
 numerical kernels written in Python.
+
+```{note}
+Most dependencies (Meson, Pytest, Pythran, Transonic, ...) will be installed by PDM.
+The developers just have to install manually PDM (and potentially Nox).
+```
 
 #### Standard Python from Python.org
 
@@ -217,8 +222,13 @@ Installing in editable mode is a bit particular with Meson, since editable insta
 are incompatible with isolated builds, meaning that all build dependencies have to be
 installed in the main virtual environment! Fortunatelly, it's simple with [PDM].
 
+##### Build-install Fluidimage with pdm
+
 ```{warning}
 You should not run the following commands from a virtual environment not related to Fluidimage.
+
+No need to manually create a dedicated environment since PDM is going to do it for you.
+Just deactivate all Python environments.
 ```
 
 From the root directory of the repository, just run:
