@@ -3,7 +3,7 @@
 
 A toolbox for preprocessing images.
 Utilizes functions available from `scipy.ndimage` and `skimage` packages.
-cf. http://www.scipy-lectures.org/advanced/image_processing/
+cf. https://scipy-lectures.org/advanced/image_processing/
 
 Provides:
 

@@ -45,4 +45,4 @@ for_dev
 - {ref}`modindex`
 - {ref}`search`
 
-[piv]: https://en.wikipedia.org/wiki/Particle_image_velocimetry%20(PIV)
+[piv]: https://en.wikipedia.org/wiki/Particle_image_velocimetry

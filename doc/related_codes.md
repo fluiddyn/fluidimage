@@ -47,7 +47,7 @@
 
 - OCIV (C, <http://osiv.sourceforge.net>) Seems old (maintained?).
 
-- JPIV (Java, <http://www.jpiv.vennemann-online.de/>)
+- JPIV (Java, <https://eguvep.github.io/jpiv/>)
 
 ## Analysis of PIV fields
 

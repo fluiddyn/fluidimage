@@ -2,7 +2,7 @@
 =====================
 
 A toolbox of filters which operate on a single image (numpy array).
-cf. http://www.scipy-lectures.org/advanced/image_processing/
+cf. https://scipy-lectures.org/advanced/image_processing/
 
 Provides:
 
