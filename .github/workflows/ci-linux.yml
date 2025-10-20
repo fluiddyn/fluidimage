@@ -9,8 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # 2024/11/07: 3.13 will have to be added when scikit-image 0.25 is available
-        python-version: ["3.10", "3.11", "3.12"]
+        python-version: ["3.11", "3.11", "3.12", "3.13"]
 
     steps:
     - name: Install apt packages
@@ -20,10 +19,10 @@ jobs:
           libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 \
           libxcb-xinerama0 libxcb-xfixes0 xdotool
 
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
 

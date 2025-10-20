@@ -134,9 +134,11 @@ pages:
 build:package:
   stage: build
   before_script:
-    - pip install build twine
+    - pip install build twine packaging -U
   script:
     - rm -rf dist
+    # ugly workaround for Heptapod runners
+    - echo appuser | sudo -S chmod a+r .hg/dirstate
     - python -m build -s
     - ls dist
     - twine check --strict dist/*
