@@ -1,7 +1,54 @@
 # Overview
 
-```{include} ../README.md
----
-start-after: <!-- start description -->
----
-```
+FluidImage is a free and open-source Python framework to process images of fluids (in
+particular with [PIV]), and analyse the resulting fields.
+
+Image processing for fluid mechanics is still dominated by proprietary tools. Such tools
+are not ideal when you want to understand and tweak the algorithms and/or to use
+clusters. There are also good and useful PIV software ([PIVlab], [UVmat]) written in
+Matlab, which is itself proprietary.
+
+With the improvement of the Python numerical ecosystem and of tools for collaborative
+development, one can think it is possible to build together a good community-driven
+library/toolkit specialized in image processing for fluid mechanics. This is our project
+with FluidImage.
+
+Fluidimage has now grown into a clean software reimplementing in modern Python algorithms
+and ideas taken from [UVmat], [OpenPIV], [PIVlab] and [PIVmat] with a focus on
+performance, usability and maintanability. However, Fluidimage is not restricted to
+Particle Image Velocimetry computations ([PIV], i.e. displacements of pattern obtained by
+correlations of cropped images) and can be used to
+
+- display and pre-process images,
+
+- compute displacement or velocity fields with PIV, Background-Oriented Schlieren
+  ([BOS](https://en.wikipedia.org/wiki/Background-oriented_schlieren_technique)) and
+  [optical flow](https://en.wikipedia.org/wiki/Optical_flow),
+
+- analyze and display vector and scalar fields.
+
+We want to make FluidImage easy (useful documentation, easy installation, nice API,
+usable with simple scripts and few simple graphical user interfaces), reliable (with good
+[unittests](https://codecov.io/gh/fluiddyn/fluidimage/)) and very efficient, in
+particular when the number of images is large. Thus we want FluidImage to be able to run
+efficiently and easily on a personal computer and on big clusters. The efficiency is
+achieved by using
+
+- a framework for asynchronous computations (currently, we use
+  [Trio](https://trio.readthedocs.io)) and an associated API to define "topologies" of
+  parallel computations.
+
+- parallelism to efficiently use the available cores of the Central Processing Units
+  (CPU),
+
+- good profiling and efficient and specialized algorithms,
+
+- cutting-edge tools for fast computations with Python (in particular
+  [Pythran](https://pythran.readthedocs.io) through
+  [Transonic](https://transonic.readthedocs.io)).
+
+[openpiv]: http://www.openpiv.net/
+[piv]: https://en.wikipedia.org/wiki/Particle_image_velocimetry
+[pivlab]: https://pivlab.blogspot.com/p/what-is-pivlab.html
+[pivmat]: http://www.fast.u-psud.fr/pivmat/
+[uvmat]: http://servforge.legi.grenoble-inp.fr/projects/soft-uvmat/wiki/UvmatHelp
