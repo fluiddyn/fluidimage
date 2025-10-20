@@ -84,20 +84,20 @@ async def test_monitor(monkeypatch, tmp_path_oseen, executor):
             ctx.setattr(subprocess, "run", _run)
             await pilot.press("f")
 
-    app.update_info()
+        app.update_info()
 
-    node_saving = app.tree_params.root.children[0]
+        node_saving = app.tree_params.root.children[0]
 
-    class MyEvent:
-        def __init__(self, node):
-            self.node = node
+        class MyEvent:
+            def __init__(self, node):
+                self.node = node
 
-    event = MyEvent(node_saving)
-    app.on_tree_node_selected(event)
+        event = MyEvent(node_saving)
+        app.on_tree_node_selected(event)
 
-    leaf = node_saving.children[0]
-    event.node = leaf
-    app.on_tree_node_selected(event)
+        leaf = node_saving.children[0]
+        event.node = leaf
+        app.on_tree_node_selected(event)
 
 
 def test_format_time_in_seconds():
