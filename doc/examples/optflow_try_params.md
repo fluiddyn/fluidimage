@@ -7,9 +7,9 @@ this example:
 ```{literalinclude} optflow_try_params.py
 ```
 
-The parameters in `params.series` are used to define an object 
+The parameters in `params.series` are used to define an object
 {class}`fluiddyn.util.serieofarrays.SeriesOfArrays`
 and to select one serie (which represents here a couple of images). It is also
 what is done internally in the topology. Have a look at
-[our tutorial](https://fluiddyn.readthedocs.io/en/latest/ipynb/tuto_serieofarrays.html)
+[our tutorial](https://fluiddyn.readthedocs.io/en/latest/tutorials/tuto_serieofarrays.html)
 to discover how to use this powerful tool!
