@@ -1,12 +1,20 @@
 # Installation
 
 First, ensure that you have a recent Python installed, since Fluidimage requires Python
-\>= 3.9. Some issues regarding the installation of Python and Python packages are
+\>= 3.11. Some issues regarding the installation of Python and Python packages are
 discussed in
 [the main documentation of the Fluiddyn project](http://fluiddyn.readthedocs.org/en/latest/install.html).
 
 Here, we describe installation methods that do not involve local compilation. One can
 also install Fluidimage from source as described [here](./build-from-source.md).
+
+```{note}
+
+In some cases, Fluidimage will require that the environment variable
+`OMP_NUM_THREADS` is set to `1`. With a POSIX shell like Bash, it can be done with
+`export OMP_NUM_THREADS=1`.
+
+```
 
 ## Install with pip
 
