@@ -73,6 +73,26 @@ In some cases, Fluidimage will require that the environment variable
 For more details, see
 [the installation page in the documentation](https://fluidimage.readthedocs.io/en/latest/install.html).
 
+## Citation
+
+If you use Fluidimage to produce scientific articles, please cite
+[our metapaper presenting the FluidDyn project](https://openresearchsoftware.metajnl.com/articles/10.5334/jors.237/):
+
+```bibtex
+
+@article{fluiddyn,
+doi = {10.5334/jors.237},
+year = {2019},
+publisher = {Ubiquity Press,  Ltd.},
+volume = {7},
+author = {Pierre Augier and Ashwin Vishnu Mohanan and Cyrille Bonamy},
+title = {{FluidDyn}: A Python Open-Source Framework for Research and Teaching in Fluid Dynamics
+    by Simulations,  Experiments and Data Processing},
+journal = {Journal of Open Research Software}
+}
+
+```
+
 [openpiv]: http://www.openpiv.net/
 [piv]: https://en.wikipedia.org/wiki/Particle_image_velocimetry
 [pivlab]: https://pivlab.blogspot.com/p/what-is-pivlab.html
