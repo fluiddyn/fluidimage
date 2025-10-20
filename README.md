@@ -9,8 +9,6 @@
 [![Github Actions Linux](https://github.com/fluiddyn/fluidimage/actions/workflows/ci-linux.yml/badge.svg?branch=branch/default)](https://github.com/fluiddyn/fluidimage/actions/workflows/ci-linux.yml)
 [![Github Actions Pixi](https://github.com/fluiddyn/fluidimage/actions/workflows/ci-pixi.yml/badge.svg?branch=branch/default)](https://github.com/fluiddyn/fluidimage/actions/workflows/ci-pixi.yml)
 
-<!-- start description -->
-
 FluidImage is a free and open-source Python framework to process images of fluids (in
 particular with [PIV]), and analyse the resulting fields.
 
@@ -60,8 +58,27 @@ achieved by using
   [Pythran](https://pythran.readthedocs.io) through
   [Transonic](https://transonic.readthedocs.io)).
 
+## Installation and setup
+
+Fluidimage can be installed from
+[wheels and sdist available on PyPI](https://pypi.python.org/pypi/fluidimage/)
+with tools like pip, [UV], [PDM], ... or from conda-forge packages (for example
+available on https://prefix.dev/channels/conda-forge/packages/fluidimage) with
+tools like conda (installed with [Miniforge]) or [Pixi].
+
+In some cases, Fluidimage will require that the environment variable
+`OMP_NUM_THREADS` is set to `1`. With a POSIX shell like Bash, it can be done with
+`export OMP_NUM_THREADS=1`.
+
+For more details, see
+[the installation page in the documentation](https://fluidimage.readthedocs.io/en/latest/install.html).
+
 [openpiv]: http://www.openpiv.net/
 [piv]: https://en.wikipedia.org/wiki/Particle_image_velocimetry
 [pivlab]: https://pivlab.blogspot.com/p/what-is-pivlab.html
 [pivmat]: http://www.fast.u-psud.fr/pivmat/
 [uvmat]: http://servforge.legi.grenoble-inp.fr/projects/soft-uvmat/wiki/UvmatHelp
+[miniforge]: https://github.com/conda-forge/miniforge
+[pixi]: https://pixi.sh
+[pdm]: https://pdm-project.org
+[uv]: https://docs.astral.sh/uv/
