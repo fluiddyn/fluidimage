@@ -134,7 +134,7 @@ pages:
 build:package:
   stage: build
   before_script:
-    - pip install build twine
+    - pip install build twine packaging -U
   script:
     - rm -rf dist
     - python -m build -s
