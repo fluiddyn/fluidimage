@@ -94,10 +94,12 @@ def get_path_image_samples():
             if git is not None:
                 cmd = git
                 path_https = "https://github.com/fluiddyn/fluidimage/"
+            else:
+                raise RuntimeError(
+                    "Mercurial or Git are necessary to fetch Fluidimage data"
+                )
         if cmd is not None:
-            subprocess.run(
-                [cmd, "clone", path_https, str(path_repo)], check=False
-            )
+            subprocess.run([cmd, "clone", path_https, str(path_repo)], check=True)
     return path_image_samples
 
 

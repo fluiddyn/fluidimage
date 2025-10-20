@@ -134,14 +134,22 @@ pages:
 build:package:
   stage: build
   before_script:
-    - pip install build twine packaging -U
+    - uv tool install build
+    - uv tool install twine
   script:
     - rm -rf dist
     # ugly workaround for Heptapod runners
     - echo appuser | sudo -S chmod a+r .hg/dirstate
-    - python -m build -s
+    - pyproject-build -s
     - ls dist
     - twine check --strict dist/*
+    - uv venv /tmp/venv-fluidimage
+    - source /tmp/venv-fluidimage/bin/activate
+    - uv pip install dist/fluidimage-*.tar.gz -v -C setup-args=-Dtransonic-backend=python
+    - unset CI_PROJECT_DIR
+    - python -c "import fluidimage as fli; path = fli.get_path_image_samples(); print(path); assert 'repository' in str(path)"
+
+
   needs: []
   artifacts:
     when: always
