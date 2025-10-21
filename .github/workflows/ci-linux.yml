@@ -33,6 +33,7 @@ jobs:
 
     - name: Test with nox
       run: |
+        export TRANSONIC_NO_REPLACE=1
         nox -s "test(cov=True, with_opencv=True)"
 
     - name: Upload coverage to codecov
