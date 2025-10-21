@@ -23,6 +23,7 @@ logger = getLogger("fluidimage")
 
 
 def config_logging(level="info", name="fluidimage", file=None):
+    """Configure the logging for Fluidimage"""
     _cl_fluiddyn(level=level, name=name, file=file)
 
 

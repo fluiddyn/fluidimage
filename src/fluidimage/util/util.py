@@ -60,7 +60,7 @@ def imread(path):
 
 
 def imsave(path, array, **kwargs):
-    "tmp docstring"
+    "Save an image on disk"
     _imsave(path, array, **kwargs)
 
 
