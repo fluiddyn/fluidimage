@@ -157,6 +157,7 @@ omit = [
     "**/__pythran__/*.py",
     "**/__python__/*.py",
     "**/__numba__/*.py",
+    "src/fluidimage/postproc/postproc.py",
 ]
 [tool.coverage.report]
 show_missing = true

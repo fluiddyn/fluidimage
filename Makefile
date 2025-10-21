@@ -28,3 +28,10 @@ format:
 
 test:
 	OMP_NUM_THREADS=1 pdm run pytest src
+
+cov:
+	# much slower with TRANSONIC_NO_REPLACE but more accurate
+	TRANSONIC_NO_REPLACE=1 OMP_NUM_THREADS=1 pytest --pyargs fluidimage --cov --no-cov-on-fail
+
+cov-html:
+	coverage html
