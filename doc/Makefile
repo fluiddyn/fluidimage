@@ -164,4 +164,4 @@ open_html: html
 	firefox _build/html/index.html
 
 format:
-	mdformat *.md
+	mdformat *.md */*.md

@@ -245,7 +245,8 @@ is mandatory to set the environment variable `OMP_NUM_THREADS` to `"1"`.
 os.environ["OMP_NUM_THREADS"] = "1"
 ```
 
-Let's go!
+Now that our topology is initialized and `OMP_NUM_THREADS` is set, we can launch the
+computation:
 
 ```{code-cell} ipython3
 topology.compute(sequential=True)

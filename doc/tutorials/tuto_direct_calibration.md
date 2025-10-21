@@ -18,7 +18,9 @@ import numpy as np
 
 # Direct Calibration
 
-For this tutorial we will use files contained in the fluidimage repository. We assume that fluidimage has been installed with `python setup.py develop` and we deduce the path of the repository from the path of the package fluidimage:
+For this tutorial we will use files contained in the fluidimage repository. We assume
+that fluidimage has been installed with `python setup.py develop` and we deduce the path
+of the repository from the path of the package fluidimage:
 
 ```{code-cell} ipython3
 from fluidimage import get_path_image_samples
@@ -40,7 +42,8 @@ shape_img = 1024, 1024
 calib = CalibDirect(glob_str_xml, shape_img)
 ```
 
-We now compute interpolents able to compute the physical coordinates from the indices in the images and  (for each level)
+We now compute interpolents able to compute the physical coordinates from the indices in
+the images and (for each level)
 
 ```{code-cell} ipython3
 calib.compute_interpolents()
@@ -52,7 +55,8 @@ The quality of this step can be checked with the function `check_interp_levels`
 calib.check_interp_levels()
 ```
 
-And finally, we compute the interpolents for equations of optical paths from nbline_x * nbline_y lines and save the calibration
+And finally, we compute the interpolents for equations of optical paths from nbline_x \*
+nbline_y lines and save the calibration
 
 ```{code-cell} ipython3
 nb_lines_x, nb_lines_y = 128, 64
@@ -63,7 +67,8 @@ calib.compute_interpolents_pixel2line(nb_lines_x, nb_lines_y, test=False)
 calib.save(path_cam / 'calib1.npy')
 ```
 
-It is very important to check that everything seems all right because it is easy to make something wrong with such calibration.
+It is very important to check that everything seems all right because it is easy to make
+something wrong with such calibration.
 
 ```{code-cell} ipython3
 calib.check_interp_lines()

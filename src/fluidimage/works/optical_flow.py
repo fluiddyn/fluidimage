@@ -36,6 +36,7 @@ def optical_flow(
     vmin=0,
     vmax=np.inf,
 ):
+    """Compute the positions and displacements"""
     positions0 = cv2.goodFeaturesToTrack(im0, **feature_params)
 
     positions1, st, err = cv2.calcOpticalFlowPyrLK(
@@ -70,6 +71,8 @@ def optical_flow(
 
 
 class WorkOpticalFlow(BaseWorkWithMask, BaseWorkFromSerie):
+    """Optical flow work class"""
+
     @classmethod
     def create_default_params(cls):
         "Create an object containing the default parameters (class method)."
@@ -192,6 +195,7 @@ Parameters indicating how are detected and processed false vectors.
         self.dict_params_flow = dict_from_params(self.params.optical_flow)
 
     def calcul(self, couple):
+        """Calcul an optical flow from a couple of images"""
         if isinstance(couple, SerieOfArraysFromFiles):
             couple = ArrayCouple(serie=couple)
         elif isinstance(couple, dict):
