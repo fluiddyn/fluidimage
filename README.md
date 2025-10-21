@@ -72,6 +72,15 @@ set to `1`. With a POSIX shell like Bash, it can be done with `export OMP_NUM_TH
 For more details, see
 [the installation page in the documentation](https://fluidimage.readthedocs.io/en/latest/install.html).
 
+## Basic usage
+
+Few minimalist examples about image visualisation, preprocessing and PIV computation are
+presented in
+[the overview of the project](https://fluidimage.readthedocs.io/en/latest/overview.html).
+Other usage cases can be found in our
+[tutorials](https://fluidimage.readthedocs.io/en/latest/tutorial.html) and
+[examples](https://fluidimage.readthedocs.io/en/latest/examples.html).
+
 ## Citation
 
 If you use Fluidimage to produce scientific articles, please cite

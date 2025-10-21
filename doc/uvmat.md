@@ -20,8 +20,8 @@ Loop on every grid points:
 
 subA is centered in `[xA, yA]` and has a size `[Lx, Ly]`
 
-subB is centered in `[xA + shitfx, xB + shifty]` and has a size `[Sx, Sy]` with `Sx,Sy > Lx,
-Ly`
+subB is centered in `[xA + shitfx, xB + shifty]` and has a size `[Sx, Sy]` with
+`Sx,Sy > Lx, Ly`
 
 2.2: if checkmask == 1 -> application of the mask on subimages
 

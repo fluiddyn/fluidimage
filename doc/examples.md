@@ -15,4 +15,5 @@ examples/piv_as_real/README
 examples/pivchallenge/README
 ```
 
-See also <https://foss.heptapod.net/fluiddyn/fluidimage/tree/branch/default/doc/examples>
+See also
+<https://foss.heptapod.net/fluiddyn/fluidimage/tree/branch/default/doc/examples>.
