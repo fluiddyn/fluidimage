@@ -13,25 +13,29 @@ kernelspec:
 
 # 3D Calibration using OpenCV
 
-The calibration was performed using the Python bindings of the OpenCV [Bradski, 2000] library. This has been
-made easier to use through the module `fluidimage.calibration.calib_cv`. We shall use this module on a set of
-5 calibration images of a target which has a circle grid. The white dots on this particular target is evenly
-spaced at `3 mm`. For the same camera position, the target coordinate `z` varies as `[-6, -3, 0, 3, 6]` mm.
+The calibration was performed using the Python bindings of the OpenCV [Bradski, 2000]
+library. This has been made easier to use through the module
+`fluidimage.calibration.calib_cv`. We shall use this module on a set of 5 calibration
+images of a target which has a circle grid. The white dots on this particular target is
+evenly spaced at `3 mm`. For the same camera position, the target coordinate `z` varies
+as `[-6, -3, 0, 3, 6]` mm.
 
 We shall proceed as follows:
 
- 1. We compose a function `find_origin` which automatically detects the origin in pixel coordinates of the
-   calibration target. This is achieved by using an erosion operation to fill the faint rectangle in the origin,
-   and then using OpenCV to detect the location of this blob (origin) of minimum area 18.
- 
- 1. After this we detect the image points, i.e. smaller circles in a 7x7 grid surrounding the origin and
-    store them in an array. We repeat this operation for every calibration image.
-   
- 1. We construct he object points, i.e. assign the circle grid the expected values in the world coordinate system
-    `(x, y, z)` and store them as arrays using the input given to us that the circles on the
-    target are evenly spaced by a distance equal to 3 mm.
- 
- 1. Finally we calibrate the camera.
+1. We compose a function `find_origin` which automatically detects the origin in pixel
+   coordinates of the calibration target. This is achieved by using an erosion operation
+   to fill the faint rectangle in the origin, and then using OpenCV to detect the
+   location of this blob (origin) of minimum area 18.
+
+2. After this we detect the image points, i.e. smaller circles in a 7x7 grid surrounding
+   the origin and store them in an array. We repeat this operation for every calibration
+   image.
+
+3. We construct he object points, i.e. assign the circle grid the expected values in the
+   world coordinate system `(x, y, z)` and store them as arrays using the input given to
+   us that the circles on the target are evenly spaced by a distance equal to 3 mm.
+
+4. Finally we calibrate the camera.
 
 OpenCV employs a camera model based on the algorithm following Zhang [2000].
 
@@ -63,7 +67,8 @@ image = imread(str(calib_files[2]))  # z = 0 image
 imshow(image)
 ```
 
-The position of the origin (marked by a rectangle) needs to be detected for detecting the image points consistently.
+The position of the origin (marked by a rectangle) needs to be detected for detecting the
+image points consistently.
 
 ```{code-cell} ipython3
 from fluidimage.util.util import imread
@@ -108,7 +113,9 @@ imshow(imread(test_calib_file), axes[0])
 imshow(imfill(test_calib_file), axes[1])
 ```
 
-To detect the origin we use `SimpleCircleGrid` class. Although we intend to detect only one point, it works by tweaking the `minArea` parameter. This class will be described in the next section.
+To detect the origin we use `SimpleCircleGrid` class. Although we intend to detect only
+one point, it works by tweaking the `minArea` parameter. This class will be described in
+the next section.
 
 ```{code-cell} ipython3
 from fluidimage.calibration.calib_cv import SimpleCircleGrid
@@ -143,7 +150,8 @@ params = SimpleCircleGrid.create_default_params()
 params
 ```
 
-There are certain parameters which can be tweaked to detect the circles as needed. For this particular case the defaults are enough.
+There are certain parameters which can be tweaked to detect the circles as needed. For
+this particular case the defaults are enough.
 
 ```{code-cell} ipython3
 def construct_image_points(filename, debug=False):
@@ -167,7 +175,8 @@ centers = construct_image_points(calib_files[2], debug=True)
 
 +++
 
-The calibrate function requires objectPoints (world coordinates) and imagePoints (image coordinates) of the blobs detected.
+The calibrate function requires objectPoints (world coordinates) and imagePoints (image
+coordinates) of the blobs detected.
 
 ```{code-cell} ipython3
 from fluidimage.calibration.calib_cv import construct_object_points
