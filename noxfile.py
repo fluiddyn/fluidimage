@@ -58,7 +58,7 @@ class TimePrinter:
 def test(session, cov, with_opencv):
     """Execute unit-tests using pytest"""
 
-    command = "pdm sync --clean -G test --no-self"
+    command = "pdm sync --clean -G coverage --no-self"
     if with_opencv:
         command += " -G opencv"
 
@@ -93,7 +93,7 @@ def test(session, cov, with_opencv):
 def test_examples(session):
     """Execute the examples using pytest"""
 
-    command = "pdm sync --clean -G test --no-self"
+    command = "pdm sync --clean -G coverage --no-self"
     session.run_always(*command.split(), external=True)
 
     session.install(".", "--no-deps")

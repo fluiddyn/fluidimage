@@ -38,9 +38,13 @@ pip install fluidimage
 Fluidimage has 2 sets of optional dependencies, which can be installed with commands like
 `pip install fluidimage[opencv]` or `pip install fluidimage[opencv, pims]`:
 
+- `test`: dependencies necessary to run the tests, with commands like
+  `pytest --pyargs fluidimage`.
 - `opencv`: [OpenCV](https://opencv.org/) can be used for some algorithms,
 - `pims`: [pims: Python Image Sequence](https://github.com/soft-matter/pims) is used to
   read `.cine` files.
+- `graph`: gprof2dot.
+- `all`: install all optional deps.
 
 ## Install the conda-forge package with conda or mamba
 
