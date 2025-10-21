@@ -58,7 +58,15 @@ def _get_user_data_dir(appname: str) -> Path:
     return ans.joinpath(appname)
 
 
-def get_path_image_samples():
+def get_path_image_samples() -> Path:
+    """Return the path towards Fluidimage data
+
+    This function makes sure that Fluidimage data (used for testing, tutorials
+    and examples) is available on disk.
+
+    If it is not already available, the project repository is cloned with
+    Mercurial or Git (which are needed in this case).
+    """
 
     # First try next to this file in case of editable install
     path_image_samples = Path(__file__).absolute().parent / "../../image_samples"
