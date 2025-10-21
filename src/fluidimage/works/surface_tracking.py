@@ -259,7 +259,7 @@ class WorkSurfaceTracking(BaseWork):
         if len(serie) == 0:
             logger.warning("0 ref image. Use of default k_x = 40.625.")
             return 40.625
-        names = serie.get_path_arrays()
+        names = serie.get_name_arrays()
         ref = np.zeros((self.ymax - self.ymin, self.xmax - self.xmin))
         ii = 0
 
