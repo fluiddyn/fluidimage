@@ -61,17 +61,25 @@ achieved by using
 ## Installation and setup
 
 Fluidimage can be installed from
-[wheels and sdist available on PyPI](https://pypi.python.org/pypi/fluidimage/)
-with tools like pip, [UV], [PDM], ... or from conda-forge packages (for example
-available on https://prefix.dev/channels/conda-forge/packages/fluidimage) with
-tools like conda (installed with [Miniforge]) or [Pixi].
+[wheels and sdist available on PyPI](https://pypi.python.org/pypi/fluidimage/) with tools
+like pip, [UV] and [PDM]. Alternatively, it can be installed from conda-forge packages
+(for example available on https://prefix.dev/channels/conda-forge/packages/fluidimage)
+with tools like conda (installed with [Miniforge]) or [Pixi].
 
-In some cases, Fluidimage will require that the environment variable
-`OMP_NUM_THREADS` is set to `1`. With a POSIX shell like Bash, it can be done with
-`export OMP_NUM_THREADS=1`.
+In some cases, Fluidimage will require that the environment variable `OMP_NUM_THREADS` is
+set to `1`. With a POSIX shell like Bash, it can be done with `export OMP_NUM_THREADS=1`.
 
 For more details, see
 [the installation page in the documentation](https://fluidimage.readthedocs.io/en/latest/install.html).
+
+## Basic usage
+
+Few minimalist examples about image visualisation, preprocessing and PIV computation are
+presented in
+[the overview of the project](https://fluidimage.readthedocs.io/en/latest/overview.html).
+Other usage cases can be found in our
+[tutorials](https://fluidimage.readthedocs.io/en/latest/tutorial.html) and
+[examples](https://fluidimage.readthedocs.io/en/latest/examples.html).
 
 ## Citation
 
@@ -93,12 +101,12 @@ journal = {Journal of Open Research Software}
 
 ```
 
+[miniforge]: https://github.com/conda-forge/miniforge
 [openpiv]: http://www.openpiv.net/
+[pdm]: https://pdm-project.org
 [piv]: https://en.wikipedia.org/wiki/Particle_image_velocimetry
 [pivlab]: https://pivlab.blogspot.com/p/what-is-pivlab.html
 [pivmat]: http://www.fast.u-psud.fr/pivmat/
-[uvmat]: http://servforge.legi.grenoble-inp.fr/projects/soft-uvmat/wiki/UvmatHelp
-[miniforge]: https://github.com/conda-forge/miniforge
 [pixi]: https://pixi.sh
-[pdm]: https://pdm-project.org
 [uv]: https://docs.astral.sh/uv/
+[uvmat]: http://servforge.legi.grenoble-inp.fr/projects/soft-uvmat/wiki/UvmatHelp

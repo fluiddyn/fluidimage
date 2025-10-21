@@ -1,3 +1,6 @@
 wrap = 89
 number = true
 end_of_line = "lf"
+
+# Python 3.13+ only:
+# exclude = []
