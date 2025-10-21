@@ -43,7 +43,6 @@ def teardown_module(module):
 exclude = set(
     [
         "submit_job_legi.py",
-        "surface_tracking.py",
         "preproc_sback1_filter.py",
         "preproc_sback2_rescale.py",
         "profile_piv_work.py",
