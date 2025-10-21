@@ -18,10 +18,10 @@ Loop on every grid points:
 
 2.1: crop of subimages A and B of images A and B
 
-subA is centered in \[xA, yA\] and has a size \[Lx, Ly\]
+subA is centered in `[xA, yA]` and has a size `[Lx, Ly]`
 
-subB is centered in \[xA + shitfx, xB + shifty\] and has a size \[Sx, Sy\] with Sx,Sy >
-Lx, Ly
+subB is centered in `[xA + shitfx, xB + shifty]` and has a size `[Sx, Sy]` with `Sx,Sy > Lx,
+Ly`
 
 2.2: if checkmask == 1 -> application of the mask on subimages
 
@@ -35,19 +35,19 @@ conv = conv2(subA, subB, 'valid');
 % be careful on the ordering of subB
 ```
 
-2.4.2 search displacement \[dx, dy\] corresponding such that
+2.4.2 search displacement `[dx, dy]` corresponding such that
 
 ```matlab
 conv(dx, dy) == corrmax
 % corrmax = max( max( conv));
 ```
 
-2.5 subpixel determination of displacement: \[vec_x, vec_y\] = fct(conv, dx, dy)
+2.5 subpixel determination of displacement: `[vec_x, vec_y] = fct(conv, dx, dy)`
 
 it exists 3 different fct depending on parameters: SUBPIXGAUSS, SUBPIX2DGAUSS and
 quadr_fit
 
-2.6 if the position \[xA + vec_x, yA + vec_y\] is in the mask -> vec_x, vec_y is put to 0
+2.6 if the position `[xA + vec_x, yA + vec_y]` is in the mask -> vec_x, vec_y is put to 0
 
 2.7 the maximum correlation is normalised
 

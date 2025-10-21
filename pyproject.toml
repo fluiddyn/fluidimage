@@ -108,6 +108,7 @@ doc = [
     "pandas",
     "myst-nb",
     "sphinx-copybutton",
+    "mdformat-myst",
 ]
 dev-doc = [
     "jupyterlab",
@@ -138,10 +139,11 @@ dev = [
 [tool.pdm.scripts]
 black = "black src doc noxfile.py"
 isort = "isort --atomic --tc src bench doc/examples noxfile.py"
+mdformat = {shell = "mdformat doc/*.md *.md"}
 black_check = "black --check src doc noxfile.py"
 lint = {shell="pylint -rn --rcfile=pylintrc --jobs=$(nproc) src --exit-zero"}
 validate_code = {composite = ["black_check", "lint"]}
-format = {composite = ["black", "isort"]}
+format = {composite = ["black", "isort", "mdformat"]}
 
 [tool.pdm.options]
 lock = ["-G", ":all"]
