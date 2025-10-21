@@ -67,8 +67,8 @@ fluidimage-mean = "fluidimage.topologies.mean:main"
 pims = ["pims"]
 opencv = ["opencv-python"]
 graph = ["gprof2dot"]
-pytest = ["pytest", "pytest-asyncio"]
-all = ["fluidimage[pims, opencv, graph, pytest]"]
+test = ["pytest", "pytest-asyncio"]
+all = ["fluidimage[pims, opencv, graph, test]"]
 # qt = ["PySide6"]
 
 [project.entry-points."fluidimage.executors"]
@@ -117,12 +117,11 @@ dev-doc = [
     # cannot lock with this (2024-07)
     # "mdformat-myst"
 ]
-test = [
+coverage = [
     "pytest",
     "coverage",
     "pytest-cov",
     "pytest-asyncio",
-    "fluidimage"
 ]
 # test-qt = ["pytest-qt"]
 
