@@ -1,7 +1,15 @@
 # Release notes
 
 See also the
-[unreleased changes](https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.5.3...branch%2Fdefault).
+[unreleased changes](https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.5.5...branch%2Fdefault).
+
+## [0.5.5] (2025-12-19)
+
+Few bug fixes and test/doc improvements.
+
+## [0.5.4] (2024-11-07)
+
+Few bug fixes and test/doc improvements.
 
 ## [0.5.3] (2024-07-25)
 
@@ -234,3 +242,5 @@ This version contains incompatible API changes documented here.
 [0.5.1]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.5.0...0.5.1
 [0.5.2]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.5.1...0.5.2
 [0.5.3]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.5.2...0.5.3
+[0.5.4]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.5.3...0.5.4
+[0.5.5]: https://foss.heptapod.net/fluiddyn/fluidimage/-/compare/0.5.4...0.5.5

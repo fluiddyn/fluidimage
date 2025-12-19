@@ -14,7 +14,7 @@ fluidimage/_hg_rev.py
 .venv
 .nox
 .pixi
-
+.python-version
 .pdm-python
 
 *.swp
