@@ -321,7 +321,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/python-fastjsonschema-2.21.2-pyhe01879c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/python-tzdata-2025.3-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/python_abi-3.13-8_cp313.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/pythran-0.18.1-pyha804496_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/pythran-0.18.0-pyha804496_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pytz-2025.2-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/pywavelets-1.9.0-py313h29aa505_2.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/pyyaml-6.0.3-py313h3dea7bd_0.conda
@@ -687,7 +687,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/python-fastjsonschema-2.21.2-pyhe01879c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/python-tzdata-2025.3-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/python_abi-3.13-8_cp313.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/pythran-0.18.1-pyh534df25_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/pythran-0.18.0-pyh534df25_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pytz-2025.2-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/pywavelets-1.9.0-py313h0f4b8c3_2.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/pyyaml-6.0.3-py313h0f4d31d_0.conda
@@ -1030,7 +1030,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/python-fastjsonschema-2.21.2-pyhe01879c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/python-tzdata-2025.3-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/python_abi-3.13-8_cp313.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/pythran-0.18.1-pyh534df25_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/pythran-0.18.0-pyh534df25_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pytz-2025.2-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/pywavelets-1.9.0-py313hc577518_2.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/pyyaml-6.0.3-py313h7d74516_0.conda
@@ -1339,7 +1339,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/python-fastjsonschema-2.21.2-pyhe01879c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/python-tzdata-2025.3-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/python_abi-3.13-8_cp313.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/pythran-0.18.1-pyh7428d3b_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/pythran-0.18.0-pyh7428d3b_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pytz-2025.2-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/pywavelets-1.9.0-py313h0591002_2.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/pywin32-311-py313h40c08fc_1.conda
@@ -13161,9 +13161,9 @@ packages:
   license_family: BSD
   size: 7002
   timestamp: 1752805902938
-- conda: https://conda.anaconda.org/conda-forge/noarch/pythran-0.18.1-pyh534df25_0.conda
-  sha256: 1728debd3461073a3a379ea70744435bfa003b2d7cc31c0b04101cdf89853519
-  md5: 4a1476a62a7dd7670b54466410459eb0
+- conda: https://conda.anaconda.org/conda-forge/noarch/pythran-0.18.0-pyh534df25_0.conda
+  sha256: c2af713a206946dc8db7a7d93a77c2399c75022fdc103cdc3d3ad0163edef5ff
+  md5: 25d89b67bbbf5125b1e611cb8470de8c
   depends:
   - __osx
   - beniget 0.4.*
@@ -13173,14 +13173,14 @@ packages:
   - gast 0.6.*
   - numpy
   - ply >=3.4
-  - python >=3.10
+  - python >=3.9
   license: BSD-3-Clause
   license_family: BSD
-  size: 1995582
-  timestamp: 1763247248238
-- conda: https://conda.anaconda.org/conda-forge/noarch/pythran-0.18.1-pyh7428d3b_0.conda
-  sha256: 654a2312c3d1d9e34dcfea41432a1817ce3ed2759788706aa3bc91235bc82b1b
-  md5: 9bde2473be1d23a2608b4708e81f2fef
+  size: 1979959
+  timestamp: 1751848126496
+- conda: https://conda.anaconda.org/conda-forge/noarch/pythran-0.18.0-pyh7428d3b_0.conda
+  sha256: ca05b7b3832cc7461f8a0a1eff62525c355ab5a46104460d9c5296c8b2040a59
+  md5: 99a85004fd039f99ddffde2c8d7e3ccf
   depends:
   - __win
   - beniget 0.4.*
@@ -13190,14 +13190,14 @@ packages:
   - gast 0.6.*
   - numpy
   - ply >=3.4
-  - python >=3.10
+  - python >=3.9
   license: BSD-3-Clause
   license_family: BSD
-  size: 1960865
-  timestamp: 1763247182810
-- conda: https://conda.anaconda.org/conda-forge/noarch/pythran-0.18.1-pyha804496_0.conda
-  sha256: eee4976ae08f04bc567f898cf3c9f0445143d37fbaf9d959003de543015c8e8c
-  md5: e10211bfdcc54cd8ef935149f447ca44
+  size: 1946637
+  timestamp: 1751848462312
+- conda: https://conda.anaconda.org/conda-forge/noarch/pythran-0.18.0-pyha804496_0.conda
+  sha256: 6d92a1a1f8e562d87b97ff5d8a36e9bf92842c1f083108060d2a2702eb17a631
+  md5: 3a582dd29584bb7a9ab474de7bf53052
   depends:
   - __linux
   - beniget 0.4.*
@@ -13207,11 +13207,11 @@ packages:
   - gxx
   - numpy
   - ply >=3.4
-  - python >=3.10
+  - python >=3.9
   license: BSD-3-Clause
   license_family: BSD
-  size: 1975346
-  timestamp: 1763246950084
+  size: 1958677
+  timestamp: 1751847958848
 - conda: https://conda.anaconda.org/conda-forge/noarch/pytz-2025.2-pyhd8ed1ab_0.conda
   sha256: 8d2a8bf110cc1fc3df6904091dead158ba3e614d8402a83e51ed3a8aa93cdeb0
   md5: bc8e3267d44011051f2eb14d22fb0960

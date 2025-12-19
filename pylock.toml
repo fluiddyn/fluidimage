@@ -11,6 +11,25 @@ default-groups = ["default"]
 created-by = "pdm"
 
 [[packages]]
+name = "pythran"
+version = "0.18.0"
+requires-python = ">=3.7"
+sdist = {name = "pythran-0.18.0.tar.gz", url = "https://files.pythonhosted.org/packages/94/0a/95a72f09f25dae48f41e367959075ed4c7a0ff02dd3f54eec111501d648a/pythran-0.18.0.tar.gz", hashes = {sha256 = "5c003e8cbedf6dbb68c2869c49fc110ce8b5e8982993078a4a819f1dadc4fc6a"}}
+wheels = [
+    {name = "pythran-0.18.0-py3-none-any.whl",url = "https://files.pythonhosted.org/packages/a2/49/c5c72ebb49edf56bb06d3b805870cf6598565461670d88d292085ac96bfe/pythran-0.18.0-py3-none-any.whl",hashes = {sha256 = "405ecf2100d4926d1a15640c36bd1b19a560386653d0ee4d5234f9421ef4034b"}},
+]
+marker = "\"build\" in dependency_groups"
+
+[packages.tool.pdm]
+dependencies = [
+    "ply>=3.4",
+    "setuptools",
+    "gast~=0.6.0",
+    "numpy",
+    "beniget~=0.4.0",
+]
+
+[[packages]]
 name = "transonic"
 version = "0.8.0"
 requires-python = ">=3.11"
@@ -212,25 +231,6 @@ marker = "\"default\" in dependency_groups"
 [packages.tool.pdm]
 dependencies = [
     "numpy>=1.20",
-]
-
-[[packages]]
-name = "pythran"
-version = "0.18.1"
-requires-python = ">=3.7"
-sdist = {name = "pythran-0.18.1.tar.gz", url = "https://files.pythonhosted.org/packages/d4/84/17c4c44a24f5ec709991e603e601bf316d09c4fe915fbe348c689dede998/pythran-0.18.1.tar.gz", hashes = {sha256 = "8803ed948bf841a11bbbb10472a8ff6ea24ebd70e67c3f77b77be3db900eccfe"}}
-wheels = [
-    {name = "pythran-0.18.1-py3-none-any.whl",url = "https://files.pythonhosted.org/packages/2d/25/d608f4a0a4bc3dfad40af2cdb5b92d16b907c3e0a29ff0ab6003740c63ea/pythran-0.18.1-py3-none-any.whl",hashes = {sha256 = "e1d811a5843d1881f8adcc3944fe3b84c7317ebf4530617829c19c9836f18b49"}},
-]
-marker = "\"build\" in dependency_groups"
-
-[packages.tool.pdm]
-dependencies = [
-    "ply>=3.4",
-    "setuptools",
-    "gast~=0.6.0",
-    "numpy",
-    "beniget~=0.4.0",
 ]
 
 [[packages]]
@@ -5075,7 +5075,7 @@ marker = "\"dev-doc\" in dependency_groups"
 dependencies = []
 
 [tool.pdm]
-hashes = {sha256 = "5bd1adf78111645d2ef828fb231c10fd5bda6f4cc25cabbaf11187415bcc6ef0"}
+hashes = {sha256 = "eab0c7af8c3aa93b9ce2687e4d67332d10ff82accc7e34a92e9bb64960d3bbe5"}
 strategy = ["inherit_metadata", "static_urls"]
 
 [[tool.pdm.targets]]
