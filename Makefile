@@ -4,6 +4,7 @@
 develop: sync
 
 sync:
+	pdm sync --no-self
 	pdm sync --clean -v
 
 lock:
