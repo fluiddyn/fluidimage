@@ -206,7 +206,7 @@ def zenodo_upload(session):
     version = _get_version_from_pyproject()
     last_tag = _get_last_tag(session)
 
-    assert version == last_tag
+    assert version == last_tag, (version, last_tag)
 
     now = datetime.now()
     str_date = f"{now.year}-{now.month}-{now.day}"
