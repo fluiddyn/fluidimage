@@ -42,7 +42,7 @@ Cloud](https://www.clever-cloud.com) for providing <https://foss.heptapod.net>!
 
 ## Installing from the repository
 
-We describe few methods to install Fluidsim from source. Most developers should adopt
+We describe few methods to install Fluidimage from source. Most developers should adopt
 [the method using PDM](#setup-dev-env).
 
 ### Simple installation from source with Pip
