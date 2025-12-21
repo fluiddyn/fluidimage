@@ -11,25 +11,6 @@ default-groups = ["default"]
 created-by = "pdm"
 
 [[packages]]
-name = "pythran"
-version = "0.18.0"
-requires-python = ">=3.7"
-sdist = {name = "pythran-0.18.0.tar.gz", url = "https://files.pythonhosted.org/packages/94/0a/95a72f09f25dae48f41e367959075ed4c7a0ff02dd3f54eec111501d648a/pythran-0.18.0.tar.gz", hashes = {sha256 = "5c003e8cbedf6dbb68c2869c49fc110ce8b5e8982993078a4a819f1dadc4fc6a"}}
-wheels = [
-    {name = "pythran-0.18.0-py3-none-any.whl",url = "https://files.pythonhosted.org/packages/a2/49/c5c72ebb49edf56bb06d3b805870cf6598565461670d88d292085ac96bfe/pythran-0.18.0-py3-none-any.whl",hashes = {sha256 = "405ecf2100d4926d1a15640c36bd1b19a560386653d0ee4d5234f9421ef4034b"}},
-]
-marker = "\"build\" in dependency_groups"
-
-[packages.tool.pdm]
-dependencies = [
-    "ply>=3.4",
-    "setuptools",
-    "gast~=0.6.0",
-    "numpy",
-    "beniget~=0.4.0",
-]
-
-[[packages]]
 name = "transonic"
 version = "0.8.0"
 requires-python = ">=3.11"
@@ -234,6 +215,25 @@ dependencies = [
 ]
 
 [[packages]]
+name = "pythran"
+version = "0.18.1"
+requires-python = ">=3.7"
+sdist = {name = "pythran-0.18.1.tar.gz", url = "https://files.pythonhosted.org/packages/d4/84/17c4c44a24f5ec709991e603e601bf316d09c4fe915fbe348c689dede998/pythran-0.18.1.tar.gz", hashes = {sha256 = "8803ed948bf841a11bbbb10472a8ff6ea24ebd70e67c3f77b77be3db900eccfe"}}
+wheels = [
+    {name = "pythran-0.18.1-py3-none-any.whl",url = "https://files.pythonhosted.org/packages/2d/25/d608f4a0a4bc3dfad40af2cdb5b92d16b907c3e0a29ff0ab6003740c63ea/pythran-0.18.1-py3-none-any.whl",hashes = {sha256 = "e1d811a5843d1881f8adcc3944fe3b84c7317ebf4530617829c19c9836f18b49"}},
+]
+marker = "\"build\" in dependency_groups"
+
+[packages.tool.pdm]
+dependencies = [
+    "ply>=3.4",
+    "setuptools",
+    "gast~=0.6.0",
+    "numpy",
+    "beniget~=0.4.0",
+]
+
+[[packages]]
 name = "rich"
 version = "14.2.0"
 requires-python = ">=3.8.0"
@@ -251,26 +251,58 @@ dependencies = [
 
 [[packages]]
 name = "scikit-image"
-version = "0.25.2"
-requires-python = ">=3.10"
-sdist = {name = "scikit_image-0.25.2.tar.gz", url = "https://files.pythonhosted.org/packages/c7/a8/3c0f256012b93dd2cb6fda9245e9f4bff7dc0486880b248005f15ea2255e/scikit_image-0.25.2.tar.gz", hashes = {sha256 = "e5a37e6cd4d0c018a7a55b9d601357e3382826d3888c10d0213fc63bff977dde"}}
+version = "0.26.0"
+requires-python = ">=3.11"
+sdist = {name = "scikit_image-0.26.0.tar.gz", url = "https://files.pythonhosted.org/packages/a1/b4/2528bb43c67d48053a7a649a9666432dc307d66ba02e3a6d5c40f46655df/scikit_image-0.26.0.tar.gz", hashes = {sha256 = "f5f970ab04efad85c24714321fcc91613fcb64ef2a892a13167df2f3e59199fa"}}
 wheels = [
-    {name = "scikit_image-0.25.2-cp313-cp313-macosx_10_13_x86_64.whl",url = "https://files.pythonhosted.org/packages/e6/7c/9814dd1c637f7a0e44342985a76f95a55dd04be60154247679fd96c7169f/scikit_image-0.25.2-cp313-cp313-macosx_10_13_x86_64.whl",hashes = {sha256 = "7efa888130f6c548ec0439b1a7ed7295bc10105458a421e9bf739b457730b6da"}},
-    {name = "scikit_image-0.25.2-cp313-cp313-macosx_12_0_arm64.whl",url = "https://files.pythonhosted.org/packages/84/06/66a2e7661d6f526740c309e9717d3bd07b473661d5cdddef4dd978edab25/scikit_image-0.25.2-cp313-cp313-macosx_12_0_arm64.whl",hashes = {sha256 = "dd8011efe69c3641920614d550f5505f83658fe33581e49bed86feab43a180fc"}},
-    {name = "scikit_image-0.25.2-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",url = "https://files.pythonhosted.org/packages/4e/63/3368902ed79305f74c2ca8c297dfeb4307269cbe6402412668e322837143/scikit_image-0.25.2-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",hashes = {sha256 = "28182a9d3e2ce3c2e251383bdda68f8d88d9fff1a3ebe1eb61206595c9773341"}},
-    {name = "scikit_image-0.25.2-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",url = "https://files.pythonhosted.org/packages/cd/9b/c3da56a145f52cd61a68b8465d6a29d9503bc45bc993bb45e84371c97d94/scikit_image-0.25.2-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",hashes = {sha256 = "b8abd3c805ce6944b941cfed0406d88faeb19bab3ed3d4b50187af55cf24d147"}},
-    {name = "scikit_image-0.25.2-cp313-cp313-win_amd64.whl",url = "https://files.pythonhosted.org/packages/8a/97/5fcf332e1753831abb99a2525180d3fb0d70918d461ebda9873f66dcc12f/scikit_image-0.25.2-cp313-cp313-win_amd64.whl",hashes = {sha256 = "64785a8acefee460ec49a354706db0b09d1f325674107d7fa3eadb663fb56d6f"}},
-    {name = "scikit_image-0.25.2-cp313-cp313t-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",url = "https://files.pythonhosted.org/packages/10/cc/75e9f17e3670b5ed93c32456fda823333c6279b144cd93e2c03aa06aa472/scikit_image-0.25.2-cp313-cp313t-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",hashes = {sha256 = "330d061bd107d12f8d68f1d611ae27b3b813b8cdb0300a71d07b1379178dd4cd"}},
-    {name = "scikit_image-0.25.2-cp312-cp312-macosx_10_13_x86_64.whl",url = "https://files.pythonhosted.org/packages/35/8c/5df82881284459f6eec796a5ac2a0a304bb3384eec2e73f35cfdfcfbf20c/scikit_image-0.25.2-cp312-cp312-macosx_10_13_x86_64.whl",hashes = {sha256 = "8db8dd03663112783221bf01ccfc9512d1cc50ac9b5b0fe8f4023967564719fb"}},
-    {name = "scikit_image-0.25.2-cp312-cp312-macosx_12_0_arm64.whl",url = "https://files.pythonhosted.org/packages/ce/e6/93bebe1abcdce9513ffec01d8af02528b4c41fb3c1e46336d70b9ed4ef0d/scikit_image-0.25.2-cp312-cp312-macosx_12_0_arm64.whl",hashes = {sha256 = "483bd8cc10c3d8a7a37fae36dfa5b21e239bd4ee121d91cad1f81bba10cfb0ed"}},
-    {name = "scikit_image-0.25.2-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",url = "https://files.pythonhosted.org/packages/53/4b/eda616e33f67129e5979a9eb33c710013caa3aa8a921991e6cc0b22cea33/scikit_image-0.25.2-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",hashes = {sha256 = "9d1e80107bcf2bf1291acfc0bf0425dceb8890abe9f38d8e94e23497cbf7ee0d"}},
-    {name = "scikit_image-0.25.2-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",url = "https://files.pythonhosted.org/packages/6b/b5/b75527c0f9532dd8a93e8e7cd8e62e547b9f207d4c11e24f0006e8646b36/scikit_image-0.25.2-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",hashes = {sha256 = "a17e17eb8562660cc0d31bb55643a4da996a81944b82c54805c91b3fe66f4824"}},
-    {name = "scikit_image-0.25.2-cp312-cp312-win_amd64.whl",url = "https://files.pythonhosted.org/packages/34/e3/49beb08ebccda3c21e871b607c1cb2f258c3fa0d2f609fed0a5ba741b92d/scikit_image-0.25.2-cp312-cp312-win_amd64.whl",hashes = {sha256 = "bdd2b8c1de0849964dbc54037f36b4e9420157e67e45a8709a80d727f52c7da2"}},
-    {name = "scikit_image-0.25.2-cp311-cp311-macosx_10_9_x86_64.whl",url = "https://files.pythonhosted.org/packages/c4/97/3051c68b782ee3f1fb7f8f5bb7d535cf8cb92e8aae18fa9c1cdf7e15150d/scikit_image-0.25.2-cp311-cp311-macosx_10_9_x86_64.whl",hashes = {sha256 = "f4bac9196fb80d37567316581c6060763b0f4893d3aca34a9ede3825bc035b17"}},
-    {name = "scikit_image-0.25.2-cp311-cp311-macosx_12_0_arm64.whl",url = "https://files.pythonhosted.org/packages/19/23/257fc696c562639826065514d551b7b9b969520bd902c3a8e2fcff5b9e17/scikit_image-0.25.2-cp311-cp311-macosx_12_0_arm64.whl",hashes = {sha256 = "d989d64ff92e0c6c0f2018c7495a5b20e2451839299a018e0e5108b2680f71e0"}},
-    {name = "scikit_image-0.25.2-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",url = "https://files.pythonhosted.org/packages/ef/14/0c4a02cb27ca8b1e836886b9ec7c9149de03053650e9e2ed0625f248dd92/scikit_image-0.25.2-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",hashes = {sha256 = "b2cfc96b27afe9a05bc92f8c6235321d3a66499995675b27415e0d0c76625173"}},
-    {name = "scikit_image-0.25.2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",url = "https://files.pythonhosted.org/packages/dd/9b/9fb556463a34d9842491d72a421942c8baff4281025859c84fcdb5e7e602/scikit_image-0.25.2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",hashes = {sha256 = "24cc986e1f4187a12aa319f777b36008764e856e5013666a4a83f8df083c2641"}},
-    {name = "scikit_image-0.25.2-cp311-cp311-win_amd64.whl",url = "https://files.pythonhosted.org/packages/de/ec/b57c500ee85885df5f2188f8bb70398481393a69de44a00d6f1d055f103c/scikit_image-0.25.2-cp311-cp311-win_amd64.whl",hashes = {sha256 = "b4f6b61fc2db6340696afe3db6b26e0356911529f5f6aee8c322aa5157490c9b"}},
+    {name = "scikit_image-0.26.0-cp314-cp314-macosx_10_15_x86_64.whl",url = "https://files.pythonhosted.org/packages/51/44/6b744f92b37ae2833fd423cce8f806d2368859ec325a699dc30389e090b9/scikit_image-0.26.0-cp314-cp314-macosx_10_15_x86_64.whl",hashes = {sha256 = "63af3d3a26125f796f01052052f86806da5b5e54c6abef152edb752683075a9c"}},
+    {name = "scikit_image-0.26.0-cp314-cp314-macosx_11_0_arm64.whl",url = "https://files.pythonhosted.org/packages/40/f5/83590d9355191f86ac663420fec741b82cc547a4afe7c4c1d986bf46e4db/scikit_image-0.26.0-cp314-cp314-macosx_11_0_arm64.whl",hashes = {sha256 = "ce00600cd70d4562ed59f80523e18cdcc1fae0e10676498a01f73c255774aefd"}},
+    {name = "scikit_image-0.26.0-cp314-cp314-manylinux_2_24_aarch64.manylinux_2_28_aarch64.whl",url = "https://files.pythonhosted.org/packages/72/48/253e7cf5aee6190459fe136c614e2cbccc562deceb4af96e0863f1b8ee29/scikit_image-0.26.0-cp314-cp314-manylinux_2_24_aarch64.manylinux_2_28_aarch64.whl",hashes = {sha256 = "6381edf972b32e4f54085449afde64365a57316637496c1325a736987083e2ab"}},
+    {name = "scikit_image-0.26.0-cp314-cp314-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl",url = "https://files.pythonhosted.org/packages/73/c3/cec6a3cbaadfdcc02bd6ff02f3abfe09eaa7f4d4e0a525a1e3a3f4bce49c/scikit_image-0.26.0-cp314-cp314-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl",hashes = {sha256 = "c6624a76c6085218248154cc7e1500e6b488edcd9499004dd0d35040607d7505"}},
+    {name = "scikit_image-0.26.0-cp314-cp314-musllinux_1_2_aarch64.whl",url = "https://files.pythonhosted.org/packages/d4/0d/39a776f675d24164b3a267aa0db9f677a4cb20127660d8bf4fd7fef66817/scikit_image-0.26.0-cp314-cp314-musllinux_1_2_aarch64.whl",hashes = {sha256 = "f775f0e420faac9c2aa6757135f4eb468fb7b70e0b67fa77a5e79be3c30ee331"}},
+    {name = "scikit_image-0.26.0-cp314-cp314-musllinux_1_2_x86_64.whl",url = "https://files.pythonhosted.org/packages/ee/25/2514df226bbcedfe9b2caafa1ba7bc87231a0c339066981b182b08340e06/scikit_image-0.26.0-cp314-cp314-musllinux_1_2_x86_64.whl",hashes = {sha256 = "ede4d6d255cc5da9faeb2f9ba7fedbc990abbc652db429f40a16b22e770bb578"}},
+    {name = "scikit_image-0.26.0-cp314-cp314-win_amd64.whl",url = "https://files.pythonhosted.org/packages/8d/5b/0671dc91c0c79340c3fe202f0549c7d3681eb7640fe34ab68a5f090a7c7f/scikit_image-0.26.0-cp314-cp314-win_amd64.whl",hashes = {sha256 = "0660b83968c15293fd9135e8d860053ee19500d52bf55ca4fb09de595a1af650"}},
+    {name = "scikit_image-0.26.0-cp314-cp314-win_arm64.whl",url = "https://files.pythonhosted.org/packages/65/08/7c4cb59f91721f3de07719085212a0b3962e3e3f2d1818cbac4eeb1ea53e/scikit_image-0.26.0-cp314-cp314-win_arm64.whl",hashes = {sha256 = "b8d14d3181c21c11170477a42542c1addc7072a90b986675a71266ad17abc37f"}},
+    {name = "scikit_image-0.26.0-cp314-cp314t-macosx_10_15_x86_64.whl",url = "https://files.pythonhosted.org/packages/49/41/65c4258137acef3d73cb561ac55512eacd7b30bb4f4a11474cad526bc5db/scikit_image-0.26.0-cp314-cp314t-macosx_10_15_x86_64.whl",hashes = {sha256 = "cde0bbd57e6795eba83cb10f71a677f7239271121dc950bc060482834a668ad1"}},
+    {name = "scikit_image-0.26.0-cp314-cp314t-macosx_11_0_arm64.whl",url = "https://files.pythonhosted.org/packages/e7/32/76971f8727b87f1420a962406388a50e26667c31756126444baf6668f559/scikit_image-0.26.0-cp314-cp314t-macosx_11_0_arm64.whl",hashes = {sha256 = "163e9afb5b879562b9aeda0dd45208a35316f26cc7a3aed54fd601604e5cf46f"}},
+    {name = "scikit_image-0.26.0-cp314-cp314t-manylinux_2_24_aarch64.manylinux_2_28_aarch64.whl",url = "https://files.pythonhosted.org/packages/37/0d/996febd39f757c40ee7b01cdb861867327e5c8e5f595a634e8201462d958/scikit_image-0.26.0-cp314-cp314t-manylinux_2_24_aarch64.manylinux_2_28_aarch64.whl",hashes = {sha256 = "724f79fd9b6cb6f4a37864fe09f81f9f5d5b9646b6868109e1b100d1a7019e59"}},
+    {name = "scikit_image-0.26.0-cp314-cp314t-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl",url = "https://files.pythonhosted.org/packages/48/b4/612d354f946c9600e7dea012723c11d47e8d455384e530f6daaaeb9bf62c/scikit_image-0.26.0-cp314-cp314t-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl",hashes = {sha256 = "3268f13310e6857508bd87202620df996199a016a1d281b309441d227c822394"}},
+    {name = "scikit_image-0.26.0-cp314-cp314t-musllinux_1_2_aarch64.whl",url = "https://files.pythonhosted.org/packages/0a/6e/26c00b466e06055a086de2c6e2145fe189ccdc9a1d11ccc7de020f2591ad/scikit_image-0.26.0-cp314-cp314t-musllinux_1_2_aarch64.whl",hashes = {sha256 = "fac96a1f9b06cd771cbbb3cd96c5332f36d4efd839b1d8b053f79e5887acde62"}},
+    {name = "scikit_image-0.26.0-cp314-cp314t-musllinux_1_2_x86_64.whl",url = "https://files.pythonhosted.org/packages/47/88/00a90402e1775634043c2a0af8a3c76ad450866d9fa444efcc43b553ba2d/scikit_image-0.26.0-cp314-cp314t-musllinux_1_2_x86_64.whl",hashes = {sha256 = "2c1e7bd342f43e7a97e571b3f03ba4c1293ea1a35c3f13f41efdc8a81c1dc8f2"}},
+    {name = "scikit_image-0.26.0-cp314-cp314t-win_amd64.whl",url = "https://files.pythonhosted.org/packages/da/ca/918d8d306bd43beacff3b835c6d96fac0ae64c0857092f068b88db531a7c/scikit_image-0.26.0-cp314-cp314t-win_amd64.whl",hashes = {sha256 = "b702c3bb115e1dcf4abf5297429b5c90f2189655888cbed14921f3d26f81d3a4"}},
+    {name = "scikit_image-0.26.0-cp314-cp314t-win_arm64.whl",url = "https://files.pythonhosted.org/packages/dc/cd/4da01329b5a8d47ff7ec3c99a2b02465a8017b186027590dc7425cee0b56/scikit_image-0.26.0-cp314-cp314t-win_arm64.whl",hashes = {sha256 = "0608aa4a9ec39e0843de10d60edb2785a30c1c47819b67866dd223ebd149acaf"}},
+    {name = "scikit_image-0.26.0-cp313-cp313-macosx_10_13_x86_64.whl",url = "https://files.pythonhosted.org/packages/4f/48/02357ffb2cca35640f33f2cfe054a4d6d5d7a229b88880a64f1e45c11f4e/scikit_image-0.26.0-cp313-cp313-macosx_10_13_x86_64.whl",hashes = {sha256 = "a2e852eccf41d2d322b8e60144e124802873a92b8d43a6f96331aa42888491c7"}},
+    {name = "scikit_image-0.26.0-cp313-cp313-macosx_11_0_arm64.whl",url = "https://files.pythonhosted.org/packages/67/b9/b792c577cea2c1e94cda83b135a656924fc57c428e8a6d302cd69aac1b60/scikit_image-0.26.0-cp313-cp313-macosx_11_0_arm64.whl",hashes = {sha256 = "98329aab3bc87db352b9887f64ce8cdb8e75f7c2daa19927f2e121b797b678d5"}},
+    {name = "scikit_image-0.26.0-cp313-cp313-manylinux_2_24_aarch64.manylinux_2_28_aarch64.whl",url = "https://files.pythonhosted.org/packages/07/a9/9564250dfd65cb20404a611016db52afc6268b2b371cd19c7538ea47580f/scikit_image-0.26.0-cp313-cp313-manylinux_2_24_aarch64.manylinux_2_28_aarch64.whl",hashes = {sha256 = "915bb3ba66455cf8adac00dc8fdf18a4cd29656aec7ddd38cb4dda90289a6f21"}},
+    {name = "scikit_image-0.26.0-cp313-cp313-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl",url = "https://files.pythonhosted.org/packages/a3/b8/0d8eeb5a9fd7d34ba84f8a55753a0a3e2b5b51b2a5a0ade648a8db4a62f7/scikit_image-0.26.0-cp313-cp313-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl",hashes = {sha256 = "b36ab5e778bf50af5ff386c3ac508027dc3aaeccf2161bdf96bde6848f44d21b"}},
+    {name = "scikit_image-0.26.0-cp313-cp313-musllinux_1_2_aarch64.whl",url = "https://files.pythonhosted.org/packages/2f/d6/91d8973584d4793d4c1a847d388e34ef1218d835eeddecfc9108d735b467/scikit_image-0.26.0-cp313-cp313-musllinux_1_2_aarch64.whl",hashes = {sha256 = "09bad6a5d5949c7896c8347424c4cca899f1d11668030e5548813ab9c2865dcb"}},
+    {name = "scikit_image-0.26.0-cp313-cp313-musllinux_1_2_x86_64.whl",url = "https://files.pythonhosted.org/packages/39/9a/7e15d8dc10d6bbf212195fb39bdeb7f226c46dd53f9c63c312e111e2e175/scikit_image-0.26.0-cp313-cp313-musllinux_1_2_x86_64.whl",hashes = {sha256 = "aeb14db1ed09ad4bee4ceb9e635547a8d5f3549be67fc6c768c7f923e027e6cd"}},
+    {name = "scikit_image-0.26.0-cp313-cp313-win_amd64.whl",url = "https://files.pythonhosted.org/packages/8f/58/2b11b933097bc427e42b4a8b15f7de8f24f2bac1fd2779d2aea1431b2c31/scikit_image-0.26.0-cp313-cp313-win_amd64.whl",hashes = {sha256 = "ac529eb9dbd5954f9aaa2e3fe9a3fd9661bfe24e134c688587d811a0233127f1"}},
+    {name = "scikit_image-0.26.0-cp313-cp313-win_arm64.whl",url = "https://files.pythonhosted.org/packages/ad/ec/96941474a18a04b69b6f6562a5bd79bd68049fa3728d3b350976eccb8b93/scikit_image-0.26.0-cp313-cp313-win_arm64.whl",hashes = {sha256 = "a2d211bc355f59725efdcae699b93b30348a19416cc9e017f7b2fb599faf7219"}},
+    {name = "scikit_image-0.26.0-cp313-cp313t-macosx_10_13_x86_64.whl",url = "https://files.pythonhosted.org/packages/03/e5/c1a9962b0cf1952f42d32b4a2e48eed520320dbc4d2ff0b981c6fa508b6b/scikit_image-0.26.0-cp313-cp313t-macosx_10_13_x86_64.whl",hashes = {sha256 = "9eefb4adad066da408a7601c4c24b07af3b472d90e08c3e7483d4e9e829d8c49"}},
+    {name = "scikit_image-0.26.0-cp313-cp313t-macosx_11_0_arm64.whl",url = "https://files.pythonhosted.org/packages/ae/97/c1a276a59ce8e4e24482d65c1a3940d69c6b3873279193b7ebd04e5ee56b/scikit_image-0.26.0-cp313-cp313t-macosx_11_0_arm64.whl",hashes = {sha256 = "6caec76e16c970c528d15d1c757363334d5cb3069f9cea93d2bead31820511f3"}},
+    {name = "scikit_image-0.26.0-cp313-cp313t-manylinux_2_24_aarch64.manylinux_2_28_aarch64.whl",url = "https://files.pythonhosted.org/packages/d4/4a/f1cbd1357caef6c7993f7efd514d6e53d8fd6f7fe01c4714d51614c53289/scikit_image-0.26.0-cp313-cp313t-manylinux_2_24_aarch64.manylinux_2_28_aarch64.whl",hashes = {sha256 = "a07200fe09b9d99fcdab959859fe0f7db8df6333d6204344425d476850ce3604"}},
+    {name = "scikit_image-0.26.0-cp313-cp313t-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl",url = "https://files.pythonhosted.org/packages/5b/6f/74d9fb87c5655bd64cf00b0c44dc3d6206d9002e5f6ba1c9aeb13236f6bf/scikit_image-0.26.0-cp313-cp313t-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl",hashes = {sha256 = "92242351bccf391fc5df2d1529d15470019496d2498d615beb68da85fe7fdf37"}},
+    {name = "scikit_image-0.26.0-cp313-cp313t-musllinux_1_2_aarch64.whl",url = "https://files.pythonhosted.org/packages/a7/73/faddc2413ae98d863f6fa2e3e14da4467dd38e788e1c23346cf1a2b06b97/scikit_image-0.26.0-cp313-cp313t-musllinux_1_2_aarch64.whl",hashes = {sha256 = "52c496f75a7e45844d951557f13c08c81487c6a1da2e3c9c8a39fcde958e02cc"}},
+    {name = "scikit_image-0.26.0-cp313-cp313t-musllinux_1_2_x86_64.whl",url = "https://files.pythonhosted.org/packages/02/94/9f46966fa042b5d57c8cd641045372b4e0df0047dd400e77ea9952674110/scikit_image-0.26.0-cp313-cp313t-musllinux_1_2_x86_64.whl",hashes = {sha256 = "20ef4a155e2e78b8ab973998e04d8a361d49d719e65412405f4dadd9155a61d9"}},
+    {name = "scikit_image-0.26.0-cp313-cp313t-win_amd64.whl",url = "https://files.pythonhosted.org/packages/5d/b4/2840fe38f10057f40b1c9f8fb98a187a370936bf144a4ac23452c5ef1baf/scikit_image-0.26.0-cp313-cp313t-win_amd64.whl",hashes = {sha256 = "c9087cf7d0e7f33ab5c46d2068d86d785e70b05400a891f73a13400f1e1faf6a"}},
+    {name = "scikit_image-0.26.0-cp313-cp313t-win_arm64.whl",url = "https://files.pythonhosted.org/packages/22/ba/73b6ca70796e71f83ab222690e35a79612f0117e5aaf167151b7d46f5f2c/scikit_image-0.26.0-cp313-cp313t-win_arm64.whl",hashes = {sha256 = "27d58bc8b2acd351f972c6508c1b557cfed80299826080a4d803dd29c51b707e"}},
+    {name = "scikit_image-0.26.0-cp312-cp312-macosx_10_13_x86_64.whl",url = "https://files.pythonhosted.org/packages/99/e8/e13757982264b33a1621628f86b587e9a73a13f5256dad49b19ba7dc9083/scikit_image-0.26.0-cp312-cp312-macosx_10_13_x86_64.whl",hashes = {sha256 = "d454b93a6fa770ac5ae2d33570f8e7a321bb80d29511ce4b6b78058ebe176e8c"}},
+    {name = "scikit_image-0.26.0-cp312-cp312-macosx_11_0_arm64.whl",url = "https://files.pythonhosted.org/packages/e3/be/f8dd17d0510f9911f9f17ba301f7455328bf13dae416560126d428de9568/scikit_image-0.26.0-cp312-cp312-macosx_11_0_arm64.whl",hashes = {sha256 = "3409e89d66eff5734cd2b672d1c48d2759360057e714e1d92a11df82c87cba37"}},
+    {name = "scikit_image-0.26.0-cp312-cp312-manylinux_2_24_aarch64.manylinux_2_28_aarch64.whl",url = "https://files.pythonhosted.org/packages/b3/2b/c70120a6880579fb42b91567ad79feb4772f7be72e8d52fec403a3dde0c6/scikit_image-0.26.0-cp312-cp312-manylinux_2_24_aarch64.manylinux_2_28_aarch64.whl",hashes = {sha256 = "4c717490cec9e276afb0438dd165b7c3072d6c416709cc0f9f5a4c1070d23a44"}},
+    {name = "scikit_image-0.26.0-cp312-cp312-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl",url = "https://files.pythonhosted.org/packages/f4/a2/70401a107d6d7466d64b466927e6b96fcefa99d57494b972608e2f8be50f/scikit_image-0.26.0-cp312-cp312-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl",hashes = {sha256 = "7df650e79031634ac90b11e64a9eedaf5a5e06fcd09bcd03a34be01745744466"}},
+    {name = "scikit_image-0.26.0-cp312-cp312-musllinux_1_2_aarch64.whl",url = "https://files.pythonhosted.org/packages/13/a5/48bdfd92794c5002d664e0910a349d0a1504671ef5ad358150f21643c79a/scikit_image-0.26.0-cp312-cp312-musllinux_1_2_aarch64.whl",hashes = {sha256 = "cefd85033e66d4ea35b525bb0937d7f42d4cdcfed2d1888e1570d5ce450d3932"}},
+    {name = "scikit_image-0.26.0-cp312-cp312-musllinux_1_2_x86_64.whl",url = "https://files.pythonhosted.org/packages/ee/b5/ac71694da92f5def5953ca99f18a10fe98eac2dd0a34079389b70b4d0394/scikit_image-0.26.0-cp312-cp312-musllinux_1_2_x86_64.whl",hashes = {sha256 = "3f5bf622d7c0435884e1e141ebbe4b2804e16b2dd23ae4c6183e2ea99233be70"}},
+    {name = "scikit_image-0.26.0-cp312-cp312-win_amd64.whl",url = "https://files.pythonhosted.org/packages/23/4d/a3cc1e96f080e253dad2251bfae7587cf2b7912bcd76fd43fd366ff35a87/scikit_image-0.26.0-cp312-cp312-win_amd64.whl",hashes = {sha256 = "abed017474593cd3056ae0fe948d07d0747b27a085e92df5474f4955dd65aec0"}},
+    {name = "scikit_image-0.26.0-cp312-cp312-win_arm64.whl",url = "https://files.pythonhosted.org/packages/35/8a/d1b8055f584acc937478abf4550d122936f420352422a1a625eef2c605d8/scikit_image-0.26.0-cp312-cp312-win_arm64.whl",hashes = {sha256 = "4d57e39ef67a95d26860c8caf9b14b8fb130f83b34c6656a77f191fa6d1d04d8"}},
+    {name = "scikit_image-0.26.0-cp311-cp311-macosx_10_9_x86_64.whl",url = "https://files.pythonhosted.org/packages/76/16/8a407688b607f86f81f8c649bf0d68a2a6d67375f18c2d660aba20f5b648/scikit_image-0.26.0-cp311-cp311-macosx_10_9_x86_64.whl",hashes = {sha256 = "b1ede33a0fb3731457eaf53af6361e73dd510f449dac437ab54573b26788baf0"}},
+    {name = "scikit_image-0.26.0-cp311-cp311-macosx_11_0_arm64.whl",url = "https://files.pythonhosted.org/packages/6b/f9/7efc088ececb6f6868fd4475e16cfafc11f242ce9ab5fc3557d78b5da0d4/scikit_image-0.26.0-cp311-cp311-macosx_11_0_arm64.whl",hashes = {sha256 = "7af7aa331c6846bd03fa28b164c18d0c3fd419dbb888fb05e958ac4257a78fdd"}},
+    {name = "scikit_image-0.26.0-cp311-cp311-manylinux_2_24_aarch64.manylinux_2_28_aarch64.whl",url = "https://files.pythonhosted.org/packages/9f/1e/bc7fb91fb5ff65ef42346c8b7ee8b09b04eabf89235ab7dbfdfd96cbd1ea/scikit_image-0.26.0-cp311-cp311-manylinux_2_24_aarch64.manylinux_2_28_aarch64.whl",hashes = {sha256 = "9ea6207d9e9d21c3f464efe733121c0504e494dbdc7728649ff3e23c3c5a4953"}},
+    {name = "scikit_image-0.26.0-cp311-cp311-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl",url = "https://files.pythonhosted.org/packages/a5/2a/e71c1a7d90e70da67b88ccc609bd6ae54798d5847369b15d3a8052232f9d/scikit_image-0.26.0-cp311-cp311-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl",hashes = {sha256 = "74aa5518ccea28121f57a95374581d3b979839adc25bb03f289b1bc9b99c58af"}},
+    {name = "scikit_image-0.26.0-cp311-cp311-musllinux_1_2_aarch64.whl",url = "https://files.pythonhosted.org/packages/d4/59/9637ee12c23726266b91296791465218973ce1ad3e4c56fc81e4d8e7d6e1/scikit_image-0.26.0-cp311-cp311-musllinux_1_2_aarch64.whl",hashes = {sha256 = "d5c244656de905e195a904e36dbc18585e06ecf67d90f0482cbde63d7f9ad59d"}},
+    {name = "scikit_image-0.26.0-cp311-cp311-musllinux_1_2_x86_64.whl",url = "https://files.pythonhosted.org/packages/e7/5c/a3e1e0860f9294663f540c117e4bf83d55e5b47c281d475cc06227e88411/scikit_image-0.26.0-cp311-cp311-musllinux_1_2_x86_64.whl",hashes = {sha256 = "21a818ee6ca2f2131b9e04d8eb7637b5c18773ebe7b399ad23dcc5afaa226d2d"}},
+    {name = "scikit_image-0.26.0-cp311-cp311-win_amd64.whl",url = "https://files.pythonhosted.org/packages/d3/c6/2eeacf173da041a9e388975f54e5c49df750757fcfc3ee293cdbbae1ea0a/scikit_image-0.26.0-cp311-cp311-win_amd64.whl",hashes = {sha256 = "9490360c8d3f9a7e85c8de87daf7c0c66507960cf4947bb9610d1751928721c7"}},
+    {name = "scikit_image-0.26.0-cp311-cp311-win_arm64.whl",url = "https://files.pythonhosted.org/packages/c3/a4/a852c4949b9058d585e762a66bf7e9a2cd3be4795cd940413dfbfbb0ce79/scikit_image-0.26.0-cp311-cp311-win_arm64.whl",hashes = {sha256 = "0baa0108d2d027f34d748e84e592b78acc23e965a5de0e4bb03cf371de5c0581"}},
 ]
 marker = "\"default\" in dependency_groups"
 
@@ -2985,18 +3017,17 @@ dependencies = []
 
 [[packages]]
 name = "importlib-metadata"
-version = "8.7.0"
+version = "8.7.1"
 requires-python = ">=3.9"
-sdist = {name = "importlib_metadata-8.7.0.tar.gz", url = "https://files.pythonhosted.org/packages/76/66/650a33bd90f786193e4de4b3ad86ea60b53c89b669a5c7be931fac31cdb0/importlib_metadata-8.7.0.tar.gz", hashes = {sha256 = "d13b81ad223b890aa16c5471f2ac3056cf76c5f10f82d6f9292f0b415f389000"}}
+sdist = {name = "importlib_metadata-8.7.1.tar.gz", url = "https://files.pythonhosted.org/packages/f3/49/3b30cad09e7771a4982d9975a8cbf64f00d4a1ececb53297f1d9a7be1b10/importlib_metadata-8.7.1.tar.gz", hashes = {sha256 = "49fef1ae6440c182052f407c8d34a68f72efc36db9ca90dc0113398f2fdde8bb"}}
 wheels = [
-    {name = "importlib_metadata-8.7.0-py3-none-any.whl",url = "https://files.pythonhosted.org/packages/20/b0/36bd937216ec521246249be3bf9855081de4c5e06a0c9b4219dbeda50373/importlib_metadata-8.7.0-py3-none-any.whl",hashes = {sha256 = "e5dd1551894c77868a30651cef00984d50e1002d06942a7101d34870c5f02afd"}},
+    {name = "importlib_metadata-8.7.1-py3-none-any.whl",url = "https://files.pythonhosted.org/packages/fa/5e/f8e9a1d23b9c20a551a8a02ea3637b4642e22c2626e3a13a9a29cdea99eb/importlib_metadata-8.7.1-py3-none-any.whl",hashes = {sha256 = "5a1f80bf1daa489495071efbb095d75a634cf28a8bc299581244063b53176151"}},
 ]
 marker = "\"default\" in dependency_groups or \"doc\" in dependency_groups"
 
 [packages.tool.pdm]
 dependencies = [
     "zipp>=3.20",
-    "typing-extensions>=3.6.4; python_version < \"3.8\"",
 ]
 
 [[packages]]
@@ -4005,11 +4036,11 @@ dependencies = []
 
 [[packages]]
 name = "nbclient"
-version = "0.10.2"
-requires-python = ">=3.9.0"
-sdist = {name = "nbclient-0.10.2.tar.gz", url = "https://files.pythonhosted.org/packages/87/66/7ffd18d58eae90d5721f9f39212327695b749e23ad44b3881744eaf4d9e8/nbclient-0.10.2.tar.gz", hashes = {sha256 = "90b7fc6b810630db87a6d0c2250b1f0ab4cf4d3c27a299b0cde78a4ed3fd9193"}}
+version = "0.10.3"
+requires-python = ">=3.10.0"
+sdist = {name = "nbclient-0.10.3.tar.gz", url = "https://files.pythonhosted.org/packages/8d/f3/1f6cf2ede4b026bc5f0b424cb41adf22f9c804e90a4dbd4fdb42291a35d5/nbclient-0.10.3.tar.gz", hashes = {sha256 = "0baf171ee246e3bb2391da0635e719f27dc77d99aef59e0b04dcb935ee04c575"}}
 wheels = [
-    {name = "nbclient-0.10.2-py3-none-any.whl",url = "https://files.pythonhosted.org/packages/34/6d/e7fa07f03a4a7b221d94b4d586edb754a9b0dc3c9e2c93353e9fa4e0d117/nbclient-0.10.2-py3-none-any.whl",hashes = {sha256 = "4ffee11e788b4a27fabeb7955547e4318a5298f34342a4bfd01f2e1faaeadc3d"}},
+    {name = "nbclient-0.10.3-py3-none-any.whl",url = "https://files.pythonhosted.org/packages/b2/77/0c73678f5260501a271fd7342bee5d639440f2e9e07d590f1100a056d87c/nbclient-0.10.3-py3-none-any.whl",hashes = {sha256 = "39e9bd403504dd2484dd0fd25235bb6a683ce8cd9873356e40d880696adc9e35"}},
 ]
 marker = "\"dev-doc\" in dependency_groups or \"doc\" in dependency_groups"
 
@@ -4017,7 +4048,7 @@ marker = "\"dev-doc\" in dependency_groups or \"doc\" in dependency_groups"
 dependencies = [
     "jupyter-client>=6.1.12",
     "jupyter-core!=5.0.*,>=4.12",
-    "nbformat>=5.1",
+    "nbformat>=5.1.3",
     "traitlets>=5.4",
 ]
 
@@ -4632,11 +4663,11 @@ dependencies = []
 
 [[packages]]
 name = "tifffile"
-version = "2025.12.12"
+version = "2025.12.20"
 requires-python = ">=3.11"
-sdist = {name = "tifffile-2025.12.12.tar.gz", url = "https://files.pythonhosted.org/packages/31/b9/4253513a66f0a836ec3a5104266cf73f7812bfbbcda9d87d8c0e93b28293/tifffile-2025.12.12.tar.gz", hashes = {sha256 = "97e11fd6b1d8dc971896a098c841d9cd4e6eb958ac040dd6fb8b332c3f7288b6"}}
+sdist = {name = "tifffile-2025.12.20.tar.gz", url = "https://files.pythonhosted.org/packages/f8/a6/85e8ecfd7cb4167f8bd17136b2d42cba296fbc08a247bba70d5747e2046a/tifffile-2025.12.20.tar.gz", hashes = {sha256 = "cb8a4fee327d15b3e3eeac80bbdd8a53b323c80473330bcfb99418ee4c1c827f"}}
 wheels = [
-    {name = "tifffile-2025.12.12-py3-none-any.whl",url = "https://files.pythonhosted.org/packages/d5/5c/e444e1b024a519e488326525f0c154396c6b16baff17e00623f2c21dfc42/tifffile-2025.12.12-py3-none-any.whl",hashes = {sha256 = "e3e3f1290ec6741ca248a5b5a997125209b5c2962f6bd9aef01ea9352c25d0ee"}},
+    {name = "tifffile-2025.12.20-py3-none-any.whl",url = "https://files.pythonhosted.org/packages/1b/fe/e59859aa1134fac065d36864752daf13215c98b379cb5d93f954dc0ec830/tifffile-2025.12.20-py3-none-any.whl",hashes = {sha256 = "bc0345a20675149353cfcb3f1c48d0a3654231ee26bd46beebaab4d2168feeb6"}},
 ]
 marker = "\"default\" in dependency_groups or \"all\" in extras or \"pims\" in extras"
 
@@ -5075,7 +5106,7 @@ marker = "\"dev-doc\" in dependency_groups"
 dependencies = []
 
 [tool.pdm]
-hashes = {sha256 = "eab0c7af8c3aa93b9ce2687e4d67332d10ff82accc7e34a92e9bb64960d3bbe5"}
+hashes = {sha256 = "5bd1adf78111645d2ef828fb231c10fd5bda6f4cc25cabbaf11187415bcc6ef0"}
 strategy = ["inherit_metadata", "static_urls"]
 
 [[tool.pdm.targets]]
