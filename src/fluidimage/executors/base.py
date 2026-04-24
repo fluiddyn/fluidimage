@@ -93,7 +93,7 @@ class ExecutorBase(ABC):
             while path_job_data.exists():
                 index += 1
                 unique_postfix = unique_postfix0 + str(index)
-                path_job_data = self.path_dir_result / f"log_{unique_postfix}"
+                path_job_data = self.path_dir_result / f"job_{unique_postfix}"
 
         self._unique_postfix = unique_postfix
         self.path_job_data = path_job_data
